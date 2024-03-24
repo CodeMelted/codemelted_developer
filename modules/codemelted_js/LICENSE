@@ -1,35 +1,3 @@
-<!--
-TITLE: CodeMelted - DEV | pwsh Module
-PUBLISH_DATE: 2024-03-23
-AUTHOR: Mark Shaffer
-KEYWORDS:
-DESCRIPTION:
--->
-<h1><img style="height: 35px;" src="header.png" /> CodeMelted - pwsh Module</h1>
-
-<mark>INTRODUCTION</mark>
-
-**Table of Contents**
-
-- [FEATURES](#features)
-- [GETTING STARTED](#getting-started)
-- [USAGE](#usage)
-- [LICENSE](#license)
-
-## FEATURES
-
-<mark>TBD</mark>
-
-## GETTING STARTED
-
-<mark>TBD</mark>
-
-## USAGE
-
-<mark>TBD</mark>
-
-## LICENSE
-
 MIT License
 
 Copyright (c) 2024 Mark Shaffer
