@@ -1,8 +1,14 @@
+<!--
+TITLE: TBD
+PUBLISH_DATE: 2024-03-23
+AUTHOR: Mark Shaffer
+KEYWORDS: TBD
+DESCRIPTION: TBD
+-->
 <center>
-<a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://cdn.codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a>
-</center><br />
-
-# Data Broker - Core Use Case
+  <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://cdn.codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
+</center>
+<h1><img style="height: 35px;" src="header.png" /> Data Broker - Core Use Case</h1>
 
 **Table of Contents**
 

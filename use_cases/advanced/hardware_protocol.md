@@ -1,16 +1,21 @@
+<!--
+TITLE: TBD
+PUBLISH_DATE: 2024-03-23
+AUTHOR: Mark Shaffer
+KEYWORDS: TBD
+DESCRIPTION: TBD
+-->
 <center>
-<a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://cdn.codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a>
-</center><br />
-
-# Hardware Protocol - Advanced Use Case
+  <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://cdn.codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
+</center>
+<h1><img style="height: 35px;" src="header.png" /> Hardware Protocol - Advanced Use Case</h1>
 
 **Table of Contents**
 
-- [Database Advanced Use Case](#database-advanced-use-case)
-  - [FUNCTIONAL DECOMPOSITION](#functional-decomposition)
-  - [DESIGN NOTES](#design-notes)
-  - [TEST NOTES](#test-notes)
-  - [REFERENCES](#references)
+- [FUNCTIONAL DECOMPOSITION](#functional-decomposition)
+- [DESIGN NOTES](#design-notes)
+- [TEST NOTES](#test-notes)
+- [REFERENCES](#references)
 
 ## FUNCTIONAL DECOMPOSITION
 

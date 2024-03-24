@@ -1,7 +1,14 @@
+<!--
+TITLE: CodeMelted - DEV | Module Design
+PUBLISH_DATE: 2024-03-23
+AUTHOR: Mark Shaffer
+KEYWORDS:
+DESCRIPTION: Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify by developing a set of cross platform modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project.  This allows a developer to maximize their productivity because regardless of the technology, they are learning a similar module API for their solution.
+-->
 <center>
     <img style="width: 100%; max-width: 375px;" src="https://cdn.codemelted.com/assets/images/logos/logo-developer-smaller.png" />
 </center>
-<h1><img style="height: 35px;" src="https://cdn.codemelted.com/assets/images/icons/design.png" /> CodeMelted - Module Design</h1>
+<h1><img style="height: 35px;" src="header.png" /> CodeMelted - Module Design</h1>
 
 "Write once, run anywhere (WORA)" was the famous slogan made by Sun Microsystems in 1995.  At the time, this technology allowed for easy full stack engineering allowing you to target dedicated workstations and on premise servers. So long as a Java Runtime Environment existed, you could run your code. Java was unable to keep to their slogan as web browsers became more advanced, mobile devices became ubiquitous, and companies no longer required dedicated servers.
 
@@ -77,6 +84,7 @@ flowchart TD
     app--Accesses-->hardware
     appUser[App User]--Uses-->app
 ```
+
 ### Core Use Cases
 
 <mark>TBD</mark>

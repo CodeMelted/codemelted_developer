@@ -249,7 +249,7 @@ class CAsyncIO {
 // [Audio Player Use Case] ====================================================
 // ============================================================================
 
-/// Identifies the source for the [CAudioPlayer.playSound] for a file playback.
+/// Identifies the source for the [CAudioPlayer.file] for a file playback.
 enum CAudioSource {
   /// A bundled asset with your application
   asset,
