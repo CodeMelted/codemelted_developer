@@ -84,6 +84,7 @@ function build([string[]]$params) {
         Write-Host
     }
 
+    # Builds the codemelted_cpp module.
     function codemelted_cpp {
         message "Now building codemelted_cpp module."
         Set-Location $PSScriptRoot/modules/codemelted_cpp
@@ -199,11 +200,55 @@ function build([string[]]$params) {
         message "codemelted_flutter module build completed."
     }
 
+    # Builds the codemelted_js module.
+    function codemelted_js {
+        message "Now building codemelted_js module"
+        Set-Location $PSScriptRoot/modules/codemelted_js
+        Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
+
+        message "Now Running Deno tests"
+        deno test --allow-env --allow-net --allow-read --allow-sys --allow-write --coverage=coverage codemelted_test.js
+        deno coverage coverage --lcov > coverage/lcov.info
+
+        if ($IsLinux -or $IsMacOS) {
+            genhtml -o coverage --ignore-errors unused --dark-mode coverage/lcov.info
+        } else {
+            $exists = Test-Path -Path $GEN_HTML_PERL_SCRIPT -PathType Leaf
+            if ($exists) {
+                perl $GEN_HTML_PERL_SCRIPT -o coverage coverage/lcov.info
+            } else {
+                Write-Host "WARNING: genhtml not installed for windows. Run " +
+                    "'choco install lcov' for pwsh terminal as Admin to install it."
+            }
+        }
+
+        message "Now generating the jsdoc"
+        if ($IsWindows) {
+            jsdoc --configure theme/jsdoc-win.json --verbose
+        } else {
+            jsdoc --configure theme/jsdoc-linux-mac.json --verbose
+        }
+        Move-Item -Path coverage -Destination docs -Force
+        Copy-Item -Path codemelted.js -Destination "docs" -Force
+        Copy-Item -Path *.png -Destination "docs" -Force
+        Copy-Item -Path README.md -Destination "docs" -Force
+
+        # Fix the title
+        [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
+        $htmlData = $htmlData.Replace("<title>Home</title>", "<title>CodeMelted - JS Module</title>")
+        $htmlData = $htmlData.Replace("<h1><img style=", "$htmlSdkHeader<h1><img style=")
+        $htmlData | Out-File docs/index.html -Force
+
+        Set-Location $PSScriptRoot
+        message "codemelted_js module build completed."
+    }
+
     # Main Exection
     switch($params[0]) {
         "--codemelted_cpp" { codemelted_cpp }
         "--codemelted_developer" { codemelted_developer }
         "--codemelted_flutter" { codemelted_flutter }
+        "--codemelted_js" { codemelted_js }
         default { Write-Host "ERROR: Invalid parameter specified." }
     }
 
