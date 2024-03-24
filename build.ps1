@@ -84,6 +84,34 @@ function build([string[]]$params) {
         Write-Host
     }
 
+    # Builds all project files for inclusion in the cdn.codemelted.com domain
+    # deployment.
+    function cdn {
+        # Build all the project static sdk sites.
+        codemelted_cpp
+        codemelted_developer
+        codemelted_flutter
+        codemelted_js
+        codemelted_pwsh
+        raspberry_pi
+
+        # Now go copy those static sdk sites.
+        Remove-Item -Path _dist -Recurse -Force -ErrorAction Ignore
+        New-Item -Path _dist -ItemType Directory -ErrorAction Ignore
+        New-Item -Path _dist/modules/codemelted_cpp -ItemType Directory -ErrorAction Ignore
+        New-Item -Path _dist/modules/codemelted_flutter -ItemType Directory -ErrorAction Ignore
+        New-Item -Path _dist/modules/codemelted_js -ItemType Directory -ErrorAction Ignore
+        New-Item -Path _dist/modules/codemelted_pwsh -ItemType Directory -ErrorAction Ignore
+        New-Item -Path _dist/raspberry_pi -ItemType Directory -ErrorAction Ignore
+
+        Copy-Item -Path docs/* -Destination _dist/ -Recurse
+        Copy-Item -Path modules/codemelted_cpp/docs/* -Destination _dist/modules/codemelted_cpp/ -Recurse
+        Copy-Item -Path modules/codemelted_flutter/docs/* -Destination _dist/modules/codemelted_flutter/ -Recurse
+        Copy-Item -Path modules/codemelted_js/docs/* -Destination _dist/modules/codemelted_js/ -Recurse
+        Copy-Item -Path modules/codemelted_pwsh/docs/* -Destination _dist/modules/codemelted_pwsh/ -Recurse
+        Copy-Item -Path raspberry_pi/docs/* -Destination _dist/raspberry_pi/ -Recurse
+    }
+
     # Builds the codemelted_cpp module.
     function codemelted_cpp {
         message "Now building codemelted_cpp module."
@@ -299,6 +327,7 @@ function build([string[]]$params) {
 
     # Main Exection
     switch($params[0]) {
+        "--cdn" { cdn }
         "--codemelted_cpp" { codemelted_cpp }
         "--codemelted_developer" { codemelted_developer }
         "--codemelted_flutter" { codemelted_flutter }
