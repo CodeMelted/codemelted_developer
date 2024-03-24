@@ -243,12 +243,68 @@ function build([string[]]$params) {
         message "codemelted_js module build completed."
     }
 
+    # Builds the codemelted_pwsh module.
+    function codemelted_pwsh {
+        message "Now building codemelted_pwsh module"
+
+        $mermaidScript = Get-Content assets/templates/mermaid.html -Raw
+        Set-Location $PSScriptRoot/modules/codemelted_pwsh
+        Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
+        New-Item -Path docs -ItemType Directory -ErrorAction Ignore
+
+        $readme = ConvertFrom-Markdown -Path README.md
+        $title = extract "TITLE:" $readme.Html
+        $keywords = extract "KEYWORDS:" $readme.Html
+        $description = extract "DESCRIPTION:" $readme.Html
+        $html = $htmlTemplate
+        $html = $html.Replace("[TITLE]", $title)
+        $html = $html.Replace("[DESCRIPTION]", $description)
+        $html = $html.Replace("[KEYWORDS]", $keywords)
+        $html = $html.Replace("[CONTENT]", $readme.Html)
+        $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
+        $html | Out-File docs/index.html -Force
+        Copy-Item -Path *.png -Destination docs/ -Force
+        Copy-Item -Path README.md -Destination docs/ -Force
+
+        Set-Location $PSScriptRoot
+        message "codemelted_pwsh module build completed."
+    }
+
+    # Builds the raspberry_pi module.
+    function raspberry_pi {
+        message "Now building raspberry_pi project"
+
+        $mermaidScript = Get-Content assets/templates/mermaid.html -Raw
+        Set-Location $PSScriptRoot/raspberry_pi
+        Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
+        New-Item -Path docs -ItemType Directory -ErrorAction Ignore
+
+        $readme = ConvertFrom-Markdown -Path README.md
+        $title = extract "TITLE:" $readme.Html
+        $keywords = extract "KEYWORDS:" $readme.Html
+        $description = extract "DESCRIPTION:" $readme.Html
+        $html = $htmlTemplate
+        $html = $html.Replace("[TITLE]", $title)
+        $html = $html.Replace("[DESCRIPTION]", $description)
+        $html = $html.Replace("[KEYWORDS]", $keywords)
+        $html = $html.Replace("[CONTENT]", $readme.Html)
+        $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
+        $html | Out-File docs/index.html -Force
+        Copy-Item -Path *.png -Destination docs/ -Force
+        Copy-Item -Path README.md -Destination docs/ -Force
+
+        Set-Location $PSScriptRoot
+        message "raspberry_pi project build completed."
+    }
+
     # Main Exection
     switch($params[0]) {
         "--codemelted_cpp" { codemelted_cpp }
         "--codemelted_developer" { codemelted_developer }
         "--codemelted_flutter" { codemelted_flutter }
         "--codemelted_js" { codemelted_js }
+        "--codemelted_pwsh" { codemelted_pwsh }
+        "--raspberry_pi" { raspberry_pi }
         default { Write-Host "ERROR: Invalid parameter specified." }
     }
 

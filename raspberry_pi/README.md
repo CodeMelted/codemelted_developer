@@ -2,7 +2,7 @@
 TITLE: CodeMelted - DEV | Raspberry Pi
 PUBLISH_DATE: 2024-03-23
 AUTHOR: Mark Shaffer
-KEYWORDS: TBD
+KEYWORDS: raspberry-pi,raspberry-pi-gps,raspberry-pi-camera,raspberry-pi4,raspberry-pi5
 DESCRIPTION: TBD
 -->
 <h1><img style="height: 35px;" src="header.png" /> CodeMelted - Raspberry Pi</h1>

@@ -2,8 +2,8 @@
 TITLE: CodeMelted - DEV | pwsh Module
 PUBLISH_DATE: 2024-03-23
 AUTHOR: Mark Shaffer
-KEYWORDS:
-DESCRIPTION:
+KEYWORDS: devops,terminal,devops-tools,linux-script,windows-scripts,macos-scripts,pwsh,pwsh-module
+DESCRIPTION: TBD
 -->
 <h1><img style="height: 35px;" src="header.png" /> CodeMelted - pwsh Module</h1>
 
