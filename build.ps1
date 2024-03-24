@@ -84,6 +84,23 @@ function build([string[]]$params) {
         Write-Host
     }
 
+    function codemelted_cpp {
+        message "Now building codemelted_cpp module."
+        Set-Location $PSScriptRoot/modules/codemelted_cpp
+        Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
+
+        message "Generating doxygen"
+        doxygen theme/doxygen.cfg
+        [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
+        $htmlData = $htmlData.Replace("<h1><img src=", "$htmlSdkHeader<h1><img src=")
+        $htmlData | Out-File docs/index.html -Force
+        Copy-Item -Path *.png -Destination docs/ -Force
+        Copy-Item -Path *.md -Destination docs/ -Force
+
+        Set-Location $PSScriptRoot
+        message "codemelted_cpp module build completed."
+    }
+
     # Transforms the README.md of this repo along with all the use_cases into
     # a static website for CDN deployment.
     function codemelted_developer {
@@ -137,7 +154,8 @@ function build([string[]]$params) {
         $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
         $html = $html.Replace(".md", ".html")
         $html | Out-File docs/index.html -Force
-        Copy-Item -Path *.png -Destination docs/
+        Copy-Item -Path *.png -Destination docs/ -Force
+        Copy-Item -Path README.md -Destination docs/ -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_develoepr build completed."
@@ -168,6 +186,7 @@ function build([string[]]$params) {
         dart doc --output "docs"
         Move-Item -Path coverage -Destination docs -Force
         Copy-Item -Path header.png -Destination docs -Force
+        Copy-Item -Path README.md -Destination docs -Force
 
         # Fix the title
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
@@ -182,6 +201,7 @@ function build([string[]]$params) {
 
     # Main Exection
     switch($params[0]) {
+        "--codemelted_cpp" { codemelted_cpp }
         "--codemelted_developer" { codemelted_developer }
         "--codemelted_flutter" { codemelted_flutter }
         default { Write-Host "ERROR: Invalid parameter specified." }

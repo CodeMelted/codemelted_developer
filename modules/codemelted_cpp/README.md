@@ -7,7 +7,7 @@ DESCRIPTION: TBD
 -->
 <h1><img style="height: 35px;" src="header.png" /> CodeMelted - C/C++ Module</h1>
 
-<mark>INTRODUCTION</mark>
+TBD.
 
 **Table of Contents**
 
@@ -18,15 +18,15 @@ DESCRIPTION: TBD
 
 ## FEATURES
 
-<mark>TBD</mark>
+TBD
 
 ## GETTING STARTED
 
-<mark>TBD</mark>
+TBD
 
 ## USAGE
 
-<mark>TBD</mark>
+TBD
 
 ## LICENSE
 
