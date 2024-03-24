@@ -1,8 +1,8 @@
 <!--
-TITLE: TBD
+TITLE: CodeMelted - DEV | Audio Player UI Use Case
 PUBLISH_DATE: 2024-03-23
 AUTHOR: Mark Shaffer
-KEYWORDS: TBD
+KEYWORDS: CodeMelted - DEV, Audio Player, UI Use Case
 DESCRIPTION: TBD
 -->
 <center>
@@ -12,11 +12,10 @@ DESCRIPTION: TBD
 
 **Table of Contents**
 
-- [Audio Player - User Interface Use Case](#audio-player---user-interface-use-case)
-  - [FUNCTIONAL DECOMPOSITION](#functional-decomposition)
-  - [DESIGN NOTES](#design-notes)
-  - [TEST NOTES](#test-notes)
-  - [REFERENCES](#references)
+- [FUNCTIONAL DECOMPOSITION](#functional-decomposition)
+- [DESIGN NOTES](#design-notes)
+- [TEST NOTES](#test-notes)
+- [REFERENCES](#references)
 
 ## FUNCTIONAL DECOMPOSITION
 

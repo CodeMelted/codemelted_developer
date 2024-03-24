@@ -1,8 +1,8 @@
 <!--
-TITLE: TBD
+TITLE: CodeMelted - DEV | Rest API Core Use Case
 PUBLISH_DATE: 2024-03-23
 AUTHOR: Mark Shaffer
-KEYWORDS: TBD
+KEYWORDS: CodeMelted - DEV, Rest API, Core Use Case
 DESCRIPTION: TBD
 -->
 <center>
@@ -12,11 +12,10 @@ DESCRIPTION: TBD
 
 **Table of Contents**
 
-- [Rest API - Core Use Case](#rest-api---core-use-case)
-  - [FUNCTIONAL DECOMPOSITION](#functional-decomposition)
-  - [DESIGN NOTES](#design-notes)
-  - [TEST NOTES](#test-notes)
-  - [REFERENCES](#references)
+- [FUNCTIONAL DECOMPOSITION](#functional-decomposition)
+- [DESIGN NOTES](#design-notes)
+- [TEST NOTES](#test-notes)
+- [REFERENCES](#references)
 
 ## FUNCTIONAL DECOMPOSITION
 

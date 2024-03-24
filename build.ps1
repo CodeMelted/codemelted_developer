@@ -96,9 +96,36 @@ function build([string[]]$params) {
         New-Item -Path docs/use_cases/core -ItemType Directory -ErrorAction Ignore
         New-Item -Path docs/use_cases/ui -ItemType Directory -ErrorAction Ignore
 
+        # Get the mermaid script to render diagrams
+        $mermaidScript = Get-Content assets/templates/mermaid.html -Raw
+
+        # Build each of the use case areas
+        $files = Get-ChildItem -Path $PSScriptRoot/use_cases/*/*.md
+        foreach ($file in $files) {
+            # Extract the information needed
+            $readme = ConvertFrom-Markdown -Path $file.FullName
+            $splitChar = $IsWindows ? "\" : "/"
+            $paths = $file.DirectoryName.Split($splitChar);
+            $pathName = $paths[$paths.Length - 2] + $splitChar + $paths[$paths.Length - 1]
+            $title = extract "TITLE:" $readme.Html
+            $keywords = extract "KEYWORDS:" $readme.Html
+            $description = extract "DESCRIPTION:" $readme.Html
+            $html = $htmlTemplate
+            $html = $html.Replace("[TITLE]", $title)
+            $html = $html.Replace("[DESCRIPTION]", $description)
+            $html = $html.Replace("[KEYWORDS]", $keywords)
+            $html = $html.Replace("[CONTENT]", $readme.Html)
+            $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
+            $html = $html.Replace("README.md", "index.html")
+            $htmlFilename = $file.Name.Replace(".md", ".html")
+            $html | Out-File docs/$pathName/$htmlFilename -Force
+        }
+        Copy-Item -Path use_cases/advanced/*.png -Destination docs/use_cases/advanced
+        Copy-Item -Path use_cases/core/*.png -Destination docs/use_cases/core
+        Copy-Item -Path use_cases/ui/*.png -Destination docs/use_cases/ui
+
         # Now build the main README.md
         $readme = ConvertFrom-Markdown -Path README.md
-        $mermaidScript = Get-Content assets/templates/mermaid.html -Raw
         $title = extract "TITLE:" $readme.Html
         $keywords = extract "KEYWORDS:" $readme.Html
         $description = extract "DESCRIPTION:" $readme.Html
