@@ -35,75 +35,43 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 
+import 'src/platform_none.dart'
+    if (dart.library.io) 'src/platform_io.dart'
+    if (dart.library.js) 'src/platform_web.dart';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:universal_html/html.dart';
-
-/// Identifies the version of the module based on the CodeMelted - Module
-/// design.
-const moduleVersion = "X.Y.Z-alpha [2024-02-15]";
+import 'package:pointer_interceptor/pointer_interceptor.dart';
+import 'package:universal_html/html.dart' as html;
+import 'package:universal_html/js.dart' as js;
+import 'package:universal_io/io.dart';
 
 // ============================================================================
-// [Async IO Use Case] ===========================================================
+// [Core Use Cases] ===========================================================
 // ============================================================================
+
+// ----------------------------------------------------------------------------
+// [Async IO] -----------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 /// The task to run as part of the [CAsyncTask] utility object. It defines the
 /// logic to run as part of the async call and possibly return a result.
-typedef CAsyncTask = dynamic Function([dynamic]);
+typedef CAsyncTaskFunction = dynamic Function([dynamic]);
 
-/// Utility class for handling async work. It provides a series of static
-/// methods for working within Flutter's async architecture. It object itself
-/// is returned for long living async tasks with the ability to post messages
-/// and terminate them when completed.
-class CAsyncIO {
-  // Member Fields:
-  late dynamic _asyncObj;
-  late SendPort? _sendPort;
-  late ReceivePort? _receivePort;
-
-  CAsyncIO._({
-    dynamic asyncObj,
-    SendPort? sendPort,
-    ReceivePort? receivePort,
-  }) {
-    _asyncObj = asyncObj;
-    _sendPort = sendPort;
-    _receivePort = receivePort;
-  }
-
-  /// Supports sending data to a dedicated isolate spawned via
-  /// [CAsyncIO.worker].
-  void postMessage([dynamic data]) {
-    if (_asyncObj is Worker) {
-      (_asyncObj as Worker).postMessage(data);
-      return;
-    }
-
-    // Isolate, send the data.
-    _sendPort!.send(data);
-  }
-
-  /// Supports the termination of long running async task spawned by
-  /// [CAsyncIO.interval] or [CAsyncIO.worker].
-  void terminate() {
-    if (_asyncObj is Timer) {
-      (_asyncObj as Timer).cancel();
-    } else if (_asyncObj is Isolate) {
-      (_asyncObj as Isolate).kill(priority: Isolate.immediate);
-      _sendPort = null;
-      _receivePort?.close();
-      _receivePort = null;
-    } else if (_asyncObj is Worker) {
-      (_asyncObj as Worker).terminate();
-    }
-  }
-
+/// Utility class for handling one off [CAsyncTaskFunction] work. It can be
+/// handled via [CAsyncTask.background] for spawning a background isolate
+/// (only available on native), [CAsyncTask.timeout] for spawning it on the
+/// main thread, or as a [CAsyncTask.interval] repeating task. You can also
+/// [CAsyncTask.sleep] a task.
+class CAsyncTask {
   /// Spawns a background isolate to run the specified task and if part of the
   /// task, return the result. Only available on desktop and mobile platforms.
   static Future<dynamic> background({
-    required CAsyncTask task,
+    required CAsyncTaskFunction task,
     dynamic data,
   }) async {
     assert(!kIsWeb, "This is only available on native platforms");
@@ -111,21 +79,15 @@ class CAsyncIO {
   }
 
   /// Spawns a Timer for executing a repeating task. It is canceled via the
-  /// [CAsyncIO.terminate] method.
-  static CAsyncIO interval({
-    required CAsyncTask task,
+  /// [Timer.cancel] method.
+  static Timer interval({
+    required CAsyncTaskFunction task,
     required int delay,
   }) {
     final timer = Timer.periodic(Duration(milliseconds: delay), (timer) {
       task();
     });
-    return CAsyncIO._(asyncObj: timer);
-  }
-
-  /// UNDER DEVELOPMENT - NOT IMPLEMENTED YET
-  static CAsyncIO process() {
-    assert(!kIsWeb, "CAsyncIO.process not available on web targets");
-    throw "NOT IMPLEMENTED YET";
+    return timer;
   }
 
   /// Provides the ability to await a specified number of milliseconds before
@@ -137,7 +99,7 @@ class CAsyncIO {
   /// Spawns a future task that can return a result when completed. Only
   /// executes the one time and cannot be canceled.
   static Future<dynamic> timeout({
-    required CAsyncTask task,
+    required CAsyncTaskFunction task,
     dynamic data,
     int delay = 0,
   }) async {
@@ -146,78 +108,63 @@ class CAsyncIO {
       () => task(data),
     );
   }
+}
 
-  /// Provides the ability to spawn a dedicated worker. The task represents
-  /// the background processor of the worker. The returned [CAsyncIO] wraps
-  /// either an Isolate (mobile, desktop) or a Worker (web). Call
-  /// [CAsyncIO.postMessage] to queue up data to be worked by the task.
-  /// Call [CAsyncIO.terminate] to destroy the worker. Errors processed within
-  /// the background will be received on the [CAsyncTask] onReceived as a
-  /// String.
-  static Future<CAsyncIO> worker({
-    CAsyncTask? task,
-    String? workerUrl,
-    required CAsyncTask onReceived,
-  }) async {
-    return !kIsWeb
-        ? await _buildIsolate(task!, onReceived)
-        : _buildWorker(workerUrl!, onReceived);
+/// Supports the receipt of data via the [CAsyncWorker] dedicated background
+/// FIFO queued processor.
+typedef CAsyncWorkerListener = void Function(dynamic);
+
+/// Creates a dedicated FIFO queued background worker for processing data
+/// off the main thread communicating those results via the
+/// [CAsyncWorkerListener].
+class CAsyncWorker {
+  // Member Fields:
+  late dynamic _asyncObj;
+
+  /// Constructor for the object.
+  CAsyncWorker._({
+    dynamic asyncObj,
+    SendPort? sendPort,
+    ReceivePort? receivePort,
+  }) {
+    _asyncObj = asyncObj;
   }
 
-  /// Helper method to build a dedicated worker Isolate.
-  static Future<CAsyncIO> _buildIsolate(
-    CAsyncTask task,
-    CAsyncTask onReceived,
-  ) async {
-    // Setup the receive port and spawn the isolate.
-    ReceivePort receive = ReceivePort();
-    var isolate = await Isolate.spawn<SendPort>((port) {
-      // TODO: Investigate an initialize to setup other object
-      //       within the isolate and access to the send port
-      //       to queue data for the listen.
-      ReceivePort receivePort = ReceivePort();
-      port.send(receivePort.sendPort);
-      receivePort.listen((data) async {
-        dynamic result;
-        try {
-          result = await task(data);
-        } catch (ex, st) {
-          CLogger.log(
-            level: CLogger.error,
-            data: ex.toString(),
-            st: st,
-          );
-          result = ex.toString();
-        }
-        port.send(result);
-      });
-    }, receive.sendPort);
+  /// Supports sending data specific to the background worker to process and
+  /// return the results via the [CAsyncWorkerListener].
+  void postMessage([dynamic data]) {
+    if (_asyncObj is html.Worker) {
+      (_asyncObj as html.Worker).postMessage(data);
+    }
+  }
 
-    // Now setup the receive listener.
-    SendPort? sendPort;
-    receive.listen((result) {
-      if (result is SendPort) {
-        sendPort = result;
-      } else {
-        onReceived(result);
-      }
-    });
-    await sleep(250);
+  /// Terminates this dedicated worker object making it no longer available.
+  void terminate() {
+    if (_asyncObj is html.Worker) {
+      (_asyncObj as html.Worker).terminate();
+    }
+  }
 
-    // Return the build async io object.
-    return CAsyncIO._(
-      asyncObj: isolate,
-      sendPort: sendPort,
-      receivePort: receive,
+  /// @nodoc
+  static CAsyncWorker process() {
+    assert(!kIsWeb, "CAsyncIO.process not available on web targets");
+    throw "NOT IMPLEMENTED YET";
+  }
+
+  /// Spawns a dedicated web worker written in JavaScript represented by the
+  /// specified url. This is only valid for the web target.
+  static CAsyncWorker webWorker({
+    required String url,
+    required CAsyncWorkerListener onReceived,
+  }) {
+    assert(
+      kIsWeb,
+      "CAsyncWorker.webWorker() is only available on the web target.",
     );
-  }
-
-  /// Helper method to build a dedicated web worker.
-  static CAsyncIO _buildWorker(String workerUrl, CAsyncTask onReceived) {
-    var worker = Worker(workerUrl);
+    var worker = html.Worker(url);
     worker.addEventListener(
       "message",
-      (event) => onReceived((event as MessageEvent).data),
+      (event) => onReceived((event as html.MessageEvent).data),
     );
     worker.addEventListener(
       "messageerror",
@@ -241,13 +188,416 @@ class CAsyncIO {
         onReceived(event.toString());
       },
     );
-    return CAsyncIO._(asyncObj: worker);
+    return CAsyncWorker._(asyncObj: worker);
   }
 }
 
+// ----------------------------------------------------------------------------
+// [Data Broker] --------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Defines an array definition to match JSON Array construct.
+typedef CArray = List<dynamic>;
+
+/// Provides helper methods for the CArray.
+extension CArrayExtension on CArray {
+  /// Converts the JSON object to a string returning null if it cannot
+  String? stringify() => jsonEncode(this);
+}
+
+/// Defines an object definition to match a valid JSON Object construct.
+typedef CObject = Map<String, dynamic>;
+
+/// Provides helper methods for the CObject
+extension CObjectExtension on CObject {
+  /// Converts the JSON object to a string returning null if it cannot.
+  String? stringify() => jsonEncode(this);
+}
+
+/// Provides a series of asXXX() conversion from a string data type and do non
+/// case sensitive compares.
+extension CStringExtension on String {
+  /// Will attempt to return an array object ir null if it cannot.
+  CArray? asArray() {
+    try {
+      return jsonDecode(this) as CArray?;
+    } catch (ex) {
+      return null;
+    }
+  }
+
+  /// Will attempt to convert to a bool from a series of strings that can
+  /// represent a true value.
+  bool asBool() {
+    List<String> trueStrings = [
+      "true",
+      "1",
+      "t",
+      "y",
+      "yes",
+      "yeah",
+      "yup",
+      "certainly",
+      "uh-huh"
+    ];
+    return trueStrings.contains(toLowerCase());
+  }
+
+  /// Will attempt to return a int from the string value or null if it cannot.
+  int? asInt() => int.tryParse(this);
+
+  /// Will attempt to return a double from the string value or null if it
+  /// cannot.
+  double? asDouble() => double.tryParse(this);
+
+  /// Will attempt to return Map<String, dynamic> object or null if it cannot.
+  CObject? asObject() {
+    try {
+      return jsonDecode(this) as CObject?;
+    } catch (ex) {
+      return null;
+    }
+  }
+
+  /// Determines if a string is contained within this string.
+  bool containsIgnoreCase(String v) => toLowerCase().contains(v.toLowerCase());
+
+  /// Determines if a string is equal to another ignoring case.
+  bool equalsIgnoreCase(String v) => toLowerCase() == v.toLowerCase();
+}
+
+/// Utility object to validate, serialize, and deserialize JSON data. This
+/// works in conjunction with the [CStringExtension]. Utilize those extensions
+/// on string to convert between basic data types.
+class CDataBroker {
+  /// Determines if a [CObject] has a given property contained within.
+  static bool checkHasProperty(CObject obj, String key) => obj.containsKey(key);
+
+  /// Determines if the variable is of the expected type.
+  static bool checkType<T>(dynamic v) => v is T;
+
+  /// Determines if the data type is a valid URL.
+  static bool checkValidURL(String v) => Uri.tryParse(v) != null;
+
+  /// Will convert data into a JSON [CObject] or return null if the decode
+  /// could not be achieved.
+  static CObject? jsonParse(String data) => data.asObject();
+
+  /// Will encode the JSON [CObject] into a string or null if the encode
+  /// could not be achieved.
+  static String? jsonStringify(CObject data) => data.stringify();
+
+  /// Same as [checkHasProperty] but throws an exception if the key is not
+  /// found.
+  static void tryHasProperty(CObject obj, String key) {
+    if (!checkHasProperty(obj, key)) {
+      throw "obj does not contain '$key' key";
+    }
+  }
+
+  /// Same as [checkType] but throws an exception if not of the expected
+  /// type.
+  static void tryType<T>(dynamic v) {
+    if (!checkType<T>(v)) {
+      throw "variable was not of type '$T'";
+    }
+  }
+
+  /// Same as [checkValidURL] but throws an exception if not a valid URL type.
+  static void tryValidURL(String v) {
+    if (!checkValidURL(v)) {
+      throw "v was not a valid URL string";
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [File Explorer] ------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+// [Logger] -------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Handler to support the [CLogger] for post processing of a logged event.
+typedef CLoggedEventHandler = void Function(CLogRecord);
+
+/// Wraps the handle logged event for logging and later processing.
+class CLogRecord {
+  /// The log record handled by the module logging facility.
+  late LogRecord _record;
+
+  CLogRecord(LogRecord r) {
+    _record = r;
+  }
+
+  /// The time the logged event occurred.
+  DateTime get time => _record.time;
+
+  /// The log level associated with the event as a string.
+  CLogger get level {
+    return CLogger.values.firstWhere(
+      (element) => element._level == _record.level,
+    );
+  }
+
+  /// The data associated with the logged event.
+  String get data => _record.message;
+
+  /// Optional stack trace in the event of an error.
+  StackTrace? get stackTrace => _record.stackTrace;
+
+  @override
+  String toString() {
+    var msg = "${time.toIso8601String()} ${_record.toString()}";
+    msg = stackTrace != null ? "$msg\n${stackTrace.toString()}" : msg;
+    return msg;
+  }
+}
+
+/// This enumeration provides a basic logging utility for your flutter
+/// application. The static methods attached to the enum allow for setting
+/// the module log level and attach any post processing of the logger.
+enum CLogger {
+  /// Give me everything going on with this application. I can take it.
+  debug(Level.FINE),
+
+  /// Let someone know a services is starting or going away.
+  info(Level.INFO),
+
+  /// We encountered something that can be handled or recovered from.
+  warning(Level.WARNING),
+
+  /// Danger will robinson, danger.
+  error(Level.SEVERE),
+
+  /// It's too much, shut it off.
+  off(Level.OFF);
+
+  /// The associated logger level to our more simpler logger.
+  final Level _level;
+
+  const CLogger(this._level);
+
+  // Utility member fields
+  static final _logger = Logger("CodeMelted-Logger");
+
+  /// Establishes the [CLoggedEventHandler] to facilitate post log processing
+  /// of a module logged event.
+  static CLoggedEventHandler? onLoggedEvent;
+
+  /// Initializes the logging facility hooking into the Flutter runtime
+  /// for any possible errors along with setting the initial log level to
+  /// warning and hooking up a console print capability for debug mode
+  /// of your application.
+  static void init() {
+    // Hookup into the flutter runtime error handlers so any error it
+    // encounters, is also reported.
+    FlutterError.onError = (details) {
+      log(level: CLogger.error, data: details.exception, st: details.stack);
+    };
+
+    PlatformDispatcher.instance.onError = (error, st) {
+      log(level: CLogger.error, data: error.toString(), st: st);
+      return true;
+    };
+
+    // Now configure our logger items.
+    Logger.root.level = CLogger.warning._level;
+    Logger.root.onRecord.listen((v) {
+      var record = CLogRecord(v);
+      if (kDebugMode) {
+        print(record);
+      }
+
+      if (onLoggedEvent != null) {
+        onLoggedEvent!(record);
+      }
+    });
+  }
+
+  /// Sets / gets the logging level of the module logging facility
+  static set logLevel(CLogger v) => Logger.root.level = v._level;
+  static CLogger get logLevel {
+    return CLogger.values.firstWhere(
+      (element) => element._level == Logger.root.level,
+    );
+  }
+
+  /// Utility method to log an event within your application.
+  static void log({required CLogger level, Object? data, StackTrace? st}) {
+    _logger.log(level._level, data, null, st);
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Math] ---------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Support definition for the [CMath.calculate] utility method.
+typedef CMathFormula = double Function(List<double>);
+
+/// Utility providing a collection of mathematical formulas that you can get
+/// the answer to life's biggest questions.
+class CMath {
+  /// Kilometers squared to meters squared
+  static const String area_km2_to_m2 = "area_km2_to_m2";
+
+  /// Sets up the mapping of formulas for the calculate method.
+  static final _map = <String, CMathFormula>{
+    area_km2_to_m2: (v) => v[0] * 1e+6,
+  };
+
+  /// Executes the given formula with the specified variables.
+  static double calculate(String formula, List<double> vars) {
+    assert(
+      _map[formula] != null,
+      "CMath.calculate() formula specified does not exist",
+    );
+    return _map[formula]!(vars);
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Rest API] -----------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Implements the ability to either create a Rest API endpoint within your
+/// application or to fetch data from an Rest API endpoint.
+class CRestAPI {
+  /// The data resulting from the REST API client call.
+  final dynamic data;
+
+  /// The HTTP status code for the REST API client call.
+  ///
+  /// https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+  final int status;
+
+  /// The status text associated with the HTTP status code.
+  final String statusText;
+
+  /// Data is assumed to be a [CObject] JSON format and is returned as such or
+  /// null if it is not.
+  CObject? get asObject => data as CObject?;
+
+  /// Data is assumed to be a String and is returned as such or null if it is
+  /// not.
+  String? get asString => data as String?;
+
+  /// Constructor for the object.
+  CRestAPI._(this.data, this.status, this.statusText);
+
+  /// Implements the ability to fetch a server's REST API endpoint to retrieve
+  /// and manage data. The supported actions are "delete", "get", "post", and
+  /// "put" with supporting data (i.e. headers, body) for the REST API call.
+  static Future<CRestAPI> fetch({
+    required String action,
+    Object? body,
+    Map<String, String>? headers,
+    int timeoutSeconds = 10,
+    required String url,
+  }) async {
+    assert(
+      action == "get" ||
+          action == "delete" ||
+          action == "put" ||
+          action == "post",
+      "Invalid action specified for CRestAPI.fetch()",
+    );
+    try {
+      // Go carry out the fetch request
+      var duration = Duration(seconds: timeoutSeconds);
+      http.Response resp;
+      var uri = Uri.parse(url);
+      if (action == "get") {
+        resp = await http.get(uri, headers: headers).timeout(duration);
+      } else if (action == "delete") {
+        resp = await http
+            .delete(uri, headers: headers, body: body)
+            .timeout(duration);
+      } else if (action == "put") {
+        resp =
+            await http.put(uri, headers: headers, body: body).timeout(duration);
+      } else {
+        resp = await http
+            .post(uri, headers: headers, body: body)
+            .timeout(duration);
+      }
+
+      // Now get the result object put together
+      final status = resp.statusCode;
+      final statusText = resp.reasonPhrase ?? "";
+      dynamic data;
+      String contentType = resp.headers["content-type"].toString();
+      if (contentType.containsIgnoreCase('plain/text') ||
+          contentType.containsIgnoreCase('text/html')) {
+        data = resp.body;
+      } else if (contentType.containsIgnoreCase('application/json')) {
+        data = jsonDecode(resp.body);
+      } else if (contentType.containsIgnoreCase('application/octet-stream')) {
+        data = resp.bodyBytes;
+      }
+
+      // Return the result.
+      return CRestAPI._(data, status, statusText);
+    } on TimeoutException catch (ex, st) {
+      // We had a timeout occur, log it and return it
+      CLogger.log(level: CLogger.warning, data: ex, st: st);
+      return CRestAPI._(null, 408, "Request Timeout");
+    } catch (ex, st) {
+      // Something unexpected happened, log it, and return it.
+      CLogger.log(level: CLogger.error, data: ex, st: st);
+      return CRestAPI._(null, 418, "Unknown Error Encountered");
+    }
+  }
+
+  // TODO: serve a REST API
+  // TODO: ping
+}
+
+// ----------------------------------------------------------------------------
+// [Storage] ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
 // ============================================================================
-// [Audio Player Use Case] ====================================================
+// [Advanced Use Cases] =======================================================
 // ============================================================================
+
+// ----------------------------------------------------------------------------
+// [Database] -----------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+// [Device Orientation] -------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+// [Link Opener] --------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+// [Hardware Device] ----------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+// [Network Socket] -----------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+// [Runtime] ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+// [Web RTC] ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+// ============================================================================
+// [User Interface Use Cases] =================================================
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// [Audio Player] -------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 /// Identifies the source for the [CAudioPlayer.file] for a file playback.
 enum CAudioSource {
@@ -393,281 +743,694 @@ class CAudioPlayer {
   }
 }
 
-// ============================================================================
-// [Data Use Case] ============================================================
-// ============================================================================
+// ----------------------------------------------------------------------------
+// [Console] ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-/// Defines an array definition to match JSON Array construct.
-typedef CArray = List<dynamic>;
+// Console is not applicable to flutter as it is a widget based library.
 
-/// Provides helper methods for the CArray.
-extension CArrayExtension on CArray {
-  /// Converts the JSON object to a string returning null if it cannot
-  String? stringify() => jsonEncode(this);
-}
+// ----------------------------------------------------------------------------
+// [Dialog] -------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-/// Defines an object definition to match a valid JSON Object construct.
-typedef CObject = Map<String, dynamic>;
+/// Set of utility methods for working with dialogs available in the flutter
+/// environment. Allows for quick alerts, questions, async loading, and for
+/// custom dialogs.
+class CDialog {
+  /// Sets up a global navigator key for usage with dialogs.
+  final navigatorKey = GlobalKey<NavigatorState>();
 
-/// Provides helper methods for the CObject
-extension CObjectExtension on CObject {
-  /// Converts the JSON object to a string returning null if it cannot.
-  String? stringify() => jsonEncode(this);
-}
-
-/// Provides a series of asXXX() conversion from a string data type and do non
-/// case sensitive compares.
-extension CStringExtension on String {
-  /// Will attempt to return an array object ir null if it cannot.
-  CArray? asArray() {
-    try {
-      return jsonDecode(this) as CArray?;
-    } catch (ex) {
-      return null;
-    }
-  }
-
-  /// Will attempt to convert to a bool from a series of strings that can
-  /// represent a true value.
-  bool asBool() {
-    List<String> trueStrings = [
-      "true",
-      "1",
-      "t",
-      "y",
-      "yes",
-      "yeah",
-      "yup",
-      "certainly",
-      "uh-huh"
-    ];
-    return trueStrings.contains(toLowerCase());
-  }
-
-  /// Will attempt to return a int from the string value or null if it cannot.
-  int? asInt() => int.tryParse(this);
-
-  /// Will attempt to return a double from the string value or null if it
-  /// cannot.
-  double? asDouble() => double.tryParse(this);
-
-  /// Will attempt to return Map<String, dynamic> object or null if it cannot.
-  CObject? asObject() {
-    try {
-      return jsonDecode(this) as CObject?;
-    } catch (ex) {
-      return null;
-    }
-  }
-
-  /// Determines if a string is contained within this string.
-  bool containsIgnoreCase(String v) => toLowerCase().contains(v.toLowerCase());
-
-  /// Determines if a string is equal to another ignoring case.
-  bool equalsIgnoreCase(String v) => toLowerCase() == v.toLowerCase();
-}
-
-/// Utility object to validate, serialize, and deserialize JSON data. This
-/// works in conjunction with the [CStringExtension]. Utilize those extensions
-/// on string to convert between basic data types.
-class CDataBroker {
-  /// Determines if a [CObject] has a given property contained within.
-  static bool checkHasProperty(CObject obj, String key) => obj.containsKey(key);
-
-  /// Determines if the variable is of the expected type.
-  static bool checkType<T>(dynamic v) => v is T;
-
-  /// Determines if the data type is a valid URL.
-  static bool checkValidURL(String v) => Uri.tryParse(v) != null;
-
-  /// Will convert data into a JSON [CObject] or return null if the decode
-  /// could not be achieved.
-  static CObject? jsonParse(String data) => data.asObject();
-
-  /// Will encode the JSON [CObject] into a string or null if the encode
-  /// could not be achieved.
-  static String? jsonStringify(CObject data) => data.stringify();
-
-  /// Same as [checkHasProperty] but throws an exception if the key is not
-  /// found.
-  static void tryHasProperty(CObject obj, String key) {
-    if (!checkHasProperty(obj, key)) {
-      throw "obj does not contain '$key' key";
-    }
-  }
-
-  /// Same as [checkType] but throws an exception if not of the expected
-  /// type.
-  static void tryType<T>(dynamic v) {
-    if (!checkType<T>(v)) {
-      throw "variable was not of type '$T'";
-    }
-  }
-
-  /// Same as [checkValidURL] but throws an exception if not a valid URL type.
-  static void tryValidURL(String v) {
-    if (!checkValidURL(v)) {
-      throw "v was not a valid URL string";
-    }
-  }
-}
-
-// ============================================================================
-// [Database Use Case] ========================================================
-// ============================================================================
-
-class CDatabase {}
-
-// ============================================================================
-// [Logger Use Case] ==========================================================
-// ============================================================================
-
-/// Handler to support the [CLogger] for post processing of a logged event.
-typedef CLoggedEventHandler = void Function(CLogRecord);
-
-/// Wraps the handle logged event for logging and later processing.
-class CLogRecord {
-  /// The log record handled by the module logging facility.
-  late LogRecord _record;
-
-  CLogRecord(LogRecord r) {
-    _record = r;
-  }
-
-  /// The time the logged event occurred.
-  DateTime get time => _record.time;
-
-  /// The log level associated with the event as a string.
-  CLogger get level {
-    return CLogger.values.firstWhere(
-      (element) => element._level == _record.level,
+  /// Will display information about your flutter app.
+  Future<void> about({
+    required String appIcon,
+    required String appName,
+    required String appVersion,
+    required String appLegalese,
+    double appIconWidth = 50.0,
+    double appIconHeight = 50.0,
+    double appIconRadius = 24.0,
+  }) async {
+    showDialog(
+      context: navigatorKey.currentContext!,
+      builder: (context) => PointerInterceptor(
+        intercepting: kIsWeb,
+        child: AboutDialog(
+          applicationName: appName,
+          applicationVersion: appVersion,
+          applicationLegalese: appLegalese,
+          applicationIcon: SizedBox(
+            width: appIconWidth,
+            height: appIconHeight,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(appIconRadius)),
+                image: DecorationImage(
+                  image: AssetImage(appIcon),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
-  /// The data associated with the logged event.
-  String get data => _record.message;
+  /// Provides a simple way to display a message to the user that must
+  /// be dismissed. You can use a flutter build alert dialog or the native
+  /// browser if working within a web environment.
+  Future<void> alert({
+    Color barrierColor = Colors.black54,
+    Color? backgroundColor,
+    Color? foregroundColor,
+    double? height,
+    required String message,
+    String? title,
+    bool useNativeBrowser = false,
+    double? width,
+  }) async {
+    if (useNativeBrowser) {
+      assert(kIsWeb, "Use of native browser only available on web targets");
+      html.window.alert(message);
+      return;
+    }
 
-  /// Optional stack trace in the event of an error.
-  StackTrace? get stackTrace => _record.stackTrace;
+    return custom(
+      backgroundColor: backgroundColor,
+      barrierColor: barrierColor,
+      content: Text(message),
+      foregroundColor: foregroundColor,
+      height: height,
+      title: title ?? "Attention",
+      width: width,
+    );
+  }
+
+  /// Shows a browser popup window when running within a mobile or web target
+  /// environment.
+  Future<void> browser({
+    Color barrierColor = Colors.black54,
+    Color? backgroundColor,
+    Color? foregroundColor,
+    double? height,
+    required String message,
+    String? target,
+    String? title,
+    bool useNativeBrowser = false,
+    required String url,
+    double? width,
+  }) async {
+    // Now figure what browser window action we are taking
+    if (useNativeBrowser) {
+      assert(kIsWeb, "Use of native browser only available on web targets");
+
+      if (target == null) {
+        // Target not specified, it is a popup window.
+        final w = width ?? 900;
+        final h = height ?? 600;
+        final top = (html.window.screen!.height! - h) / 2;
+        final left = (html.window.screen!.width! - w) / 2;
+        html.window.open(
+          url,
+          "_blank",
+          "toolbar=no, location=no, directories=no, status=no, "
+              "menubar=no, scrollbars=no, resizable=yes, copyhistory=no, "
+              "width=$w, height=$h, top=$top, left=$left",
+        );
+        return;
+      } else {
+        // Target specified, we are redirecting somewhere.
+        html.window.open(url, target);
+        return;
+      }
+    }
+
+    return custom(
+      backgroundColor: backgroundColor,
+      barrierColor: barrierColor,
+      content: CWebView(url: url),
+      foregroundColor: foregroundColor,
+      height: height,
+      title: title ?? "Browser",
+      width: width,
+    );
+  }
+
+  /// Shows a popup dialog with a list of options returning the index selected
+  /// or -1 if canceled.
+  Future<int> choose({
+    Color barrierColor = Colors.black54,
+    Color? backgroundColor,
+    Color? dropdownColor,
+    Color? foregroundColor,
+    double? height,
+    required String message,
+    required List<String> options,
+    String? title,
+    double? width,
+  }) async {
+    // Form up our dropdown options
+    final dropdownItems = <DropdownMenuItem<int>>[];
+    for (final (index, option) in options.indexed) {
+      dropdownItems.add(
+        DropdownMenuItem(
+          value: index,
+          child: Text(option, style: TextStyle(color: foregroundColor)),
+        ),
+      );
+    }
+    var answer = 0;
+    return (await custom<int?>(
+          actions: [
+            TextButton(
+              child: const Text("OK"),
+              onPressed: () => close<int>(answer),
+            ),
+          ],
+          backgroundColor: backgroundColor,
+          barrierColor: barrierColor,
+          content: CDropdownMenu<int>(
+            items: dropdownItems,
+            title: message,
+            value: 0,
+            onChanged: (v) => answer = v!,
+            textColor: foregroundColor,
+            dropdownColor: dropdownColor,
+          ),
+          foregroundColor: foregroundColor,
+          height: height,
+          title: title ?? "Choose",
+          width: width,
+        )) ??
+        -1;
+  }
+
+  /// Closes an open dialog and returns an answer depending on the type of
+  /// dialog shown.
+  void close<T>([T? answer]) async {
+    Navigator.of(navigatorKey.currentContext!, rootNavigator: true).pop(answer);
+  }
+
+  /// Provides a Yes/No confirmation dialog with the displayed message as the
+  /// question. True is returned for Yes and False for a No or cancel. You also
+  /// have the option to utilize the native browser prompt if running in a web
+  /// target.
+  Future<bool> confirm({
+    Color barrierColor = Colors.black54,
+    Color? backgroundColor,
+    Color? foregroundColor,
+    double? height,
+    required String message,
+    String? title,
+    bool useNativeBrowser = false,
+    double? width,
+  }) async {
+    if (useNativeBrowser) {
+      assert(kIsWeb, "Use of native browser only available on web targets");
+      return html.window.confirm(message);
+    }
+
+    return (await custom<bool?>(
+          actions: [
+            TextButton(
+              child: const Text("Yes"),
+              onPressed: () => close<bool>(true),
+            ),
+            TextButton(
+              child: const Text("No"),
+              onPressed: () => close<bool>(false),
+            ),
+          ],
+          backgroundColor: backgroundColor,
+          barrierColor: barrierColor,
+          content: Text(message),
+          foregroundColor: foregroundColor,
+          height: height,
+          title: title ?? "Confirm",
+          width: width,
+        )) ??
+        false;
+  }
+
+  /// Shows a custom dialog for a more complex form where at the end you can
+  /// apply changes as a returned value if necessary. You will make use of
+  /// [CDialog.close] for returning values via your actions array.
+  Future<T?> custom<T>({
+    List<TextButton>? actions,
+    Color? backgroundColor,
+    Color barrierColor = Colors.black54,
+    required Widget content,
+    Color? foregroundColor,
+    double? height,
+    required String title,
+    double? width,
+  }) async {
+    return showDialog<T>(
+      barrierDismissible: false,
+      barrierColor: barrierColor,
+      context: navigatorKey.currentContext!,
+      builder: (_) => AlertDialog(
+        insetPadding: EdgeInsets.zero,
+        scrollable: true,
+        backgroundColor: backgroundColor,
+        titlePadding: EdgeInsets.zero,
+        titleTextStyle: TextStyle(
+          color: foregroundColor,
+          fontWeight: FontWeight.bold,
+          fontSize: 16.0,
+        ),
+        title: Column(
+          children: [
+            Row(
+              children: [
+                const CDivider(width: 5.0),
+                Expanded(child: Text(title)),
+                IconButton(
+                  icon: Icon(Icons.close, color: foregroundColor),
+                  onPressed: () => close(),
+                ),
+              ],
+            ),
+            CDivider(height: 2.0, color: foregroundColor ?? Colors.blueGrey),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.all(5.0),
+        actionsAlignment: MainAxisAlignment.center,
+        contentPadding: EdgeInsets.zero,
+        content: SizedBox(
+          height:
+              height ?? CMainView.height(navigatorKey.currentContext!) * 0.65,
+          width: width ?? CMainView.width(navigatorKey.currentContext!) * 0.90,
+          child: content,
+        ),
+        actions: actions,
+      ),
+    );
+  }
+
+  /// Provides the ability to run an async task and present a wait dialog. It
+  /// is important you call [CDialog.close] to properly clear the
+  /// dialog and return any value expected.
+  Future<T?> loading<T>({
+    Color barrierColor = Colors.black54,
+    Color? backgroundColor,
+    Color? foregroundColor,
+    double? height,
+    required String message,
+    required Future<void> Function() task,
+    String? title,
+    double? width,
+  }) async {
+    Future.delayed(Duration.zero, task);
+    return custom<T>(
+      backgroundColor: backgroundColor,
+      barrierColor: barrierColor,
+      content: Text(
+        message,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      foregroundColor: foregroundColor,
+      height: height,
+      title: title ?? "Please Wait",
+      width: width,
+    );
+  }
+
+  /// Provides the ability to show an input prompt to retrieve an answer to a
+  /// question. The value is returned back as a string. If a user cancels the
+  /// action an empty string is returned. You also have the option to use the
+  /// native browser prompt when utilizing the web target.
+  Future<String> prompt({
+    Color barrierColor = Colors.black54,
+    Color? backgroundColor,
+    Color? foregroundColor,
+    double? height,
+    required String message,
+    String? title,
+    bool useNativeBrowser = false,
+    double? width,
+  }) async {
+    if (useNativeBrowser) {
+      assert(kIsWeb, "Use of native browser only available on web targets");
+      return js.context.callMethod("prompt", [message]);
+    }
+
+    // Not using native browser, so show one of ours.
+    var answer = "";
+    return (await custom<String?>(
+          actions: [
+            TextButton(
+              child: const Text("OK"),
+              onPressed: () => close<String>(answer),
+            ),
+          ],
+          backgroundColor: backgroundColor,
+          barrierColor: barrierColor,
+          content: CTextField(
+            title: message,
+            onChanged: (v) => answer = v,
+            textColor: foregroundColor,
+          ),
+          foregroundColor: foregroundColor,
+          height: height,
+          title: title ?? "Prompt",
+          width: width,
+        )) ??
+        "";
+  }
+
+  /// Shows a rounded snackbar at the bottom of the content area to display
+  /// some information.
+  void snackbar({
+    Widget? content,
+    String? message,
+    int? seconds,
+    double? width,
+  }) {
+    assert(
+      (content != null && message == null) ||
+          (content == null && message != null),
+      "Only content or message can be set. Not both or neither.",
+    );
+
+    ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
+      SnackBar(
+        content: content ?? Text(message!),
+        behavior: SnackBarBehavior.floating,
+        duration: seconds != null
+            ? Duration(seconds: seconds)
+            : const Duration(seconds: 4),
+        width: width,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(25.0),
+        ),
+      ),
+    );
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Main View] ----------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+class CMainView extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    throw UnimplementedError();
+  }
+
+  static double height(BuildContext context) =>
+      MediaQuery.of(context).size.height;
+
+  static double width(BuildContext context) =>
+      MediaQuery.of(context).size.width;
+}
+
+class _CMainViewState extends State<CMainView> {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    throw UnimplementedError();
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Widgets] ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Sets up a divider / spacer between widgets on a view. Simple specify the
+/// height if in a column layout or the width if in a row layout to provide
+/// the separation. A color can be specified to give an extra layer of
+/// division.
+class CDivider extends StatelessWidget {
+  /// The optional color to place with the divider.
+  final Color? color;
+
+  /// The height of the spacer when the layout is top to bottom.
+  final double? height;
+
+  /// The width of the spacer when the layout is left to right.
+  final double? width;
+
+  /// Specify whether the divider is visible or not.
+  final bool visible;
+
+  /// Constructor for the object.
+  const CDivider({
+    this.color,
+    this.height,
+    this.width,
+    this.visible = true,
+    super.key,
+  });
 
   @override
-  String toString() {
-    var msg = "${time.toIso8601String()} ${_record.toString()}";
-    msg = stackTrace != null ? "$msg\n${stackTrace.toString()}" : msg;
-    return msg;
-  }
-}
-
-/// This enumeration provides a basic logging utility for your flutter
-/// application. The static methods attached to the enum allow for setting
-/// the module log level and attach any post processing of the logger.
-enum CLogger {
-  /// Give me everything going on with this application. I can take it.
-  debug(Level.FINE),
-
-  /// Let someone know a services is starting or going away.
-  info(Level.INFO),
-
-  /// We encountered something that can be handled or recovered from.
-  warning(Level.WARNING),
-
-  /// Danger will robinson, danger.
-  error(Level.SEVERE),
-
-  /// It's too much, shut it off.
-  off(Level.OFF);
-
-  /// The associated logger level to our more simpler logger.
-  final Level _level;
-
-  const CLogger(this._level);
-
-  // Utility member fields
-  static final _logger = Logger("CodeMelted-Logger");
-
-  /// Establishes the [CLoggedEventHandler] to facilitate post log processing
-  /// of a module logged event.
-  static CLoggedEventHandler? onLoggedEvent;
-
-  /// Initializes the logging facility hooking into the Flutter runtime
-  /// for any possible errors along with setting the initial log level to
-  /// warning and hooking up a console print capability for debug mode
-  /// of your application.
-  static void init() {
-    // Hookup into the flutter runtime error handlers so any error it
-    // encounters, is also reported.
-    FlutterError.onError = (details) {
-      log(level: CLogger.error, data: details.exception, st: details.stack);
-    };
-
-    PlatformDispatcher.instance.onError = (error, st) {
-      log(level: CLogger.error, data: error.toString(), st: st);
-      return true;
-    };
-
-    // Now configure our logger items.
-    Logger.root.level = CLogger.warning._level;
-    Logger.root.onRecord.listen((v) {
-      var record = CLogRecord(v);
-      if (kDebugMode) {
-        print(record);
-      }
-
-      if (onLoggedEvent != null) {
-        onLoggedEvent!(record);
-      }
-    });
-  }
-
-  /// Sets / gets the logging level of the module logging facility
-  static set logLevel(CLogger v) => Logger.root.level = v._level;
-  static CLogger get logLevel {
-    return CLogger.values.firstWhere(
-      (element) => element._level == Logger.root.level,
+  Widget build(BuildContext context) {
+    return Offstage(
+      offstage: !visible,
+      child: Container(
+        height: height,
+        width: width,
+        color: color,
+      ),
     );
   }
+}
 
-  /// Utility method to log an event within your application.
-  static void log({required CLogger level, Object? data, StackTrace? st}) {
-    _logger.log(level._level, data, null, st);
+/// Creates a dropdown box with a selection of custom values one can then
+/// select from.
+class CDropdownMenu<T> extends StatelessWidget {
+  // Identifies the dropdown color.
+  final Color? dropdownColor;
+
+  /// Whether the control is enabled or not.
+  final bool enabled;
+
+  /// The size of the font for the dropdown items.
+  final double? fontSize;
+
+  /// The height of the control.
+  final double? height;
+
+  /// Helper text for the control.
+  final String? helperText;
+
+  /// The items to select from.
+  final List<DropdownMenuItem<T>> items;
+
+  /// Callback fired when the dropdown value is changed.
+  final void Function(T?)? onChanged;
+
+  /// The text color of the control.
+  final Color? textColor;
+
+  /// The title to label the control.
+  final String? title;
+
+  /// The current value of the control.
+  final T value;
+
+  /// The width of the control.
+  final double? width;
+
+  /// Whether the control is visible or not.
+  final bool visible;
+
+  /// Constructor for the class.
+  const CDropdownMenu({
+    this.dropdownColor,
+    this.enabled = true,
+    this.fontSize,
+    this.height,
+    this.helperText,
+    required this.items,
+    this.onChanged,
+    this.textColor,
+    this.title,
+    required this.value,
+    this.width,
+    this.visible = true,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Offstage(
+      offstage: !visible,
+      child: SizedBox(
+        height: height,
+        width: width,
+        child: DropdownButtonFormField(
+          isExpanded: true,
+          value: value,
+          items: items,
+          onChanged: enabled ? onChanged : null,
+          dropdownColor: dropdownColor,
+          decoration: InputDecoration(
+            contentPadding: const EdgeInsets.all(10.0),
+            labelText: title,
+            isDense: true,
+            labelStyle: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: textColor,
+              fontSize: fontSize,
+            ),
+            helperText: helperText,
+            helperStyle: TextStyle(
+              color: textColor,
+              fontSize: fontSize,
+            ),
+            filled: true,
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: textColor ?? const Color(0xFF000000),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
-// ============================================================================
-// [Math Use Case] ============================================================
-// ============================================================================
+/// Constructs a multi-purpose text field for entering different types of data.
+///
+/// TODO: Need to format for other data types and a custom controller.
+class CTextField extends StatelessWidget {
+  /// Enable or disable the text field.
+  final bool? enabled;
 
-/// Support definition for the [CMath.calculate] utility method.
-typedef CMathFormula = double Function(List<double>);
+  /// Font size for the text field.
+  final double? fontSize;
 
-/// Utility providing a collection of mathematical formulas that you can get
-/// the answer to life's biggest questions.
-class CMath {
-  /// Kilometers squared to meters squared
-  static const String area_km2_to_m2 = "area_km2_to_m2";
+  /// The height of the text field.
+  final double? height;
 
-  /// Sets up the mapping of formulas for the calculate method.
-  static final _map = <String, CMathFormula>{
-    area_km2_to_m2: (v) => v[0] * 1e+6,
-  };
+  /// Helper text for the text field.
+  final String? helperText;
 
-  /// Executes the given formula with the specified variables.
-  static double calculate(String formula, List<double> vars) {
+  /// The keyboard type to render for entering the data.
+  final TextInputType? keyboardType;
+
+  /// The max length of characters to utilize for the text field.
+  final int? maxLength;
+
+  /// The max lines for the text field.
+  final int maxLines;
+
+  /// Callback fired each time the text is updated.
+  final Function(String)? onChanged;
+
+  /// Callback fired when the editing is completed with the control
+  final Function()? onEditingComplete;
+
+  /// Whether the control is readonly or not.
+  final bool readOnly;
+
+  /// The color of the text within the text field.
+  final Color? textColor;
+
+  /// The title to supply with the text field.
+  final String? title;
+
+  /// The width of the text field.
+  final double? width;
+
+  /// The initial value of the text field.
+  final String? initialValue;
+
+  /// Whether to show or hide the text field control.
+  final bool visible;
+
+  /// Constructor of the class.
+  const CTextField({
+    this.enabled,
+    this.fontSize,
+    this.height,
+    this.helperText,
+    this.keyboardType,
+    this.maxLength,
+    this.maxLines = 1,
+    this.onChanged,
+    this.onEditingComplete,
+    this.readOnly = false,
+    this.textColor,
+    this.title,
+    this.width,
+    this.initialValue,
+    this.visible = true,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Offstage(
+      offstage: !visible,
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: TextFormField(
+          style: TextStyle(
+            color: textColor,
+            fontSize: fontSize,
+          ),
+          decoration: InputDecoration(
+            contentPadding: const EdgeInsets.all(5.0),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: textColor ?? const Color(0xFF000000),
+              ),
+            ),
+            filled: true,
+            helperText: helperText,
+            helperStyle: TextStyle(
+              color: textColor,
+              fontSize: fontSize,
+            ),
+            isDense: true,
+            labelText: title,
+            labelStyle: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: textColor,
+              fontSize: fontSize,
+            ),
+            // suffixIcon: TODO: for password field type or units.
+          ),
+          enabled: enabled,
+          initialValue: initialValue,
+          keyboardType: keyboardType,
+          maxLength: maxLength,
+          maxLines: maxLines,
+          // minLines: minLines,
+          // obscureText: TODO: for password field type,
+          onChanged: onChanged,
+          onEditingComplete: onEditingComplete,
+          readOnly: readOnly,
+          smartDashesType: SmartDashesType.disabled,
+          smartQuotesType: SmartQuotesType.disabled,
+        ),
+      ),
+    );
+  }
+}
+
+/// Crates an embedded web view so you can interact and display web content.
+class CWebView extends StatelessWidget {
+  /// The url of the page to display within your app.
+  final String url;
+
+  /// Constructor for the class.
+  CWebView({required this.url, super.key}) {
     assert(
-      _map[formula] != null,
-      "CMath.calc() formula specified does not exist",
+      kIsWeb || Platform.isAndroid || Platform.isIOS,
+      "CWebView only supported on mobile and web targets.",
     );
-    return _map[formula]!(vars);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return createCWebView(url);
   }
 }
-
-// // ============================================================================
-// // [RestAPI Use Case] ===========================================================
-// // ============================================================================
-
-// class CRestAPI {}
-
-// ============================================================================
-// [Runtime Use Case] ==========================================================
-// ============================================================================
-// run command

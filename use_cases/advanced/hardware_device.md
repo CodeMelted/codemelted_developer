@@ -1,14 +1,14 @@
 <!--
-TITLE: CodeMelted - DEV | Hardware Protocol Advanced Use Case
+TITLE: CodeMelted - DEV | Hardware Device Advanced Use Case
 PUBLISH_DATE: 2024-03-23
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMelted - DEV, Hardware Protocol, Advanced Use Case
+KEYWORDS: CodeMelted - DEV, Hardware Device, Advanced Use Case
 DESCRIPTION: TBD
 -->
 <center>
   <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://cdn.codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="header.png" /> Hardware Protocol - Advanced Use Case</h1>
+<h1><img style="height: 35px;" src="header.png" /> Hardware Device - Advanced Use Case</h1>
 
 **Table of Contents**
 

@@ -45,7 +45,7 @@ flowchart TD
             ucDatabase([Database])
             ucDeviceOrientation([Device Orientation])
             ucLinkOpener([Link Opener])
-            ucHardwareProtocol([Hardware Protocol])
+            ucHardwareDevice([Hardware Device])
             ucNetworkSocket([Network Socket])
             ucRuntime([Runtime])
             ucWebRTC([Web RTC])
@@ -54,7 +54,6 @@ flowchart TD
             ucAudio([Audio Player])
             ucConsole([Console])
             ucDialog([Dialog])
-            ucLayouts([Layouts])
             ucMainView([Main View])
             ucWidgets([Widgets])
         end
@@ -103,7 +102,7 @@ flowchart TD
 
 - [Database](use_cases/advanced/database.md)
 - [Device Orientation](use_cases/advanced/device_orientation.md)
-- [Hardware Protocol](use_cases/advanced/hardware_protocol.md)
+- [Hardware Device](use_cases/advanced/hardware_device.md)
 - [Link Opener](use_cases/advanced/link_opener.md)
 - [Network Socket](use_cases/advanced/network_socket.md)
 - [Runtime](use_cases/advanced/runtime.md)
@@ -116,7 +115,6 @@ flowchart TD
 - [Audio Player](use_cases/ui/audio_player.md)
 - [Console](use_cases/ui/console.md)
 - [Dialog](use_cases/ui/dialog.md)
-- [Layouts](use_cases/ui/layouts.md)
 - [Main View](use_cases/ui/main_view.md)
 - [Widgets](use_cases/ui/widgets.md)
 

@@ -28,9 +28,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:codemelted_flutter/codemelted_flutter.dart';
 
 void main() {
-  group("CAsyncIO Tests", () {
-    test("CAsyncIO.background() Validation", () async {
-      var answer = await CAsyncIO.background(
+  group("Async IO Use Case Tests", () {
+    test("CAsyncTask.background() Validation", () async {
+      var answer = await CAsyncTask.background(
         data: 7,
         task: ([data]) {
           return data + 5;
@@ -39,16 +39,17 @@ void main() {
       expect(answer.toString().asInt(), 12);
     });
 
-    test("CAsyncIO.interval() Validation", () async {
+    test("CAsyncTask.interval() Validation", () async {
       var counter = 0;
-      var timer = CAsyncIO.interval(task: ([data]) => counter += 1, delay: 250);
-      await CAsyncIO.sleep(1100);
-      timer.terminate();
+      var timer =
+          CAsyncTask.interval(task: ([data]) => counter += 1, delay: 250);
+      await CAsyncTask.sleep(1100);
+      timer.cancel();
       expect(counter >= 4 && counter <= 6, isTrue);
     });
 
-    test("CAsyncIO.timeout() Validation", () async {
-      var answer = await CAsyncIO.timeout(
+    test("CAsyncTask.timeout() Validation", () async {
+      var answer = await CAsyncTask.timeout(
         data: 7,
         task: ([data]) {
           return data + 5;
@@ -56,40 +57,9 @@ void main() {
       );
       expect(answer.toString().asInt(), 12);
     });
-
-    test("CAsyncIO.worker() Validation", () async {
-      var answer = 0;
-      var error = "";
-      var worker = await CAsyncIO.worker(
-        task: ([data]) {
-          if (data is int) {
-            return data + 5;
-          }
-          throw "unexpected type";
-        },
-        onReceived: ([data]) {
-          if (data is int) {
-            answer += data;
-          } else {
-            error = data;
-          }
-        },
-      );
-      worker.postMessage(7);
-      await CAsyncIO.sleep(1000);
-      expect(answer, 12);
-      expect(error.isNotEmpty, isFalse);
-      worker.postMessage(12);
-      await CAsyncIO.sleep(1000);
-      expect(answer, 29);
-      expect(error.isNotEmpty, isFalse);
-      worker.postMessage("hello");
-      await CAsyncIO.sleep(1000);
-      expect(error.isNotEmpty, isTrue);
-    });
   });
 
-  group("CLogger Tests", () {
+  group("Logger Use Case Tests", () {
     CLogger.init();
     test("CLogger Demo Some Logging", () {
       // Setup our test:
