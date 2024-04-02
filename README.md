@@ -53,9 +53,11 @@ flowchart TD
         subgraph User Interface
             ucAudio([Audio Player])
             ucConsole([Console])
+            ucControls([Controls])
             ucDialog([Dialog])
             ucMainView([Main View])
-            ucWidgets([Widgets])
+            ucViews([Views])
+            ucVideoPlayer([Video Player])
         end
     end
     subgraph sdk[SDK]
@@ -114,9 +116,11 @@ flowchart TD
 
 - [Audio Player](use_cases/ui/audio_player.md)
 - [Console](use_cases/ui/console.md)
+- [Controls](use_cases/ui/controls.md)
 - [Dialog](use_cases/ui/dialog.md)
 - [Main View](use_cases/ui/main_view.md)
-- [Widgets](use_cases/ui/widgets.md)
+- [Views](use_cases/ui/views.md)
+- [Video Player](use_cases/ui/video_player.md)
 
 ## GETTING STARTED
 

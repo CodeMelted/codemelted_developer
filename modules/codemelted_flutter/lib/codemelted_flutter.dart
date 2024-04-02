@@ -758,7 +758,7 @@ class CAudioPlayer {
 /// custom dialogs.
 class CDialog {
   /// Sets up a global navigator key for usage with dialogs.
-  final navigatorKey = GlobalKey<NavigatorState>();
+  static final navigatorKey = GlobalKey<NavigatorState>();
 
   /// Will display information about your flutter app.
   Future<void> about({
@@ -909,7 +909,7 @@ class CDialog {
           ],
           backgroundColor: backgroundColor,
           barrierColor: barrierColor,
-          content: CDropdownMenu<int>(
+          content: CComboBoxControl<int>(
             items: dropdownItems,
             title: message,
             value: 0,
@@ -1003,7 +1003,7 @@ class CDialog {
           children: [
             Row(
               children: [
-                const CDivider(width: 5.0),
+                const CSpacerControl(width: 5.0),
                 Expanded(child: Text(title)),
                 IconButton(
                   icon: Icon(Icons.close, color: foregroundColor),
@@ -1011,16 +1011,18 @@ class CDialog {
                 ),
               ],
             ),
-            CDivider(height: 2.0, color: foregroundColor ?? Colors.blueGrey),
+            CSpacerControl(
+                height: 2.0, color: foregroundColor ?? Colors.blueGrey),
           ],
         ),
         actionsPadding: const EdgeInsets.all(5.0),
         actionsAlignment: MainAxisAlignment.center,
         contentPadding: EdgeInsets.zero,
         content: SizedBox(
-          height:
-              height ?? CMainView.height(navigatorKey.currentContext!) * 0.65,
-          width: width ?? CMainView.width(navigatorKey.currentContext!) * 0.90,
+          height: height ??
+              CAppView.controller.height(navigatorKey.currentContext!) * 0.65,
+          width: width ??
+              CAppView.controller.width(navigatorKey.currentContext!) * 0.90,
           child: content,
         ),
         actions: actions,
@@ -1087,7 +1089,7 @@ class CDialog {
           ],
           backgroundColor: backgroundColor,
           barrierColor: barrierColor,
-          content: CTextField(
+          content: CTextFieldControl(
             title: message,
             onChanged: (v) => answer = v,
             textColor: foregroundColor,
@@ -1134,25 +1136,427 @@ class CDialog {
 // [Main View] ----------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-class CMainView extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() {
-    // TODO: implement createState
-    throw UnimplementedError();
+/// Supports the definition of an app drawer with the [CAppView].
+class CAppDrawerAction {
+  /// Optional to provide sub-actions under an expandable list.
+  final List<CAppDrawerAction>? actions;
+
+  /// The icon to associate with the action.
+  final dynamic icon;
+
+  /// The action to take when tapped.
+  final VoidCallback? onTap;
+
+  /// The title to associate with the action.
+  final String title;
+
+  /// Optional tooltip to further explain the action.
+  final String? tooltip;
+
+  /// Constructor for the object.
+  CAppDrawerAction({
+    this.actions,
+    required this.icon,
+    required this.title,
+    this.tooltip,
+    this.onTap,
+  }) {
+    assert(
+      (actions != null || onTap != null),
+      "Only actions or onTap can be specified. Not both",
+    );
+
+    assert(icon is IconData || icon is AssetImage || icon is Image,
+        "icon can only be an AssetImage, Image or IconData type");
   }
-
-  static double height(BuildContext context) =>
-      MediaQuery.of(context).size.height;
-
-  static double width(BuildContext context) =>
-      MediaQuery.of(context).size.width;
 }
 
-class _CMainViewState extends State<CMainView> {
+/// Defines the [CAppViewController.drawer] and [CAppViewController.endDrawer]
+/// properties for the [CAppView]. This allows for opening a drawer on the left
+/// or right side of the SPA.
+class CAppDrawer extends StatelessWidget {
+  /// The list of [CAppDrawerAction] one can take from the drawer.
+  final List<CAppDrawerAction> actions;
+
+  /// Optional background color to apply to the drawer.
+  final Color backgroundColor;
+
+  /// Optional size to apply to all the labels.
+  final double fontSize;
+
+  /// Optional foreground color to apply to the icons and text of the drawer.
+  final Color foregroundColor;
+
+  /// Optional size to apply to all the icons in the drawer.
+  final double iconSize;
+
+  /// A resource image to load as the drawer header. This is also how one can
+  /// close the drawer.
+  final String headerImage;
+
+  /// Optional height to apply to the headerImage to scale it properly.
+  final double height;
+
+  /// Optional width to apply to the drawer.
+  final double width;
+
+  /// Constructor for the object
+  const CAppDrawer({
+    super.key,
+    required this.actions,
+    this.backgroundColor = Colors.black,
+    this.fontSize = 12.0,
+    this.foregroundColor = Colors.white,
+    required this.headerImage,
+    this.height = 50.0,
+    this.iconSize = 20.0,
+    this.width = 175.0,
+  });
+
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
+    return SizedBox(
+      width: width,
+      child: PointerInterceptor(
+        child: Container(
+          color: backgroundColor,
+          child: Column(
+            children: [
+              SizedBox(
+                height: height,
+                child: InkWell(
+                  onTap: () {
+                    CAppView.controller.closeDrawer();
+                    CAppView.controller.closeDrawer(isEndDrawer: true);
+                  },
+                  child: DrawerHeader(
+                    margin: EdgeInsets.zero,
+                    padding: EdgeInsets.zero,
+                    child: Image.asset(
+                      headerImage,
+                      fit: BoxFit.fill,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero,
+                  children: _buildDrawerItems(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Helper method to build the drawer items to be able to display and close
+  /// upon selection of an item.
+  List<Widget> _buildDrawerItems() {
+    List<Widget> list = [];
+    for (var element in actions) {
+      if (element.actions != null) {
+        List<Widget> subActions = [];
+        for (var e in element.actions!) {
+          subActions.add(_buildListTile(e));
+        }
+        var tile = ExpansionTile(
+          title: Text(element.title, style: TextStyle(fontSize: fontSize)),
+          leading: element.icon is IconData
+              ? Icon(element.icon, size: iconSize)
+              : element.icon is AssetImage
+                  ? Image(
+                      image: element.icon,
+                      height: iconSize,
+                      width: iconSize,
+                    )
+                  : element.icon,
+          iconColor: foregroundColor,
+          textColor: foregroundColor,
+          collapsedIconColor: foregroundColor,
+          collapsedTextColor: foregroundColor,
+          children: subActions,
+        );
+        if (element.tooltip != null) {
+          list.add(
+            Tooltip(
+              message: element.tooltip,
+              child: tile,
+            ),
+          );
+        } else {
+          list.add(tile);
+        }
+      } else {
+        list.add(_buildListTile(element));
+      }
+    }
+    return list;
+  }
+
+  /// Builds the list tile for expanding a list of actions.
+  Widget _buildListTile(CAppDrawerAction e) {
+    var tile = ListTile(
+      dense: true,
+      minLeadingWidth: 5.0,
+      leading: e.icon is IconData
+          ? Icon(e.icon, size: iconSize)
+          : e.icon is AssetImage
+              ? Image(
+                  image: e.icon,
+                  height: iconSize,
+                  width: iconSize,
+                )
+              : e.icon,
+      title: Text(e.title),
+      titleTextStyle: TextStyle(fontSize: fontSize),
+      iconColor: foregroundColor,
+      textColor: foregroundColor,
+      onTap: () {
+        CAppView.controller.closeDrawer();
+        CAppView.controller.closeDrawer(isEndDrawer: true);
+        e.onTap!();
+      },
+    );
+    if (e.tooltip != null) {
+      return Tooltip(message: e.tooltip, child: tile);
+    }
+    return tile;
+  }
+}
+
+/// Provides the header toolbar definition for the [CAppView].
+class CAppToolbar {
+  /// Optional [CButtonControl] actions to the right of the title.
+  final List<CButtonControl>? actions;
+
+  /// Optional color to apply to the background of the header.
+  final Color? backgroundColor;
+
+  /// Will force the centering of the title or not. If not specified, will be
+  /// based on the operating system.
+  final bool? centerTitle;
+
+  /// Optional elevation to set for the header to support the shadowColor
+  /// property.
+  final double? elevation;
+
+  /// Optional color to apply to the text and icons of the header.
+  final Color? foregroundColor;
+
+  /// Optional height to set for the header of the [CAppView].
+  final double? height;
+
+  /// Optional [CButtonControl] for the leading icon to put in the header.
+  final CButtonControl? leading;
+
+  /// Optional shadow color to project from the bottom of the header
+  /// when elevated.
+  final Color? shadowColor;
+
+  /// Will display a text title in the absence of the CHeaderLogo.
+  final Widget? title;
+
+  /// Constructor for the class.
+  CAppToolbar({
+    this.actions,
+    this.backgroundColor,
+    this.centerTitle,
+    this.elevation,
+    this.foregroundColor,
+    this.height,
+    this.leading,
+    this.shadowColor,
+    this.title,
+  });
+
+  /// Builds the header toolbar for the [CAppView].
+  AppBar _buildHeaderToolbar() {
+    return AppBar(
+      actions: actions,
+      automaticallyImplyLeading: false,
+      backgroundColor: backgroundColor,
+      centerTitle: centerTitle,
+      elevation: elevation,
+      foregroundColor: foregroundColor,
+      shadowColor: shadowColor,
+      title: title,
+      titleSpacing: 5.0,
+      toolbarHeight: height != null ? height! + 5 : null,
+      leading: leading,
+    );
+  }
+
+  /// Builds the footer toolbar for the [CAppView].
+  BottomAppBar _buildFooterToolbar() {
+    return BottomAppBar(
+      notchMargin: 0.0,
+      padding: EdgeInsets.zero,
+      child: _buildHeaderToolbar(),
+    );
+  }
+}
+
+/// Provides the controller to the [CAppView] SPA widget to update the UI
+/// state with new widgets via the various properties of the controller. Also
+/// offers methods to perform other actions.
+class CAppViewController extends ChangeNotifier {
+  // Member Fields
+  static var _isInitialized = false;
+  final _appState = <String, dynamic>{};
+
+  /// Setup a global key of the ScaffoldState to retrieve the current
+  /// BuildContext and utilized by the [CAppView] to carry out UI actions.
+  static final GlobalKey<ScaffoldState> scaffoldKey =
+      GlobalKey<ScaffoldState>();
+
+  /// Retrieve or updates the app title for the [CAppView].
+  String get appTitle => _appState["appTitle"].toString();
+  set appTitle(String v) => _updateAppState("appTitle", v);
+
+  /// Retrieve or updates the app theme for the [CAppView].
+  ThemeData? get appTheme => _appState["appTheme"] as ThemeData?;
+  set appTheme(ThemeData? v) => _updateAppState("appTheme", v);
+
+  /// Retrieve or update the content area of the [CAppView].
+  Widget get content => _appState["content"] as Widget;
+  set content(Widget v) => _updateAppState("content", v);
+
+  /// Retrieve or update the SPA [CAppDrawer] drawer.
+  CAppDrawer? get drawer => _appState["drawer"] as CAppDrawer?;
+  set drawer(CAppDrawer? v) => _updateAppState("drawer", v);
+
+  /// Retrieve or update the SPA [CAppDrawer] end drawer.
+  CAppDrawer? get endDrawer => _appState["endDrawer"] as CAppDrawer?;
+  set endDrawer(CAppDrawer? v) => _updateAppState("endDrawer", v);
+
+  /// Retrieve or update the floating action button for the [CAppView]
+  Widget? get floatingActionButton => _appState["floatingActionButton"];
+  set floatingActionButton(Widget? v) =>
+      _updateAppState("floatingActionButton", v);
+
+  /// Sets the location of the floating action button for the [CAppView].
+  FloatingActionButtonLocation? get floatingActionButtonLocation =>
+      _appState["floatingActionButtonLocation"]
+          as FloatingActionButtonLocation?;
+  set floatingActionButtonLocation(FloatingActionButtonLocation? v) =>
+      _updateAppState("floatingActionButtonLocation", v);
+
+  /// Retrieve or updates the SPA [CAppToolbar] header.
+  CAppToolbar? get footer => _appState["footer"] as CAppToolbar?;
+  set footer(CAppToolbar? v) => _updateAppState("footer", v);
+
+  /// Retrieve or updates the SPA [CAppToolbar] header.
+  CAppToolbar? get header => _appState["header"] as CAppToolbar?;
+  set header(CAppToolbar? v) => _updateAppState("header", v);
+
+  /// Will programmatically close an open drawer on the [CAppView].
+  void closeDrawer({bool isEndDrawer = false}) {
+    if (!isEndDrawer && scaffoldKey.currentState!.isDrawerOpen) {
+      scaffoldKey.currentState!.closeDrawer();
+    } else if (scaffoldKey.currentState!.isEndDrawerOpen) {
+      scaffoldKey.currentState!.closeEndDrawer();
+    }
+  }
+
+  /// Will programmatically open a drawer on the [CAppView].
+  void openDrawer({bool isEndDrawer = false}) {
+    if (!isEndDrawer && scaffoldKey.currentState!.hasDrawer) {
+      scaffoldKey.currentState!.openDrawer();
+    } else if (scaffoldKey.currentState!.hasEndDrawer) {
+      scaffoldKey.currentState!.openEndDrawer();
+    }
+  }
+
+  /// Retrieves the available height of the app context.
+  double height(BuildContext context) => MediaQuery.of(context).size.height;
+
+  /// Retrieves the available width of the app context.
+  double width(BuildContext context) => MediaQuery.of(context).size.width;
+
+  /// Provides the ability to show a full page within the SPA changing
+  /// the header, removing the drawer, and presenting a close button with
+  /// icons for performing additional actions if necessary.
+  void showFullPage({
+    required Widget content,
+    CAppToolbar? footer,
+    CAppToolbar? header,
+  }) async {
+    Navigator.push(
+      scaffoldKey.currentContext!,
+      MaterialPageRoute(
+        builder: (context) => Material(
+          child: Scaffold(
+            appBar: header?._buildHeaderToolbar(),
+            body: content,
+            bottomNavigationBar: footer?._buildFooterToolbar(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Constructor for the class.
+  CAppViewController._() {
+    assert(!_isInitialized, "Only one CMainView class can exist for your SPA.");
+    _isInitialized = true;
+  }
+
+  /// Supports updating the application state when an SPA property is updated.
+  void _updateAppState(String key, dynamic value) {
+    _appState[key] = value;
+    notifyListeners();
+  }
+}
+
+/// Defines the main app view for a Single Page App (SPA). All states are then
+/// controlled by the [CAppViewController] properties and methods.
+class CAppView extends StatefulWidget {
+  /// Accesses the [CAppViewController] to update the [CAppView] UI state
+  /// of displayed widgets.
+  static final controller = CAppViewController._();
+
+  /// Constructor for the class.
+  const CAppView({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _CAppViewState();
+}
+
+class _CAppViewState extends State<CAppView> {
+  @override
+  void initState() {
+    CAppView.controller.addListener(() => setState(() {}));
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      navigatorKey: CDialog.navigatorKey,
+      title: CAppView.controller.appTitle,
+      theme: CAppView.controller.appTheme,
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        key: CAppViewController.scaffoldKey,
+        appBar: CAppView.controller.header?._buildHeaderToolbar(),
+        body: CAppView.controller.content,
+        bottomNavigationBar: CAppView.controller.footer?._buildFooterToolbar(),
+        drawer: CAppView.controller.drawer,
+        endDrawer: CAppView.controller.endDrawer,
+        floatingActionButton: CAppView.controller.floatingActionButton != null
+            ? PointerInterceptor(
+                intercepting: kIsWeb,
+                child: CAppView.controller.floatingActionButton!,
+              )
+            : null,
+        floatingActionButtonLocation:
+            CAppView.controller.floatingActionButtonLocation,
+      ),
+    );
   }
 }
 
@@ -1160,48 +1564,75 @@ class _CMainViewState extends State<CMainView> {
 // [Widgets] ------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Sets up a divider / spacer between widgets on a view. Simple specify the
-/// height if in a column layout or the width if in a row layout to provide
-/// the separation. A color can be specified to give an extra layer of
-/// division.
-class CDivider extends StatelessWidget {
-  /// The optional color to place with the divider.
-  final Color? color;
+/// Builds a icon based button widget.
+class CButtonControl extends StatelessWidget {
+  /// Optional size to apply to all the labels.
+  final double? fontSize;
 
-  /// The height of the spacer when the layout is top to bottom.
-  final double? height;
+  /// The icon to associate with the action.
+  final dynamic icon;
 
-  /// The width of the spacer when the layout is left to right.
-  final double? width;
+  /// Identifies the size of the icon
+  final double? iconSize;
 
-  /// Specify whether the divider is visible or not.
+  /// The action to take when tapped.
+  final VoidCallback onTap;
+
+  /// An optional title to place at the bottom of the icon button.
+  final String? title;
+
+  /// The tooltip to describe what the action does.
+  final String? tooltip;
+
+  /// Determines whether to display this button or not.
   final bool visible;
 
-  /// Constructor for the object.
-  const CDivider({
-    this.color,
-    this.height,
-    this.width,
+  /// Constructor for the widget.
+  CButtonControl({
+    this.fontSize,
+    required this.icon,
+    this.iconSize,
+    required this.onTap,
+    this.title,
+    this.tooltip,
     this.visible = true,
     super.key,
-  });
+  }) {
+    assert(icon is IconData || icon is AssetImage,
+        "icon can only be an Image or IconData type");
+  }
 
   @override
   Widget build(BuildContext context) {
+    final btn = IconButton(
+      icon: icon is IconData
+          ? Icon(icon, size: iconSize)
+          : Image(
+              image: icon,
+              height: iconSize,
+              width: iconSize,
+            ),
+      tooltip: tooltip,
+      onPressed: onTap,
+    );
     return Offstage(
       offstage: !visible,
-      child: Container(
-        height: height,
-        width: width,
-        color: color,
-      ),
+      child: title != null && title!.isNotEmpty
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                btn,
+                Text(title!, style: TextStyle(fontSize: fontSize)),
+              ],
+            )
+          : btn,
     );
   }
 }
 
 /// Creates a dropdown box with a selection of custom values one can then
 /// select from.
-class CDropdownMenu<T> extends StatelessWidget {
+class CComboBoxControl<T> extends StatelessWidget {
   // Identifies the dropdown color.
   final Color? dropdownColor;
 
@@ -1239,7 +1670,7 @@ class CDropdownMenu<T> extends StatelessWidget {
   final bool visible;
 
   /// Constructor for the class.
-  const CDropdownMenu({
+  const CComboBoxControl({
     this.dropdownColor,
     this.enabled = true,
     this.fontSize,
@@ -1295,10 +1726,100 @@ class CDropdownMenu<T> extends StatelessWidget {
   }
 }
 
+/// Sets up a divider / spacer between widgets on a view. Simple specify the
+/// height if in a column layout or the width if in a row layout to provide
+/// the separation. A color can be specified to give an extra layer of
+/// division.
+class CSpacerControl extends StatelessWidget {
+  /// The optional color to place with the divider.
+  final Color? color;
+
+  /// The height of the spacer when the layout is top to bottom.
+  final double? height;
+
+  /// The width of the spacer when the layout is left to right.
+  final double? width;
+
+  /// Specify whether the divider is visible or not.
+  final bool visible;
+
+  /// Constructor for the object.
+  const CSpacerControl({
+    this.color,
+    this.height,
+    this.width,
+    this.visible = true,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Offstage(
+      offstage: !visible,
+      child: Container(
+        height: height,
+        width: width,
+        color: color,
+      ),
+    );
+  }
+}
+
+/// Creates a stack layout allowing for items to be placed on top of either
+/// background image or a background color.
+class CStackView extends StatelessWidget {
+  /// Optional image resource to a background image bundled with your app.
+  final String? backgroundImage;
+
+  /// Optional background color to set for the stack.
+  final Color? backgroundColor;
+
+  /// The children widgets to build on top of the stack.
+  final List<Widget> children;
+
+  /// Constructor for the widget.
+  CStackView({
+    this.backgroundImage,
+    this.backgroundColor,
+    required this.children,
+    super.key,
+  }) {
+    assert(
+        (backgroundImage != null && backgroundColor == null) ||
+            (backgroundImage == null && backgroundColor != null),
+        "Only backgroundImage or backgroundColor can be set.");
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> w = [];
+    if (backgroundImage != null) {
+      w.add(
+        Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage(backgroundImage!),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+      );
+    } else if (backgroundColor != null) {
+      w.add(
+        Container(
+          color: backgroundColor,
+        ),
+      );
+    }
+    w.addAll(children);
+    return Stack(children: w);
+  }
+}
+
 /// Constructs a multi-purpose text field for entering different types of data.
 ///
 /// TODO: Need to format for other data types and a custom controller.
-class CTextField extends StatelessWidget {
+class CTextFieldControl extends StatelessWidget {
   /// Enable or disable the text field.
   final bool? enabled;
 
@@ -1345,7 +1866,7 @@ class CTextField extends StatelessWidget {
   final bool visible;
 
   /// Constructor of the class.
-  const CTextField({
+  const CTextFieldControl({
     this.enabled,
     this.fontSize,
     this.height,
