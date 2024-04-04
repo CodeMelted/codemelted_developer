@@ -16,15 +16,16 @@ Software engineers are now required to learn multiple languages, technologies, a
 
 **Table of Contents**
 
-- [FEATURES](#features)
-  - [Core Use Cases](#core-use-cases)
-  - [Advanced Use Cases](#advanced-use-cases)
-  - [User Interface Use Cases](#user-interface-use-cases)
-- [GETTING STARTED](#getting-started)
-- [USAGE](#usage)
+- [USE CASE MODEL](#use-case-model)
+- [USE CASES](#use-cases)
+  - [Core](#core)
+  - [User Interface](#user-interface)
+  - [Advanced](#advanced)
+- [VERSIONING](#versioning)
+- [TESTING](#testing)
 - [LICENSE](#license)
 
-## FEATURES
+## USE CASE MODEL
 
 ```mermaid
 ---
@@ -41,6 +42,15 @@ flowchart TD
             ucRestAPI([Rest API])
             ucStorage([Storage])
         end
+        subgraph User Interface
+            ucAppView([App View])
+            ucAudioPlayer([Audio Player])
+            ucConsole([Console])
+            ucDialog([Dialog])
+            ucLayouts([Layouts])
+            ucThemes([Themes])
+            ucWidgets([Widgets])
+        end
         subgraph Advanced
             ucDatabase([Database])
             ucDeviceOrientation([Device Orientation])
@@ -49,14 +59,6 @@ flowchart TD
             ucNetworkSocket([Network Socket])
             ucRuntime([Runtime])
             ucWebRTC([Web RTC])
-        end
-        subgraph User Interface
-            ucAppView([App View])
-            ucAudio([Audio Player])
-            ucConsole([Console])
-            ucDialog([Dialog])
-            ucThemes([Themes])
-            ucWidgets([Widgets])
         end
     end
     subgraph sdk[SDK]
@@ -84,8 +86,9 @@ flowchart TD
     app--Accesses-->hardware
     appUser[App User]--Uses-->app
 ```
+## USE CASES
 
-### Core Use Cases
+### Core
 
 <mark>TBD</mark>
 
@@ -97,7 +100,19 @@ flowchart TD
 - [Rest API](use_cases/core/rest_api.md)
 - [Storage](use_cases/core/storage.md)
 
-### Advanced Use Cases
+### User Interface
+
+<mark>TBD</mark>
+
+- [App View](use_cases/ui/app_view.md)
+- [Audio Player](use_cases/ui/audio_player.md)
+- [Console](use_cases/ui/console.md)
+- [Dialog](use_cases/ui/dialog.md)
+- [Layouts](use_cases/ui/layouts.md)
+- [Themes](use_cases/ui/themes.md)
+- [Widgets](use_cases/ui/widgets.md)
+
+### Advanced
 
 <mark>TBD</mark>
 
@@ -109,22 +124,11 @@ flowchart TD
 - [Runtime](use_cases/advanced/runtime.md)
 - [Web RTC](use_cases/advanced/web_rtc.md)
 
-### User Interface Use Cases
+## VERSIONING
 
 <mark>TBD</mark>
 
-- [App View](use_cases/ui/app_view.md)
-- [Audio Player](use_cases/ui/audio_player.md)
-- [Console](use_cases/ui/console.md)
-- [Dialog](use_cases/ui/dialog.md)
-- [Themes](use_cases/ui/themes.md)
-- [Widgets](use_cases/ui/widgets.md)
-
-## GETTING STARTED
-
-<mark>TBD</mark>
-
-## USAGE
+## TESTING
 
 <mark>TBD</mark>
 

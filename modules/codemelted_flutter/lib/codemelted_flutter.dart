@@ -35,8 +35,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 
-import 'package:flutter/widgets.dart';
-
 import 'src/platform_none.dart'
     if (dart.library.io) 'src/platform_io.dart'
     if (dart.library.js) 'src/platform_web.dart';
@@ -1551,7 +1549,11 @@ class CWidget {
     throw "FUTURE DEVELOPMENT";
   }
 
-  static Widget column() {
+  static Widget columnLayout() {
+    throw "FUTURE DEVELOPMENT";
+  }
+
+  static Widget gridView() {
     throw "FUTURE DEVELOPMENT";
   }
 
@@ -1623,7 +1625,7 @@ class CWidget {
     );
   }
 
-  Widget row() {
+  Widget rowLayout() {
     throw "FUTURE DEVELOPMENT";
   }
 
