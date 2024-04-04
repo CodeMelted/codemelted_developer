@@ -35,6 +35,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate';
 
+import 'package:flutter/widgets.dart';
+
 import 'src/platform_none.dart'
     if (dart.library.io) 'src/platform_io.dart'
     if (dart.library.js) 'src/platform_web.dart';
@@ -212,6 +214,48 @@ typedef CObject = Map<String, dynamic>;
 extension CObjectExtension on CObject {
   /// Converts the JSON object to a string returning null if it cannot.
   String? stringify() => jsonEncode(this);
+}
+
+/// [CObject] wrapper allowing for using generics to map the data along with
+/// extending a [ChangeNotifier] allowing for alerting listeners to data
+/// changes with the internal data object.
+class CObjectDataNotifier extends ChangeNotifier {
+  /// Holds the [CObject] data map.
+  final _data = CObject();
+
+  /// Constructor for the object with the ability to initialize it from the
+  /// named parameters
+  CObjectDataNotifier({CObject? objData, String? strData}) {
+    assert(
+      (objData != null && strData == null) ||
+          (objData == null && strData != null) ||
+          (objData == null && strData == null),
+      "Only one object can be used for initialization or none at all",
+    );
+    if (objData != null) {
+      _data.addAll(objData);
+    } else if (strData != null) {
+      final data = strData.asObject();
+      if (data != null) {
+        _data.addAll(data);
+      }
+    }
+  }
+
+  /// Provides a method to set data elements within the internal [CObject].
+  void set<T>(String key, T value) {
+    _data[key] = value;
+    notifyListeners();
+  }
+
+  /// Provides the ability to extract the data element from the internal
+  /// [CObject].
+  T get<T>(String key) {
+    return _data[key];
+  }
+
+  /// Utility to get a String representation of the [CObject]
+  String? stringify() => _data.stringify();
 }
 
 /// Provides a series of asXXX() conversion from a string data type and do non
@@ -762,13 +806,10 @@ class CDialog {
 
   /// Will display information about your flutter app.
   Future<void> about({
-    required String appIcon,
-    required String appName,
-    required String appVersion,
-    required String appLegalese,
-    double appIconWidth = 50.0,
-    double appIconHeight = 50.0,
-    double appIconRadius = 24.0,
+    required Widget? appIcon,
+    required String? appName,
+    required String? appVersion,
+    required String? appLegalese,
   }) async {
     showDialog(
       context: navigatorKey.currentContext!,
@@ -778,19 +819,7 @@ class CDialog {
           applicationName: appName,
           applicationVersion: appVersion,
           applicationLegalese: appLegalese,
-          applicationIcon: SizedBox(
-            width: appIconWidth,
-            height: appIconHeight,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(appIconRadius)),
-                image: DecorationImage(
-                  image: AssetImage(appIcon),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
+          applicationIcon: appIcon,
         ),
       ),
     );
@@ -800,9 +829,6 @@ class CDialog {
   /// be dismissed. You can use a flutter build alert dialog or the native
   /// browser if working within a web environment.
   Future<void> alert({
-    Color barrierColor = Colors.black54,
-    Color? backgroundColor,
-    Color? foregroundColor,
     double? height,
     required String message,
     String? title,
@@ -816,10 +842,7 @@ class CDialog {
     }
 
     return custom(
-      backgroundColor: backgroundColor,
-      barrierColor: barrierColor,
       content: Text(message),
-      foregroundColor: foregroundColor,
       height: height,
       title: title ?? "Attention",
       width: width,
@@ -829,9 +852,6 @@ class CDialog {
   /// Shows a browser popup window when running within a mobile or web target
   /// environment.
   Future<void> browser({
-    Color barrierColor = Colors.black54,
-    Color? backgroundColor,
-    Color? foregroundColor,
     double? height,
     required String message,
     String? target,
@@ -866,10 +886,7 @@ class CDialog {
     }
 
     return custom(
-      backgroundColor: backgroundColor,
-      barrierColor: barrierColor,
       content: CWebView(url: url),
-      foregroundColor: foregroundColor,
       height: height,
       title: title ?? "Browser",
       width: width,
@@ -879,10 +896,6 @@ class CDialog {
   /// Shows a popup dialog with a list of options returning the index selected
   /// or -1 if canceled.
   Future<int> choose({
-    Color barrierColor = Colors.black54,
-    Color? backgroundColor,
-    Color? dropdownColor,
-    Color? foregroundColor,
     double? height,
     required String message,
     required List<String> options,
@@ -895,7 +908,7 @@ class CDialog {
       dropdownItems.add(
         DropdownMenuItem(
           value: index,
-          child: Text(option, style: TextStyle(color: foregroundColor)),
+          child: Text(option),
         ),
       );
     }
@@ -907,17 +920,12 @@ class CDialog {
               onPressed: () => close<int>(answer),
             ),
           ],
-          backgroundColor: backgroundColor,
-          barrierColor: barrierColor,
           content: CComboBoxControl<int>(
             items: dropdownItems,
             title: message,
             value: 0,
             onChanged: (v) => answer = v!,
-            textColor: foregroundColor,
-            dropdownColor: dropdownColor,
           ),
-          foregroundColor: foregroundColor,
           height: height,
           title: title ?? "Choose",
           width: width,
@@ -936,9 +944,6 @@ class CDialog {
   /// have the option to utilize the native browser prompt if running in a web
   /// target.
   Future<bool> confirm({
-    Color barrierColor = Colors.black54,
-    Color? backgroundColor,
-    Color? foregroundColor,
     double? height,
     required String message,
     String? title,
@@ -961,10 +966,7 @@ class CDialog {
               onPressed: () => close<bool>(false),
             ),
           ],
-          backgroundColor: backgroundColor,
-          barrierColor: barrierColor,
           content: Text(message),
-          foregroundColor: foregroundColor,
           height: height,
           title: title ?? "Confirm",
           width: width,
@@ -977,52 +979,40 @@ class CDialog {
   /// [CDialog.close] for returning values via your actions array.
   Future<T?> custom<T>({
     List<TextButton>? actions,
-    Color? backgroundColor,
-    Color barrierColor = Colors.black54,
     required Widget content,
-    Color? foregroundColor,
     double? height,
     required String title,
     double? width,
   }) async {
     return showDialog<T>(
       barrierDismissible: false,
-      barrierColor: barrierColor,
       context: navigatorKey.currentContext!,
       builder: (_) => AlertDialog(
         insetPadding: EdgeInsets.zero,
         scrollable: true,
-        backgroundColor: backgroundColor,
         titlePadding: EdgeInsets.zero,
-        titleTextStyle: TextStyle(
-          color: foregroundColor,
-          fontWeight: FontWeight.bold,
-          fontSize: 16.0,
-        ),
         title: Column(
           children: [
             Row(
               children: [
-                const CSpacerControl(width: 5.0),
+                CWidget.spacer(width: 5.0),
                 Expanded(child: Text(title)),
                 IconButton(
-                  icon: Icon(Icons.close, color: foregroundColor),
+                  icon: const Icon(Icons.close),
                   onPressed: () => close(),
                 ),
               ],
             ),
-            CSpacerControl(
-                height: 2.0, color: foregroundColor ?? Colors.blueGrey),
+            CWidget.spacer(height: 2.0)
           ],
         ),
         actionsPadding: const EdgeInsets.all(5.0),
         actionsAlignment: MainAxisAlignment.center,
         contentPadding: EdgeInsets.zero,
         content: SizedBox(
-          height: height ??
-              CAppView.controller.height(navigatorKey.currentContext!) * 0.65,
-          width: width ??
-              CAppView.controller.width(navigatorKey.currentContext!) * 0.90,
+          height:
+              height ?? CAppView.height(navigatorKey.currentContext!) * 0.65,
+          width: width ?? CAppView.width(navigatorKey.currentContext!) * 0.90,
           child: content,
         ),
         actions: actions,
@@ -1045,14 +1035,11 @@ class CDialog {
   }) async {
     Future.delayed(Duration.zero, task);
     return custom<T>(
-      backgroundColor: backgroundColor,
-      barrierColor: barrierColor,
       content: Text(
         message,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),
-      foregroundColor: foregroundColor,
       height: height,
       title: title ?? "Please Wait",
       width: width,
@@ -1064,9 +1051,6 @@ class CDialog {
   /// action an empty string is returned. You also have the option to use the
   /// native browser prompt when utilizing the web target.
   Future<String> prompt({
-    Color barrierColor = Colors.black54,
-    Color? backgroundColor,
-    Color? foregroundColor,
     double? height,
     required String message,
     String? title,
@@ -1087,14 +1071,10 @@ class CDialog {
               onPressed: () => close<String>(answer),
             ),
           ],
-          backgroundColor: backgroundColor,
-          barrierColor: barrierColor,
           content: CTextFieldControl(
             title: message,
             onChanged: (v) => answer = v,
-            textColor: foregroundColor,
           ),
-          foregroundColor: foregroundColor,
           height: height,
           title: title ?? "Prompt",
           width: width,
@@ -1108,7 +1088,6 @@ class CDialog {
     Widget? content,
     String? message,
     int? seconds,
-    double? width,
   }) {
     assert(
       (content != null && message == null) ||
@@ -1119,14 +1098,10 @@ class CDialog {
     ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
       SnackBar(
         content: content ?? Text(message!),
-        behavior: SnackBarBehavior.floating,
         duration: seconds != null
             ? Duration(seconds: seconds)
             : const Duration(seconds: 4),
-        width: width,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(25.0),
-        ),
+        showCloseIcon: true,
       ),
     );
   }
@@ -1136,328 +1111,143 @@ class CDialog {
 // [Main View] ----------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Supports the definition of an app drawer with the [CAppView].
-class CAppDrawerAction {
-  /// Optional to provide sub-actions under an expandable list.
-  final List<CAppDrawerAction>? actions;
+class CAppView extends StatefulWidget {
+  static bool _isInitialized = false;
 
-  /// The icon to associate with the action.
-  final dynamic icon;
+  static final scaffoldKey = GlobalKey<ScaffoldState>();
 
-  /// The action to take when tapped.
-  final VoidCallback? onTap;
+  static final uiState = CObjectDataNotifier();
 
-  /// The title to associate with the action.
-  final String title;
+  static Widget? get content => uiState.get<Widget?>("content");
+  static set content(Widget? v) => uiState.set<Widget?>("content", v);
 
-  /// Optional tooltip to further explain the action.
-  final String? tooltip;
+  static ThemeData? get darkTheme => uiState.get<ThemeData?>("darkTheme");
+  static set darkTheme(ThemeData? v) => uiState.set<ThemeData?>("darkTheme", v);
 
-  /// Constructor for the object.
-  CAppDrawerAction({
-    this.actions,
-    required this.icon,
-    required this.title,
-    this.tooltip,
-    this.onTap,
+  static ThemeData? get theme => uiState.get<ThemeData?>("theme");
+  static set theme(ThemeData? v) => uiState.set<ThemeData?>("theme", v);
+
+  static ThemeMode? get themeMode => uiState.get<ThemeMode?>("themeMode");
+  static set themeMode(ThemeMode? v) => uiState.set<ThemeMode?>("themeMode", v);
+
+  static String? get title => uiState.get<String?>("title");
+  static set title(String? v) => uiState.set<String?>("title", v);
+
+  static void floatingActionButton({
+    Widget? button,
+    FloatingActionButtonLocation? location,
   }) {
-    assert(
-      (actions != null || onTap != null),
-      "Only actions or onTap can be specified. Not both",
+    uiState.set<Widget?>(
+      "floatingActionButton",
+      button != null
+          ? PointerInterceptor(
+              intercepting: kIsWeb,
+              child: button,
+            )
+          : null,
     );
-
-    assert(icon is IconData || icon is AssetImage || icon is Image,
-        "icon can only be an AssetImage, Image or IconData type");
+    uiState.set<FloatingActionButtonLocation?>(
+      "floatingActionButtonLocation",
+      location,
+    );
   }
-}
 
-/// Defines the [CAppViewController.drawer] and [CAppViewController.endDrawer]
-/// properties for the [CAppView]. This allows for opening a drawer on the left
-/// or right side of the SPA.
-class CAppDrawer extends StatelessWidget {
-  /// The list of [CAppDrawerAction] one can take from the drawer.
-  final List<CAppDrawerAction> actions;
-
-  /// Optional background color to apply to the drawer.
-  final Color backgroundColor;
-
-  /// Optional size to apply to all the labels.
-  final double fontSize;
-
-  /// Optional foreground color to apply to the icons and text of the drawer.
-  final Color foregroundColor;
-
-  /// Optional size to apply to all the icons in the drawer.
-  final double iconSize;
-
-  /// A resource image to load as the drawer header. This is also how one can
-  /// close the drawer.
-  final String headerImage;
-
-  /// Optional height to apply to the headerImage to scale it properly.
-  final double height;
-
-  /// Optional width to apply to the drawer.
-  final double width;
-
-  /// Constructor for the object
-  const CAppDrawer({
-    super.key,
-    required this.actions,
-    this.backgroundColor = Colors.black,
-    this.fontSize = 12.0,
-    this.foregroundColor = Colors.white,
-    required this.headerImage,
-    this.height = 50.0,
-    this.iconSize = 20.0,
-    this.width = 175.0,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      child: PointerInterceptor(
-        child: Container(
-          color: backgroundColor,
-          child: Column(
+  static void drawer({DrawerHeader? header, List<Widget>? items}) {
+    if (header == null && items == null) {
+      uiState.set<Drawer?>("drawer", null);
+    } else {
+      uiState.set<Drawer?>(
+        "drawer",
+        Drawer(
+          child: ListView(
             children: [
-              SizedBox(
-                height: height,
-                child: InkWell(
-                  onTap: () {
-                    CAppView.controller.closeDrawer();
-                    CAppView.controller.closeDrawer(isEndDrawer: true);
-                  },
-                  child: DrawerHeader(
-                    margin: EdgeInsets.zero,
-                    padding: EdgeInsets.zero,
-                    child: Image.asset(
-                      headerImage,
-                      fit: BoxFit.fill,
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.zero,
-                  children: _buildDrawerItems(),
-                ),
-              ),
+              if (header != null) header,
+              if (items != null) ...items,
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  /// Helper method to build the drawer items to be able to display and close
-  /// upon selection of an item.
-  List<Widget> _buildDrawerItems() {
-    List<Widget> list = [];
-    for (var element in actions) {
-      if (element.actions != null) {
-        List<Widget> subActions = [];
-        for (var e in element.actions!) {
-          subActions.add(_buildListTile(e));
-        }
-        var tile = ExpansionTile(
-          title: Text(element.title, style: TextStyle(fontSize: fontSize)),
-          leading: element.icon is IconData
-              ? Icon(element.icon, size: iconSize)
-              : element.icon is AssetImage
-                  ? Image(
-                      image: element.icon,
-                      height: iconSize,
-                      width: iconSize,
-                    )
-                  : element.icon,
-          iconColor: foregroundColor,
-          textColor: foregroundColor,
-          collapsedIconColor: foregroundColor,
-          collapsedTextColor: foregroundColor,
-          children: subActions,
-        );
-        if (element.tooltip != null) {
-          list.add(
-            Tooltip(
-              message: element.tooltip,
-              child: tile,
-            ),
-          );
-        } else {
-          list.add(tile);
-        }
-      } else {
-        list.add(_buildListTile(element));
-      }
+      );
     }
-    return list;
   }
 
-  /// Builds the list tile for expanding a list of actions.
-  Widget _buildListTile(CAppDrawerAction e) {
-    var tile = ListTile(
-      dense: true,
-      minLeadingWidth: 5.0,
-      leading: e.icon is IconData
-          ? Icon(e.icon, size: iconSize)
-          : e.icon is AssetImage
-              ? Image(
-                  image: e.icon,
-                  height: iconSize,
-                  width: iconSize,
-                )
-              : e.icon,
-      title: Text(e.title),
-      titleTextStyle: TextStyle(fontSize: fontSize),
-      iconColor: foregroundColor,
-      textColor: foregroundColor,
-      onTap: () {
-        CAppView.controller.closeDrawer();
-        CAppView.controller.closeDrawer(isEndDrawer: true);
-        e.onTap!();
-      },
-    );
-    if (e.tooltip != null) {
-      return Tooltip(message: e.tooltip, child: tile);
+  static void endDrawer({DrawerHeader? header, List<Widget>? items}) {
+    if (header == null && items == null) {
+      uiState.set<Drawer?>("endDrawer", null);
+    } else {
+      uiState.set<Drawer?>(
+        "endDrawer",
+        Drawer(
+          child: ListView(
+            children: [
+              if (header != null) header,
+              if (items != null) ...items,
+            ],
+          ),
+        ),
+      );
     }
-    return tile;
-  }
-}
-
-/// Provides the header toolbar definition for the [CAppView].
-class CAppToolbar {
-  /// Optional [CButtonControl] actions to the right of the title.
-  final List<CButtonControl>? actions;
-
-  /// Optional color to apply to the background of the header.
-  final Color? backgroundColor;
-
-  /// Will force the centering of the title or not. If not specified, will be
-  /// based on the operating system.
-  final bool? centerTitle;
-
-  /// Optional elevation to set for the header to support the shadowColor
-  /// property.
-  final double? elevation;
-
-  /// Optional color to apply to the text and icons of the header.
-  final Color? foregroundColor;
-
-  /// Optional height to set for the header of the [CAppView].
-  final double? height;
-
-  /// Optional [CButtonControl] for the leading icon to put in the header.
-  final CButtonControl? leading;
-
-  /// Optional shadow color to project from the bottom of the header
-  /// when elevated.
-  final Color? shadowColor;
-
-  /// Will display a text title in the absence of the CHeaderLogo.
-  final Widget? title;
-
-  /// Constructor for the class.
-  CAppToolbar({
-    this.actions,
-    this.backgroundColor,
-    this.centerTitle,
-    this.elevation,
-    this.foregroundColor,
-    this.height,
-    this.leading,
-    this.shadowColor,
-    this.title,
-  });
-
-  /// Builds the header toolbar for the [CAppView].
-  AppBar _buildHeaderToolbar() {
-    return AppBar(
-      actions: actions,
-      automaticallyImplyLeading: false,
-      backgroundColor: backgroundColor,
-      centerTitle: centerTitle,
-      elevation: elevation,
-      foregroundColor: foregroundColor,
-      shadowColor: shadowColor,
-      title: title,
-      titleSpacing: 5.0,
-      toolbarHeight: height != null ? height! + 5 : null,
-      leading: leading,
-    );
   }
 
-  /// Builds the footer toolbar for the [CAppView].
-  BottomAppBar _buildFooterToolbar() {
-    return BottomAppBar(
-      notchMargin: 0.0,
-      padding: EdgeInsets.zero,
-      child: _buildHeaderToolbar(),
-    );
+  static void footer({
+    List<Widget>? actions,
+    bool? centerTitle,
+    Widget? leading,
+    Widget? title,
+  }) {
+    if (actions == null &&
+        centerTitle == null &&
+        leading == null &&
+        title == null) {
+      uiState.set<BottomAppBar?>("bottomAppBar", null);
+    } else {
+      uiState.set<BottomAppBar?>(
+        "bottomAppBar",
+        BottomAppBar(
+          notchMargin: 0.0,
+          padding: EdgeInsets.zero,
+          child: AppBar(
+            actions: actions,
+            automaticallyImplyLeading: false,
+            centerTitle: centerTitle,
+            leading: leading,
+            title: title,
+          ),
+        ),
+      );
+    }
   }
-}
 
-/// Provides the controller to the [CAppView] SPA widget to update the UI
-/// state with new widgets via the various properties of the controller. Also
-/// offers methods to perform other actions.
-class CAppViewController extends ChangeNotifier {
-  // Member Fields
-  static var _isInitialized = false;
-  final _appState = <String, dynamic>{};
-
-  /// Setup a global key of the ScaffoldState to retrieve the current
-  /// BuildContext and utilized by the [CAppView] to carry out UI actions.
-  static final GlobalKey<ScaffoldState> scaffoldKey =
-      GlobalKey<ScaffoldState>();
-
-  /// Retrieve or updates the app title for the [CAppView].
-  String get appTitle => _appState["appTitle"].toString();
-  set appTitle(String v) => _updateAppState("appTitle", v);
-
-  /// Retrieve or updates the app theme for the [CAppView].
-  ThemeData? get appTheme => _appState["appTheme"] as ThemeData?;
-  set appTheme(ThemeData? v) => _updateAppState("appTheme", v);
-
-  /// Retrieve or update the content area of the [CAppView].
-  Widget get content => _appState["content"] as Widget;
-  set content(Widget v) => _updateAppState("content", v);
-
-  /// Retrieve or update the SPA [CAppDrawer] drawer.
-  CAppDrawer? get drawer => _appState["drawer"] as CAppDrawer?;
-  set drawer(CAppDrawer? v) => _updateAppState("drawer", v);
-
-  /// Retrieve or update the SPA [CAppDrawer] end drawer.
-  CAppDrawer? get endDrawer => _appState["endDrawer"] as CAppDrawer?;
-  set endDrawer(CAppDrawer? v) => _updateAppState("endDrawer", v);
-
-  /// Retrieve or update the floating action button for the [CAppView]
-  Widget? get floatingActionButton => _appState["floatingActionButton"];
-  set floatingActionButton(Widget? v) =>
-      _updateAppState("floatingActionButton", v);
-
-  /// Sets the location of the floating action button for the [CAppView].
-  FloatingActionButtonLocation? get floatingActionButtonLocation =>
-      _appState["floatingActionButtonLocation"]
-          as FloatingActionButtonLocation?;
-  set floatingActionButtonLocation(FloatingActionButtonLocation? v) =>
-      _updateAppState("floatingActionButtonLocation", v);
-
-  /// Retrieve or updates the SPA [CAppToolbar] header.
-  CAppToolbar? get footer => _appState["footer"] as CAppToolbar?;
-  set footer(CAppToolbar? v) => _updateAppState("footer", v);
-
-  /// Retrieve or updates the SPA [CAppToolbar] header.
-  CAppToolbar? get header => _appState["header"] as CAppToolbar?;
-  set header(CAppToolbar? v) => _updateAppState("header", v);
+  static void header({
+    List<Widget>? actions,
+    bool? centerTitle,
+    Widget? leading,
+    Widget? title,
+  }) {
+    if (actions == null &&
+        centerTitle == null &&
+        leading == null &&
+        title == null) {
+      uiState.set<AppBar?>("appBar", null);
+    } else {
+      uiState.set<AppBar?>(
+        "appBar",
+        AppBar(
+          actions: actions,
+          automaticallyImplyLeading: false,
+          centerTitle: centerTitle,
+          leading: leading,
+          title: title,
+        ),
+      );
+    }
+  }
 
   /// Will programmatically close an open drawer on the [CAppView].
-  void closeDrawer({bool isEndDrawer = false}) {
-    if (!isEndDrawer && scaffoldKey.currentState!.isDrawerOpen) {
+  void closeDrawer() {
+    if (scaffoldKey.currentState!.isDrawerOpen) {
       scaffoldKey.currentState!.closeDrawer();
-    } else if (scaffoldKey.currentState!.isEndDrawerOpen) {
+    }
+    if (scaffoldKey.currentState!.isEndDrawerOpen) {
       scaffoldKey.currentState!.closeEndDrawer();
     }
   }
@@ -1471,98 +1261,410 @@ class CAppViewController extends ChangeNotifier {
     }
   }
 
-  /// Retrieves the available height of the app context.
-  double height(BuildContext context) => MediaQuery.of(context).size.height;
+  /// Retrieves the available height of the specified context.
+  static double height(BuildContext context) =>
+      MediaQuery.of(context).size.height;
 
-  /// Retrieves the available width of the app context.
-  double width(BuildContext context) => MediaQuery.of(context).size.width;
+  /// Retrieves the available width of the specified context.
+  static double width(BuildContext context) =>
+      MediaQuery.of(context).size.width;
 
-  /// Provides the ability to show a full page within the SPA changing
-  /// the header, removing the drawer, and presenting a close button with
-  /// icons for performing additional actions if necessary.
+  /// Provides the ability to show a full page within the [CAppView] with the
+  /// ability to specify the title and actions in the top bar. You can also
+  /// specify bottom actions.
   void showFullPage({
     required Widget content,
-    CAppToolbar? footer,
-    CAppToolbar? header,
+    bool? centerTitle,
+    String? title,
+    List<Widget>? actions,
+    List<Widget>? bottomActions,
   }) async {
     Navigator.push(
       scaffoldKey.currentContext!,
       MaterialPageRoute(
         builder: (context) => Material(
           child: Scaffold(
-            appBar: header?._buildHeaderToolbar(),
+            appBar: AppBar(
+              automaticallyImplyLeading: true,
+              actions: actions,
+              centerTitle: centerTitle,
+              title: title != null ? Text(title) : null,
+            ),
             body: content,
-            bottomNavigationBar: footer?._buildFooterToolbar(),
+            bottomNavigationBar: bottomActions != null
+                ? BottomAppBar(
+                    child: Row(
+                      children: bottomActions,
+                    ),
+                  )
+                : null,
           ),
         ),
       ),
     );
   }
 
-  /// Constructor for the class.
-  CAppViewController._() {
-    assert(!_isInitialized, "Only one CMainView class can exist for your SPA.");
-    _isInitialized = true;
-  }
-
-  /// Supports updating the application state when an SPA property is updated.
-  void _updateAppState(String key, dynamic value) {
-    _appState[key] = value;
-    notifyListeners();
-  }
-}
-
-/// Defines the main app view for a Single Page App (SPA). All states are then
-/// controlled by the [CAppViewController] properties and methods.
-class CAppView extends StatefulWidget {
-  /// Accesses the [CAppViewController] to update the [CAppView] UI state
-  /// of displayed widgets.
-  static final controller = CAppViewController._();
-
-  /// Constructor for the class.
-  const CAppView({super.key});
-
   @override
   State<StatefulWidget> createState() => _CAppViewState();
+
+  CAppView({super.key}) {
+    assert(
+      !_isInitialized,
+      "Only one CAppView can be created. It sets up a SPA.",
+    );
+    _isInitialized = true;
+  }
 }
 
 class _CAppViewState extends State<CAppView> {
   @override
   void initState() {
-    CAppView.controller.addListener(() => setState(() {}));
+    CAppView.uiState.addListener(() => setState(() {}));
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorKey: CDialog.navigatorKey,
-      title: CAppView.controller.appTitle,
-      theme: CAppView.controller.appTheme,
       debugShowCheckedModeBanner: false,
+      darkTheme: CAppView.darkTheme,
+      navigatorKey: CDialog.navigatorKey,
+      theme: CAppView.theme,
+      themeMode: CAppView.themeMode,
+      title: CAppView.title ?? "",
       home: Scaffold(
-        key: CAppViewController.scaffoldKey,
-        appBar: CAppView.controller.header?._buildHeaderToolbar(),
-        body: CAppView.controller.content,
-        bottomNavigationBar: CAppView.controller.footer?._buildFooterToolbar(),
-        drawer: CAppView.controller.drawer,
-        endDrawer: CAppView.controller.endDrawer,
-        floatingActionButton: CAppView.controller.floatingActionButton != null
-            ? PointerInterceptor(
-                intercepting: kIsWeb,
-                child: CAppView.controller.floatingActionButton!,
-              )
-            : null,
-        floatingActionButtonLocation:
-            CAppView.controller.floatingActionButtonLocation,
+        appBar: CAppView.uiState.get<AppBar?>("appBar"),
+        body: CAppView.content,
+        bottomNavigationBar:
+            CAppView.uiState.get<BottomAppBar?>("bottomAppBar"),
+        drawer: CAppView.uiState.get<Widget?>("drawer"),
+        endDrawer: CAppView.uiState.get<Widget?>("endDrawer"),
+        floatingActionButton:
+            CAppView.uiState.get<Widget?>("floatingActionButton"),
+        floatingActionButtonLocation: CAppView.uiState
+            .get<FloatingActionButtonLocation?>("floatingActionButtonLocation"),
+        key: CAppView.scaffoldKey,
       ),
     );
   }
 }
 
 // ----------------------------------------------------------------------------
-// [Widgets] ------------------------------------------------------------------
+// [Themes] -------------------------------------------------------------------
 // ----------------------------------------------------------------------------
+
+class CTheme {
+  static ThemeData create({
+    InputDecorationTheme? inputDecorationTheme,
+    MaterialTapTargetSize? materialTapTargetSize,
+    PageTransitionsTheme? pageTransitionsTheme,
+    TargetPlatform? platform,
+    ScrollbarThemeData? scrollbarTheme,
+    InteractiveInkFeatureFactory? splashFactory,
+    VisualDensity? visualDensity,
+    Brightness? brightness,
+    Color? canvasColor,
+    Color? cardColor,
+    ColorScheme? colorScheme,
+    Color? colorSchemeSeed,
+    Color? dialogBackgroundColor,
+    Color? disabledColor,
+    Color? dividerColor,
+    Color? focusColor,
+    Color? highlightColor,
+    Color? hintColor,
+    Color? hoverColor,
+    Color? indicatorColor,
+    Color? primaryColor,
+    Color? primaryColorDark,
+    Color? primaryColorLight,
+    MaterialColor? primarySwatch,
+    Color? scaffoldBackgroundColor,
+    Color? secondaryHeaderColor,
+    Color? shadowColor,
+    Color? splashColor,
+    Color? unselectedWidgetColor,
+    String? fontFamily,
+    List<String>? fontFamilyFallback,
+    String? package,
+    IconThemeData? iconTheme,
+    IconThemeData? primaryIconTheme,
+    TextTheme? primaryTextTheme,
+    TextTheme? textTheme,
+    Typography? typography,
+    ActionIconThemeData? actionIconTheme,
+    AppBarTheme? appBarTheme,
+    BadgeThemeData? badgeTheme,
+    MaterialBannerThemeData? bannerTheme,
+    BottomAppBarTheme? bottomAppBarTheme,
+    BottomNavigationBarThemeData? bottomNavigationBarTheme,
+    BottomSheetThemeData? bottomSheetTheme,
+    ButtonBarThemeData? buttonBarTheme,
+    ButtonThemeData? buttonTheme,
+    CardTheme? cardTheme,
+    CheckboxThemeData? checkboxTheme,
+    ChipThemeData? chipTheme,
+    DataTableThemeData? dataTableTheme,
+    DatePickerThemeData? datePickerTheme,
+    DialogTheme? dialogTheme,
+    DividerThemeData? dividerTheme,
+    DrawerThemeData? drawerTheme,
+    DropdownMenuThemeData? dropdownMenuTheme,
+    ElevatedButtonThemeData? elevatedButtonTheme,
+    ExpansionTileThemeData? expansionTileTheme,
+    FilledButtonThemeData? filledButtonTheme,
+    FloatingActionButtonThemeData? floatingActionButtonTheme,
+    IconButtonThemeData? iconButtonTheme,
+    ListTileThemeData? listTileTheme,
+    MenuBarThemeData? menuBarTheme,
+    MenuButtonThemeData? menuButtonTheme,
+    MenuThemeData? menuTheme,
+    NavigationBarThemeData? navigationBarTheme,
+    NavigationDrawerThemeData? navigationDrawerTheme,
+    NavigationRailThemeData? navigationRailTheme,
+    OutlinedButtonThemeData? outlinedButtonTheme,
+    PopupMenuThemeData? popupMenuTheme,
+    ProgressIndicatorThemeData? progressIndicatorTheme,
+    RadioThemeData? radioTheme,
+    SearchBarThemeData? searchBarTheme,
+    SearchViewThemeData? searchViewTheme,
+    SegmentedButtonThemeData? segmentedButtonTheme,
+    SliderThemeData? sliderTheme,
+    SnackBarThemeData? snackBarTheme,
+    SwitchThemeData? switchTheme,
+    TabBarTheme? tabBarTheme,
+    TextButtonThemeData? textButtonTheme,
+    TextSelectionThemeData? textSelectionTheme,
+    TimePickerThemeData? timePickerTheme,
+    ToggleButtonsThemeData? toggleButtonsTheme,
+    TooltipThemeData? tooltipTheme,
+  }) {
+    return ThemeData(
+      inputDecorationTheme: inputDecorationTheme,
+      materialTapTargetSize: materialTapTargetSize,
+      pageTransitionsTheme: pageTransitionsTheme,
+      platform: platform,
+      scrollbarTheme: scrollbarTheme,
+      splashFactory: splashFactory,
+      visualDensity: visualDensity,
+      brightness: brightness,
+      canvasColor: canvasColor,
+      cardColor: cardColor,
+      colorScheme: colorScheme,
+      colorSchemeSeed: colorSchemeSeed,
+      dialogBackgroundColor: dialogBackgroundColor,
+      disabledColor: disabledColor,
+      dividerColor: dividerColor,
+      focusColor: focusColor,
+      highlightColor: highlightColor,
+      hintColor: hintColor,
+      hoverColor: hoverColor,
+      indicatorColor: indicatorColor,
+      primaryColor: primaryColor,
+      primaryColorDark: primaryColorDark,
+      primaryColorLight: primaryColorLight,
+      primarySwatch: primarySwatch,
+      scaffoldBackgroundColor: scaffoldBackgroundColor,
+      secondaryHeaderColor: secondaryHeaderColor,
+      shadowColor: shadowColor,
+      splashColor: splashColor,
+      unselectedWidgetColor: unselectedWidgetColor,
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFamilyFallback,
+      package: package,
+      iconTheme: iconTheme,
+      primaryIconTheme: primaryIconTheme,
+      primaryTextTheme: primaryTextTheme,
+      textTheme: textTheme,
+      typography: typography,
+      actionIconTheme: actionIconTheme,
+      appBarTheme: appBarTheme,
+      badgeTheme: badgeTheme,
+      bannerTheme: bannerTheme,
+      bottomAppBarTheme: bottomAppBarTheme,
+      bottomNavigationBarTheme: bottomNavigationBarTheme,
+      bottomSheetTheme: bottomSheetTheme,
+      buttonBarTheme: buttonBarTheme,
+      buttonTheme: buttonTheme,
+      cardTheme: cardTheme,
+      checkboxTheme: checkboxTheme,
+      chipTheme: chipTheme,
+      dataTableTheme: dataTableTheme,
+      datePickerTheme: datePickerTheme,
+      dialogTheme: dialogTheme,
+      dividerTheme: dividerTheme,
+      drawerTheme: drawerTheme,
+      dropdownMenuTheme: dropdownMenuTheme,
+      elevatedButtonTheme: elevatedButtonTheme,
+      expansionTileTheme: expansionTileTheme,
+      filledButtonTheme: filledButtonTheme,
+      floatingActionButtonTheme: floatingActionButtonTheme,
+      iconButtonTheme: iconButtonTheme,
+      listTileTheme: listTileTheme,
+      menuBarTheme: menuBarTheme,
+      menuButtonTheme: menuButtonTheme,
+      menuTheme: menuTheme,
+      navigationBarTheme: navigationBarTheme,
+      navigationDrawerTheme: navigationDrawerTheme,
+      navigationRailTheme: navigationRailTheme,
+      outlinedButtonTheme: outlinedButtonTheme,
+      popupMenuTheme: popupMenuTheme,
+      progressIndicatorTheme: progressIndicatorTheme,
+      radioTheme: radioTheme,
+      searchBarTheme: searchBarTheme,
+      searchViewTheme: searchViewTheme,
+      segmentedButtonTheme: segmentedButtonTheme,
+      sliderTheme: sliderTheme,
+      snackBarTheme: snackBarTheme,
+      switchTheme: switchTheme,
+      tabBarTheme: tabBarTheme,
+      textButtonTheme: textButtonTheme,
+      textSelectionTheme: textSelectionTheme,
+      timePickerTheme: timePickerTheme,
+      toggleButtonsTheme: toggleButtonsTheme,
+      tooltipTheme: tooltipTheme,
+    );
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Widget] -------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+enum CImageType { asset, file, memory, network }
+
+/// Utility widget builder for building basic stateless widgets for a UI.
+class CWidget {
+  static Widget button() {
+    throw "FUTURE BUTTON";
+  }
+
+  static Widget checkBox() {
+    throw "FUTURE DEVELOPMENT";
+  }
+
+  static Widget comboBox() {
+    throw "FUTURE DEVELOPMENT";
+  }
+
+  static Widget calendar() {
+    throw "FUTURE DEVELOPMENT";
+  }
+
+  static Widget column() {
+    throw "FUTURE DEVELOPMENT";
+  }
+
+  static Widget icon() {
+    throw "FUTURE DEVELOPMENT";
+  }
+
+  static Widget label() {
+    throw "FUTURE DEVELOPMENT";
+  }
+
+  static Widget listView() {
+    throw "FUTURE DEVELOPMENT";
+  }
+
+  static Widget mediaPlayer() {
+    throw "FUTURE DEVELOPMENT";
+  }
+
+  static Widget image({
+    required CImageType type,
+    required dynamic src,
+    Alignment alignment = Alignment.center,
+    BoxFit? fit,
+    double? height,
+    ImageRepeat repeat = ImageRepeat.noRepeat,
+    double? width,
+  }) {
+    assert(
+        CDataBroker.checkType<String>(src) ||
+            CDataBroker.checkType<File>(src) ||
+            CDataBroker.checkType<Uint8List>(src),
+        "");
+    if (type == CImageType.asset) {
+      return Image.asset(
+        src,
+        alignment: alignment,
+        fit: fit,
+        height: height,
+        repeat: repeat,
+        width: width,
+      );
+    } else if (type == CImageType.file) {
+      return Image.file(
+        src,
+        alignment: alignment,
+        fit: fit,
+        height: height,
+        repeat: repeat,
+        width: width,
+      );
+    } else if (type == CImageType.memory) {
+      return Image.memory(
+        src,
+        alignment: alignment,
+        fit: fit,
+        height: height,
+        repeat: repeat,
+        width: width,
+      );
+    }
+    return Image.network(
+      src,
+      alignment: alignment,
+      fit: fit,
+      height: height,
+      repeat: repeat,
+      width: width,
+    );
+  }
+
+  Widget row() {
+    throw "FUTURE DEVELOPMENT";
+  }
+
+  /// Provides a spacer with the ability to set a divider color within a
+  /// horizontal or vertical layout of controls.
+  static Widget spacer({
+    Color? color,
+    double? height,
+    bool visible = true,
+    double? width,
+  }) {
+    return Offstage(
+      offstage: !visible,
+      child: Container(
+        height: height,
+        width: width,
+        color: color,
+      ),
+    );
+  }
+
+  Widget stackView() {
+    throw "FUTURE DEVELOPMENT";
+  }
+
+  Widget tabItem() {
+    throw "FUTURE DEVELOPMENT";
+  }
+
+  Widget tabbedView() {
+    throw "FUTURE DEVELOPMENT";
+  }
+
+  Widget textField() {
+    throw "FUTURE DEVELOPMENT";
+  }
+
+  Widget webView() {
+    throw "FUTURE DEVELOPMENT";
+  }
+}
 
 /// Builds a icon based button widget.
 class CButtonControl extends StatelessWidget {
@@ -1721,45 +1823,6 @@ class CComboBoxControl<T> extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Sets up a divider / spacer between widgets on a view. Simple specify the
-/// height if in a column layout or the width if in a row layout to provide
-/// the separation. A color can be specified to give an extra layer of
-/// division.
-class CSpacerControl extends StatelessWidget {
-  /// The optional color to place with the divider.
-  final Color? color;
-
-  /// The height of the spacer when the layout is top to bottom.
-  final double? height;
-
-  /// The width of the spacer when the layout is left to right.
-  final double? width;
-
-  /// Specify whether the divider is visible or not.
-  final bool visible;
-
-  /// Constructor for the object.
-  const CSpacerControl({
-    this.color,
-    this.height,
-    this.width,
-    this.visible = true,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Offstage(
-      offstage: !visible,
-      child: Container(
-        height: height,
-        width: width,
-        color: color,
       ),
     );
   }
