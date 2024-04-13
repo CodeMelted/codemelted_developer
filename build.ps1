@@ -125,7 +125,6 @@ function build([string[]]$params) {
         $htmlData = $htmlData.Replace("README.md", "index.html")
         $htmlData | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
-        Copy-Item -Path *.md -Destination docs/ -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_cpp module build completed."
@@ -217,7 +216,6 @@ function build([string[]]$params) {
         dart doc --output "docs"
         Move-Item -Path coverage -Destination docs -Force
         Copy-Item -Path header.png -Destination docs -Force
-        Copy-Item -Path README.md -Destination docs -Force
 
         # Fix the title
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
@@ -262,7 +260,6 @@ function build([string[]]$params) {
         Move-Item -Path coverage -Destination docs -Force
         Copy-Item -Path codemelted.js -Destination "docs" -Force
         Copy-Item -Path *.png -Destination "docs" -Force
-        Copy-Item -Path README.md -Destination "docs" -Force
 
         # Fix the title
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
@@ -297,7 +294,6 @@ function build([string[]]$params) {
         $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
-        Copy-Item -Path README.md -Destination docs/ -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_pwsh module build completed."
@@ -325,7 +321,6 @@ function build([string[]]$params) {
         $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
-        Copy-Item -Path README.md -Destination docs/ -Force
 
         Set-Location $PSScriptRoot
         message "raspberry_pi project build completed."
