@@ -1,13 +1,9 @@
-<!--
-TITLE: CodeMelted - DEV | Raspberry Pi
-PUBLISH_DATE: 2024-03-23
-AUTHOR: Mark Shaffer
-KEYWORDS: raspberry-pi,raspberry-pi-gps,raspberry-pi-camera,raspberry-pi4,raspberry-pi5
-DESCRIPTION: TBD
--->
+<center>
+  <a href="../README.md"><img style="width: 100%; max-width: 375px;" src="logo.png" /></a><br />
+</center>
 <h1><img style="height: 35px;" src="header.png" /> CodeMelted - Raspberry Pi</h1>
 
-<mark>INTRODUCTION</mark>
+Welcome to the **CodeMelted - Raspberry Pi Project** project. This project aims to utilize the different **CodeMelted - Developer** modules as services on a Raspberry Pi. These services aim to allow a user to yield different configurations to utilize the Raspberry Pi. The identified services will include getting GPS coordinates, taking still frame pictures tagged with the GPS information, taking video to serve as a dash cam or web camera, provide infotainment within a vehicle, the ability to interface with the raspberry pi via the Internet, and finally, as a sky watching camera for nighttime astronomy.
 
 **Table of Contents**
 

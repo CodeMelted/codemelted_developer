@@ -1,24 +1,17 @@
-<!--
-TITLE: CodeMelted - DEV | pwsh Module
-PUBLISH_DATE: 2024-03-23
-AUTHOR: Mark Shaffer
-KEYWORDS: devops,terminal,devops-tools,linux-script,windows-scripts,macos-scripts,pwsh,pwsh-module
-DESCRIPTION: TBD
--->
+<center>
+  <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://cdn.codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
+</center>
 <h1><img style="height: 35px;" src="header.png" /> CodeMelted - pwsh Module</h1>
 
-<mark>INTRODUCTION</mark>
+Welcome to the **CodeMelted - pwsh Module** project. This project aims to implement **CodeMelted - Developer** use cases with the terminal in mind. The terminal serves as the place developers string together Dev OPS or automated solutions to users. With this in mind, **PowerShell Core** was chosen as the target platform. The reason for this is it has full support for Linux, Mac, and Windows allowing for a common scripting language regardless of the operating system.
+
+PowerShell Core has a rich set of features thanks to .NET Core. First is object streams, making it easier to connect several tasks into one cohesive set of instructions. A developer will also be able to utilize Text User Interface (TUI) to easily guide users through processes. Lastly is its built in help system providing you the ability to draft together useful help system for using your terminal commands.
 
 **Table of Contents**
 
-- [FEATURES](#features)
 - [GETTING STARTED](#getting-started)
 - [USAGE](#usage)
 - [LICENSE](#license)
-
-## FEATURES
-
-<mark>TBD</mark>
 
 ## GETTING STARTED
 

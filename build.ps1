@@ -119,9 +119,10 @@ function build([string[]]$params) {
         Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
 
         message "Generating doxygen"
-        doxygen theme/doxygen.cfg
+        doxygen doxygen.cfg
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
-        $htmlData = $htmlData.Replace("<h1><img src=", "$htmlSdkHeader<h1><img src=")
+        $htmlData = $htmlData.Replace("<center>", "$htmlSdkHeader<center>")
+        $htmlData = $htmlData.Replace("README.md", "index.html")
         $htmlData | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
         Copy-Item -Path *.md -Destination docs/ -Force
@@ -181,6 +182,7 @@ function build([string[]]$params) {
         $html = $html.Replace("[KEYWORDS]", $keywords)
         $html = $html.Replace("[CONTENT]", $readme.Html)
         $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
+        $html = $html.Replace("README.md", "index.html")
         $html = $html.Replace(".md", ".html")
         $html | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
@@ -221,7 +223,8 @@ function build([string[]]$params) {
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
         $htmlData = $htmlData.Replace("codemelted_flutter - Dart API docs", "CodeMelted - Flutter Module")
         $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://cdn.codemelted.com/favicon.png"')
-        $htmlData = $htmlData.Replace("<h1><img ", "$htmlSdkHeader<h1><img ")
+        $htmlData = $htmlData.Replace("<center>", "$htmlSdkHeader<center>")
+        $htmlData = $htmlData.Replace("README.md", "index.html")
         $htmlData | Out-File docs/index.html -Force
 
         Set-Location $PSScriptRoot
@@ -264,7 +267,8 @@ function build([string[]]$params) {
         # Fix the title
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
         $htmlData = $htmlData.Replace("<title>Home</title>", "<title>CodeMelted - JS Module</title>")
-        $htmlData = $htmlData.Replace("<h1><img style=", "$htmlSdkHeader<h1><img style=")
+        $htmlData = $htmlData.Replace("<center>", "$htmlSdkHeader<center>")
+        $htmlData = $htmlData.Replace("README.md", "index.html")
         $htmlData | Out-File docs/index.html -Force
 
         Set-Location $PSScriptRoot
@@ -290,6 +294,7 @@ function build([string[]]$params) {
         $html = $html.Replace("[KEYWORDS]", $keywords)
         $html = $html.Replace("[CONTENT]", $readme.Html)
         $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
+        $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
         Copy-Item -Path README.md -Destination docs/ -Force
@@ -317,6 +322,7 @@ function build([string[]]$params) {
         $html = $html.Replace("[KEYWORDS]", $keywords)
         $html = $html.Replace("[CONTENT]", $readme.Html)
         $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
+        $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
         Copy-Item -Path README.md -Destination docs/ -Force
@@ -336,7 +342,5 @@ function build([string[]]$params) {
         "--raspberry_pi" { raspberry_pi }
         default { Write-Host "ERROR: Invalid parameter specified." }
     }
-
-
 }
 build $args
