@@ -28,19 +28,23 @@
 [string]$htmlSdkHeader = @"
 <link rel="stylesheet" href="https://cdn.codemelted.com/assets/css/scrollbars.css">
 <link rel="stylesheet" href="https://cdn.codemelted.com/assets/css/header.css">
-<!-- <script src="https://cdn.codemelted.com/assets/js/header_actions.js"></script> -->
+<!-- <script src="https://cdn.codemelted.com/assets/js/header.js"></script> -->
 <div class="cm-header">
-    <a title="To CodeMelted" href="https://www.codemelted.com" target="_blank"><img src="https://cdn.codemelted.com/assets/images/favicon_io_pwa/apple-touch-icon.png" /></a>
     <div>CodeMelted - DEV</div>
+    <a title="Read Aloud" href="#" onclick="readPage(); return false;">▶️</a>
+    <a title="Print" href="#" onclick="printPage(); return false;">🖨️</a>
+    <a title="Share" href="#" onclick="sharePage(); return false;">🔗</a>
     <a title="To CodeMelted" href="https://www.codemelted.com" target="_blank"><img src="https://cdn.codemelted.com/assets/images/favicon_io_pwa/apple-touch-icon.png" /></a>
 </div><br />
 "@
 
 [string]$htmlHeader = @"
-<script src="https://cdn.codemelted.com/assets/js/header_actions.js"></script>
+<script src="https://cdn.codemelted.com/assets/js/header.js"></script>
 <div class="cm-header">
-    <a title="To CodeMelted" href="https://www.codemelted.com" target="_blank"><img src="https://cdn.codemelted.com/assets/images/favicon_io_pwa/apple-touch-icon.png" /></a>
     <div>CodeMelted - DEV</div>
+    <a title="Read Aloud" href="#" onclick="readPage(); return false;">▶️</a>
+    <a title="Print" href="#" onclick="printPage(); return false;">🖨️</a>
+    <a title="Share" href="#" onclick="sharePage(); return false;">🔗</a>
     <a title="To CodeMelted" href="https://www.codemelted.com" target="_blank"><img src="https://cdn.codemelted.com/assets/images/favicon_io_pwa/apple-touch-icon.png" /></a>
 </div>
 "@
@@ -215,6 +219,7 @@ function build([string[]]$params) {
         message "Now generating dart doc"
         dart doc --output "docs"
         Move-Item -Path coverage -Destination docs -Force
+        Copy-Item -Path CHANGELOG.md -Destination docs -Force
         Copy-Item -Path header.png -Destination docs -Force
 
         # Fix the title

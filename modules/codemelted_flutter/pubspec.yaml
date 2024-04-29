@@ -1,7 +1,7 @@
 name: codemelted_flutter
-description: "A new Flutter package project."
-version: 0.0.0
-homepage:
+description: "Welcome to the CodeMelted - Flutter Module project. This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the CodeMelted - Developer identified use cases, you can be assured to building a powerful native application."
+version: 0.1.0
+homepage: www.codemelted.com/developer/modules/codemelted_flutter
 
 environment:
   sdk: '>=3.2.6 <4.0.0'
@@ -16,12 +16,10 @@ dependencies:
   http: ^1.2.1
   logging: ^1.2.0
   pointer_interceptor: ^0.10.1
-  sensors_plus: ^5.0.0
-  share_plus: ^8.0.2
-  shared_preferences: ^2.2.2
-  sqlite3: ^2.4.0
-  universal_html: ^2.2.4
-  universal_io: ^2.2.2
+  sensors_plus: ^5.0.1
+  share_plus: ^9.0.0
+  shared_preferences: ^2.2.3
+  sqlite3: ^2.4.2
   url_launcher: ^6.2.5
 
 dev_dependencies:

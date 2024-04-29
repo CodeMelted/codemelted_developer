@@ -24,14 +24,15 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html';
 import 'dart:ui_web';
 
-import 'package:universal_html/html.dart' as html;
 import 'package:flutter/material.dart';
 
 /// Creates the CWebView for the web target.
 Widget createCWebView(String url) {
-  var iFrameElement = html.IFrameElement();
+  var iFrameElement = IFrameElement();
   iFrameElement.allow = "web-share";
   iFrameElement.sandbox?.add("allow-forms");
   iFrameElement.sandbox?.add("allow-popups");
