@@ -1,5 +1,5 @@
 <!--
-TITLE: CodeMelted - DEV | Logger Core Use Case
+TITLE: CodeMelted - DEV | Core Use Case: Logger
 PUBLISH_DATE: 2024-04-25
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMelted - DEV, Logger, Core Use Case
@@ -16,7 +16,7 @@ The codemelted modules will provide a logging facility with four levels of loggi
 
 - [FUNCTIONAL DECOMPOSITION](#functional-decomposition)
   - [Set Log Level](#set-log-level)
-  - [On Logged Event](#on-logged-event)
+  - [On Log Event](#on-log-event)
   - [Log Event](#log-event)
 - [DESIGN NOTES](#design-notes)
   - [C/C++](#cc)
@@ -33,19 +33,16 @@ The codemelted modules will provide a logging facility with four levels of loggi
 ## FUNCTIONAL DECOMPOSITION
 
 ```mermaid
----
-title: Logger Use Cases
----
 flowchart LR
-  ucSetLogLevel([Set Log Level])
-  ucOnLoggedEvent([On Logged Event])
-  ucLogEvent([Log Event])
+  subgraph logger[Logger Use Cases]
+    ucSetLogLevel([Set Log Level])
+    ucOnLogEvent([On Log Event])
+    ucLogEvent([Log Event])
+    ucLogEvent --includes--> ucSetLogLevel
+    ucLogEvent --includes--> ucOnLogEvent
+  end
 
-  app --uses--> ucSetLogLevel
-  app --uses--> ucOnLoggedEvent
-  app --uses--> ucLogEvent
-  ucLogEvent --includes--> ucSetLogLevel
-  ucLogEvent --includes--> ucOnLoggedEvent
+  app --uses--> logger
 ```
 
 ### Set Log Level
@@ -71,7 +68,7 @@ flowchart LR
 
 None.
 
-### On Logged Event
+### On Log Event
 
 **Description:** Standard logging will report via STDOUT to allow for quick debugging of an application and validating app reporting. Post processing of the log record allows for an app to post the log records either to a local file or a database for later analysis and troubleshooting.
 
@@ -124,7 +121,7 @@ None.
 
 1. Logger is called specifying the log level of the event, the data associated with the event, and if necessary, a stack trace.
 2. [Set Log Level](#set-log-level) checks the event log level against the currently set log level to determine whether the event is reported to STDOUT.
-3. [On Logged Event](#on-logged-event) further processes the event if it is set and the event was processed in step 2.
+3. [On Log Event](#on-log-event) further processes the event if it is set and the event was processed in step 2.
 4. END.
 
 **Exceptions:**
@@ -147,7 +144,7 @@ sequenceDiagram
   actor app
   participant CLogger
   participant CLogRecord
-  participant CLoggedEventHandler
+  participant CLogEventHandler
 
   app ->> CLogger: init()
   app ->> CLogger: log()
@@ -156,8 +153,8 @@ sequenceDiagram
     CLogRecord --> CLogger: record
     CLogger ->> CLogger: report event to STDOUT
     opt on logged event is set
-      CLogger ->> CLogger: onLoggedEvent(record)
-      CLogger ->> CLoggedEventHandler: handle record
+      CLogger ->> CLogger: onLogEvent(record)
+      CLogger ->> CLogEventHandler: handle record
     end
   end
 ```

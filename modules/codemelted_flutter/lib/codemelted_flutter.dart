@@ -42,10 +42,12 @@ import 'dart:convert';
 
 // import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 // import 'package:flutter/material.dart';
 // import 'package:flutter_tts/flutter_tts.dart';
 // import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 // import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 // ============================================================================
@@ -362,7 +364,7 @@ class CDataBroker {
 // ----------------------------------------------------------------------------
 
 /// Handler to support the [CLogger] for post processing of a logged event.
-typedef CLoggedEventHandler = void Function(CLogRecord);
+typedef CLogEventHandler = void Function(CLogRecord);
 
 /// Wraps the handle logged event for logging and later processing.
 class CLogRecord {
@@ -426,7 +428,7 @@ enum CLogger {
 
   /// Establishes the [CLoggedEventHandler] to facilitate post log processing
   /// of a module logged event.
-  static CLoggedEventHandler? onLoggedEvent;
+  static CLogEventHandler? onLoggedEvent;
 
   /// Tracks if the logger has been properly initialized.
   static bool _isInitialized = false;
@@ -506,8 +508,6 @@ void logWarning({Object? data, StackTrace? st}) => CLogger.log(
       data: data,
       st: st,
     );
-
-
 
 // // ----------------------------------------------------------------------------
 // // [Math] ---------------------------------------------------------------------
@@ -832,33 +832,33 @@ void logWarning({Object? data, StackTrace? st}) => CLogger.log(
 // // [Dialog] -------------------------------------------------------------------
 // // ----------------------------------------------------------------------------
 
-// // /// Set of utility methods for working with dialogs available in the flutter
-// // /// environment. Allows for quick alerts, questions, async loading, and for
-// // /// custom dialogs.
-// // class CDialog {
-// //   /// Sets up a global navigator key for usage with dialogs.
-// //   static final navigatorKey = GlobalKey<NavigatorState>();
+/// Set of utility methods for working with dialogs available in the flutter
+/// environment. Allows for quick alerts, questions, async loading, and for
+/// custom dialogs.
+class CDialog {
+  /// Sets up a global navigator key for usage with dialogs.
+  static final navigatorKey = GlobalKey<NavigatorState>();
 
-// //   /// Will display information about your flutter app.
-// //   Future<void> about({
-// //     required Widget? appIcon,
-// //     required String? appName,
-// //     required String? appVersion,
-// //     required String? appLegalese,
-// //   }) async {
-// //     showDialog(
-// //       context: navigatorKey.currentContext!,
-// //       builder: (context) => PointerInterceptor(
-// //         intercepting: kIsWeb,
-// //         child: AboutDialog(
-// //           applicationName: appName,
-// //           applicationVersion: appVersion,
-// //           applicationLegalese: appLegalese,
-// //           applicationIcon: appIcon,
-// //         ),
-// //       ),
-// //     );
-// //   }
+  /// Will display information about your flutter app.
+  Future<void> about({
+    required Widget? appIcon,
+    required String? appName,
+    required String? appVersion,
+    required String? appLegalese,
+  }) async {
+    showDialog(
+      context: navigatorKey.currentContext!,
+      builder: (context) => PointerInterceptor(
+        intercepting: kIsWeb,
+        child: AboutDialog(
+          applicationName: appName,
+          applicationVersion: appVersion,
+          applicationLegalese: appLegalese,
+          applicationIcon: appIcon,
+        ),
+      ),
+    );
+  }
 
 // //   /// Provides a simple way to display a message to the user that must
 // //   /// be dismissed. You can use a flutter build alert dialog or the native
@@ -1140,7 +1140,7 @@ void logWarning({Object? data, StackTrace? st}) => CLogger.log(
 // //       ),
 // //     );
 // //   }
-// // }
+}
 
 // // ----------------------------------------------------------------------------
 // // [Main View] ----------------------------------------------------------------
