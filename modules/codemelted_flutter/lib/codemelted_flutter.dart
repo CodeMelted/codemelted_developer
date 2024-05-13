@@ -33,22 +33,21 @@ library codemelted_flutter;
 
 // import 'dart:async';
 import 'dart:convert';
-// import 'dart:io';
-// import 'dart:isolate';
 
-// import 'package:codemelted_flutter/src/platform_none.dart'
-//     if (dart.library.io) 'package:codemelted_flutter/src/platform_io.dart'
-//     if (dart.library.js) 'package:codemelted_flutter/src/platform_web.dart';
+import 'package:codemelted_flutter/platform/stub.dart'
+    if (dart.library.io) 'package:codemelted_flutter/platform/native.dart'
+    if (dart.library.js) 'package:codemelted_flutter/platform/web.dart'
+    as platform;
 
 // import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+// import 'package:http/http.dart';
 // import 'package:flutter_tts/flutter_tts.dart';
 // import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
-// import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 // ============================================================================
 // [Core Use Cases] ===========================================================
@@ -509,9 +508,9 @@ void logWarning({Object? data, StackTrace? st}) => CLogger.log(
       st: st,
     );
 
-// // ----------------------------------------------------------------------------
-// // [Math] ---------------------------------------------------------------------
-// // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// [Math] ---------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 // /// Support definition for the [CMath.calculate] utility method.
 // typedef CMathFormula = double Function(List<double>);
@@ -537,9 +536,9 @@ void logWarning({Object? data, StackTrace? st}) => CLogger.log(
 //   }
 // }
 
-// // ----------------------------------------------------------------------------
-// // [Rest API] -----------------------------------------------------------------
-// // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// [Rest API] -----------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 // /// Implements the ability to either create a Rest API endpoint within your
 // /// application or to fetch data from an Rest API endpoint.
@@ -634,49 +633,49 @@ void logWarning({Object? data, StackTrace? st}) => CLogger.log(
 //   // TODO: ping
 // }
 
-// // ----------------------------------------------------------------------------
-// // [Storage] ------------------------------------------------------------------
-// // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// [Storage] ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-// // ============================================================================
-// // [Advanced Use Cases] =======================================================
-// // ============================================================================
+// ============================================================================
+// [Advanced Use Cases] =======================================================
+// ============================================================================
 
-// // ----------------------------------------------------------------------------
-// // [Database] -----------------------------------------------------------------
-// // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// [Database] -----------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-// // ----------------------------------------------------------------------------
-// // [Device Orientation] -------------------------------------------------------
-// // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// [Device Orientation] -------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-// // ----------------------------------------------------------------------------
-// // [Link Opener] --------------------------------------------------------------
-// // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// [Link Opener] --------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-// // ----------------------------------------------------------------------------
-// // [Hardware Device] ----------------------------------------------------------
-// // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// [Hardware Device] ----------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-// // ----------------------------------------------------------------------------
-// // [Network Socket] -----------------------------------------------------------
-// // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// [Network Socket] -----------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-// // ----------------------------------------------------------------------------
-// // [Runtime] ------------------------------------------------------------------
-// // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// [Runtime] ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-// // ----------------------------------------------------------------------------
-// // [Web RTC] ------------------------------------------------------------------
-// // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// [Web RTC] ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-// // ============================================================================
-// // [User Interface Use Cases] =================================================
-// // ============================================================================
+// ============================================================================
+// [User Interface Use Cases] =================================================
+// ============================================================================
 
-// // ----------------------------------------------------------------------------
-// // [Audio Player] -------------------------------------------------------------
-// // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// [Audio Player] -------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 // /// Identifies the source for the [CAudioPlayer.file] for a file playback.
 // enum CAudioSource {
@@ -822,15 +821,15 @@ void logWarning({Object? data, StackTrace? st}) => CLogger.log(
 //   }
 // }
 
-// // ----------------------------------------------------------------------------
-// // [Console] ------------------------------------------------------------------
-// // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// [Console] ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-// // Console is not applicable to flutter as it is a widget based library.
+// Console is not applicable to flutter as it is a widget based library.
 
-// // ----------------------------------------------------------------------------
-// // [Dialog] -------------------------------------------------------------------
-// // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// [Dialog] -------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 /// Set of utility methods for working with dialogs available in the flutter
 /// environment. Allows for quick alerts, questions, async loading, and for
@@ -839,1222 +838,1366 @@ class CDialog {
   /// Sets up a global navigator key for usage with dialogs.
   static final navigatorKey = GlobalKey<NavigatorState>();
 
+  /// Sets up a global scaffold key for opening drawers and such on the
+  /// [CAppView] object.
+  static final scaffoldKey = GlobalKey<ScaffoldState>();
+
+  /// Internal tracking variable to properly handle browser display within
+  /// rounded borders or the other types of dialogs.
+  static bool _isBrowserAction = false;
+
   /// Will display information about your flutter app.
-  Future<void> about({
-    required Widget? appIcon,
-    required String? appName,
-    required String? appVersion,
-    required String? appLegalese,
+  static Future<void> about({
+    Widget? appIcon,
+    String? appName,
+    String? appVersion,
+    String? appLegalese,
   }) async {
-    showDialog(
+    showLicensePage(
       context: navigatorKey.currentContext!,
-      builder: (context) => PointerInterceptor(
-        intercepting: kIsWeb,
-        child: AboutDialog(
-          applicationName: appName,
-          applicationVersion: appVersion,
-          applicationLegalese: appLegalese,
-          applicationIcon: appIcon,
+      applicationIcon: appIcon,
+      applicationName: appName,
+      applicationVersion: appVersion,
+      applicationLegalese: appLegalese,
+      useRootNavigator: true,
+    );
+  }
+
+  /// Provides a simple way to display a message to the user that must
+  /// be dismissed.
+  static Future<void> alert({
+    required String message,
+    double? height,
+    String? title,
+    double? width,
+  }) async {
+    return custom(
+      content: Text(
+        message,
+        softWrap: true,
+        overflow: TextOverflow.clip,
+        style: TextStyle(color: _getTheme().contentColor),
+      ),
+      height: height,
+      title: title ?? "Attention",
+      width: width,
+    );
+  }
+
+  /// Shows a browser popup window when running within a mobile or web target
+  /// environment.
+  static Future<void> browser({
+    required String url,
+    double? height,
+    String? title,
+    bool useNativeBrowser = false,
+    double? width,
+  }) async {
+    // Now figure what browser window action we are taking
+    if (useNativeBrowser) {
+      platform.openWebBrowser(
+        target: title,
+        height: height,
+        url: url,
+        width: width,
+      );
+      return;
+    }
+
+    // We are rendering an inline web view.
+    _isBrowserAction = true;
+    return custom(
+      content: CWidget.webView(url: url),
+      title: title ?? "Browser",
+      height: height,
+      width: width,
+    );
+  }
+
+  /// Shows a popup dialog with a list of options returning the index selected
+  /// or -1 if canceled.
+  static Future<int> choose({
+    required String title,
+    required List<String> options,
+  }) async {
+    // Form up our dropdown options
+    final dropdownItems = <DropdownMenuEntry<int>>[];
+    for (final (index, option) in options.indexed) {
+      dropdownItems.add(DropdownMenuEntry(label: option, value: index));
+    }
+    int? answer = 0;
+    return (await custom<int?>(
+          actions: [
+            _buildButton<int>("OK", answer),
+          ],
+          content: CWidget.comboBox(
+            dropdownMenuEntries: dropdownItems,
+            enableFilter: false,
+            enableSearch: false,
+            initialSelection: 0,
+            onSelected: (v) => answer = v,
+            style: DropdownMenuThemeData(
+              inputDecorationTheme: InputDecorationTheme(
+                isDense: true,
+                iconColor: _getTheme().contentColor,
+                suffixIconColor: _getTheme().contentColor,
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: _getTheme().contentColor!),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: _getTheme().contentColor!),
+                ),
+                border: UnderlineInputBorder(
+                  borderSide: BorderSide(color: _getTheme().contentColor!),
+                ),
+              ),
+              menuStyle: const MenuStyle(
+                padding: MaterialStatePropertyAll(EdgeInsets.zero),
+                visualDensity: VisualDensity.compact,
+              ),
+              textStyle: TextStyle(
+                color: _getTheme().contentColor,
+                decorationColor: _getTheme().contentColor,
+              ),
+            ),
+            width: 200,
+          ),
+          title: title,
+        )) ??
+        -1;
+  }
+
+  /// Closes an open dialog and returns an answer depending on the type of
+  /// dialog shown.
+  static void close<T>([T? answer]) {
+    Navigator.of(
+      navigatorKey.currentContext!,
+      rootNavigator: true,
+    ).pop(answer);
+    _isBrowserAction = false;
+  }
+
+  /// Provides a Yes/No confirmation dialog with the displayed message as the
+  /// question. True is returned for Yes and False for a No or cancel.
+  static Future<bool> confirm({
+    required String message,
+    double? height,
+    String? title,
+    double? width,
+  }) async {
+    return (await custom<bool?>(
+          actions: [
+            _buildButton<bool>("Yes", true),
+            _buildButton<bool>("No", false),
+          ],
+          content: Text(
+            message,
+            softWrap: true,
+            overflow: TextOverflow.clip,
+            style: TextStyle(color: _getTheme().contentColor),
+          ),
+          height: height,
+          title: title ?? "Confirm",
+          width: width,
+        )) ??
+        false;
+  }
+
+  /// Shows a custom dialog for a more complex form where at the end you can
+  /// apply changes as a returned value if necessary. You will make use of
+  /// [CDialog.close] for returning values via your actions array.
+  static Future<T?> custom<T>({
+    required Widget content,
+    required String title,
+    List<Widget>? actions,
+    bool hideClose = false,
+    double? height,
+    double? width,
+  }) async {
+    Widget? w;
+    if (!_isBrowserAction && height == null && width == null) {
+      // No width / height dialog, do not set size.
+      w = content;
+    } else if (_isBrowserAction) {
+      // Browser, if no size specified, go for max size
+      w = SizedBox(
+        height: height ??
+            CAppView.height(
+                  navigatorKey.currentContext!,
+                ) *
+                0.85,
+        width: width ??
+            CAppView.width(
+                  navigatorKey.currentContext!,
+                ) *
+                0.95,
+        child: content,
+      );
+    } else {
+      // A dialog that supports width / height but does not need max size/
+      // Go with whatever they specified.
+      w = SizedBox(
+        height: height,
+        width: width,
+        child: content,
+      );
+    }
+    return showDialog<T>(
+      barrierDismissible: false,
+      context: navigatorKey.currentContext!,
+      builder: (_) => AlertDialog(
+        backgroundColor: _getTheme().backgroundColor,
+        insetPadding: EdgeInsets.zero,
+        scrollable: true,
+        titlePadding: EdgeInsets.zero,
+        title: Column(
+          children: [
+            Row(
+              children: [
+                CWidget.spacer(width: 10.0),
+                Expanded(
+                  child: CWidget.label(
+                    data: title,
+                    style: TextStyle(
+                      color: _getTheme().titleColor,
+                    ),
+                  ),
+                ),
+                if (!hideClose)
+                  CWidget.button(
+                    type: CButtonType.icon,
+                    title: "Close Dialog",
+                    style: ButtonStyle(
+                      iconColor: MaterialStatePropertyAll(
+                        _getTheme().titleColor,
+                      ),
+                    ),
+                    onPressed: () => close(),
+                  )
+              ],
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.all(5.0),
+        actionsAlignment: MainAxisAlignment.center,
+        contentPadding: EdgeInsets.only(
+          left: _isBrowserAction ? 1.0 : 25.0,
+          right: _isBrowserAction ? 1.0 : 25.0,
+          bottom: _isBrowserAction ? 25.0 : 0.0,
+        ),
+        content: w,
+        actions: actions,
+      ),
+    );
+  }
+
+  /// Provides the ability to run an async task and present a wait dialog. It
+  /// is important you call [CDialog.close] to properly clear the
+  /// dialog and return any value expected.
+  static Future<T?> loading<T>({
+    double? height,
+    required String message,
+    required Future<void> Function() task,
+    String? title,
+    double? width,
+  }) async {
+    Future.delayed(Duration.zero, task);
+    return custom<T>(
+      content: Row(
+        children: [
+          const SizedBox(width: 5.0),
+          SizedBox(
+            height: 25.0,
+            width: 25.0,
+            child: CircularProgressIndicator(
+              color: _getTheme().contentColor,
+            ),
+          ),
+          const SizedBox(width: 5.0),
+          Text(
+            message,
+            softWrap: true,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: _getTheme().contentColor),
+          ),
+        ],
+      ),
+      hideClose: true,
+      height: height,
+      title: title ?? "Please Wait",
+      width: width,
+    );
+  }
+
+  /// Provides the ability to show an input prompt to retrieve an answer to a
+  /// question. The value is returned back as a string. If a user cancels the
+  /// action an empty string is returned.
+  static Future<String> prompt({
+    required String title,
+  }) async {
+    var answer = "";
+    return (await custom<String?>(
+          actions: [
+            _buildButton<String>("OK", answer),
+          ],
+          content: CWidget.textField(
+            height: 30.0,
+            width: 200.0,
+            textStyle: TextStyle(color: _getTheme().contentColor!),
+            style: InputDecorationTheme(
+              isDense: true,
+              border: UnderlineInputBorder(
+                borderSide: BorderSide(color: _getTheme().contentColor!),
+              ),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: _getTheme().contentColor!),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: _getTheme().contentColor!),
+              ),
+            ),
+            onChanged: (v) => answer = v,
+          ),
+          title: title,
+        )) ??
+        "";
+  }
+
+  /// Provides the ability to show a full page within the [CAppView] with the
+  /// ability to specify the title and actions in the top bar. You can also
+  /// specify bottom actions.
+  void fullPage({
+    required Widget content,
+    List<Widget>? actions,
+    bool? centerTitle,
+    bool showBackButton = true,
+    String? title,
+  }) async {
+    Navigator.push(
+      scaffoldKey.currentContext!,
+      MaterialPageRoute(
+        builder: (context) => Material(
+          child: Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: showBackButton,
+              actions: actions,
+              centerTitle: centerTitle,
+              title: title != null ? Text(title) : null,
+            ),
+            body: content,
+          ),
         ),
       ),
     );
   }
 
-// //   /// Provides a simple way to display a message to the user that must
-// //   /// be dismissed. You can use a flutter build alert dialog or the native
-// //   /// browser if working within a web environment.
-// //   Future<void> alert({
-// //     double? height,
-// //     required String message,
-// //     String? title,
-// //     bool useNativeBrowser = false,
-// //     double? width,
-// //   }) async {
-// //     if (useNativeBrowser) {
-// //       assert(kIsWeb, "Use of native browser only available on web targets");
-// //       html.window.alert(message);
-// //       return;
-// //     }
+  /// Shows a snackbar at the bottom of the content area to display
+  /// information.
+  static void snackbar({
+    required Widget content,
+    SnackBarAction? action,
+    Clip clipBehavior = Clip.hardEdge,
+    int? seconds,
+  }) {
+    final style = _getTheme().snackbarTheme;
+    ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
+      SnackBar(
+        action: action,
+        actionOverflowThreshold: style?.actionOverflowThreshold,
+        backgroundColor: style?.backgroundColor,
+        behavior: style?.behavior,
+        clipBehavior: clipBehavior,
+        closeIconColor: style?.closeIconColor,
+        content: content,
+        dismissDirection: style?.dismissDirection,
+        duration: seconds != null
+            ? Duration(seconds: seconds)
+            : const Duration(seconds: 4),
+        elevation: style?.elevation,
+        padding: style?.insetPadding,
+        shape: style?.shape,
+        showCloseIcon: style?.showCloseIcon,
+        width: style?.width,
+      ),
+    );
+  }
 
-// //     return custom(
-// //       content: Text(message),
-// //       height: height,
-// //       title: title ?? "Attention",
-// //       width: width,
-// //     );
-// //   }
+  /// Helper action to build text buttons for our basic dialogs.
+  static Widget _buildButton<T>(String title, T answer) => CWidget.button(
+        type: CButtonType.text,
+        title: title,
+        style: ButtonStyle(
+          foregroundColor: MaterialStatePropertyAll(
+            _getTheme().actionsColor,
+          ),
+        ),
+        onPressed: () => close<T>(answer),
+      );
 
-// //   /// Shows a browser popup window when running within a mobile or web target
-// //   /// environment.
-// //   Future<void> browser({
-// //     double? height,
-// //     required String message,
-// //     String? target,
-// //     String? title,
-// //     bool useNativeBrowser = false,
-// //     required String url,
-// //     double? width,
-// //   }) async {
-// //     // Now figure what browser window action we are taking
-// //     if (useNativeBrowser) {
-// //       assert(kIsWeb, "Use of native browser only available on web targets");
-
-// //       if (target == null) {
-// //         // Target not specified, it is a popup window.
-// //         final w = width ?? 900;
-// //         final h = height ?? 600;
-// //         final top = (html.window.screen!.height! - h) / 2;
-// //         final left = (html.window.screen!.width! - w) / 2;
-// //         html.window.open(
-// //           url,
-// //           "_blank",
-// //           "toolbar=no, location=no, directories=no, status=no, "
-// //               "menubar=no, scrollbars=no, resizable=yes, copyhistory=no, "
-// //               "width=$w, height=$h, top=$top, left=$left",
-// //         );
-// //         return;
-// //       } else {
-// //         // Target specified, we are redirecting somewhere.
-// //         html.window.open(url, target);
-// //         return;
-// //       }
-// //     }
-
-// //     return custom(
-// //       content: CWebView(url: url),
-// //       height: height,
-// //       title: title ?? "Browser",
-// //       width: width,
-// //     );
-// //   }
-
-// //   /// Shows a popup dialog with a list of options returning the index selected
-// //   /// or -1 if canceled.
-// //   Future<int> choose({
-// //     double? height,
-// //     required String message,
-// //     required List<String> options,
-// //     String? title,
-// //     double? width,
-// //   }) async {
-// //     // Form up our dropdown options
-// //     final dropdownItems = <DropdownMenuItem<int>>[];
-// //     for (final (index, option) in options.indexed) {
-// //       dropdownItems.add(
-// //         DropdownMenuItem(
-// //           value: index,
-// //           child: Text(option),
-// //         ),
-// //       );
-// //     }
-// //     var answer = 0;
-// //     return (await custom<int?>(
-// //           actions: [
-// //             TextButton(
-// //               child: const Text("OK"),
-// //               onPressed: () => close<int>(answer),
-// //             ),
-// //           ],
-// //           content: CComboBoxControl<int>(
-// //             items: dropdownItems,
-// //             title: message,
-// //             value: 0,
-// //             onChanged: (v) => answer = v!,
-// //           ),
-// //           height: height,
-// //           title: title ?? "Choose",
-// //           width: width,
-// //         )) ??
-// //         -1;
-// //   }
-
-// //   /// Closes an open dialog and returns an answer depending on the type of
-// //   /// dialog shown.
-// //   void close<T>([T? answer]) async {
-// //     Navigator.of(navigatorKey.currentContext!, rootNavigator: true).pop(answer);
-// //   }
-
-// //   /// Provides a Yes/No confirmation dialog with the displayed message as the
-// //   /// question. True is returned for Yes and False for a No or cancel. You also
-// //   /// have the option to utilize the native browser prompt if running in a web
-// //   /// target.
-// //   Future<bool> confirm({
-// //     double? height,
-// //     required String message,
-// //     String? title,
-// //     bool useNativeBrowser = false,
-// //     double? width,
-// //   }) async {
-// //     if (useNativeBrowser) {
-// //       assert(kIsWeb, "Use of native browser only available on web targets");
-// //       return html.window.confirm(message);
-// //     }
-
-// //     return (await custom<bool?>(
-// //           actions: [
-// //             TextButton(
-// //               child: const Text("Yes"),
-// //               onPressed: () => close<bool>(true),
-// //             ),
-// //             TextButton(
-// //               child: const Text("No"),
-// //               onPressed: () => close<bool>(false),
-// //             ),
-// //           ],
-// //           content: Text(message),
-// //           height: height,
-// //           title: title ?? "Confirm",
-// //           width: width,
-// //         )) ??
-// //         false;
-// //   }
-
-// //   /// Shows a custom dialog for a more complex form where at the end you can
-// //   /// apply changes as a returned value if necessary. You will make use of
-// //   /// [CDialog.close] for returning values via your actions array.
-// //   Future<T?> custom<T>({
-// //     List<TextButton>? actions,
-// //     required Widget content,
-// //     double? height,
-// //     required String title,
-// //     double? width,
-// //   }) async {
-// //     return showDialog<T>(
-// //       barrierDismissible: false,
-// //       context: navigatorKey.currentContext!,
-// //       builder: (_) => AlertDialog(
-// //         insetPadding: EdgeInsets.zero,
-// //         scrollable: true,
-// //         titlePadding: EdgeInsets.zero,
-// //         title: Column(
-// //           children: [
-// //             Row(
-// //               children: [
-// //                 CWidget.spacer(width: 5.0),
-// //                 Expanded(child: Text(title)),
-// //                 IconButton(
-// //                   icon: const Icon(Icons.close),
-// //                   onPressed: () => close(),
-// //                 ),
-// //               ],
-// //             ),
-// //             CWidget.spacer(height: 2.0)
-// //           ],
-// //         ),
-// //         actionsPadding: const EdgeInsets.all(5.0),
-// //         actionsAlignment: MainAxisAlignment.center,
-// //         contentPadding: EdgeInsets.zero,
-// //         content: SizedBox(
-// //           height:
-// //               height ?? CAppView.height(navigatorKey.currentContext!) * 0.65,
-// //           width: width ?? CAppView.width(navigatorKey.currentContext!) * 0.90,
-// //           child: content,
-// //         ),
-// //         actions: actions,
-// //       ),
-// //     );
-// //   }
-
-// //   /// Provides the ability to run an async task and present a wait dialog. It
-// //   /// is important you call [CDialog.close] to properly clear the
-// //   /// dialog and return any value expected.
-// //   Future<T?> loading<T>({
-// //     Color barrierColor = Colors.black54,
-// //     Color? backgroundColor,
-// //     Color? foregroundColor,
-// //     double? height,
-// //     required String message,
-// //     required Future<void> Function() task,
-// //     String? title,
-// //     double? width,
-// //   }) async {
-// //     Future.delayed(Duration.zero, task);
-// //     return custom<T>(
-// //       content: Text(
-// //         message,
-// //         maxLines: 2,
-// //         overflow: TextOverflow.ellipsis,
-// //       ),
-// //       height: height,
-// //       title: title ?? "Please Wait",
-// //       width: width,
-// //     );
-// //   }
-
-// //   /// Provides the ability to show an input prompt to retrieve an answer to a
-// //   /// question. The value is returned back as a string. If a user cancels the
-// //   /// action an empty string is returned. You also have the option to use the
-// //   /// native browser prompt when utilizing the web target.
-// //   Future<String> prompt({
-// //     double? height,
-// //     required String message,
-// //     String? title,
-// //     bool useNativeBrowser = false,
-// //     double? width,
-// //   }) async {
-// //     if (useNativeBrowser) {
-// //       assert(kIsWeb, "Use of native browser only available on web targets");
-// //       return js.context.callMethod("prompt", [message]);
-// //     }
-
-// //     // Not using native browser, so show one of ours.
-// //     var answer = "";
-// //     return (await custom<String?>(
-// //           actions: [
-// //             TextButton(
-// //               child: const Text("OK"),
-// //               onPressed: () => close<String>(answer),
-// //             ),
-// //           ],
-// //           content: CTextFieldControl(
-// //             title: message,
-// //             onChanged: (v) => answer = v,
-// //           ),
-// //           height: height,
-// //           title: title ?? "Prompt",
-// //           width: width,
-// //         )) ??
-// //         "";
-// //   }
-
-// //   /// Shows a rounded snackbar at the bottom of the content area to display
-// //   /// some information.
-// //   void snackbar({
-// //     Widget? content,
-// //     String? message,
-// //     int? seconds,
-// //   }) {
-// //     assert(
-// //       (content != null && message == null) ||
-// //           (content == null && message != null),
-// //       "Only content or message can be set. Not both or neither.",
-// //     );
-
-// //     ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
-// //       SnackBar(
-// //         content: content ?? Text(message!),
-// //         duration: seconds != null
-// //             ? Duration(seconds: seconds)
-// //             : const Duration(seconds: 4),
-// //         showCloseIcon: true,
-// //       ),
-// //     );
-// //   }
+  /// Helper method to get the currently active dialog theme.
+  static CDialogTheme _getTheme() =>
+      Theme.of(scaffoldKey.currentContext!).cDialogTheme;
 }
 
-// // ----------------------------------------------------------------------------
-// // [Main View] ----------------------------------------------------------------
-// // ----------------------------------------------------------------------------
-
-// class CAppView extends StatefulWidget {
-//   static bool _isInitialized = false;
-
-//   static final scaffoldKey = GlobalKey<ScaffoldState>();
-
-//   static final uiState = CObjectDataNotifier();
-
-//   static Widget? get content => uiState.get<Widget?>("content");
-//   static set content(Widget? v) => uiState.set<Widget?>("content", v);
-
-//   static ThemeData? get darkTheme => uiState.get<ThemeData?>("darkTheme");
-//   static set darkTheme(ThemeData? v) => uiState.set<ThemeData?>("darkTheme", v);
-
-//   static ThemeData? get theme => uiState.get<ThemeData?>("theme");
-//   static set theme(ThemeData? v) => uiState.set<ThemeData?>("theme", v);
-
-//   static ThemeMode? get themeMode => uiState.get<ThemeMode?>("themeMode");
-//   static set themeMode(ThemeMode? v) => uiState.set<ThemeMode?>("themeMode", v);
-
-//   static String? get title => uiState.get<String?>("title");
-//   static set title(String? v) => uiState.set<String?>("title", v);
-
-//   static void floatingActionButton({
-//     Widget? button,
-//     FloatingActionButtonLocation? location,
-//   }) {
-//     uiState.set<Widget?>(
-//       "floatingActionButton",
-//       button != null
-//           ? PointerInterceptor(
-//               intercepting: kIsWeb,
-//               child: button,
-//             )
-//           : null,
-//     );
-//     uiState.set<FloatingActionButtonLocation?>(
-//       "floatingActionButtonLocation",
-//       location,
-//     );
-//   }
-
-//   static void drawer({DrawerHeader? header, List<Widget>? items}) {
-//     if (header == null && items == null) {
-//       uiState.set<Drawer?>("drawer", null);
-//     } else {
-//       uiState.set<Drawer?>(
-//         "drawer",
-//         Drawer(
-//           child: ListView(
-//             children: [
-//               if (header != null) header,
-//               if (items != null) ...items,
-//             ],
-//           ),
-//         ),
-//       );
-//     }
-//   }
-
-//   static void endDrawer({DrawerHeader? header, List<Widget>? items}) {
-//     if (header == null && items == null) {
-//       uiState.set<Drawer?>("endDrawer", null);
-//     } else {
-//       uiState.set<Drawer?>(
-//         "endDrawer",
-//         Drawer(
-//           child: ListView(
-//             children: [
-//               if (header != null) header,
-//               if (items != null) ...items,
-//             ],
-//           ),
-//         ),
-//       );
-//     }
-//   }
-
-//   static void footer({
-//     List<Widget>? actions,
-//     bool? centerTitle,
-//     Widget? leading,
-//     Widget? title,
-//   }) {
-//     if (actions == null &&
-//         centerTitle == null &&
-//         leading == null &&
-//         title == null) {
-//       uiState.set<BottomAppBar?>("bottomAppBar", null);
-//     } else {
-//       uiState.set<BottomAppBar?>(
-//         "bottomAppBar",
-//         BottomAppBar(
-//           notchMargin: 0.0,
-//           padding: EdgeInsets.zero,
-//           child: AppBar(
-//             actions: actions,
-//             automaticallyImplyLeading: false,
-//             centerTitle: centerTitle,
-//             leading: leading,
-//             title: title,
-//           ),
-//         ),
-//       );
-//     }
-//   }
-
-//   static void header({
-//     List<Widget>? actions,
-//     bool? centerTitle,
-//     Widget? leading,
-//     Widget? title,
-//   }) {
-//     if (actions == null &&
-//         centerTitle == null &&
-//         leading == null &&
-//         title == null) {
-//       uiState.set<AppBar?>("appBar", null);
-//     } else {
-//       uiState.set<AppBar?>(
-//         "appBar",
-//         AppBar(
-//           actions: actions,
-//           automaticallyImplyLeading: false,
-//           centerTitle: centerTitle,
-//           leading: leading,
-//           title: title,
-//         ),
-//       );
-//     }
-//   }
-
-//   /// Will programmatically close an open drawer on the [CAppView].
-//   void closeDrawer() {
-//     if (scaffoldKey.currentState!.isDrawerOpen) {
-//       scaffoldKey.currentState!.closeDrawer();
-//     }
-//     if (scaffoldKey.currentState!.isEndDrawerOpen) {
-//       scaffoldKey.currentState!.closeEndDrawer();
-//     }
-//   }
-
-//   /// Will programmatically open a drawer on the [CAppView].
-//   void openDrawer({bool isEndDrawer = false}) {
-//     if (!isEndDrawer && scaffoldKey.currentState!.hasDrawer) {
-//       scaffoldKey.currentState!.openDrawer();
-//     } else if (scaffoldKey.currentState!.hasEndDrawer) {
-//       scaffoldKey.currentState!.openEndDrawer();
-//     }
-//   }
-
-//   /// Retrieves the available height of the specified context.
-//   static double height(BuildContext context) =>
-//       MediaQuery.of(context).size.height;
-
-//   /// Retrieves the available width of the specified context.
-//   static double width(BuildContext context) =>
-//       MediaQuery.of(context).size.width;
-
-//   /// Provides the ability to show a full page within the [CAppView] with the
-//   /// ability to specify the title and actions in the top bar. You can also
-//   /// specify bottom actions.
-//   void showFullPage({
-//     required Widget content,
-//     bool? centerTitle,
-//     String? title,
-//     List<Widget>? actions,
-//     List<Widget>? bottomActions,
-//   }) async {
-//     Navigator.push(
-//       scaffoldKey.currentContext!,
-//       MaterialPageRoute(
-//         builder: (context) => Material(
-//           child: Scaffold(
-//             appBar: AppBar(
-//               automaticallyImplyLeading: true,
-//               actions: actions,
-//               centerTitle: centerTitle,
-//               title: title != null ? Text(title) : null,
-//             ),
-//             body: content,
-//             bottomNavigationBar: bottomActions != null
-//                 ? BottomAppBar(
-//                     child: Row(
-//                       children: bottomActions,
-//                     ),
-//                   )
-//                 : null,
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-
-//   @override
-//   State<StatefulWidget> createState() => _CAppViewState();
-
-//   CAppView({super.key}) {
-//     assert(
-//       !_isInitialized,
-//       "Only one CAppView can be created. It sets up a SPA.",
-//     );
-//     _isInitialized = true;
-//   }
-// }
-
-// class _CAppViewState extends State<CAppView> {
-//   @override
-//   void initState() {
-//     CAppView.uiState.addListener(() => setState(() {}));
-//     super.initState();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       debugShowCheckedModeBanner: false,
-//       darkTheme: CAppView.darkTheme,
-//       // navigatorKey: CDialog.navigatorKey,
-//       theme: CAppView.theme,
-//       themeMode: CAppView.themeMode,
-//       title: CAppView.title ?? "",
-//       home: Scaffold(
-//         appBar: CAppView.uiState.get<AppBar?>("appBar"),
-//         body: CAppView.content,
-//         bottomNavigationBar:
-//             CAppView.uiState.get<BottomAppBar?>("bottomAppBar"),
-//         drawer: CAppView.uiState.get<Widget?>("drawer"),
-//         endDrawer: CAppView.uiState.get<Widget?>("endDrawer"),
-//         floatingActionButton:
-//             CAppView.uiState.get<Widget?>("floatingActionButton"),
-//         floatingActionButtonLocation: CAppView.uiState
-//             .get<FloatingActionButtonLocation?>("floatingActionButtonLocation"),
-//         key: CAppView.scaffoldKey,
-//       ),
-//     );
-//   }
-// }
-
-// // ----------------------------------------------------------------------------
-// // [Themes] -------------------------------------------------------------------
-// // ----------------------------------------------------------------------------
-
-// class CTheme {
-//   static ThemeData create({
-//     InputDecorationTheme? inputDecorationTheme,
-//     MaterialTapTargetSize? materialTapTargetSize,
-//     PageTransitionsTheme? pageTransitionsTheme,
-//     TargetPlatform? platform,
-//     ScrollbarThemeData? scrollbarTheme,
-//     InteractiveInkFeatureFactory? splashFactory,
-//     VisualDensity? visualDensity,
-//     Brightness? brightness,
-//     Color? canvasColor,
-//     Color? cardColor,
-//     ColorScheme? colorScheme,
-//     Color? colorSchemeSeed,
-//     Color? dialogBackgroundColor,
-//     Color? disabledColor,
-//     Color? dividerColor,
-//     Color? focusColor,
-//     Color? highlightColor,
-//     Color? hintColor,
-//     Color? hoverColor,
-//     Color? indicatorColor,
-//     Color? primaryColor,
-//     Color? primaryColorDark,
-//     Color? primaryColorLight,
-//     MaterialColor? primarySwatch,
-//     Color? scaffoldBackgroundColor,
-//     Color? secondaryHeaderColor,
-//     Color? shadowColor,
-//     Color? splashColor,
-//     Color? unselectedWidgetColor,
-//     String? fontFamily,
-//     List<String>? fontFamilyFallback,
-//     String? package,
-//     IconThemeData? iconTheme,
-//     IconThemeData? primaryIconTheme,
-//     TextTheme? primaryTextTheme,
-//     TextTheme? textTheme,
-//     Typography? typography,
-//     ActionIconThemeData? actionIconTheme,
-//     AppBarTheme? appBarTheme,
-//     BadgeThemeData? badgeTheme,
-//     MaterialBannerThemeData? bannerTheme,
-//     BottomAppBarTheme? bottomAppBarTheme,
-//     BottomNavigationBarThemeData? bottomNavigationBarTheme,
-//     BottomSheetThemeData? bottomSheetTheme,
-//     ButtonBarThemeData? buttonBarTheme,
-//     ButtonThemeData? buttonTheme,
-//     CardTheme? cardTheme,
-//     CheckboxThemeData? checkboxTheme,
-//     ChipThemeData? chipTheme,
-//     DataTableThemeData? dataTableTheme,
-//     DatePickerThemeData? datePickerTheme,
-//     DialogTheme? dialogTheme,
-//     DividerThemeData? dividerTheme,
-//     DrawerThemeData? drawerTheme,
-//     DropdownMenuThemeData? dropdownMenuTheme,
-//     ElevatedButtonThemeData? elevatedButtonTheme,
-//     ExpansionTileThemeData? expansionTileTheme,
-//     FilledButtonThemeData? filledButtonTheme,
-//     FloatingActionButtonThemeData? floatingActionButtonTheme,
-//     IconButtonThemeData? iconButtonTheme,
-//     ListTileThemeData? listTileTheme,
-//     MenuBarThemeData? menuBarTheme,
-//     MenuButtonThemeData? menuButtonTheme,
-//     MenuThemeData? menuTheme,
-//     NavigationBarThemeData? navigationBarTheme,
-//     NavigationDrawerThemeData? navigationDrawerTheme,
-//     NavigationRailThemeData? navigationRailTheme,
-//     OutlinedButtonThemeData? outlinedButtonTheme,
-//     PopupMenuThemeData? popupMenuTheme,
-//     ProgressIndicatorThemeData? progressIndicatorTheme,
-//     RadioThemeData? radioTheme,
-//     SearchBarThemeData? searchBarTheme,
-//     SearchViewThemeData? searchViewTheme,
-//     SegmentedButtonThemeData? segmentedButtonTheme,
-//     SliderThemeData? sliderTheme,
-//     SnackBarThemeData? snackBarTheme,
-//     SwitchThemeData? switchTheme,
-//     TabBarTheme? tabBarTheme,
-//     TextButtonThemeData? textButtonTheme,
-//     TextSelectionThemeData? textSelectionTheme,
-//     TimePickerThemeData? timePickerTheme,
-//     ToggleButtonsThemeData? toggleButtonsTheme,
-//     TooltipThemeData? tooltipTheme,
-//   }) {
-//     return ThemeData(
-//       inputDecorationTheme: inputDecorationTheme,
-//       materialTapTargetSize: materialTapTargetSize,
-//       pageTransitionsTheme: pageTransitionsTheme,
-//       platform: platform,
-//       scrollbarTheme: scrollbarTheme,
-//       splashFactory: splashFactory,
-//       visualDensity: visualDensity,
-//       brightness: brightness,
-//       canvasColor: canvasColor,
-//       cardColor: cardColor,
-//       colorScheme: colorScheme,
-//       colorSchemeSeed: colorSchemeSeed,
-//       dialogBackgroundColor: dialogBackgroundColor,
-//       disabledColor: disabledColor,
-//       dividerColor: dividerColor,
-//       focusColor: focusColor,
-//       highlightColor: highlightColor,
-//       hintColor: hintColor,
-//       hoverColor: hoverColor,
-//       indicatorColor: indicatorColor,
-//       primaryColor: primaryColor,
-//       primaryColorDark: primaryColorDark,
-//       primaryColorLight: primaryColorLight,
-//       primarySwatch: primarySwatch,
-//       scaffoldBackgroundColor: scaffoldBackgroundColor,
-//       secondaryHeaderColor: secondaryHeaderColor,
-//       shadowColor: shadowColor,
-//       splashColor: splashColor,
-//       unselectedWidgetColor: unselectedWidgetColor,
-//       fontFamily: fontFamily,
-//       fontFamilyFallback: fontFamilyFallback,
-//       package: package,
-//       iconTheme: iconTheme,
-//       primaryIconTheme: primaryIconTheme,
-//       primaryTextTheme: primaryTextTheme,
-//       textTheme: textTheme,
-//       typography: typography,
-//       actionIconTheme: actionIconTheme,
-//       appBarTheme: appBarTheme,
-//       badgeTheme: badgeTheme,
-//       bannerTheme: bannerTheme,
-//       bottomAppBarTheme: bottomAppBarTheme,
-//       bottomNavigationBarTheme: bottomNavigationBarTheme,
-//       bottomSheetTheme: bottomSheetTheme,
-//       buttonBarTheme: buttonBarTheme,
-//       buttonTheme: buttonTheme,
-//       cardTheme: cardTheme,
-//       checkboxTheme: checkboxTheme,
-//       chipTheme: chipTheme,
-//       dataTableTheme: dataTableTheme,
-//       datePickerTheme: datePickerTheme,
-//       dialogTheme: dialogTheme,
-//       dividerTheme: dividerTheme,
-//       drawerTheme: drawerTheme,
-//       dropdownMenuTheme: dropdownMenuTheme,
-//       elevatedButtonTheme: elevatedButtonTheme,
-//       expansionTileTheme: expansionTileTheme,
-//       filledButtonTheme: filledButtonTheme,
-//       floatingActionButtonTheme: floatingActionButtonTheme,
-//       iconButtonTheme: iconButtonTheme,
-//       listTileTheme: listTileTheme,
-//       menuBarTheme: menuBarTheme,
-//       menuButtonTheme: menuButtonTheme,
-//       menuTheme: menuTheme,
-//       navigationBarTheme: navigationBarTheme,
-//       navigationDrawerTheme: navigationDrawerTheme,
-//       navigationRailTheme: navigationRailTheme,
-//       outlinedButtonTheme: outlinedButtonTheme,
-//       popupMenuTheme: popupMenuTheme,
-//       progressIndicatorTheme: progressIndicatorTheme,
-//       radioTheme: radioTheme,
-//       searchBarTheme: searchBarTheme,
-//       searchViewTheme: searchViewTheme,
-//       segmentedButtonTheme: segmentedButtonTheme,
-//       sliderTheme: sliderTheme,
-//       snackBarTheme: snackBarTheme,
-//       switchTheme: switchTheme,
-//       tabBarTheme: tabBarTheme,
-//       textButtonTheme: textButtonTheme,
-//       textSelectionTheme: textSelectionTheme,
-//       timePickerTheme: timePickerTheme,
-//       toggleButtonsTheme: toggleButtonsTheme,
-//       tooltipTheme: tooltipTheme,
-//     );
-//   }
-// }
-
-// // ----------------------------------------------------------------------------
-// // [Widget] -------------------------------------------------------------------
-// // ----------------------------------------------------------------------------
-
-// enum CImageType { asset, file, memory, network }
-
-// /// Utility widget builder for building basic stateless widgets for a UI.
-// class CWidget {
-//   static Widget button() {
-//     throw "FUTURE BUTTON";
-//   }
-
-//   static Widget checkBox() {
-//     throw "FUTURE DEVELOPMENT";
-//   }
-
-//   static Widget comboBox() {
-//     throw "FUTURE DEVELOPMENT";
-//   }
-
-//   static Widget calendar() {
-//     throw "FUTURE DEVELOPMENT";
-//   }
-
-//   static Widget columnLayout() {
-//     throw "FUTURE DEVELOPMENT";
-//   }
-
-//   static Widget gridView() {
-//     throw "FUTURE DEVELOPMENT";
-//   }
-
-//   static Widget icon() {
-//     throw "FUTURE DEVELOPMENT";
-//   }
-
-//   static Widget label() {
-//     throw "FUTURE DEVELOPMENT";
-//   }
-
-//   static Widget listView() {
-//     throw "FUTURE DEVELOPMENT";
-//   }
-
-//   static Widget mediaPlayer() {
-//     throw "FUTURE DEVELOPMENT";
-//   }
-
-//   static Widget image({
-//     required CImageType type,
-//     required dynamic src,
-//     Alignment alignment = Alignment.center,
-//     BoxFit? fit,
-//     double? height,
-//     ImageRepeat repeat = ImageRepeat.noRepeat,
-//     double? width,
-//   }) {
-//     assert(
-//       CDataBroker.checkType<String>(src) ||
-//           CDataBroker.checkType<File>(src) ||
-//           CDataBroker.checkType<Uint8List>(src),
-//       "",
-//     );
-//     if (type == CImageType.asset) {
-//       return Image.asset(
-//         src,
-//         alignment: alignment,
-//         fit: fit,
-//         height: height,
-//         repeat: repeat,
-//         width: width,
-//       );
-//     } else if (type == CImageType.file) {
-//       return Image.file(
-//         src,
-//         alignment: alignment,
-//         fit: fit,
-//         height: height,
-//         repeat: repeat,
-//         width: width,
-//       );
-//     } else if (type == CImageType.memory) {
-//       return Image.memory(
-//         src,
-//         alignment: alignment,
-//         fit: fit,
-//         height: height,
-//         repeat: repeat,
-//         width: width,
-//       );
-//     }
-//     return Image.network(
-//       src,
-//       alignment: alignment,
-//       fit: fit,
-//       height: height,
-//       repeat: repeat,
-//       width: width,
-//     );
-//   }
-
-//   Widget rowLayout() {
-//     throw "FUTURE DEVELOPMENT";
-//   }
-
-//   /// Provides a spacer with the ability to set a divider color within a
-//   /// horizontal or vertical layout of controls.
-//   static Widget spacer({
-//     Color? color,
-//     double? height,
-//     bool visible = true,
-//     double? width,
-//   }) {
-//     return Offstage(
-//       offstage: !visible,
-//       child: Container(
-//         height: height,
-//         width: width,
-//         color: color,
-//       ),
-//     );
-//   }
-
-//   Widget stackView() {
-//     throw "FUTURE DEVELOPMENT";
-//   }
-
-//   Widget tabItem() {
-//     throw "FUTURE DEVELOPMENT";
-//   }
-
-//   Widget tabbedView() {
-//     throw "FUTURE DEVELOPMENT";
-//   }
-
-//   Widget textField() {
-//     throw "FUTURE DEVELOPMENT";
-//   }
-
-//   Widget webView() {
-//     throw "FUTURE DEVELOPMENT";
-//   }
-// }
-
-// // /// Builds a icon based button widget.
-// // class CButtonControl extends StatelessWidget {
-// //   /// Optional size to apply to all the labels.
-// //   final double? fontSize;
-
-// //   /// The icon to associate with the action.
-// //   final dynamic icon;
-
-// //   /// Identifies the size of the icon
-// //   final double? iconSize;
-
-// //   /// The action to take when tapped.
-// //   final VoidCallback onTap;
-
-// //   /// An optional title to place at the bottom of the icon button.
-// //   final String? title;
-
-// //   /// The tooltip to describe what the action does.
-// //   final String? tooltip;
-
-// //   /// Determines whether to display this button or not.
-// //   final bool visible;
-
-// //   /// Constructor for the widget.
-// //   CButtonControl({
-// //     this.fontSize,
-// //     required this.icon,
-// //     this.iconSize,
-// //     required this.onTap,
-// //     this.title,
-// //     this.tooltip,
-// //     this.visible = true,
-// //     super.key,
-// //   }) {
-// //     assert(icon is IconData || icon is AssetImage,
-// //         "icon can only be an Image or IconData type");
-// //   }
-
-// //   @override
-// //   Widget build(BuildContext context) {
-// //     final btn = IconButton(
-// //       icon: icon is IconData
-// //           ? Icon(icon, size: iconSize)
-// //           : Image(
-// //               image: icon,
-// //               height: iconSize,
-// //               width: iconSize,
-// //             ),
-// //       tooltip: tooltip,
-// //       onPressed: onTap,
-// //     );
-// //     return Offstage(
-// //       offstage: !visible,
-// //       child: title != null && title!.isNotEmpty
-// //           ? Column(
-// //               mainAxisAlignment: MainAxisAlignment.center,
-// //               children: [
-// //                 btn,
-// //                 Text(title!, style: TextStyle(fontSize: fontSize)),
-// //               ],
-// //             )
-// //           : btn,
-// //     );
-// //   }
-// // }
-
-// // /// Creates a dropdown box with a selection of custom values one can then
-// // /// select from.
-// // class CComboBoxControl<T> extends StatelessWidget {
-// //   // Identifies the dropdown color.
-// //   final Color? dropdownColor;
-
-// //   /// Whether the control is enabled or not.
-// //   final bool enabled;
-
-// //   /// The size of the font for the dropdown items.
-// //   final double? fontSize;
-
-// //   /// The height of the control.
-// //   final double? height;
-
-// //   /// Helper text for the control.
-// //   final String? helperText;
-
-// //   /// The items to select from.
-// //   final List<DropdownMenuItem<T>> items;
-
-// //   /// Callback fired when the dropdown value is changed.
-// //   final void Function(T?)? onChanged;
-
-// //   /// The text color of the control.
-// //   final Color? textColor;
-
-// //   /// The title to label the control.
-// //   final String? title;
-
-// //   /// The current value of the control.
-// //   final T value;
-
-// //   /// The width of the control.
-// //   final double? width;
-
-// //   /// Whether the control is visible or not.
-// //   final bool visible;
-
-// //   /// Constructor for the class.
-// //   const CComboBoxControl({
-// //     this.dropdownColor,
-// //     this.enabled = true,
-// //     this.fontSize,
-// //     this.height,
-// //     this.helperText,
-// //     required this.items,
-// //     this.onChanged,
-// //     this.textColor,
-// //     this.title,
-// //     required this.value,
-// //     this.width,
-// //     this.visible = true,
-// //     super.key,
-// //   });
-
-// //   @override
-// //   Widget build(BuildContext context) {
-// //     return Offstage(
-// //       offstage: !visible,
-// //       child: SizedBox(
-// //         height: height,
-// //         width: width,
-// //         child: DropdownButtonFormField(
-// //           isExpanded: true,
-// //           value: value,
-// //           items: items,
-// //           onChanged: enabled ? onChanged : null,
-// //           dropdownColor: dropdownColor,
-// //           decoration: InputDecoration(
-// //             contentPadding: const EdgeInsets.all(10.0),
-// //             labelText: title,
-// //             isDense: true,
-// //             labelStyle: TextStyle(
-// //               fontWeight: FontWeight.bold,
-// //               color: textColor,
-// //               fontSize: fontSize,
-// //             ),
-// //             helperText: helperText,
-// //             helperStyle: TextStyle(
-// //               color: textColor,
-// //               fontSize: fontSize,
-// //             ),
-// //             filled: true,
-// //             enabledBorder: UnderlineInputBorder(
-// //               borderSide: BorderSide(
-// //                 color: textColor ?? const Color(0xFF000000),
-// //               ),
-// //             ),
-// //           ),
-// //         ),
-// //       ),
-// //     );
-// //   }
-// // }
-
-// // /// Creates a stack layout allowing for items to be placed on top of either
-// // /// background image or a background color.
-// // class CStackView extends StatelessWidget {
-// //   /// Optional image resource to a background image bundled with your app.
-// //   final String? backgroundImage;
-
-// //   /// Optional background color to set for the stack.
-// //   final Color? backgroundColor;
-
-// //   /// The children widgets to build on top of the stack.
-// //   final List<Widget> children;
-
-// //   /// Constructor for the widget.
-// //   CStackView({
-// //     this.backgroundImage,
-// //     this.backgroundColor,
-// //     required this.children,
-// //     super.key,
-// //   }) {
-// //     assert(
-// //         (backgroundImage != null && backgroundColor == null) ||
-// //             (backgroundImage == null && backgroundColor != null),
-// //         "Only backgroundImage or backgroundColor can be set.");
-// //   }
-
-// //   @override
-// //   Widget build(BuildContext context) {
-// //     List<Widget> w = [];
-// //     if (backgroundImage != null) {
-// //       w.add(
-// //         Container(
-// //           decoration: BoxDecoration(
-// //             image: DecorationImage(
-// //               image: AssetImage(backgroundImage!),
-// //               fit: BoxFit.cover,
-// //             ),
-// //           ),
-// //         ),
-// //       );
-// //     } else if (backgroundColor != null) {
-// //       w.add(
-// //         Container(
-// //           color: backgroundColor,
-// //         ),
-// //       );
-// //     }
-// //     w.addAll(children);
-// //     return Stack(children: w);
-// //   }
-// // }
-
-// // /// Constructs a multi-purpose text field for entering different types of data.
-// // ///
-// // /// TODO: Need to format for other data types and a custom controller.
-// // class CTextFieldControl extends StatelessWidget {
-// //   /// Enable or disable the text field.
-// //   final bool? enabled;
-
-// //   /// Font size for the text field.
-// //   final double? fontSize;
-
-// //   /// The height of the text field.
-// //   final double? height;
-
-// //   /// Helper text for the text field.
-// //   final String? helperText;
-
-// //   /// The keyboard type to render for entering the data.
-// //   final TextInputType? keyboardType;
-
-// //   /// The max length of characters to utilize for the text field.
-// //   final int? maxLength;
-
-// //   /// The max lines for the text field.
-// //   final int maxLines;
-
-// //   /// Callback fired each time the text is updated.
-// //   final Function(String)? onChanged;
-
-// //   /// Callback fired when the editing is completed with the control
-// //   final Function()? onEditingComplete;
-
-// //   /// Whether the control is readonly or not.
-// //   final bool readOnly;
-
-// //   /// The color of the text within the text field.
-// //   final Color? textColor;
-
-// //   /// The title to supply with the text field.
-// //   final String? title;
-
-// //   /// The width of the text field.
-// //   final double? width;
-
-// //   /// The initial value of the text field.
-// //   final String? initialValue;
-
-// //   /// Whether to show or hide the text field control.
-// //   final bool visible;
-
-// //   /// Constructor of the class.
-// //   const CTextFieldControl({
-// //     this.enabled,
-// //     this.fontSize,
-// //     this.height,
-// //     this.helperText,
-// //     this.keyboardType,
-// //     this.maxLength,
-// //     this.maxLines = 1,
-// //     this.onChanged,
-// //     this.onEditingComplete,
-// //     this.readOnly = false,
-// //     this.textColor,
-// //     this.title,
-// //     this.width,
-// //     this.initialValue,
-// //     this.visible = true,
-// //     super.key,
-// //   });
-
-// //   @override
-// //   Widget build(BuildContext context) {
-// //     return Offstage(
-// //       offstage: !visible,
-// //       child: SizedBox(
-// //         width: width,
-// //         height: height,
-// //         child: TextFormField(
-// //           style: TextStyle(
-// //             color: textColor,
-// //             fontSize: fontSize,
-// //           ),
-// //           decoration: InputDecoration(
-// //             contentPadding: const EdgeInsets.all(5.0),
-// //             enabledBorder: UnderlineInputBorder(
-// //               borderSide: BorderSide(
-// //                 color: textColor ?? const Color(0xFF000000),
-// //               ),
-// //             ),
-// //             filled: true,
-// //             helperText: helperText,
-// //             helperStyle: TextStyle(
-// //               color: textColor,
-// //               fontSize: fontSize,
-// //             ),
-// //             isDense: true,
-// //             labelText: title,
-// //             labelStyle: TextStyle(
-// //               fontWeight: FontWeight.bold,
-// //               color: textColor,
-// //               fontSize: fontSize,
-// //             ),
-// //             // suffixIcon: TODO: for password field type or units.
-// //           ),
-// //           enabled: enabled,
-// //           initialValue: initialValue,
-// //           keyboardType: keyboardType,
-// //           maxLength: maxLength,
-// //           maxLines: maxLines,
-// //           // minLines: minLines,
-// //           // obscureText: TODO: for password field type,
-// //           onChanged: onChanged,
-// //           onEditingComplete: onEditingComplete,
-// //           readOnly: readOnly,
-// //           smartDashesType: SmartDashesType.disabled,
-// //           smartQuotesType: SmartQuotesType.disabled,
-// //         ),
-// //       ),
-// //     );
-// //   }
-// // }
-
-// // /// Crates an embedded web view so you can interact and display web content.
-// // class CWebView extends StatelessWidget {
-// //   /// The url of the page to display within your app.
-// //   final String url;
-
-// //   /// Constructor for the class.
-// //   CWebView({required this.url, super.key}) {
-// //     assert(
-// //       kIsWeb || Platform.isAndroid || Platform.isIOS,
-// //       "CWebView only supported on mobile and web targets.",
-// //     );
-// //   }
-
-// //   @override
-// //   Widget build(BuildContext context) {
-// //     return createCWebView(url);
-// //   }
-// // }
+// ----------------------------------------------------------------------------
+// [Main View] ----------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+class CAppView extends StatefulWidget {
+  static bool _isInitialized = false;
+
+  static final uiState = CObjectDataNotifier(
+    objData: {
+      "darkTheme": ThemeData.dark(useMaterial3: true),
+      "themeMode": ThemeMode.system,
+      "theme": ThemeData.light(useMaterial3: true),
+    },
+  );
+
+  static ThemeData get darkTheme => uiState.get<ThemeData>("darkTheme");
+  static set darkTheme(ThemeData? v) =>
+      uiState.set<ThemeData?>("darkTheme", v, notify: true);
+
+  static ThemeData get theme => uiState.get<ThemeData>("theme");
+  static set theme(ThemeData? v) =>
+      uiState.set<ThemeData?>("theme", v, notify: true);
+
+  static ThemeMode get themeMode => uiState.get<ThemeMode>("themeMode");
+  static set themeMode(ThemeMode v) =>
+      uiState.set<ThemeMode?>("themeMode", v, notify: true);
+
+  static String? get title => uiState.get<String?>("title");
+  static set title(String? v) => uiState.set<String?>("title", v, notify: true);
+
+  static void header({
+    List<Widget>? actions,
+    bool automaticallyImplyLeading = true,
+    bool forceMaterialTransparency = false,
+    Widget? leading,
+    AppBarTheme? style,
+    Widget? title,
+  }) {
+    if (actions == null && leading == null && title == null) {
+      uiState.set<AppBar?>("appBar", null);
+    } else {
+      uiState.set<AppBar?>(
+        "appBar",
+        AppBar(
+          actions: actions,
+          actionsIconTheme: style?.actionsIconTheme,
+          automaticallyImplyLeading: automaticallyImplyLeading,
+          backgroundColor: style?.backgroundColor,
+          centerTitle: style?.centerTitle,
+          elevation: style?.elevation,
+          foregroundColor: style?.foregroundColor,
+          forceMaterialTransparency: forceMaterialTransparency,
+          iconTheme: style?.iconTheme,
+          leading: leading,
+          scrolledUnderElevation: style?.scrolledUnderElevation,
+          shadowColor: style?.shadowColor,
+          shape: style?.shape,
+          surfaceTintColor: style?.surfaceTintColor,
+          title: title,
+          titleSpacing: style?.titleSpacing,
+          titleTextStyle: style?.titleTextStyle,
+          toolbarHeight: style?.toolbarHeight,
+          toolbarTextStyle: style?.toolbarTextStyle,
+          systemOverlayStyle: style?.systemOverlayStyle,
+        ),
+        notify: true,
+      );
+    }
+  }
+
+  static void content({
+    required Widget? body,
+    bool extendBody = false,
+    bool extendBodyBehindAppBar = false,
+  }) {
+    uiState.set<CObject>(
+      "content",
+      {
+        "body": body,
+        "extendBody": extendBody,
+        "extendBodyBehindAppBar": extendBodyBehindAppBar,
+      },
+      notify: true,
+    );
+  }
+
+  static void footer({
+    List<Widget>? actions,
+    bool automaticallyImplyLeading = true,
+    bool forceMaterialTransparency = false,
+    Widget? leading,
+    AppBarTheme? style,
+    Widget? title,
+  }) {
+    if (actions == null && leading == null && title == null) {
+      uiState.set<BottomAppBar?>("bottomAppBar", null);
+    } else {
+      uiState.set<BottomAppBar?>(
+        "bottomAppBar",
+        BottomAppBar(
+          notchMargin: 0.0,
+          padding: EdgeInsets.zero,
+          height: style != null
+              ? style.toolbarHeight
+              : theme.appBarTheme.toolbarHeight,
+          child: AppBar(
+            actions: actions,
+            actionsIconTheme: style?.actionsIconTheme,
+            automaticallyImplyLeading: automaticallyImplyLeading,
+            backgroundColor: style?.backgroundColor,
+            centerTitle: style?.centerTitle,
+            elevation: style?.elevation,
+            foregroundColor: style?.foregroundColor,
+            forceMaterialTransparency: forceMaterialTransparency,
+            iconTheme: style?.iconTheme,
+            leading: leading,
+            scrolledUnderElevation: style?.scrolledUnderElevation,
+            shadowColor: style?.shadowColor,
+            shape: style?.shape,
+            surfaceTintColor: style?.surfaceTintColor,
+            title: title,
+            titleSpacing: style?.titleSpacing,
+            titleTextStyle: style?.titleTextStyle,
+            toolbarHeight: style?.toolbarHeight,
+            toolbarTextStyle: style?.toolbarTextStyle,
+            systemOverlayStyle: style?.systemOverlayStyle,
+          ),
+        ),
+        notify: true,
+      );
+    }
+  }
+
+  static void floatingActionButton({
+    Widget? button,
+    FloatingActionButtonLocation? location,
+  }) {
+    uiState.set<Widget?>(
+      "floatingActionButton",
+      button != null
+          ? PointerInterceptor(
+              intercepting: kIsWeb,
+              child: button,
+            )
+          : null,
+    );
+    uiState.set<FloatingActionButtonLocation?>(
+      "floatingActionButtonLocation",
+      location,
+      notify: true,
+    );
+  }
+
+  static void drawer({Widget? header, List<Widget>? items}) {
+    if (header == null && items == null) {
+      uiState.set<Drawer?>("drawer", null);
+    } else {
+      uiState.set<Drawer?>(
+        "drawer",
+        Drawer(
+          child: ListView(
+            children: [
+              if (header != null) header,
+              if (items != null) ...items,
+            ],
+          ),
+        ),
+        notify: true,
+      );
+    }
+  }
+
+  static void endDrawer({Widget? header, List<Widget>? items}) {
+    if (header == null && items == null) {
+      uiState.set<Drawer?>("endDrawer", null);
+    } else {
+      uiState.set<Drawer?>(
+        "endDrawer",
+        Drawer(
+          child: ListView(
+            children: [
+              if (header != null) header,
+              if (items != null) ...items,
+            ],
+          ),
+        ),
+        notify: true,
+      );
+    }
+  }
+
+  /// Will programmatically close an open drawer on the [CAppView].
+  static void closeDrawer() {
+    if (CDialog.scaffoldKey.currentState!.isDrawerOpen) {
+      CDialog.scaffoldKey.currentState!.closeDrawer();
+    }
+    if (CDialog.scaffoldKey.currentState!.isEndDrawerOpen) {
+      CDialog.scaffoldKey.currentState!.closeEndDrawer();
+    }
+  }
+
+  /// Will programmatically open a drawer on the [CAppView].
+  static void openDrawer({bool isEndDrawer = false}) {
+    if (!isEndDrawer && CDialog.scaffoldKey.currentState!.hasDrawer) {
+      CDialog.scaffoldKey.currentState!.openDrawer();
+    } else if (CDialog.scaffoldKey.currentState!.hasEndDrawer) {
+      CDialog.scaffoldKey.currentState!.openEndDrawer();
+    }
+  }
+
+  /// Retrieves the available height of the specified context.
+  static double height(BuildContext context) =>
+      MediaQuery.of(context).size.height;
+
+  /// Retrieves the available width of the specified context.
+  static double width(BuildContext context) =>
+      MediaQuery.of(context).size.width;
+
+  @override
+  State<StatefulWidget> createState() => _CAppViewState();
+
+  /// Constructs the stateful single page app architecture.
+  CAppView({super.key}) {
+    assert(
+      !_isInitialized,
+      "Only one CAppView can be created. It sets up a SPA.",
+    );
+    _isInitialized = true;
+  }
+}
+
+class _CAppViewState extends State<CAppView> {
+  @override
+  void initState() {
+    CAppView.uiState.addListener(() => setState(() {}));
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      darkTheme: CAppView.darkTheme,
+      navigatorKey: CDialog.navigatorKey,
+      theme: CAppView.theme,
+      themeMode: CAppView.themeMode,
+      title: CAppView.title ?? "",
+      home: Scaffold(
+        appBar: CAppView.uiState.get<AppBar?>("appBar"),
+        body: CAppView.uiState.get<CObject?>("content")?['body'],
+        extendBody:
+            CAppView.uiState.get<CObject?>("content")?['extendBody'] ?? false,
+        extendBodyBehindAppBar: CAppView.uiState
+                .get<CObject?>("content")?["extendBodyBehindAppBar"] ??
+            false,
+        bottomNavigationBar:
+            CAppView.uiState.get<BottomAppBar?>("bottomAppBar"),
+        drawer: CAppView.uiState.get<Widget?>("drawer"),
+        endDrawer: CAppView.uiState.get<Widget?>("endDrawer"),
+        floatingActionButton:
+            CAppView.uiState.get<Widget?>("floatingActionButton"),
+        floatingActionButtonLocation: CAppView.uiState
+            .get<FloatingActionButtonLocation?>("floatingActionButtonLocation"),
+        key: CDialog.scaffoldKey,
+      ),
+    );
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Themes] -------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Provides an alternative to the flutter DialogTheme class. This is due
+/// to the fact it really does not theme much when the [CDialog] utility object
+/// was created. Therefore, this extension will provide the theming for the
+/// [CDialog] utility object.
+class CDialogTheme extends ThemeExtension<CDialogTheme> {
+  /// Background color for the entire dialog panel.
+  final Color? backgroundColor;
+
+  /// The title foreground color for the text and close icon.
+  final Color? titleColor;
+
+  /// The foreground color of the content color for all dialog types minus
+  /// [CDialog.custom]. There the developer sets the color of the content.
+  final Color? contentColor;
+
+  /// The foreground color of the Text buttons for the dialog.
+  final Color? actionsColor;
+
+  /// The overall configuration of the snackbar.
+  final SnackBarThemeData? snackbarTheme;
+
+  @override
+  CDialogTheme copyWith({
+    Color? backgroundColor,
+    Color? titleColor,
+    Color? contentColor,
+    Color? actionsColor,
+    SnackBarThemeData? snackbarTheme,
+  }) {
+    return CDialogTheme(
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      titleColor: titleColor ?? this.titleColor,
+      contentColor: contentColor ?? this.contentColor,
+      actionsColor: actionsColor ?? this.actionsColor,
+      snackbarTheme: snackbarTheme ?? this.snackbarTheme,
+    );
+  }
+
+  @override
+  CDialogTheme lerp(CDialogTheme? other, double t) {
+    if (other is! CDialogTheme) {
+      return this;
+    }
+    return CDialogTheme(
+      backgroundColor: Color.lerp(backgroundColor, other.backgroundColor, t),
+      titleColor: Color.lerp(titleColor, other.titleColor, t),
+      contentColor: Color.lerp(contentColor, other.contentColor, t),
+      actionsColor: Color.lerp(actionsColor, other.actionsColor, t),
+      snackbarTheme: snackbarTheme ?? other.snackbarTheme,
+    );
+  }
+
+  /// Constructor for the theme. Sets up generic colors if none are specified.
+  const CDialogTheme({
+    this.backgroundColor = const Color.fromARGB(255, 2, 48, 32),
+    this.titleColor = Colors.amber,
+    this.contentColor = Colors.white,
+    this.actionsColor = Colors.lightBlueAccent,
+    this.snackbarTheme,
+  });
+}
+
+/// Provides a wrapper around the Flutter ThemeData object that isolates
+/// the application theming to the material3 constructs of Flutter. To support
+/// this, a factory [CThemeDataExtension.create] method is created that only
+/// supports material3 theming concepts and removes items that will eventually
+/// be deprecated. This should be used when setting up the [CAppView.theme] amd
+/// [CAppView.darkTheme] properties.
+extension CThemeDataExtension on ThemeData {
+  /// Custom theme to properly allow the theming of [CDialog] utility methods
+  /// when showing pop-up dialogs.
+  CDialogTheme get cDialogTheme => extension<CDialogTheme>()!;
+
+  /// Utility method to create ThemeData objects but it only exposes the
+  /// material3 themes so that any application theming is done with the
+  /// future in mind.
+  ThemeData create({
+    ActionIconThemeData? actionIconTheme,
+    AppBarTheme? appBarTheme,
+    BadgeThemeData? badgeTheme,
+    MaterialBannerThemeData? bannerTheme,
+    BottomAppBarTheme? bottomAppBarTheme,
+    BottomNavigationBarThemeData? bottomNavigationBarTheme,
+    BottomSheetThemeData? bottomSheetTheme,
+    ButtonBarThemeData? buttonBarTheme,
+    ButtonThemeData? buttonTheme,
+    CardTheme? cardTheme,
+    CheckboxThemeData? checkboxTheme,
+    ChipThemeData? chipTheme,
+    ColorScheme? colorScheme,
+    DataTableThemeData? dataTableTheme,
+    DatePickerThemeData? datePickerTheme,
+    DividerThemeData? dividerTheme,
+    CDialogTheme? cDialogTheme,
+    DrawerThemeData? drawerTheme,
+    DropdownMenuThemeData? dropdownMenuTheme,
+    ElevatedButtonThemeData? elevatedButtonTheme,
+    ExpansionTileThemeData? expansionTileTheme,
+    FilledButtonThemeData? filledButtonTheme,
+    FloatingActionButtonThemeData? floatingActionButtonTheme,
+    IconButtonThemeData? iconButtonTheme,
+    IconThemeData? iconTheme,
+    InputDecorationTheme? inputDecorationTheme,
+    ListTileThemeData? listTileTheme,
+    MaterialTapTargetSize? materialTapTargetSize,
+    MenuBarThemeData? menuBarTheme,
+    MenuButtonThemeData? menuButtonTheme,
+    MenuThemeData? menuTheme,
+    NavigationBarThemeData? navigationBarTheme,
+    NavigationDrawerThemeData? navigationDrawerTheme,
+    NavigationRailThemeData? navigationRailTheme,
+    OutlinedButtonThemeData? outlinedButtonTheme,
+    PageTransitionsTheme? pageTransitionsTheme,
+    PopupMenuThemeData? popupMenuTheme,
+    IconThemeData? primaryIconTheme,
+    ProgressIndicatorThemeData? progressIndicatorTheme,
+    TextTheme? primaryTextTheme,
+    RadioThemeData? radioTheme,
+    ScrollbarThemeData? scrollbarTheme,
+    SearchBarThemeData? searchBarTheme,
+    SearchViewThemeData? searchViewTheme,
+    SegmentedButtonThemeData? segmentedButtonTheme,
+    SliderThemeData? sliderTheme,
+    InteractiveInkFeatureFactory? splashFactory,
+    SwitchThemeData? switchTheme,
+    TabBarTheme? tabBarTheme,
+    TextButtonThemeData? textButtonTheme,
+    TextSelectionThemeData? textSelectionTheme,
+    TextTheme? textTheme,
+    TimePickerThemeData? timePickerTheme,
+    ToggleButtonsThemeData? toggleButtonsTheme,
+    TooltipThemeData? tooltipTheme,
+    Typography? typography,
+    VisualDensity? visualDensity,
+  }) {
+    return ThemeData(
+      actionIconTheme: actionIconTheme,
+      appBarTheme: appBarTheme,
+      badgeTheme: badgeTheme,
+      bannerTheme: bannerTheme,
+      bottomAppBarTheme: bottomAppBarTheme,
+      bottomNavigationBarTheme: bottomNavigationBarTheme,
+      bottomSheetTheme: bottomSheetTheme,
+      buttonBarTheme: buttonBarTheme,
+      buttonTheme: buttonTheme,
+      cardTheme: cardTheme,
+      checkboxTheme: checkboxTheme,
+      chipTheme: chipTheme,
+      colorScheme: colorScheme,
+      dataTableTheme: dataTableTheme,
+      datePickerTheme: datePickerTheme,
+      dividerTheme: dividerTheme,
+      drawerTheme: drawerTheme,
+      dropdownMenuTheme: dropdownMenuTheme,
+      elevatedButtonTheme: elevatedButtonTheme,
+      expansionTileTheme: expansionTileTheme,
+      filledButtonTheme: filledButtonTheme,
+      floatingActionButtonTheme: floatingActionButtonTheme,
+      iconButtonTheme: iconButtonTheme,
+      iconTheme: iconTheme,
+      inputDecorationTheme: inputDecorationTheme,
+      listTileTheme: listTileTheme,
+      materialTapTargetSize: materialTapTargetSize,
+      menuBarTheme: menuBarTheme,
+      menuButtonTheme: menuButtonTheme,
+      menuTheme: menuTheme,
+      navigationBarTheme: navigationBarTheme,
+      navigationDrawerTheme: navigationDrawerTheme,
+      navigationRailTheme: navigationRailTheme,
+      outlinedButtonTheme: outlinedButtonTheme,
+      pageTransitionsTheme: pageTransitionsTheme,
+      popupMenuTheme: popupMenuTheme,
+      primaryIconTheme: primaryIconTheme,
+      primaryTextTheme: primaryTextTheme,
+      progressIndicatorTheme: progressIndicatorTheme,
+      radioTheme: radioTheme,
+      scrollbarTheme: scrollbarTheme,
+      searchBarTheme: searchBarTheme,
+      searchViewTheme: searchViewTheme,
+      segmentedButtonTheme: segmentedButtonTheme,
+      sliderTheme: sliderTheme,
+      splashFactory: splashFactory,
+      switchTheme: switchTheme,
+      tabBarTheme: tabBarTheme,
+      textButtonTheme: textButtonTheme,
+      textSelectionTheme: textSelectionTheme,
+      textTheme: textTheme,
+      timePickerTheme: timePickerTheme,
+      toggleButtonsTheme: toggleButtonsTheme,
+      tooltipTheme: tooltipTheme,
+      useMaterial3: true,
+      visualDensity: visualDensity,
+    ).copyWith(
+      extensions: <ThemeExtension<CDialogTheme>>[
+        cDialogTheme ?? const CDialogTheme(),
+      ],
+    );
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Widget] -------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Supports identifying the [CWidget.button] widget constructed.
+enum CButtonType { elevated, filled, icon, outlined, text }
+
+/// Supports identifying what [CWidget.image] is constructed when utilized.
+enum CImageType { asset, file, memory, network }
+
+/// Utility widget builder for building basic stateless widgets for the
+/// [CAppView]. It is a basic wrapper for the most common of UI elements but
+/// does not preclude using Flutter to its fullest abilities to build rich UIs
+/// for the application.
+///
+/// It focuses on utilizing material3 which is the default setup via the
+/// [CThemeDataExtension] utility object for the [CAppView]. So the overrides
+/// provided conform to that paradigm. It also patterns itself in providing the
+/// ability to show / hide widgets so that any widget down the tree in theory
+/// should also be hidden. Lastly any items with onPressed / onTapped events
+/// utilizes the PointerInterceptor class to properly handle web targets when
+/// over HTML elements.
+class CWidget {
+  /// Will construct a stateless button to handle press events of said button.
+  /// The button is determined via the [CButtonType] enumeration which will
+  /// provide the look and feel of the button. The style is handled by that
+  /// particular buttons theme data object but to set the button individually,
+  /// utilize the style override. These are stateless buttons so any changing
+  /// of them is up to the parent.
+  static Widget button({
+    required void Function() onPressed,
+    required String title,
+    required CButtonType type,
+    Key? key,
+    bool enabled = true,
+    dynamic icon,
+    ButtonStyle? style,
+    bool visible = true,
+  }) {
+    assert(
+      icon is IconData || icon is Image || icon == null,
+      "icon can only be an Image / IconData / null type",
+    );
+
+    Widget? btn;
+    if (type == CButtonType.elevated) {
+      btn = icon != null
+          ? ElevatedButton.icon(
+              key: key,
+              icon: icon is IconData ? Icon(icon) : icon,
+              label: Text(title),
+              onPressed: enabled ? onPressed : null,
+              style: style,
+            )
+          : ElevatedButton(
+              key: key,
+              onPressed: enabled ? onPressed : null,
+              style: style,
+              child: Text(title),
+            );
+    } else if (type == CButtonType.filled) {
+      btn = icon != null
+          ? FilledButton.icon(
+              key: key,
+              icon: icon is IconData ? Icon(icon) : icon,
+              label: Text(title),
+              onPressed: enabled ? onPressed : null,
+              style: style,
+            )
+          : FilledButton(
+              key: key,
+              onPressed: enabled ? onPressed : null,
+              style: style,
+              child: Text(title),
+            );
+    } else if (type == CButtonType.icon) {
+      btn = IconButton(
+        key: key,
+        icon: icon is IconData ? Icon(icon) : icon,
+        tooltip: title,
+        onPressed: enabled ? onPressed : null,
+        style: style,
+      );
+    } else if (type == CButtonType.outlined) {
+      btn = icon != null
+          ? OutlinedButton.icon(
+              key: key,
+              icon: icon is IconData ? Icon(icon) : icon,
+              label: Text(title),
+              onPressed: enabled ? onPressed : null,
+              style: style,
+            )
+          : OutlinedButton(
+              key: key,
+              onPressed: enabled ? onPressed : null,
+              style: style,
+              child: Text(title),
+            );
+    } else if (type == CButtonType.text) {
+      btn = icon != null
+          ? TextButton.icon(
+              key: key,
+              icon: icon is IconData ? Icon(icon) : icon,
+              label: Text(title),
+              onPressed: enabled ? onPressed : null,
+              style: style,
+            )
+          : TextButton(
+              key: key,
+              onPressed: enabled ? onPressed : null,
+              style: style,
+              child: Text(title),
+            );
+    }
+
+    return Visibility(
+      key: key,
+      visible: visible,
+      child: PointerInterceptor(
+        key: key,
+        intercepting: kIsWeb,
+        child: btn!,
+      ),
+    );
+  }
+
+  /// Provides the ability to center a widget with the ability to specify
+  /// the visibility of the child tree of widgets wrapped by this.
+  static Widget center({
+    Key? key,
+    double? heightFactor,
+    double? widthFactor,
+    bool visible = true,
+    Widget? child,
+  }) {
+    return Visibility(
+      key: key,
+      visible: visible,
+      child: Center(
+        key: key,
+        heightFactor: heightFactor,
+        widthFactor: widthFactor,
+        child: child,
+      ),
+    );
+  }
+
+  /// Creates a customizable combo box drop down with the ability to implement
+  /// a search box to filter the combo box.
+  static Widget comboBox<T>({
+    required List<DropdownMenuEntry<T>> dropdownMenuEntries,
+    Key? key,
+    bool enabled = true,
+    bool enableFilter = false,
+    bool enableSearch = true,
+    String? errorText,
+    double? height,
+    String? helperText,
+    String? hintText,
+    T? initialSelection,
+    Widget? label,
+    dynamic leadingIcon,
+    void Function(T?)? onSelected,
+    int? Function(List<DropdownMenuEntry<T>>, String)? searchCallback,
+    DropdownMenuThemeData? style,
+    dynamic trailingIcon,
+    bool visible = true,
+    double? width,
+  }) {
+    assert(
+      leadingIcon == null || leadingIcon is IconData || leadingIcon is Image,
+      "leadingIcon can only be an Image, IconData, or null type",
+    );
+    assert(
+      trailingIcon == null || trailingIcon is IconData || trailingIcon is Image,
+      "trailingIcon can only be an Image, IconData, or null type",
+    );
+    final menu = DropdownMenu<T>(
+      dropdownMenuEntries: dropdownMenuEntries,
+      enabled: enabled,
+      enableFilter: enableFilter,
+      enableSearch: enableSearch,
+      errorText: errorText,
+      helperText: helperText,
+      hintText: hintText,
+      initialSelection: initialSelection,
+      label: label,
+      leadingIcon: leadingIcon is IconData ? Icon(leadingIcon) : leadingIcon,
+      menuHeight: height,
+      onSelected: onSelected,
+      searchCallback: searchCallback,
+      trailingIcon:
+          trailingIcon is IconData ? Icon(trailingIcon) : trailingIcon,
+      width: width,
+    );
+    final w = style != null
+        ? DropdownMenuTheme(
+            data: style,
+            child: menu,
+          )
+        : menu;
+    return Visibility(
+      visible: visible,
+      child: w,
+    );
+  }
+
+  /// Provides a divider between data based on the layout and theme set either
+  /// via the overall app theme or the style specified.
+  static Widget divider({
+    Key? key,
+    DividerThemeData? style,
+    bool visible = true,
+  }) {
+    return Visibility(
+      key: key,
+      visible: visible,
+      child: style != null
+          ? DividerTheme(
+              key: key,
+              data: style,
+              child: const Divider(),
+            )
+          : Divider(key: key),
+    );
+  }
+
+  /// Will create an image widget based on the specified [CImageType]
+  /// enumerated value and display it when available based on the
+  /// characteristics specified with the widget. No theme controls this widget
+  /// type so the characteristics are unique to each widget created.
+  static Widget image({
+    required CImageType type,
+    required dynamic src,
+    Alignment alignment = Alignment.center,
+    BoxFit? fit,
+    double? height,
+    ImageRepeat repeat = ImageRepeat.noRepeat,
+    double? width,
+  }) {
+    if (type == CImageType.asset) {
+      return Image.asset(
+        src,
+        alignment: alignment,
+        fit: fit,
+        height: height,
+        repeat: repeat,
+        width: width,
+      );
+    } else if (type == CImageType.file) {
+      return Image.file(
+        src,
+        alignment: alignment,
+        fit: fit,
+        height: height,
+        repeat: repeat,
+        width: width,
+      );
+    } else if (type == CImageType.memory) {
+      return Image.memory(
+        src,
+        alignment: alignment,
+        fit: fit,
+        height: height,
+        repeat: repeat,
+        width: width,
+      );
+    }
+    return Image.network(
+      src,
+      alignment: alignment,
+      fit: fit,
+      height: height,
+      repeat: repeat,
+      width: width,
+    );
+  }
+
+  /// Provides a basic text label with the ability to make it multi-line, clip
+  /// it if to long, and if necessary, make it a hyperlink.
+  static Widget label({
+    required String data,
+    // String hyperlink,
+    Key? key,
+    int? maxLines,
+    bool? softWrap,
+    TextStyle? style,
+    bool visible = true,
+  }) {
+    final w = Visibility(
+      key: key,
+      visible: visible,
+      child: Text(
+        data,
+        key: key,
+        maxLines: maxLines,
+        softWrap: softWrap,
+        style: style,
+      ),
+    );
+
+    // TODO: Work hyperlink feature.
+    return w;
+  }
+
+  /// Creates a selectable widget to be part of a view of selectable items.
+  static Widget listTile({
+    required void Function() onTap,
+    Key? key,
+    bool enabled = true,
+    dynamic leading,
+    Widget? title,
+    Widget? subtitle,
+    dynamic trailing,
+    ListTileThemeData? style,
+    bool visible = true,
+  }) {
+    // Make sure we are using things properly
+    assert(
+      leading is IconData || leading is Image || leading == null,
+      "leading can only be an Image, IconData, or null type",
+    );
+    assert(
+      trailing is IconData || trailing is Image || trailing == null,
+      "trailing can only be an Image, IconData, or null type",
+    );
+
+    // Create a return the widget.
+    final w = ListTile(
+      key: key,
+      leading: leading is IconData ? Icon(leading) : leading,
+      title: title,
+      subtitle: subtitle,
+      trailing: trailing is IconData ? Icon(trailing) : trailing,
+      onTap: enabled ? onTap : null,
+    );
+    return Visibility(
+      key: key,
+      visible: visible,
+      child: style != null
+          ? ListTileTheme(
+              key: key,
+              data: style,
+              child: w,
+            )
+          : w,
+    );
+  }
+
+  /// Creates a vertical or horizontal spacer between widgets that can be
+  /// hidden if necessary.
+  static Widget spacer({
+    Key? key,
+    double? height,
+    double? width,
+    bool visible = true,
+  }) {
+    return Visibility(
+      key: key,
+      visible: visible,
+      child: SizedBox(
+        key: key,
+        height: height,
+        width: width,
+      ),
+    );
+  }
+
+  /// Creates a stacked widget based on the children allowing for a custom
+  /// look and feel for "special" widgets that stack bottom to top and overlap.
+  static Widget stack({
+    required List<Widget> children,
+    AlignmentGeometry alignment = AlignmentDirectional.topStart,
+    Clip clipBehavior = Clip.hardEdge,
+    StackFit fit = StackFit.loose,
+    Key? key,
+    TextDirection? textDirection,
+    bool visible = true,
+  }) {
+    return Visibility(
+      key: key,
+      visible: visible,
+      child: Stack(
+        alignment: alignment,
+        clipBehavior: clipBehavior,
+        fit: fit,
+        key: key,
+        textDirection: textDirection,
+        children: children,
+      ),
+    );
+  }
+
+  /// Provides for a generalized widget to allow for the collection of data
+  /// and providing feedback to a user. It exposes the most common text field
+  /// options to allow for building custom text fields
+  /// (i.e. spin controls, number only, etc.).
+  static Widget textField({
+    bool autofocus = false,
+    bool canRequestFocus = true,
+    bool? enabled,
+    FocusNode? focusNode,
+    double? height,
+    List<TextInputFormatter>? inputFormatters,
+    Key? key,
+    TextInputType? keyboardType,
+    int? maxLength,
+    void Function(String)? onChanged,
+    void Function()? onEditingComplete,
+    String obscuringCharacter = '•',
+    bool obscureText = false,
+    bool readOnly = false,
+    EdgeInsets scrollPadding = const EdgeInsets.all(20.0),
+    TextAlign textAlign = TextAlign.start,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+    TextInputAction? textInputAction,
+    TextStyle? textStyle,
+    double? width,
+    bool visible = true,
+    InputDecorationTheme? style,
+  }) {
+    final w = TextField(
+      key: key,
+      // Causes the text field to properly size via a SizedBox
+      expands: true,
+      minLines: null,
+      maxLines: null,
+      // Setup proper focus properties
+      autofocus: autofocus,
+      canRequestFocus: canRequestFocus,
+      focusNode: focusNode,
+      // Control how text is rendered within text field
+      autocorrect: false,
+      enableSuggestions: false,
+      obscuringCharacter: obscuringCharacter,
+      obscureText: obscureText,
+      style: textStyle,
+      textInputAction: textInputAction,
+      textAlign: textAlign,
+      textCapitalization: textCapitalization,
+      keyboardType: keyboardType,
+      scrollPadding: scrollPadding,
+      // Control user interaction with the text field
+      enabled: enabled,
+      maxLength: maxLength,
+      readOnly: readOnly,
+      inputFormatters: inputFormatters,
+      onChanged: onChanged,
+      onEditingComplete: onEditingComplete,
+    );
+    return Visibility(
+      key: key,
+      visible: visible,
+      child: style != null
+          ? SizedBox(
+              key: key,
+              height: height,
+              width: width,
+              child: Theme(
+                key: key,
+                data: ThemeData(inputDecorationTheme: style),
+                child: w,
+              ),
+            )
+          : SizedBox(
+              key: key,
+              height: height,
+              width: width,
+              child: w,
+            ),
+    );
+  }
+
+  /// Provides the ability to view web content on mobile / web targets.
+  static Widget webView({
+    required String url,
+    Key? key,
+    bool visible = true,
+  }) {
+    return Visibility(
+      key: key,
+      visible: visible,
+      child: platform.createWebView(
+        key: key,
+        url: url,
+      ),
+    );
+  }
+}

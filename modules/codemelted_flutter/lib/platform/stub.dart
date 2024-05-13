@@ -26,7 +26,17 @@ DEALINGS IN THE SOFTWARE.
 
 import 'package:flutter/material.dart';
 
-/// Stub to support creating the CWebView widget.
-Widget createCWebView(String url) {
+/// @nodoc
+Widget createWebView({required String url, Key? key}) {
+  throw "Stub. Should Not Get This";
+}
+
+/// @nodoc
+void openWebBrowser({
+  required String url,
+  String? target,
+  double? height,
+  double? width,
+}) {
   throw "Stub. Should Not Get This";
 }

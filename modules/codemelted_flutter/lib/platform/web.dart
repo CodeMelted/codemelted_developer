@@ -30,8 +30,8 @@ import 'dart:ui_web';
 
 import 'package:flutter/material.dart';
 
-/// Creates the CWebView for the web target.
-Widget createCWebView(String url) {
+/// @nodoc
+Widget createWebView({required String url, Key? key}) {
   var iFrameElement = IFrameElement();
   iFrameElement.allow = "web-share";
   iFrameElement.sandbox?.add("allow-forms");
@@ -49,6 +49,34 @@ Widget createCWebView(String url) {
     (int viewId) => iFrameElement,
   );
   return HtmlElementView(
+    key: key,
     viewType: url,
   );
+}
+
+/// @nodoc
+void openWebBrowser({
+  required String url,
+  String? target,
+  double? height,
+  double? width,
+}) {
+  if (target == null) {
+    // Target not specified, it is a popup window.
+    final w = width ?? 900;
+    final h = height ?? 600;
+    final top = (window.screen!.height! - h) / 2;
+    final left = (window.screen!.width! - w) / 2;
+    window.open(
+      url,
+      "_blank",
+      "toolbar=no, location=no, directories=no, status=no, "
+          "menubar=no, scrollbars=no, resizable=yes, copyhistory=no, "
+          "width=$w, height=$h, top=$top, left=$left",
+    );
+    return;
+  } else {
+    // Target specified, we are redirecting somewhere.
+    window.open(url, target);
+  }
 }

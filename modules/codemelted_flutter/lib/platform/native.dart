@@ -26,7 +26,17 @@ DEALINGS IN THE SOFTWARE.
 
 import 'package:flutter/material.dart';
 
-/// Creates the CWebView widget for the mobile platform only.
-Widget createCWebView(String url) {
+/// @nodoc
+Widget createWebView({required String url, Key? key}) {
+  throw "NOT IMPLEMENTED YET";
+}
+
+/// @nodoc
+void openWebBrowser({
+  required String url,
+  String? target,
+  double? height,
+  double? width,
+}) {
   throw "NOT IMPLEMENTED YET";
 }

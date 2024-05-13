@@ -1,10 +1,14 @@
 {
     "cSpell.words": [
+        "ARGB",
         "audioplayers",
+        "autocorrect",
+        "autofocus",
         "copyhistory",
         "Deno",
         "Embeddable",
         "Fullscreen",
+        "lerp",
         "messageerror",
         "nodoc",
         "pwsh",
