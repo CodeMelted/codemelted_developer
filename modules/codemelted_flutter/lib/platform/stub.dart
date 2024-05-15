@@ -32,11 +32,13 @@ Widget createWebView({required String url, Key? key}) {
 }
 
 /// @nodoc
+bool get isPWA => throw "Stub. Should Not Get This";
+
+/// @nodoc
 void openWebBrowser({
   required String url,
   String? target,
   double? height,
   double? width,
-}) {
-  throw "Stub. Should Not Get This";
-}
+}) =>
+    throw "Stub. Should Not Get This";

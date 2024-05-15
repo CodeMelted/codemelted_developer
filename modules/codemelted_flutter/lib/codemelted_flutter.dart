@@ -665,6 +665,10 @@ void logWarning({Object? data, StackTrace? st}) => CLogger.log(
 // [Runtime] ------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
+class CRuntime {
+  static bool get isPWA => platform.isPWA;
+}
+
 // ----------------------------------------------------------------------------
 // [Web RTC] ------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -875,7 +879,7 @@ class CDialog {
       content: Text(
         message,
         softWrap: true,
-        overflow: TextOverflow.clip,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(color: _getTheme().contentColor),
       ),
       height: height,
@@ -1054,7 +1058,7 @@ class CDialog {
           children: [
             Row(
               children: [
-                CWidget.spacer(width: 10.0),
+                CWidget.divider(width: 10.0),
                 Expanded(
                   child: CWidget.label(
                     data: title,
@@ -1166,7 +1170,7 @@ class CDialog {
   /// Provides the ability to show a full page within the [CAppView] with the
   /// ability to specify the title and actions in the top bar. You can also
   /// specify bottom actions.
-  void fullPage({
+  static void fullPage({
     required Widget content,
     List<Widget>? actions,
     bool? centerTitle,
@@ -1199,25 +1203,14 @@ class CDialog {
     Clip clipBehavior = Clip.hardEdge,
     int? seconds,
   }) {
-    final style = _getTheme().snackbarTheme;
     ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
       SnackBar(
         action: action,
-        actionOverflowThreshold: style?.actionOverflowThreshold,
-        backgroundColor: style?.backgroundColor,
-        behavior: style?.behavior,
         clipBehavior: clipBehavior,
-        closeIconColor: style?.closeIconColor,
         content: content,
-        dismissDirection: style?.dismissDirection,
         duration: seconds != null
             ? Duration(seconds: seconds)
             : const Duration(seconds: 4),
-        elevation: style?.elevation,
-        padding: style?.insetPadding,
-        shape: style?.shape,
-        showCloseIcon: style?.showCloseIcon,
-        width: style?.width,
       ),
     );
   }
@@ -1530,23 +1523,18 @@ class CDialogTheme extends ThemeExtension<CDialogTheme> {
   /// The foreground color of the Text buttons for the dialog.
   final Color? actionsColor;
 
-  /// The overall configuration of the snackbar.
-  final SnackBarThemeData? snackbarTheme;
-
   @override
   CDialogTheme copyWith({
     Color? backgroundColor,
     Color? titleColor,
     Color? contentColor,
     Color? actionsColor,
-    SnackBarThemeData? snackbarTheme,
   }) {
     return CDialogTheme(
       backgroundColor: backgroundColor ?? this.backgroundColor,
       titleColor: titleColor ?? this.titleColor,
       contentColor: contentColor ?? this.contentColor,
       actionsColor: actionsColor ?? this.actionsColor,
-      snackbarTheme: snackbarTheme ?? this.snackbarTheme,
     );
   }
 
@@ -1560,7 +1548,6 @@ class CDialogTheme extends ThemeExtension<CDialogTheme> {
       titleColor: Color.lerp(titleColor, other.titleColor, t),
       contentColor: Color.lerp(contentColor, other.contentColor, t),
       actionsColor: Color.lerp(actionsColor, other.actionsColor, t),
-      snackbarTheme: snackbarTheme ?? other.snackbarTheme,
     );
   }
 
@@ -1570,7 +1557,6 @@ class CDialogTheme extends ThemeExtension<CDialogTheme> {
     this.titleColor = Colors.amber,
     this.contentColor = Colors.white,
     this.actionsColor = Colors.lightBlueAccent,
-    this.snackbarTheme,
   });
 }
 
@@ -1859,6 +1845,28 @@ class CWidget {
     );
   }
 
+  /// Layout to put widgets vertically.
+  static Widget column({
+    required List<Widget> children,
+    Key? key,
+    CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
+    MainAxisAlignment mainAxisAlignment = MainAxisAlignment.start,
+    MainAxisSize mainAxisSize = MainAxisSize.max,
+    bool visible = true,
+  }) {
+    return Visibility(
+      key: key,
+      visible: visible,
+      child: Column(
+        key: key,
+        crossAxisAlignment: crossAxisAlignment,
+        mainAxisAlignment: mainAxisAlignment,
+        mainAxisSize: mainAxisSize,
+        children: children,
+      ),
+    );
+  }
+
   /// Creates a customizable combo box drop down with the ability to implement
   /// a search box to filter the combo box.
   static Widget comboBox<T>({
@@ -1889,6 +1897,7 @@ class CWidget {
       trailingIcon == null || trailingIcon is IconData || trailingIcon is Image,
       "trailingIcon can only be an Image, IconData, or null type",
     );
+
     final menu = DropdownMenu<T>(
       dropdownMenuEntries: dropdownMenuEntries,
       enabled: enabled,
@@ -1913,29 +1922,104 @@ class CWidget {
             child: menu,
           )
         : menu;
+
     return Visibility(
       visible: visible,
       child: w,
     );
   }
 
-  /// Provides a divider between data based on the layout and theme set either
-  /// via the overall app theme or the style specified.
+  /// Creates a vertical or horizontal spacer between widgets that can be
+  /// hidden if necessary.
   static Widget divider({
     Key? key,
-    DividerThemeData? style,
+    double? height,
+    double? width,
+    Color color = Colors.transparent,
     bool visible = true,
   }) {
     return Visibility(
       key: key,
       visible: visible,
-      child: style != null
-          ? DividerTheme(
-              key: key,
-              data: style,
-              child: const Divider(),
-            )
-          : Divider(key: key),
+      child: Container(
+        key: key,
+        color: color,
+        height: height,
+        width: width,
+      ),
+    );
+  }
+
+  /// Provides the ability to have an expansion list of widgets.
+  static Widget expandedTile({
+    required List<Widget> children,
+    required Widget title,
+    Key? key,
+    bool enabled = true,
+    bool initiallyExpanded = false,
+    dynamic leading,
+    ExpansionTileThemeData? style,
+    Widget? subtitle,
+    dynamic trailing,
+    bool visible = true,
+  }) {
+    // Make sure we are using things properly
+    assert(
+      leading is IconData || leading is Image || leading == null,
+      "leading can only be an Image, IconData, or null type",
+    );
+    assert(
+      trailing is IconData || trailing is Image || trailing == null,
+      "trailing can only be an Image, IconData, or null type",
+    );
+
+    final w = ExpansionTile(
+      key: key,
+      enabled: enabled,
+      leading: leading == IconData ? Icon(leading) : leading,
+      initiallyExpanded: false,
+      title: title,
+      subtitle: subtitle,
+      trailing: trailing == IconData ? Icon(trailing) : trailing,
+      children: children,
+    );
+
+    return Visibility(
+      key: key,
+      visible: visible,
+      child: style != null ? ExpansionTileTheme(data: style, child: w) : w,
+    );
+  }
+
+  /// Creates a scrollable grid layout of widgets that based on the
+  /// crossAxisCount.
+  static Widget gridView({
+    required int crossAxisCount,
+    required List<Widget> children,
+    Key? key,
+    Clip clipBehavior = Clip.hardEdge,
+    double childAspectRatio = 1.0,
+    double crossAxisSpacing = 0.0,
+    double mainAxisSpacing = 0.0,
+    EdgeInsetsGeometry? padding,
+    bool? primary,
+    bool reverse = false,
+    Axis scrollDirection = Axis.vertical,
+    bool shrinkWrap = false,
+  }) {
+    return GridView.count(
+      key: key,
+      clipBehavior: clipBehavior,
+      childAspectRatio: childAspectRatio,
+      crossAxisCount: crossAxisCount,
+      crossAxisSpacing: crossAxisSpacing,
+      mainAxisSpacing: mainAxisSpacing,
+      padding: padding,
+      primary: primary,
+      reverse: reverse,
+      scrollDirection: scrollDirection,
+      shrinkWrap: shrinkWrap,
+      children: children,
     );
   }
 
@@ -1943,7 +2027,7 @@ class CWidget {
   /// enumerated value and display it when available based on the
   /// characteristics specified with the widget. No theme controls this widget
   /// type so the characteristics are unique to each widget created.
-  static Widget image({
+  static Image image({
     required CImageType type,
     required dynamic src,
     Alignment alignment = Alignment.center,
@@ -2048,6 +2132,7 @@ class CWidget {
       trailing: trailing is IconData ? Icon(trailing) : trailing,
       onTap: enabled ? onTap : null,
     );
+
     return Visibility(
       key: key,
       visible: visible,
@@ -2061,21 +2146,61 @@ class CWidget {
     );
   }
 
-  /// Creates a vertical or horizontal spacer between widgets that can be
-  /// hidden if necessary.
-  static Widget spacer({
+  /// Provides a list view of widgets with automatic scrolling that can be
+  /// set for vertical (default) or horizontal.
+  static Widget listView({
+    required List<Widget> children,
     Key? key,
-    double? height,
-    double? width,
+    Clip clipBehavior = Clip.hardEdge,
+    EdgeInsetsGeometry? padding,
+    bool? primary,
+    bool reverse = false,
+    Axis scrollDirection = Axis.vertical,
+    bool shrinkWrap = false,
+  }) {
+    return ListView(
+      key: key,
+      clipBehavior: clipBehavior,
+      padding: padding,
+      primary: primary,
+      reverse: reverse,
+      scrollDirection: scrollDirection,
+      shrinkWrap: shrinkWrap,
+      children: children,
+    );
+  }
+
+  /// Builds padding around a given widget.
+  static Widget padding({
+    required EdgeInsetsGeometry padding,
+    Key? key,
+    Widget? child,
+  }) {
+    return Padding(
+      key: key,
+      padding: padding,
+      child: child,
+    );
+  }
+
+  /// Layout to put widgets horizontally.
+  static Widget row({
+    required List<Widget> children,
+    Key? key,
+    CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
+    MainAxisAlignment mainAxisAlignment = MainAxisAlignment.start,
+    MainAxisSize mainAxisSize = MainAxisSize.max,
     bool visible = true,
   }) {
     return Visibility(
       key: key,
       visible: visible,
-      child: SizedBox(
+      child: Row(
         key: key,
-        height: height,
-        width: width,
+        crossAxisAlignment: crossAxisAlignment,
+        mainAxisAlignment: mainAxisAlignment,
+        mainAxisSize: mainAxisSize,
+        children: children,
       ),
     );
   }
@@ -2119,6 +2244,7 @@ class CWidget {
     Key? key,
     TextInputType? keyboardType,
     int? maxLength,
+    int? maxLines = 1,
     void Function(String)? onChanged,
     void Function()? onEditingComplete,
     String obscuringCharacter = '•',
@@ -2138,7 +2264,7 @@ class CWidget {
       // Causes the text field to properly size via a SizedBox
       expands: true,
       minLines: null,
-      maxLines: null,
+      maxLines: maxLines,
       // Setup proper focus properties
       autofocus: autofocus,
       canRequestFocus: canRequestFocus,

@@ -55,6 +55,20 @@ Widget createWebView({required String url, Key? key}) {
 }
 
 /// @nodoc
+bool get isPWA {
+  var queries = [
+    '(display-mode: fullscreen)',
+    '(display-mode: standalone)',
+    '(display-mode: minimal-ui),'
+  ];
+  var isPWA = false;
+  for (var query in queries) {
+    isPWA = isPWA || window.matchMedia(query).matches;
+  }
+  return isPWA;
+}
+
+/// @nodoc
 void openWebBrowser({
   required String url,
   String? target,

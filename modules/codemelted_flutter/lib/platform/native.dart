@@ -32,6 +32,9 @@ Widget createWebView({required String url, Key? key}) {
 }
 
 /// @nodoc
+bool get isPWA => false;
+
+/// @nodoc
 void openWebBrowser({
   required String url,
   String? target,
