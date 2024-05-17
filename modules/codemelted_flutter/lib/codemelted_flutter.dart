@@ -2035,6 +2035,22 @@ class CWidget {
     return style != null ? ExpansionTileTheme(data: style, child: w) : w;
   }
 
+  /// Provides a wrapper for an asynchronous widget to load data and then
+  /// present it when completed.
+  static Widget futureBuilder<T>({
+    required Widget Function(BuildContext, AsyncSnapshot<T>) builder,
+    required Future<T>? future,
+    Key? key,
+    T? initialData,
+  }) {
+    return FutureBuilder<T>(
+      key: key,
+      initialData: initialData,
+      future: future,
+      builder: builder,
+    );
+  }
+
   /// Creates a scrollable grid layout of widgets that based on the
   /// crossAxisCount.
   static Widget gridView({
@@ -2122,11 +2138,11 @@ class CWidget {
   /// it if to long, and if necessary, make it a hyperlink.
   static Widget label({
     required String data,
-    // String hyperlink,
     Key? key,
     int? maxLines,
     bool? softWrap,
     TextStyle? style,
+    void Function()? onTap,
   }) {
     final w = Text(
       data,
@@ -2136,8 +2152,12 @@ class CWidget {
       style: style,
     );
 
-    // TODO: Work hyperlink feature.
-    return w;
+    return onTap != null
+        ? InkWell(
+            onTap: onTap,
+            child: w,
+          )
+        : w;
   }
 
   /// Creates a selectable widget to be part of a view of selectable items.
