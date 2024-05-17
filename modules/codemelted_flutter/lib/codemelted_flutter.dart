@@ -1722,9 +1722,6 @@ class CTabItem {
   /// Specifies the margin between the icon and the title.
   final EdgeInsetsGeometry? iconMargin;
 
-  /// Specifies the height of the overall tab.
-  final double? tabHeight;
-
   /// A title with the tab within the tab view.
   final String? title;
 
@@ -1732,7 +1729,6 @@ class CTabItem {
     required this.content,
     this.icon,
     this.iconMargin,
-    this.tabHeight,
     this.title,
   }) {
     assert(
@@ -2268,6 +2264,7 @@ class CWidget {
     Key? key,
     bool automaticIndicatorColorAdjustment = true,
     Clip clipBehavior = Clip.hardEdge,
+    double? height,
     double indicatorWeight = 2.0,
     bool isScrollable = false,
     void Function(int)? onTap,
@@ -2283,7 +2280,7 @@ class CWidget {
           key: key,
           icon: w.icon is IconData ? Icon(w.icon) : w.icon,
           iconMargin: w.iconMargin,
-          height: w.tabHeight,
+          height: height,
           text: w.title,
         ),
       );
@@ -2296,26 +2293,33 @@ class CWidget {
       length: tabItems.length,
       child: Scaffold(
         appBar: AppBar(
-          bottom: TabBar(
-            automaticIndicatorColorAdjustment:
-                automaticIndicatorColorAdjustment,
-            dividerColor: style?.dividerColor,
-            dividerHeight: style?.dividerHeight,
-            indicator: style?.indicator,
-            indicatorColor: style?.indicatorColor,
-            indicatorSize: style?.indicatorSize,
-            indicatorWeight: indicatorWeight,
-            labelColor: style?.labelColor,
-            labelPadding: style?.labelPadding,
-            labelStyle: style?.labelStyle,
-            isScrollable: isScrollable,
-            padding: style?.labelPadding,
-            onTap: onTap,
-            overlayColor: style?.overlayColor,
-            tabAlignment: style?.tabAlignment,
-            unselectedLabelColor: style?.unselectedLabelColor,
-            unselectedLabelStyle: style?.unselectedLabelStyle,
-            tabs: tabs,
+          toolbarHeight: height ?? 50.0,
+          bottom: PreferredSize(
+            preferredSize: Size.zero,
+            child: SizedBox(
+              height: height ?? 50.0,
+              child: TabBar(
+                automaticIndicatorColorAdjustment:
+                    automaticIndicatorColorAdjustment,
+                dividerColor: style?.dividerColor,
+                dividerHeight: style?.dividerHeight,
+                indicator: style?.indicator,
+                indicatorColor: style?.indicatorColor,
+                indicatorSize: style?.indicatorSize,
+                indicatorWeight: indicatorWeight,
+                labelColor: style?.labelColor,
+                labelPadding: style?.labelPadding,
+                labelStyle: style?.labelStyle,
+                isScrollable: isScrollable,
+                onTap: onTap,
+                overlayColor: style?.overlayColor,
+                padding: EdgeInsets.zero,
+                tabAlignment: style?.tabAlignment,
+                unselectedLabelColor: style?.unselectedLabelColor,
+                unselectedLabelStyle: style?.unselectedLabelStyle,
+                tabs: tabs,
+              ),
+            ),
           ),
         ),
         body: TabBarView(
