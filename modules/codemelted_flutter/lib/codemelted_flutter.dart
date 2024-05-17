@@ -41,6 +41,7 @@ import 'package:codemelted_flutter/platform/stub.dart'
 
 // import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 // import 'package:http/http.dart';
@@ -956,7 +957,7 @@ class CDialog {
                 ),
               ),
               menuStyle: const MenuStyle(
-                padding: MaterialStatePropertyAll(EdgeInsets.zero),
+                padding: WidgetStatePropertyAll(EdgeInsets.zero),
                 visualDensity: VisualDensity.compact,
               ),
               textStyle: TextStyle(
@@ -1072,7 +1073,7 @@ class CDialog {
                     type: CButtonType.icon,
                     title: "Close Dialog",
                     style: ButtonStyle(
-                      iconColor: MaterialStatePropertyAll(
+                      iconColor: WidgetStatePropertyAll(
                         _getTheme().titleColor,
                       ),
                     ),
@@ -1144,23 +1145,25 @@ class CDialog {
           actions: [
             _buildButton<String>("OK", answer),
           ],
-          content: CWidget.textField(
+          content: CWidget.container(
             height: 30.0,
             width: 200.0,
-            textStyle: TextStyle(color: _getTheme().contentColor!),
-            style: InputDecorationTheme(
-              isDense: true,
-              border: UnderlineInputBorder(
-                borderSide: BorderSide(color: _getTheme().contentColor!),
+            child: CWidget.textField(
+              textStyle: TextStyle(color: _getTheme().contentColor!),
+              style: InputDecorationTheme(
+                isDense: true,
+                border: UnderlineInputBorder(
+                  borderSide: BorderSide(color: _getTheme().contentColor!),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: _getTheme().contentColor!),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: _getTheme().contentColor!),
+                ),
               ),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: _getTheme().contentColor!),
-              ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: _getTheme().contentColor!),
-              ),
+              onChanged: (v) => answer = v,
             ),
-            onChanged: (v) => answer = v,
           ),
           title: title,
         )) ??
@@ -1220,7 +1223,7 @@ class CDialog {
         type: CButtonType.text,
         title: title,
         style: ButtonStyle(
-          foregroundColor: MaterialStatePropertyAll(
+          foregroundColor: WidgetStatePropertyAll(
             _getTheme().actionsColor,
           ),
         ),
@@ -1708,6 +1711,41 @@ enum CButtonType { elevated, filled, icon, outlined, text }
 /// Supports identifying what [CWidget.image] is constructed when utilized.
 enum CImageType { asset, file, memory, network }
 
+/// Defines a tab item to utilize with the [CWidget.tabView] method.
+class CTabItem {
+  /// The content displayed with the tab.
+  final Widget content;
+
+  /// An icon for the tab within the tab view.
+  final dynamic icon;
+
+  /// Specifies the margin between the icon and the title.
+  final EdgeInsetsGeometry? iconMargin;
+
+  /// Specifies the height of the overall tab.
+  final double? tabHeight;
+
+  /// A title with the tab within the tab view.
+  final String? title;
+
+  CTabItem({
+    required this.content,
+    this.icon,
+    this.iconMargin,
+    this.tabHeight,
+    this.title,
+  }) {
+    assert(
+      icon != null || title != null,
+      "At least icon or title must have a valid value",
+    );
+    assert(
+      icon is IconData || icon is Image || icon == null,
+      "icon can only be an Image / IconData / null type",
+    );
+  }
+}
+
 /// Utility widget builder for building basic stateless widgets for the
 /// [CAppView]. It is a basic wrapper for the most common of UI elements but
 /// does not preclude using Flutter to its fullest abilities to build rich UIs
@@ -1735,7 +1773,6 @@ class CWidget {
     bool enabled = true,
     dynamic icon,
     ButtonStyle? style,
-    bool visible = true,
   }) {
     assert(
       icon is IconData || icon is Image || icon == null,
@@ -1813,14 +1850,10 @@ class CWidget {
             );
     }
 
-    return Visibility(
+    return PointerInterceptor(
       key: key,
-      visible: visible,
-      child: PointerInterceptor(
-        key: key,
-        intercepting: kIsWeb,
-        child: btn!,
-      ),
+      intercepting: kIsWeb,
+      child: btn!,
     );
   }
 
@@ -1828,20 +1861,15 @@ class CWidget {
   /// the visibility of the child tree of widgets wrapped by this.
   static Widget center({
     Key? key,
+    Widget? child,
     double? heightFactor,
     double? widthFactor,
-    bool visible = true,
-    Widget? child,
   }) {
-    return Visibility(
+    return Center(
       key: key,
-      visible: visible,
-      child: Center(
-        key: key,
-        heightFactor: heightFactor,
-        widthFactor: widthFactor,
-        child: child,
-      ),
+      heightFactor: heightFactor,
+      widthFactor: widthFactor,
+      child: child,
     );
   }
 
@@ -1852,18 +1880,13 @@ class CWidget {
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
     MainAxisAlignment mainAxisAlignment = MainAxisAlignment.start,
     MainAxisSize mainAxisSize = MainAxisSize.max,
-    bool visible = true,
   }) {
-    return Visibility(
+    return Column(
       key: key,
-      visible: visible,
-      child: Column(
-        key: key,
-        crossAxisAlignment: crossAxisAlignment,
-        mainAxisAlignment: mainAxisAlignment,
-        mainAxisSize: mainAxisSize,
-        children: children,
-      ),
+      crossAxisAlignment: crossAxisAlignment,
+      mainAxisAlignment: mainAxisAlignment,
+      mainAxisSize: mainAxisSize,
+      children: children,
     );
   }
 
@@ -1876,7 +1899,7 @@ class CWidget {
     bool enableFilter = false,
     bool enableSearch = true,
     String? errorText,
-    double? height,
+    double? menuHeight,
     String? helperText,
     String? hintText,
     T? initialSelection,
@@ -1886,7 +1909,6 @@ class CWidget {
     int? Function(List<DropdownMenuEntry<T>>, String)? searchCallback,
     DropdownMenuThemeData? style,
     dynamic trailingIcon,
-    bool visible = true,
     double? width,
   }) {
     assert(
@@ -1909,23 +1931,55 @@ class CWidget {
       initialSelection: initialSelection,
       label: label,
       leadingIcon: leadingIcon is IconData ? Icon(leadingIcon) : leadingIcon,
-      menuHeight: height,
+      menuHeight: menuHeight,
       onSelected: onSelected,
       searchCallback: searchCallback,
       trailingIcon:
           trailingIcon is IconData ? Icon(trailingIcon) : trailingIcon,
       width: width,
     );
-    final w = style != null
+    return style != null
         ? DropdownMenuTheme(
             data: style,
             child: menu,
           )
         : menu;
+  }
 
-    return Visibility(
-      visible: visible,
-      child: w,
+  /// The most basic component for setting up a UI. This widget can be utilized
+  /// to setup padding, margins, or build custom stylized widgets combining
+  /// said widget or layouts to build a more complex widget.
+  static Widget container({
+    Key? key,
+    AlignmentGeometry? alignment,
+    EdgeInsetsGeometry? padding,
+    Color? color,
+    Decoration? decoration,
+    Decoration? foregroundDecoration,
+    double? width,
+    double? height,
+    BoxConstraints? constraints,
+    EdgeInsetsGeometry? margin,
+    Matrix4? transform,
+    AlignmentGeometry? transformAlignment,
+    Clip clipBehavior = Clip.none,
+    Widget? child,
+  }) {
+    return Container(
+      key: key,
+      alignment: alignment,
+      padding: padding,
+      color: color,
+      decoration: decoration,
+      foregroundDecoration: foregroundDecoration,
+      width: width,
+      height: height,
+      constraints: constraints,
+      margin: margin,
+      transform: transform,
+      transformAlignment: transformAlignment,
+      clipBehavior: clipBehavior,
+      child: child,
     );
   }
 
@@ -1936,17 +1990,12 @@ class CWidget {
     double? height,
     double? width,
     Color color = Colors.transparent,
-    bool visible = true,
   }) {
-    return Visibility(
+    return Container(
       key: key,
-      visible: visible,
-      child: Container(
-        key: key,
-        color: color,
-        height: height,
-        width: width,
-      ),
+      color: color,
+      height: height,
+      width: width,
     );
   }
 
@@ -1961,7 +2010,6 @@ class CWidget {
     ExpansionTileThemeData? style,
     Widget? subtitle,
     dynamic trailing,
-    bool visible = true,
   }) {
     // Make sure we are using things properly
     assert(
@@ -1984,11 +2032,7 @@ class CWidget {
       children: children,
     );
 
-    return Visibility(
-      key: key,
-      visible: visible,
-      child: style != null ? ExpansionTileTheme(data: style, child: w) : w,
-    );
+    return style != null ? ExpansionTileTheme(data: style, child: w) : w;
   }
 
   /// Creates a scrollable grid layout of widgets that based on the
@@ -2083,18 +2127,13 @@ class CWidget {
     int? maxLines,
     bool? softWrap,
     TextStyle? style,
-    bool visible = true,
   }) {
-    final w = Visibility(
+    final w = Text(
+      data,
       key: key,
-      visible: visible,
-      child: Text(
-        data,
-        key: key,
-        maxLines: maxLines,
-        softWrap: softWrap,
-        style: style,
-      ),
+      maxLines: maxLines,
+      softWrap: softWrap,
+      style: style,
     );
 
     // TODO: Work hyperlink feature.
@@ -2111,7 +2150,6 @@ class CWidget {
     Widget? subtitle,
     dynamic trailing,
     ListTileThemeData? style,
-    bool visible = true,
   }) {
     // Make sure we are using things properly
     assert(
@@ -2133,17 +2171,13 @@ class CWidget {
       onTap: enabled ? onTap : null,
     );
 
-    return Visibility(
-      key: key,
-      visible: visible,
-      child: style != null
-          ? ListTileTheme(
-              key: key,
-              data: style,
-              child: w,
-            )
-          : w,
-    );
+    return style != null
+        ? ListTileTheme(
+            key: key,
+            data: style,
+            child: w,
+          )
+        : w;
   }
 
   /// Provides a list view of widgets with automatic scrolling that can be
@@ -2170,19 +2204,6 @@ class CWidget {
     );
   }
 
-  /// Builds padding around a given widget.
-  static Widget padding({
-    required EdgeInsetsGeometry padding,
-    Key? key,
-    Widget? child,
-  }) {
-    return Padding(
-      key: key,
-      padding: padding,
-      child: child,
-    );
-  }
-
   /// Layout to put widgets horizontally.
   static Widget row({
     required List<Widget> children,
@@ -2190,18 +2211,13 @@ class CWidget {
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
     MainAxisAlignment mainAxisAlignment = MainAxisAlignment.start,
     MainAxisSize mainAxisSize = MainAxisSize.max,
-    bool visible = true,
   }) {
-    return Visibility(
+    return Row(
       key: key,
-      visible: visible,
-      child: Row(
-        key: key,
-        crossAxisAlignment: crossAxisAlignment,
-        mainAxisAlignment: mainAxisAlignment,
-        mainAxisSize: mainAxisSize,
-        children: children,
-      ),
+      crossAxisAlignment: crossAxisAlignment,
+      mainAxisAlignment: mainAxisAlignment,
+      mainAxisSize: mainAxisSize,
+      children: children,
     );
   }
 
@@ -2209,23 +2225,84 @@ class CWidget {
   /// look and feel for "special" widgets that stack bottom to top and overlap.
   static Widget stack({
     required List<Widget> children,
+    Key? key,
     AlignmentGeometry alignment = AlignmentDirectional.topStart,
     Clip clipBehavior = Clip.hardEdge,
     StackFit fit = StackFit.loose,
-    Key? key,
     TextDirection? textDirection,
-    bool visible = true,
   }) {
-    return Visibility(
+    return Stack(
+      alignment: alignment,
+      clipBehavior: clipBehavior,
+      fit: fit,
       key: key,
-      visible: visible,
-      child: Stack(
-        alignment: alignment,
-        clipBehavior: clipBehavior,
-        fit: fit,
-        key: key,
-        textDirection: textDirection,
-        children: children,
+      textDirection: textDirection,
+      children: children,
+    );
+  }
+
+  /// Constructs a tab view of content to allow for users to switch between
+  /// widgets of data.
+  static Widget tabView({
+    required List<CTabItem> tabItems,
+    Key? key,
+    bool automaticIndicatorColorAdjustment = true,
+    Clip clipBehavior = Clip.hardEdge,
+    double indicatorWeight = 2.0,
+    bool isScrollable = false,
+    void Function(int)? onTap,
+    TabBarTheme? style,
+    double viewportFraction = 1.0,
+  }) {
+    // Parse the tabItems to construct the tab data.
+    var tabs = <Widget>[];
+    var contentList = <Widget>[];
+    for (var w in tabItems) {
+      tabs.add(
+        Tab(
+          key: key,
+          icon: w.icon is IconData ? Icon(w.icon) : w.icon,
+          iconMargin: w.iconMargin,
+          height: w.tabHeight,
+          text: w.title,
+        ),
+      );
+      contentList.add(w.content);
+    }
+
+    // Go build the tabbed view based on that data and other configuration
+    // items
+    return DefaultTabController(
+      length: tabItems.length,
+      child: Scaffold(
+        appBar: AppBar(
+          bottom: TabBar(
+            automaticIndicatorColorAdjustment:
+                automaticIndicatorColorAdjustment,
+            dividerColor: style?.dividerColor,
+            dividerHeight: style?.dividerHeight,
+            indicator: style?.indicator,
+            indicatorColor: style?.indicatorColor,
+            indicatorSize: style?.indicatorSize,
+            indicatorWeight: indicatorWeight,
+            labelColor: style?.labelColor,
+            labelPadding: style?.labelPadding,
+            labelStyle: style?.labelStyle,
+            isScrollable: isScrollable,
+            padding: style?.labelPadding,
+            onTap: onTap,
+            overlayColor: style?.overlayColor,
+            tabAlignment: style?.tabAlignment,
+            unselectedLabelColor: style?.unselectedLabelColor,
+            unselectedLabelStyle: style?.unselectedLabelStyle,
+            tabs: tabs,
+          ),
+        ),
+        body: TabBarView(
+          clipBehavior: clipBehavior,
+          viewportFraction: viewportFraction,
+          children: contentList,
+        ),
       ),
     );
   }
@@ -2235,13 +2312,12 @@ class CWidget {
   /// options to allow for building custom text fields
   /// (i.e. spin controls, number only, etc.).
   static Widget textField({
+    Key? key,
     bool autofocus = false,
     bool canRequestFocus = true,
     bool? enabled,
     FocusNode? focusNode,
-    double? height,
     List<TextInputFormatter>? inputFormatters,
-    Key? key,
     TextInputType? keyboardType,
     int? maxLength,
     int? maxLines = 1,
@@ -2255,8 +2331,6 @@ class CWidget {
     TextCapitalization textCapitalization = TextCapitalization.none,
     TextInputAction? textInputAction,
     TextStyle? textStyle,
-    double? width,
-    bool visible = true,
     InputDecorationTheme? style,
   }) {
     final w = TextField(
@@ -2288,26 +2362,36 @@ class CWidget {
       onChanged: onChanged,
       onEditingComplete: onEditingComplete,
     );
+    return style != null
+        ? Theme(
+            key: key,
+            data: ThemeData(inputDecorationTheme: style),
+            child: w,
+          )
+        : w;
+  }
+
+  /// Provides the ability to show / hide a widget and setup how to treat
+  /// other aspects of the widget.
+  static Widget visibility({
+    required Widget child,
+    Key? key,
+    bool maintainState = false,
+    bool maintainAnimation = false,
+    bool maintainSize = false,
+    bool maintainSemantics = false,
+    bool maintainInteractivity = false,
+    bool visible = true,
+  }) {
     return Visibility(
       key: key,
+      maintainState: maintainState,
+      maintainAnimation: maintainAnimation,
+      maintainSize: maintainSize,
+      maintainSemantics: maintainSemantics,
+      maintainInteractivity: maintainInteractivity,
       visible: visible,
-      child: style != null
-          ? SizedBox(
-              key: key,
-              height: height,
-              width: width,
-              child: Theme(
-                key: key,
-                data: ThemeData(inputDecorationTheme: style),
-                child: w,
-              ),
-            )
-          : SizedBox(
-              key: key,
-              height: height,
-              width: width,
-              child: w,
-            ),
+      child: child,
     );
   }
 
@@ -2315,15 +2399,10 @@ class CWidget {
   static Widget webView({
     required String url,
     Key? key,
-    bool visible = true,
   }) {
-    return Visibility(
+    return platform.createWebView(
       key: key,
-      visible: visible,
-      child: platform.createWebView(
-        key: key,
-        url: url,
-      ),
+      url: url,
     );
   }
 }
