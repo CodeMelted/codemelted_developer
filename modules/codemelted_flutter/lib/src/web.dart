@@ -24,21 +24,21 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html';
 import 'dart:ui_web';
 
+import 'package:codemelted_flutter/codemelted_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:web/web.dart';
 
-/// @nodoc
+/// Creates an IFrame as an embeddable web view for the web target.
 Widget createWebView({required String url, Key? key}) {
-  var iFrameElement = IFrameElement();
+  var iFrameElement = HTMLIFrameElement();
   iFrameElement.allow = "web-share";
-  iFrameElement.sandbox?.add("allow-forms");
-  iFrameElement.sandbox?.add("allow-popups");
-  iFrameElement.sandbox?.add("allow-scripts");
-  iFrameElement.sandbox?.add("allow-modals");
-  iFrameElement.sandbox?.add("allow-same-origin");
+  iFrameElement.sandbox.add("allow-forms");
+  iFrameElement.sandbox.add("allow-popups");
+  iFrameElement.sandbox.add("allow-scripts");
+  iFrameElement.sandbox.add("allow-modals");
+  iFrameElement.sandbox.add("allow-same-origin");
   iFrameElement.style.height = "100%";
   iFrameElement.style.width = "100%";
   iFrameElement.src = url;
@@ -54,7 +54,51 @@ Widget createWebView({required String url, Key? key}) {
   );
 }
 
-/// @nodoc
+/// Implements the [CAsyncWorker] object for a dedicated web worker written
+/// in JavaScript and hosted via the specified URL.
+class CWebWorker extends CAsyncWorker {
+  /// The url to the dedicated web worker.
+  final String url;
+
+  /// The dedicated Web Worker constructed from the URL.
+  late Worker _worker;
+
+  @override
+  void postMessage([data]) => _worker.postMessage(data);
+
+  @override
+  void terminate() => _worker.terminate();
+
+  CWebWorker(this.url, super.listener) {
+    _worker = Worker(url);
+    _worker.addEventListener(
+      "message",
+      (e) {
+        onDataReceived(CAsyncWorkerData(false, (e as MessageEvent).data));
+      } as EventListener?,
+    );
+    _worker.addEventListener(
+      "messageerror",
+      (e) {
+        onDataReceived(CAsyncWorkerData(true, e.toString()));
+      } as EventListener?,
+    );
+    _worker.addEventListener(
+      "error",
+      (e) {
+        onDataReceived(CAsyncWorkerData(true, e.toString()));
+      } as EventListener?,
+    );
+  }
+}
+
+/// Creates the [CAsyncWorker] wrapped web worker.
+CAsyncWorker createWorker({
+  String? url,
+}) =>
+    throw "NOT IMPLEMENTED YET";
+
+/// Determines if the web targeted app is a PWA installed or not.
 bool get isPWA {
   var queries = [
     '(display-mode: fullscreen)',
@@ -68,7 +112,10 @@ bool get isPWA {
   return isPWA;
 }
 
-/// @nodoc
+/// TBD: hook up to URLSearchParam
+String? getEnvironment(String key) => null;
+
+/// Opens the native web browser based on the target specified.
 void openWebBrowser({
   required String url,
   String? target,
@@ -79,8 +126,8 @@ void openWebBrowser({
     // Target not specified, it is a popup window.
     final w = width ?? 900;
     final h = height ?? 600;
-    final top = (window.screen!.height! - h) / 2;
-    final left = (window.screen!.width! - w) / 2;
+    final top = (window.screen.height - h) / 2;
+    final left = (window.screen.width - w) / 2;
     window.open(
       url,
       "_blank",

@@ -1,3 +1,4 @@
+// @nodoc
 /*
 ===============================================================================
 MIT License
@@ -24,17 +25,41 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
+import 'package:codemelted_flutter/codemelted_flutter.dart';
 import 'package:flutter/material.dart';
 
-/// @nodoc
+// ---------------------------------------------------------------------------
+// Stubbed functions for the platform interface.
+// The implementations for native and web are in the respective *.dart files.
+// Utilized in the codemelted_flutter.dart module to facilitate between the
+// different flutter targets as follows:
+/*
+import 'package:codemelted_flutter/platform/stub.dart'
+    if (dart.library.io) 'package:codemelted_flutter/_lib/platform/native.dart'
+    if (dart.library.js) 'package:codemelted_flutter/_lib/platform/web.dart'
+    as platform;
+*/
+// ----------------------------------------------------------------------------
+
+/// Creates an embedded web view for the mobile / web targets.
 Widget createWebView({required String url, Key? key}) {
   throw "Stub. Should Not Get This";
 }
 
-/// @nodoc
+/// Creates a dedicated FIFO worker based on the specified target.
+CAsyncWorker createWorker({
+  String? url,
+}) =>
+    throw 'Stub. Should not get this';
+
+/// Provides the ability to lookup environment variables
+String? getEnvironment(String key) => throw 'Stub. Should not get this';
+
+/// Web target only function to determine if the web app is installed as a
+/// Progressive Web Application (PWA).
 bool get isPWA => throw "Stub. Should Not Get This";
 
-/// @nodoc
+/// Attempts to open the native web browser for the given platform.
 void openWebBrowser({
   required String url,
   String? target,

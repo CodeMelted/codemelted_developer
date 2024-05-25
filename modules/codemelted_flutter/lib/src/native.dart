@@ -24,17 +24,35 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
+import 'dart:io';
+
+import 'package:codemelted_flutter/codemelted_flutter.dart';
 import 'package:flutter/material.dart';
 
-/// @nodoc
+/// Will create an embeddable web view for a mobile native platform. Will fail
+/// for desktop target.s
 Widget createWebView({required String url, Key? key}) {
   throw "NOT IMPLEMENTED YET";
 }
 
-/// @nodoc
+/// TBD
+CAsyncWorker createWorker({
+  String? url,
+}) =>
+    throw "NOT IMPLEMENTED YET";
+
+/// Searches the platforms environment for the specified key and returns
+/// its value if found or null if not found.
+String? getEnvironment(String key) {
+  return Platform.environment.containsKey(key)
+      ? Platform.environment[key]
+      : null;
+}
+
+/// Always returns false. Native apps cannot be PWAs.
 bool get isPWA => false;
 
-/// @nodoc
+/// Will attempt to open a web browser depending on the app target.
 void openWebBrowser({
   required String url,
   String? target,

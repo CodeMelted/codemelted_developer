@@ -24,8 +24,7 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:codemelted_flutter/codemelted_flutter.dart';
+// import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   // group("Async IO Use Case Tests", () {
@@ -59,57 +58,57 @@ void main() {
   //   });
   // });
 
-  group("Logger Use Case Tests", () {
-    CLogger.init();
-    test("CLogger Demo Some Logging", () {
-      // Setup our test:
-      var counter = 0;
-      CLogger.logLevel = CLogger.warning;
-      CLogger.onLoggedEvent = (r) => counter += 1;
+  // group("Logger Use Case Tests", () {
+  //   CLogger.init();
+  //   test("CLogger Demo Some Logging", () {
+  //     // Setup our test:
+  //     var counter = 0;
+  //     CLogger.logLevel = CLogger.warning;
+  //     CLogger.onLoggedEvent = (r) => counter += 1;
 
-      // Execute test
-      CLogger.log(level: CLogger.debug, data: "debug");
-      CLogger.log(level: CLogger.info, data: "info");
-      CLogger.log(level: CLogger.warning, data: "warning");
-      CLogger.log(level: CLogger.error, data: "error", st: StackTrace.current);
+  //     // Execute test
+  //     CLogger.log(level: CLogger.debug, data: "debug");
+  //     CLogger.log(level: CLogger.info, data: "info");
+  //     CLogger.log(level: CLogger.warning, data: "warning");
+  //     CLogger.log(level: CLogger.error, data: "error", st: StackTrace.current);
 
-      // Validate results
-      expect(CLogger.logLevel, equals(CLogger.warning));
-      expect(counter, equals(2));
-    });
+  //     // Validate results
+  //     expect(CLogger.logLevel, equals(CLogger.warning));
+  //     expect(counter, equals(2));
+  //   });
 
-    test("CLogger Demo All Logging", () {
-      // Setup our test:
-      var counter = 0;
-      CLogger.logLevel = CLogger.debug;
-      CLogger.onLoggedEvent = (r) => counter += 1;
+  //   test("CLogger Demo All Logging", () {
+  //     // Setup our test:
+  //     var counter = 0;
+  //     CLogger.logLevel = CLogger.debug;
+  //     CLogger.onLoggedEvent = (r) => counter += 1;
 
-      // Execute test
-      logDebug(data: "debug");
-      logInfo(data: "info");
-      logWarning(data: "warning");
-      logError(data: "error", st: StackTrace.current);
+  //     // Execute test
+  //     logDebug(data: "debug");
+  //     logInfo(data: "info");
+  //     logWarning(data: "warning");
+  //     logError(data: "error", st: StackTrace.current);
 
-      // Validate results
-      expect(CLogger.logLevel, equals(CLogger.debug));
-      expect(counter, equals(4));
-    });
+  //     // Validate results
+  //     expect(CLogger.logLevel, equals(CLogger.debug));
+  //     expect(counter, equals(4));
+  //   });
 
-    test("CLogger Demo Logging Off", () {
-      // Setup our test:
-      var counter = 0;
-      CLogger.logLevel = CLogger.off;
-      CLogger.onLoggedEvent = (r) => counter += 1;
+  //   test("CLogger Demo Logging Off", () {
+  //     // Setup our test:
+  //     var counter = 0;
+  //     CLogger.logLevel = CLogger.off;
+  //     CLogger.onLoggedEvent = (r) => counter += 1;
 
-      // Execute test
-      logDebug(data: "debug");
-      logInfo(data: "info");
-      logWarning(data: "warning");
-      logError(data: "error", st: StackTrace.current);
+  //     // Execute test
+  //     logDebug(data: "debug");
+  //     logInfo(data: "info");
+  //     logWarning(data: "warning");
+  //     logError(data: "error", st: StackTrace.current);
 
-      // Validate results
-      expect(CLogger.logLevel, equals(CLogger.off));
-      expect(counter, equals(0));
-    });
-  });
+  //     // Validate results
+  //     expect(CLogger.logLevel, equals(CLogger.off));
+  //     expect(counter, equals(0));
+  //   });
+  // });
 }

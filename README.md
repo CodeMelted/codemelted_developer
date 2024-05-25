@@ -43,36 +43,36 @@ title: Use Case Model
 flowchart TD
     subgraph ucModel[Use Cases]
         subgraph Core
-            ucAsyncIO([Async IO])
             ucDataBroker([Data Broker])
-            ucFileExplorer([File Explorer])
+            ucFetch([Fetch])
+            ucLinkOpener([Link Opener])
             ucLogger([Logger])
             ucMath([Math])
-            ucRestAPI([Rest API])
+            ucRuntime([Runtime])
+            ucShare([Share])
             ucStorage([Storage])
         end
         subgraph User Interface
             ucAppView([App View])
-            ucAudioPlayer([Audio Player])
             ucConsole([Console])
             ucDialog([Dialog])
-            ucLayouts([Layouts])
             ucThemes([Themes])
             ucWidgets([Widgets])
         end
         subgraph Advanced
+            ucAsyncIO([Async IO])
+            ucAudioPlayer([Audio Player])
             ucDatabase([Database])
             ucDeviceOrientation([Device Orientation])
-            ucLinkOpener([Link Opener])
-            ucHardwareDevice([Hardware Device])
-            ucNetworkSocket([Network Socket])
-            ucRuntime([Runtime])
+            ucDeviceHardware([Device Hardware])
+            ucFileManager([File Manager])
+            ucNetworkSockets([Network Sockets])
             ucWebRTC([Web RTC])
         end
     end
     subgraph sdk[SDK]
         pwsh[[pwsh]]
-        deno[[deno / web]]
+        javascript[[javascript]]
         flutter[[flutter]]
         C[[C/C++]]
     end
@@ -85,7 +85,7 @@ flowchart TD
     end
     Developer--Develops With-->ucModel
     pwsh--FFI-->C
-    deno--FFI-->C
+    javascript--FFI-->C
     flutter--FFI-->C
     ucModel--Implemented In-->sdk
     sdk--Targets-->app

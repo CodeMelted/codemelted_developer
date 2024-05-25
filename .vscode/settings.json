@@ -1,17 +1,19 @@
 {
-    "cSpell.words": [
-        "ARGB",
-        "audioplayers",
-        "autocorrect",
-        "autofocus",
-        "copyhistory",
-        "Deno",
-        "Embeddable",
-        "Fullscreen",
-        "lerp",
-        "messageerror",
-        "nodoc",
-        "pwsh",
-        "scrollbars"
-    ]
+  "cSpell.words": [
+    "ARGB",
+    "audioplayers",
+    "autocorrect",
+    "autofocus",
+    "copyhistory",
+    "dartdoc",
+    "Deno",
+    "Embeddable",
+    "Fullscreen",
+    "HTMLI",
+    "lerp",
+    "messageerror",
+    "nodoc",
+    "pwsh",
+    "scrollbars"
+  ]
 }
