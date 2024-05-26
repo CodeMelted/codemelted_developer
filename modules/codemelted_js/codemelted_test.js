@@ -29,4 +29,5 @@ import {
     assertThrows,
     assertFalse,
 } from "https://deno.land/std@0.192.0/testing/asserts.ts";
-import "./codemelted.js";
+import codemelted from "./codemelted.js";
+
