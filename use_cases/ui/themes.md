@@ -1,14 +1,14 @@
 <!--
-TITLE: CodeMelted - DEV | Themes UI Use Case
-PUBLISH_DATE: 2024-03-23
+TITLE: CodeMelted - DEV | UI Use Case: Themes
+PUBLISH_DATE:
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMelted - DEV, Themes, UI Use Case
-DESCRIPTION: TBD
+KEYWORDS: CodeMelted - DEV, Themes, User Interface Use Case
+DESCRIPTION:
 -->
 <center>
   <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://cdn.codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="header.png" /> Themes - UI Use Case</h1>
+<h1><img style="height: 35px;" src="header.png" /> UI Use Case: Themes</h1>
 
 **Table of Contents**
 

@@ -1,14 +1,14 @@
 <!--
-TITLE: CodeMelted - DEV | Advanced Use Case: Network Socket
+TITLE: CodeMelted - DEV | Core Use Case: Share
 PUBLISH_DATE:
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMelted - DEV, Network Socket, Advanced Use Case
+KEYWORDS: CodeMelted - DEV, Share, Core Use Case
 DESCRIPTION:
 -->
 <center>
   <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://cdn.codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="header.png" /> Advanced Use Case: Network Socket</h1>
+<h1><img style="height: 35px;" src="header.png" /> Core Use Case: Share</h1>
 
 **Table of Contents**
 

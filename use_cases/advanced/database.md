@@ -1,14 +1,14 @@
 <!--
-TITLE: CodeMelted - DEV | Database Advanced Use Case
-PUBLISH_DATE: 2024-03-23
+TITLE: CodeMelted - DEV | Advanced Use Case: Database
+PUBLISH_DATE:
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMelted - DEV, Advanced Use Case, Database
-DESCRIPTION: TBD
+KEYWORDS: CodeMelted - DEV, Database, Advanced Use Case
+DESCRIPTION:
 -->
 <center>
   <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://cdn.codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="header.png" /> Database - Advanced Use Case</h1>
+<h1><img style="height: 35px;" src="header.png" /> Advanced Use Case: Database</h1>
 
 **Table of Contents**
 

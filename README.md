@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted - Developer
-PUBLISH_DATE: 2024-04-12
+PUBLISH_DATE: 2024-05-26
 AUTHOR: Mark Shaffer
 KEYWORDS: raspberry-pi, modules, cross-platform, gps, cpp-library, html-css-javascript, c-library, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module
 DESCRIPTION: Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify by developing a set of cross platform modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. This allows a developer to maximize their productivity because regardless of the technology, they are learning a similar module API for their solution.
@@ -99,12 +99,13 @@ flowchart TD
 
 The core set of use cases represent the most common actions you will carry out when developing an application.
 
-- [Async IO](use_cases/core/async_io.md)
 - [Data Broker](use_cases/core/data_broker.md)
-- [File Explorer](use_cases/core/file_explorer.md)
+- [Fetch](use_cases/core/file_explorer.md)
+- [Link Opener](use_cases/core/link_opener.md)
 - [Logger](use_cases/core/logger.md)
 - [Math](use_cases/core/math.md)
-- [Rest API](use_cases/core/rest_api.md)
+- [Runtime](use_cases/core/runtime.md)
+- [Share](use_cases/core/share.md)
 - [Storage](use_cases/core/storage.md)
 
 ### User Interface
@@ -112,10 +113,8 @@ The core set of use cases represent the most common actions you will carry out w
 The user interface set of use cases solidifies the ability to have a standard set of actions to interact with your user without limiting you from utilizing the options available in a given SDK module.
 
 - [App View](use_cases/ui/app_view.md)
-- [Audio Player](use_cases/ui/audio_player.md)
 - [Console](use_cases/ui/console.md)
 - [Dialog](use_cases/ui/dialog.md)
-- [Layouts](use_cases/ui/layouts.md)
 - [Themes](use_cases/ui/themes.md)
 - [Widgets](use_cases/ui/widgets.md)
 
@@ -123,12 +122,13 @@ The user interface set of use cases solidifies the ability to have a standard se
 
 The advanced set of use cases offer more complex actions a developer may need to carry out in their application. This aims to simplify the complexity of the given actions.
 
+- [Async IO](use_cases/advanced/async_io.md)
+- [Audio Player](use_cases/advanced/audio_player.md)
 - [Database](use_cases/advanced/database.md)
 - [Device Orientation](use_cases/advanced/device_orientation.md)
+- [Disk Manager](use_cases/advanced/disk_manager.md)
 - [Hardware Device](use_cases/advanced/hardware_device.md)
-- [Link Opener](use_cases/advanced/link_opener.md)
 - [Network Socket](use_cases/advanced/network_socket.md)
-- [Runtime](use_cases/advanced/runtime.md)
 - [Web RTC](use_cases/advanced/web_rtc.md)
 
 ## GETTING STARTED

@@ -1,14 +1,14 @@
 <!--
-TITLE: CodeMelted - DEV | File Explorer Core Use Case
-PUBLISH_DATE: 2024-03-23
+TITLE: CodeMelted - DEV | Core Use Case: Link Opener
+PUBLISH_DATE:
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMelted - DEV, File Explorer, Core Use Case
-DESCRIPTION: TBD
+KEYWORDS: CodeMelted - DEV, Link Opener, Core Use Case
+DESCRIPTION:
 -->
 <center>
   <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://cdn.codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="header.png" /> File Explorer - Core Use Case</h1>
+<h1><img style="height: 35px;" src="header.png" /> Core Use Case: Link Opener</h1>
 
 **Table of Contents**
 

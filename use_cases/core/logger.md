@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted - DEV | Core Use Case: Logger
-PUBLISH_DATE: 2024-04-25
+PUBLISH_DATE:
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMelted - DEV, Logger, Core Use Case
 DESCRIPTION: The codemelted modules will provide a logging facility with four levels of logging to aid in debugging and reporting of events from within an application. It will also provide post processing of logged events to allow for further processing of those events.

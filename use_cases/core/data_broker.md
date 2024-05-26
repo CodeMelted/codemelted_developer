@@ -1,14 +1,14 @@
 <!--
-TITLE: CodeMelted - DEV | Data Broker Core Use Case
-PUBLISH_DATE: 2024-03-23
+TITLE: CodeMelted - DEV | Core Use Case: Data Broker
+PUBLISH_DATE:
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMelted - DEV, Data Broker, Core Use Case
-DESCRIPTION: TBD
+DESCRIPTION:
 -->
 <center>
   <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://cdn.codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="header.png" /> Data Broker - Core Use Case</h1>
+<h1><img style="height: 35px;" src="header.png" /> Core Use Case: Data Broker</h1>
 
 **Table of Contents**
 
