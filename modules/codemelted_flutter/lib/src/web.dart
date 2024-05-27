@@ -24,6 +24,7 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
+import 'dart:js_interop';
 import 'dart:ui_web';
 
 import 'package:codemelted_flutter/codemelted_flutter.dart';
@@ -112,8 +113,11 @@ bool get isPWA {
   return isPWA;
 }
 
-/// TBD: hook up to URLSearchParam
-String? getEnvironment(String key) => null;
+/// Looks for search parameters in the browser href when the app is started.
+String? getEnvironment(String key) {
+  var urlParams = URLSearchParams(window.location.href as JSAny);
+  return urlParams.get(key);
+}
 
 /// Opens the native web browser based on the target specified.
 void openWebBrowser({

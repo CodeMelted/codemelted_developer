@@ -46,6 +46,8 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:logging/logging.dart';
 import 'package:http/http.dart' as http;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 // ============================================================================
 // [Use Case Support Definitions] =============================================
@@ -664,6 +666,119 @@ class CFetchResponse {
 // [Link Opener Definition] ---------------------------------------------------
 // ----------------------------------------------------------------------------
 
+/// Represents how the [CodeMeltedAPI.open] launches a [CSchemeType].
+typedef LaunchUrlStringHandler = Future<bool> Function(
+  String urlString, {
+  LaunchMode mode,
+  WebViewConfiguration webViewConfiguration,
+  String? webOnlyWindowName,
+});
+
+/// Optional parameter for the [CodeMeltedAPI.open] mailto scheme to facilitate
+/// translating the more complicated URL.
+class CMailToParams {
+  /// The list of email addresses to send the email.
+  final List<String> mailto;
+
+  /// The carbon copies to send the email.
+  final List<String> cc;
+
+  /// The blind carbon copies to send the email.
+  final List<String> bcc;
+
+  /// The subject of the email.
+  final String subject;
+
+  /// The body of the email.
+  final String body;
+
+  @override
+  String toString() {
+    var url = "";
+
+    // Go format the mailto part of the url
+    for (final e in mailto) {
+      url += "$e;";
+    }
+    url = url.substring(0, url.length - 1);
+
+    // Go format the cc part of the url
+    var delimiter = "?";
+    if (cc.isNotEmpty) {
+      url += "${delimiter}cc=";
+      delimiter = "&";
+      for (final e in cc) {
+        url += "$e;";
+      }
+      url = url.substring(0, url.length - 1);
+    }
+
+    // Go format the bcc part of the url
+    if (bcc.isNotEmpty) {
+      url += "${delimiter}bcc=";
+      delimiter = "&";
+      for (final e in bcc) {
+        url += "$e;";
+      }
+      url = url.substring(0, url.length - 1);
+    }
+
+    // Go format the subject part
+    if (subject.trim().isNotEmpty) {
+      url += "${delimiter}subject=${subject.trim()}";
+      delimiter = "&";
+    }
+
+    // Go format the body part
+    if (body.trim().isNotEmpty) {
+      url += "${delimiter}body=${body.trim()}";
+      delimiter = "&";
+    }
+
+    return url;
+  }
+
+  /// Constructs the object.
+  CMailToParams({
+    required this.mailto,
+    this.cc = const <String>[],
+    this.bcc = const <String>[],
+    this.subject = "",
+    this.body = "",
+  });
+}
+
+/// Identifies the scheme to utilize as part of the [CodeMeltedAPI.open]
+/// function.
+enum CSchemeType {
+  /// Will open the program associated with the file.
+  file("file:"),
+
+  /// Will open a web browser with http.
+  http("http://"),
+
+  /// Will open a web browser with https.
+  https("https://"),
+
+  /// Will open the default email program to send an email.
+  mailto("mailto:"),
+
+  /// Will open the default telephone program to make a call.
+  tel("tel:"),
+
+  /// Will open the default texting app to send a text.
+  sms("sms:");
+
+  /// Identifies the leading scheme to form a URL.
+  final String leading;
+
+  const CSchemeType(this.leading);
+
+  /// Will return the formatted URL based on the scheme and the
+  /// data provided.
+  String getUrl(String data) => "$leading$data";
+}
+
 // ----------------------------------------------------------------------------
 // [Logger Definitions] -------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -1151,6 +1266,12 @@ class CodeMeltedAPI {
   /// rounded borders or the other types of dialogs.
   bool _isBrowserAction = false;
 
+  /// The default height for a medium dialog.
+  static const _smallHeight = 256.0;
+
+  /// The default width for a medium dialog.
+  static const _smallWidth = 320.0;
+
   /// Will display information about your flutter app.
   Future<void> dlgAbout({
     Widget? appIcon,
@@ -1172,11 +1293,14 @@ class CodeMeltedAPI {
   /// be dismissed.
   Future<void> dlgAlert({
     required String message,
-    double? height,
+    double height = _smallHeight,
     String? title,
-    double? width,
+    double width = _smallWidth,
   }) async {
     return dlgCustom(
+      actions: [
+        _buildButton<void>("OK"),
+      ],
       content: Text(
         message,
         softWrap: true,
@@ -1211,11 +1335,24 @@ class CodeMeltedAPI {
 
     // We are rendering an inline web view.
     _isBrowserAction = true;
+    var dlgHeight = height ??
+        uiHeight(
+              cNavigatorKey.currentContext!,
+            ) *
+            0.85;
+    var dlgWidth = width ??
+        uiWidth(
+              cNavigatorKey.currentContext!,
+            ) *
+            0.95;
     return dlgCustom(
+      actions: [
+        _buildButton<void>("OK"),
+      ],
       content: uiWebView(url: url),
       title: title ?? "Browser",
-      height: height,
-      width: width,
+      height: dlgHeight,
+      width: dlgWidth,
     );
   }
 
@@ -1286,9 +1423,9 @@ class CodeMeltedAPI {
   /// question. True is returned for Yes and False for a No or cancel.
   Future<bool> dlgConfirm({
     required String message,
-    double? height,
+    double height = _smallHeight,
     String? title,
-    double? width,
+    double width = _smallWidth,
   }) async {
     return (await dlgCustom<bool?>(
           actions: [
@@ -1315,38 +1452,9 @@ class CodeMeltedAPI {
     required Widget content,
     required String title,
     List<Widget>? actions,
-    bool hideClose = false,
-    double? height,
-    double? width,
+    double height = _smallHeight,
+    double width = _smallWidth,
   }) async {
-    Widget? w;
-    if (!_isBrowserAction && height == null && width == null) {
-      // No width / height dialog, do not set size.
-      w = content;
-    } else if (_isBrowserAction) {
-      // Browser, if no size specified, go for max size
-      w = SizedBox(
-        height: height ??
-            uiHeight(
-                  cNavigatorKey.currentContext!,
-                ) *
-                0.85,
-        width: width ??
-            uiWidth(
-                  cNavigatorKey.currentContext!,
-                ) *
-                0.95,
-        child: content,
-      );
-    } else {
-      // A dialog that supports width / height but does not need max size/
-      // Go with whatever they specified.
-      w = SizedBox(
-        height: height,
-        width: width,
-        child: content,
-      );
-    }
     return showDialog<T>(
       barrierDismissible: false,
       context: cNavigatorKey.currentContext!,
@@ -1354,43 +1462,20 @@ class CodeMeltedAPI {
         backgroundColor: _getTheme().backgroundColor,
         insetPadding: EdgeInsets.zero,
         scrollable: true,
-        titlePadding: EdgeInsets.zero,
-        title: Column(
-          children: [
-            Row(
-              children: [
-                uiDivider(width: 10.0),
-                Expanded(
-                  child: uiLabel(
-                    data: title,
-                    style: TextStyle(
-                      color: _getTheme().titleColor,
-                    ),
-                  ),
-                ),
-                if (!hideClose)
-                  uiButton(
-                    type: CButtonType.icon,
-                    title: "Close Dialog",
-                    style: ButtonStyle(
-                      iconColor: WidgetStatePropertyAll(
-                        _getTheme().titleColor,
-                      ),
-                    ),
-                    onPressed: () => dlgClose(),
-                  )
-              ],
-            ),
-          ],
-        ),
-        actionsPadding: const EdgeInsets.all(5.0),
-        actionsAlignment: MainAxisAlignment.center,
+        titlePadding: const EdgeInsets.only(bottom: 25.0),
+        title: uiCenter(child: uiLabel(data: title)),
         contentPadding: EdgeInsets.only(
           left: _isBrowserAction ? 1.0 : 25.0,
           right: _isBrowserAction ? 1.0 : 25.0,
           bottom: _isBrowserAction ? 25.0 : 0.0,
         ),
-        content: w,
+        content: SizedBox(
+          height: height,
+          width: width,
+          child: content,
+        ),
+        actionsPadding: const EdgeInsets.all(5.0),
+        actionsAlignment: MainAxisAlignment.center,
         actions: actions,
       ),
     );
@@ -1400,11 +1485,11 @@ class CodeMeltedAPI {
   /// is important you call [CodeMeltedAPI.dlgClose] to properly clear the
   /// dialog and return any value expected.
   Future<T?> dlgLoading<T>({
-    double? height,
+    double height = _smallHeight,
     required String message,
     required Future<void> Function() task,
     String? title,
-    double? width,
+    double width = _smallWidth,
   }) async {
     Future.delayed(Duration.zero, task);
     return dlgCustom<T>(
@@ -1427,7 +1512,6 @@ class CodeMeltedAPI {
           ),
         ],
       ),
-      hideClose: true,
       height: height,
       title: title ?? "Please Wait",
       width: width,
@@ -1519,7 +1603,7 @@ class CodeMeltedAPI {
   }
 
   /// Helper action to build text buttons for our basic dialogs.
-  Widget _buildButton<T>(String title, T answer) => uiButton(
+  Widget _buildButton<T>(String title, [T? answer]) => uiButton(
         type: CButtonType.text,
         title: title,
         style: ButtonStyle(
@@ -1608,6 +1692,42 @@ class CodeMeltedAPI {
   // --------------------------------------------------------------------------
   // [Link Opener Implementation] ---------------------------------------------
   // --------------------------------------------------------------------------
+
+  Future<bool> open({
+    required CSchemeType scheme,
+    CMailToParams? mailtoParams,
+    String? url,
+    LaunchMode mode = LaunchMode.platformDefault,
+    String? target,
+    LaunchUrlStringHandler? mock,
+  }) async {
+    var handler = mock ?? launchUrlString;
+    try {
+      // Go form our URL to launch
+      var urlToLaunch = "";
+      if (scheme == CSchemeType.file ||
+          scheme == CSchemeType.http ||
+          scheme == CSchemeType.https ||
+          scheme == CSchemeType.sms ||
+          scheme == CSchemeType.tel) {
+        urlToLaunch = scheme.getUrl(url!);
+      } else {
+        urlToLaunch = mailtoParams != null
+            ? mailtoParams.toString()
+            : scheme.getUrl(url!);
+      }
+
+      // Go attempt to launch it.
+      return await handler(
+        urlToLaunch,
+        mode: mode,
+        webOnlyWindowName: target,
+      );
+    } catch (ex, st) {
+      logError(data: ex, st: st);
+      return false;
+    }
+  }
 
   // --------------------------------------------------------------------------
   // [Logger Implementation] --------------------------------------------------

@@ -887,7 +887,6 @@ export default Object.freeze({
         scheme = undefined,
         url = undefined,
         mailtoParams = undefined,
-        isPopup = false,
         target = undefined,
         width = undefined,
         height = undefined,
@@ -933,7 +932,7 @@ export default Object.freeze({
 
         // Now go open the browser window.
         try {
-            if (isPopup) {
+            if (!target) {
                 window.open(url, "_blank", settings);
             } else {
                 window.open(url, target);
