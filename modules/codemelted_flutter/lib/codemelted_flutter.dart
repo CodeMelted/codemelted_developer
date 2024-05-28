@@ -36,9 +36,8 @@ import 'dart:isolate';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:codemelted_flutter/src/stub.dart'
-    if (dart.library.io) 'package:codemelted_flutter/_lib/platform/native.dart'
-    if (dart.library.js) 'package:codemelted_flutter/_lib/platform/web.dart'
-    as platform;
+    if (dart.library.io) 'package:codemelted_flutter/src/native.dart'
+    if (dart.library.js) 'package:codemelted_flutter/src/web.dart' as platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -46,8 +45,8 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:logging/logging.dart';
 import 'package:http/http.dart' as http;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+export 'package:url_launcher/url_launcher_string.dart' show LaunchMode;
 
 // ============================================================================
 // [Use Case Support Definitions] =============================================
@@ -885,6 +884,16 @@ extension on CMathFormula {
 // [Themes Definitions] -------------------------------------------------------
 // ----------------------------------------------------------------------------
 
+// TODO: Tab Theme definition to follow style of other widgets.
+//       1. Remove items from CTabItem. They should be in theme.
+//       2. Allow for customization of icon placement in relation to title.
+//       3. Ensure at least title or icon are specified.
+//       4. Take some of the scaffold items from the uiTabView and add to the
+//          theme.
+
+// TODO: Text Field Theme definition to follow style of other uiComboBox.
+//       This represents the standard I would like to shoot for.
+
 /// Provides an alternative to the flutter DialogTheme class. This is due
 /// to the fact it really does not theme much when utilizing the built-in
 /// [AlertDialog] of Flutter wrapped in the [CodeMeltedAPI] dlgXXX functions.
@@ -962,6 +971,8 @@ enum CButtonType { elevated, filled, icon, outlined, text }
 /// utilized.
 enum CImageType { asset, file, memory, network }
 
+enum CTabIconPlacement { top, leading, trailing }
+
 /// Defines a tab item to utilize with the [CodeMeltedAPI.uiTabView] method.
 class CTabItem {
   /// The content displayed with the tab.
@@ -969,6 +980,9 @@ class CTabItem {
 
   /// An icon for the tab within the tab view.
   final dynamic icon;
+
+  /// Determines where to place the icon with the title if title is specified.
+  final CTabIconPlacement iconPlacement;
 
   /// Specifies the margin between the icon and the title.
   final EdgeInsetsGeometry? iconMargin;
@@ -979,6 +993,7 @@ class CTabItem {
   CTabItem({
     required this.content,
     this.icon,
+    this.iconPlacement = CTabIconPlacement.top,
     this.iconMargin,
     this.title,
   }) {
@@ -1020,6 +1035,7 @@ class CodeMeltedAPI {
 
   /// Sets / removes the [CodeMeltedAPI.app] title.
   set appTitle(String? v) => _CAppView.title = v;
+  String? get appTitle => _CAppView.title;
 
   /// Sets / removes the [CodeMeltedAPI.app] header area.
   void appHeader({
@@ -1812,6 +1828,10 @@ class CodeMeltedAPI {
   // [Runtime Implementation] -------------------------------------------------
   // --------------------------------------------------------------------------
 
+  /// Will search for the specified environment variable returning null if not
+  /// found.
+  String? environment(String key) => platform.getEnvironment(key);
+
   /// Determines if the application is a PWA. Will only return true if the
   /// app is a web targeted app and installed as a PWA.
   bool get isPWA => platform.isPWA;
@@ -2095,7 +2115,7 @@ class CodeMeltedAPI {
 
   /// Creates a customizable combo box drop down with the ability to implement
   /// a search box to filter the combo box.
-  static Widget uiComboBox<T>({
+  Widget uiComboBox<T>({
     required List<DropdownMenuEntry<T>> dropdownMenuEntries,
     Key? key,
     bool enabled = true,
@@ -2473,6 +2493,7 @@ class CodeMeltedAPI {
     required List<CTabItem> tabItems,
     Key? key,
     bool automaticIndicatorColorAdjustment = true,
+    Color? backgroundColor,
     Clip clipBehavior = Clip.hardEdge,
     double? height,
     double indicatorWeight = 2.0,
@@ -2503,6 +2524,7 @@ class CodeMeltedAPI {
       length: tabItems.length,
       child: Scaffold(
         appBar: AppBar(
+          backgroundColor: backgroundColor,
           toolbarHeight: height ?? 50.0,
           bottom: PreferredSize(
             preferredSize: Size.zero,
@@ -2641,8 +2663,7 @@ class CodeMeltedAPI {
   }
 
   /// Retrieves the available width of the specified context.
-  static double uiWidth(BuildContext context) =>
-      MediaQuery.of(context).size.width;
+  double uiWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
   // --------------------------------------------------------------------------
   // [API Implementation] -----------------------------------------------------

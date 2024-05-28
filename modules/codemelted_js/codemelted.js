@@ -648,7 +648,7 @@ export default Object.freeze({
      * @param {string} key The property to find.
      * @returns {boolean} true if property was found, false otherwise.
      */
-    checkHasProperty: function(obj, key) {
+    checkHasProperty(obj, key) {
         return Object.hasOwn(obj, key);
     },
 
@@ -662,7 +662,7 @@ export default Object.freeze({
      * to ensure the appropriate number of parameters are specified.
      * @returns {boolean} true if it meets the expectations, false otherwise.
      */
-    checkType: function(type, v, count = undefined) {
+    checkType(type, v, count = undefined) {
         const isExpectedType = typeof type !== "string"
             ? (v instanceof type)
             // deno-lint-ignore valid-typeof
@@ -678,7 +678,7 @@ export default Object.freeze({
      * @param {string} v String to parse to see if it is a valid URL.
      * @returns {boolean} true if valid, false otherwise.
      */
-    checkValidUrl: function(v) {
+    checkValidUrl(v) {
         let url = undefined;
         try {
             url = new URL(v);
@@ -694,7 +694,7 @@ export default Object.freeze({
      * @param {string} data The data to parse.
      * @returns {object | null} Object or null if the parse failed.
      */
-    jsonParse: function(data) {
+    jsonParse(data) {
         try {
             return JSON.parse(data);
         } catch (ex) {
@@ -709,7 +709,7 @@ export default Object.freeze({
      * @returns {string | null} The string representation or null if the
      * stringify failed.
      */
-    jsonStringify: function(data) {
+    jsonStringify(data) {
         try {
             return JSON.stringify(data);
         } catch (ex) {
@@ -725,7 +725,7 @@ export default Object.freeze({
      * @returns {void}
      * @throws {SyntaxError} if the property is not found.
      */
-    tryHasProperty: function(obj, key) {
+    tryHasProperty(obj, key) {
         if (!this.checkHasProperty(obj, key)) {
             throw new SyntaxError(`${obj} does not have property ${key}`);
         }
@@ -742,7 +742,7 @@ export default Object.freeze({
      * @returns {void}
      * @throws {SyntaxError} if the type was not as expected
      */
-    tryType: function(type, v, count = undefined) {
+    tryType(type, v, count = undefined) {
         if (!this.checkType(type, v, count)) {
             throw new SyntaxError(
                 `${v} parameter is not of type ${type} or does not ` +
@@ -758,7 +758,7 @@ export default Object.freeze({
      * @returns {void}
      * @throws {SyntaxError} If v is not a valid url.
      */
-    tryValidUrl: function(v) {
+    tryValidUrl(v) {
         if (!this.isValidUrl(v)) {
             throw new SyntaxError(`'${v}' is not a valid url`);
         }
@@ -793,7 +793,7 @@ export default Object.freeze({
      * @returns {Promise<CFetchResult>} The result of the completed
      * transaction
      */
-    fetch: async function({
+    async fetch({
         action = undefined,
         url = undefined,
         body = undefined,
@@ -883,7 +883,7 @@ export default Object.freeze({
      * @param {COpenParams} params Named parameters for this function.
      * @returns {boolean} true if successful, false otherwise.
      */
-    open: function({
+    open({
         scheme = undefined,
         url = undefined,
         mailtoParams = undefined,
@@ -985,7 +985,7 @@ export default Object.freeze({
      * @param {any} data
      * @returns {void}
      */
-    logDebug: function(data) {
+    logDebug(data) {
         // Check to see if we can log the event.
         if (!CLogLevel.canLog(_logLevel, CLogLevel.debug)) {
             return;
@@ -1006,7 +1006,7 @@ export default Object.freeze({
      * @param {any} data
      * @returns {void}
      */
-    logInfo: function(data) {
+    logInfo(data) {
         // Check to see if we can log the event.
         if (!CLogLevel.canLog(_logLevel, CLogLevel.info)) {
             return;
@@ -1027,7 +1027,7 @@ export default Object.freeze({
      * @param {any} data
      * @returns {void}
      */
-    logWarning: function(data) {
+    logWarning(data) {
         // Check to see if we can log the event.
         if (!CLogLevel.canLog(_logLevel, CLogLevel.warning)) {
             return;
@@ -1048,7 +1048,7 @@ export default Object.freeze({
      * @param {any} data
      * @returns {void}
      */
-    logError: function(data) {
+    logError(data) {
         // Check to see if we can log the event.
         if (!CLogLevel.canLog(_logLevel, CLogLevel.error)) {
             return;
@@ -1083,7 +1083,7 @@ export default Object.freeze({
      * handler.
      * @returns {void}
      */
-    addEventListener: function({
+    addEventListener({
         type = undefined,
         handler = undefined,
         obj = undefined,
@@ -1109,7 +1109,7 @@ export default Object.freeze({
      * handler.
      * @returns {void}
      */
-    removeEventListener: function({
+    removeEventListener({
         type = undefined,
         handler = undefined,
         obj = undefined,
@@ -1134,7 +1134,7 @@ export default Object.freeze({
      * @function
      * @returns {void}
      */
-    print: function() {
+    print() {
         // Ensure the function is available. Will only be in a browser
         // context.
         if (!globalThis.print) {
@@ -1160,7 +1160,7 @@ export default Object.freeze({
      * @returns {Promise<CShareResult>} Object with a status field detailing
      * the result of the request.
      */
-    share: async function(shareData) {
+    async share(shareData) {
         if (!globalThis.navigator.share) {
             throw new SyntaxError(
                 "codemelted.share(): is not supported on this runtime."
@@ -1190,7 +1190,7 @@ export default Object.freeze({
      * @param {string} value The value to store.
      * @returns {void}
      */
-    storageSet: function(key, value) {
+    storageSet(key, value) {
         this.tryType("string", key);
         this.tryType("string", value);
         try {
@@ -1209,7 +1209,7 @@ export default Object.freeze({
      * @param {string} key The key to retrieve.
      * @returns {string | null} The string value or null if not found.
      */
-    storageGet: function(key) {
+    storageGet(key) {
         this.tryType("string", key);
         try {
             return globalThis.localStorage.getItem(key, value);
@@ -1227,7 +1227,7 @@ export default Object.freeze({
      * @param {string} key The key to associate with the value.
      * @returns {void}
      */
-    storageRemove: function(key) {
+    storageRemove(key) {
         this.tryType("string", key);
         try {
             globalThis.localStorage.removeItem(key, value);
@@ -1244,7 +1244,7 @@ export default Object.freeze({
      * @function
      * @returns {void}
      */
-    storageClear: function() {
+    storageClear() {
         try {
             globalThis.localStorage.clear();
         } catch (ex) {

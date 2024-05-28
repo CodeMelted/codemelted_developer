@@ -6,7 +6,7 @@ KEYWORDS: CodeMelted - DEV, Device Orientation, Advanced Use Case
 DESCRIPTION:
 -->
 <center>
-  <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://cdn.codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
+  <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
 <h1><img style="height: 35px;" src="header.png" /> Advanced Use Case: Device Orientation</h1>
 

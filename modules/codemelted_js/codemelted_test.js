@@ -31,3 +31,29 @@ import {
 } from "https://deno.land/std@0.192.0/testing/asserts.ts";
 import codemelted from "./codemelted.js";
 
+// ----------------------------------------------------------------------------
+// [Data Broker Tests] --------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+Deno.test("checkType() Validation", async () => {
+    // Setup our test data
+    const str = "hello";
+    const num = 2;
+    const success = false;
+    const obj = {};
+
+    const handler = function(_a, _b) {};
+    const array = [];
+
+    // String validation
+    assert(codemelted.checkType("string", str));
+    assertFalse(codemelted.checkType("string", num));
+    assertFalse(codemelted.checkType("string", success));
+    assertFalse(codemelted.checkType("string", obj));
+    assertFalse(codemelted.checkType("string", handler));
+    assertFalse(codemelted.checkType("string", array));
+
+    let test = await import("./codemelted.js");
+    console.log(test);
+    assert(test.default.checkType("string", str));
+});

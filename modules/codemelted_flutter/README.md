@@ -6,7 +6,7 @@ KEYWORDS: modules, cross-platform, flutter-apps, flutter-library,
 DESCRIPTION: Welcome to the CodeMelted - Flutter Module project. This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the CodeMelted - Developer identified use cases, you can be assured to building a powerful native application.
 -->
 <center>
-  <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://cdn.codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
+  <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
 <h1><img style="height: 35px;" src="header.png" /> CodeMelted - Flutter Module</h1>
 

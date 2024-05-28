@@ -26,26 +26,26 @@
 [string]$GEN_HTML_PERL_SCRIPT = "/ProgramData/chocolatey/lib/lcov/tools/bin/genhtml"
 
 [string]$htmlSdkHeader = @"
-<link rel="stylesheet" href="https://cdn.codemelted.com/assets/css/scrollbars.css">
-<link rel="stylesheet" href="https://cdn.codemelted.com/assets/css/header.css">
-<!-- <script src="https://cdn.codemelted.com/assets/js/header.js"></script> -->
+<link rel="stylesheet" href="https://codemelted.com/assets/css/scrollbars.css">
+<link rel="stylesheet" href="https://codemelted.com/assets/css/header.css">
+<script src="https://codemelted.com/assets/js/header.js"></script>
 <div class="cm-header">
     <div>CodeMelted - DEV</div>
-    <a title="Read Aloud" href="#" onclick="readPage(); return false;">▶️</a>
-    <a title="Print" href="#" onclick="printPage(); return false;">🖨️</a>
+    <div></div>
+    <div></div>
     <a title="Share" href="#" onclick="sharePage(); return false;">🔗</a>
-    <a title="To CodeMelted" href="https://www.codemelted.com" target="_blank"><img src="https://cdn.codemelted.com/assets/images/favicon_io_pwa/apple-touch-icon.png" /></a>
+    <a title="To CodeMelted" href="#" onclick="redirectPage(); return false;"><img src="https://codemelted.com/assets/images/favicon_io_pwa/apple-touch-icon.png" /></a>
 </div><br />
 "@
 
 [string]$htmlHeader = @"
-<script src="https://cdn.codemelted.com/assets/js/header.js"></script>
+<script src="https://codemelted.com/assets/js/header.js"></script>
 <div class="cm-header">
     <div>CodeMelted - DEV</div>
-    <a title="Read Aloud" href="#" onclick="readPage(); return false;">▶️</a>
+    <div></div>
     <a title="Print" href="#" onclick="printPage(); return false;">🖨️</a>
     <a title="Share" href="#" onclick="sharePage(); return false;">🔗</a>
-    <a title="To CodeMelted" href="https://www.codemelted.com" target="_blank"><img src="https://cdn.codemelted.com/assets/images/favicon_io_pwa/apple-touch-icon.png" /></a>
+    <a title="To CodeMelted" href="#" onclick="redirectPage(); return false;"><img src="https://codemelted.com/assets/images/favicon_io_pwa/apple-touch-icon.png" /></a>
 </div>
 "@
 
@@ -58,8 +58,8 @@
     <meta name="keywords" content="[KEYWORDS]">
     <meta name="author" content="Mark Shaffer">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.codemelted.com/assets/css/developer-theme.css">
-    <link rel="icon" type="image/x-icon" href="https://cdn.codemelted.com/favicon.png">
+    <link rel="stylesheet" href="https://codemelted.com/assets/css/developer-theme.css">
+    <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png">
     <style>
         .mermaid {
             background-color: grey;
@@ -88,7 +88,7 @@ function build([string[]]$params) {
         Write-Host
     }
 
-    # Builds all project files for inclusion in the cdn.codemelted.com domain
+    # Builds all project files for inclusion in the codemelted.com domain
     # deployment.
     function cdn {
         # Build all the project static sdk sites.
@@ -206,13 +206,15 @@ function build([string[]]$params) {
 
         if ($IsLinux -or $IsMacOS) {
             genhtml -o coverage --ignore-errors unused --dark-mode coverage/lcov.info
-        } else {
+        }
+        else {
             $exists = Test-Path -Path $GEN_HTML_PERL_SCRIPT -PathType Leaf
             if ($exists) {
                 perl $GEN_HTML_PERL_SCRIPT -o coverage coverage/lcov.info
-            } else {
+            }
+            else {
                 Write-Host "WARNING: genhtml not installed for windows. Run " +
-                    "'choco install lcov' for pwsh terminal as Admin to install it."
+                "'choco install lcov' for pwsh terminal as Admin to install it."
             }
         }
 
@@ -225,7 +227,7 @@ function build([string[]]$params) {
         # Fix the title
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
         $htmlData = $htmlData.Replace("codemelted_flutter - Dart API docs", "CodeMelted - Flutter Module")
-        $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://cdn.codemelted.com/favicon.png"')
+        $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png"')
         $htmlData = $htmlData.Replace("<center>", "$htmlSdkHeader<center>")
         $htmlData = $htmlData.Replace("README.md", "index.html")
         $htmlData | Out-File docs/index.html -Force
@@ -246,20 +248,23 @@ function build([string[]]$params) {
 
         if ($IsLinux -or $IsMacOS) {
             genhtml -o coverage --ignore-errors unused --dark-mode coverage/lcov.info
-        } else {
+        }
+        else {
             $exists = Test-Path -Path $GEN_HTML_PERL_SCRIPT -PathType Leaf
             if ($exists) {
                 perl $GEN_HTML_PERL_SCRIPT -o coverage coverage/lcov.info
-            } else {
+            }
+            else {
                 Write-Host "WARNING: genhtml not installed for windows. Run " +
-                    "'choco install lcov' for pwsh terminal as Admin to install it."
+                "'choco install lcov' for pwsh terminal as Admin to install it."
             }
         }
 
         message "Now generating the jsdoc"
         if ($IsWindows) {
             jsdoc --configure theme/jsdoc-win.json --verbose
-        } else {
+        }
+        else {
             jsdoc --configure theme/jsdoc-linux-mac.json --verbose
         }
         Move-Item -Path coverage -Destination docs -Force
@@ -332,7 +337,7 @@ function build([string[]]$params) {
     }
 
     # Main Exection
-    switch($params[0]) {
+    switch ($params[0]) {
         "--cdn" { cdn }
         "--codemelted_cpp" { codemelted_cpp }
         "--codemelted_developer" { codemelted_developer }

@@ -115,7 +115,7 @@ bool get isPWA {
 
 /// Looks for search parameters in the browser href when the app is started.
 String? getEnvironment(String key) {
-  var urlParams = URLSearchParams(window.location.href as JSAny);
+  var urlParams = URLSearchParams(window.location.search as JSAny);
   return urlParams.get(key);
 }
 
