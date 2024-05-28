@@ -2247,11 +2247,11 @@ class CodeMeltedAPI {
     final w = ExpansionTile(
       key: key,
       enabled: enabled,
-      leading: leading == IconData ? Icon(leading) : leading,
+      leading: leading is IconData ? Icon(leading) : leading,
       initiallyExpanded: false,
       title: title,
       subtitle: subtitle,
-      trailing: trailing == IconData ? Icon(trailing) : trailing,
+      trailing: trailing is IconData ? Icon(trailing) : trailing,
       children: children,
     );
 

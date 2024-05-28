@@ -29,9 +29,7 @@ Software engineers are now required to learn multiple languages, technologies, a
   - [Build Script](#build-script)
 - [USAGE](#usage)
   - [Cross Platform Modules](#cross-platform-modules)
-  - [GitHub Gists](#github-gists)
   - [Raspberry Pi Project](#raspberry-pi-project)
-  - [SDK Docs](#sdk-docs)
 - [LICENSE](#license)
 
 ## FEATURES
@@ -203,29 +201,9 @@ The following are the cross platform modules implementing the identified use cas
 - <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/deno-js.png" /> [JS Module](modules/codemelted_js/README.md): This project aims to give a common fullstack solution for Progressive Web Applications (PWA) utilizing the **CodeMelted - Developer** use cases. It utilizes the **Deno Runtime** to run as your backend service. This was chosen as it has a full range of services for your backend if you choose to utilize it. You can also take your backend and host it on a different platform. This allows you to not be locked into a vendor for your backend. It was also chosen because it implements the **Browser Web APIs**. This allows the module to implement backend and web frontend common code developing a more complete solution. Lastly, Deno provides the use of TypeScript natively out of the box. So you are able to utilize both JavaScript / TypeScript for your solution and roll with any build system.
 - <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/powershell.png" /> [pwsh Module](modules/codemelted_pwsh/README.md): This project aims to implement **CodeMelted - Developer** use cases with the terminal in mind. The terminal serves as the place developers string together Dev OPS or automated solutions to users. With this in mind, **PowerShell Core** was chosen as the target platform. The reason for this is it has full support for Linux, Mac, and Windows allowing for a common scripting language regardless of the operating system.
 
-### GitHub Gists
-
-A collection of template examples for all your software engineering needs. Allows you to start and organizing different aspects of the software engineering development lifecycle.
-
-- [project-readme.md](https://gist.github.com/CodeMelted/83e62ce113167422fa14784f0936283e): Hits all the important aspects of what one should document when starting a new GitHub project.
-- [use-case.md](https://gist.github.com/CodeMelted/6812665ee9722e8dc03a67588d66c1da): Utilizing use cases to breakdown complex systems or features.
-- [user-story.md](https://gist.github.com/CodeMelted/d6f9c7b3c31090c47f026b0c980dce54): Utilizing user stories to breakdown complex systems or features.
-
 ### Raspberry Pi Project
 
 - <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/raspberry-pi.png" /> [Raspberry Pi Project](raspberry_pi/README.md): This project aims to utilize the different **CodeMelted - Developer** modules as services on a Raspberry Pi. These services aim to allow a user to yield different configurations to utilize the Raspberry Pi. The identified services will include getting GPS coordinates, taking still frame pictures tagged with the GPS information, taking video to serve as a dash cam or web camera, provide infotainment within a vehicle, the ability to interface with the raspberry pi via the Internet, and finally, as a sky watching camera for nighttime astronomy.
-
-### SDK Docs
-
-The reference websites that support the CodeMelted - Developer hosted projects.
-
-- [C/C++ Reference](https://en.cppreference.com/w/): Provides the headers references for C/C++ to support the Foreign Function Interface (FFI) for the other cross platform modules along with being its own solution.
-- [Dart Docs](https://dart.dev/guides): An approachable, portable, and productive language for high-quality apps on any platform.
-- [Deno Docs](https://docs.deno.com/): The chrome V8 runtime that supports your cloud needs. It uses a singular executable to build your services and implements the Web API allowing for a cross platform JS/TS experience.
-- [Flutter Docs](https://docs.flutter.dev/): Flutter transforms the development process. Build, test, and deploy beautiful mobile, web, desktop, and embedded experiences from a single codebase.
-- [MDN Web APIs](https://developer.mozilla.org/en-US/docs/Web/API): When writing code for the Web, there are a large number of Web APIs available. Below is a list of all the APIs and interfaces (object types) that you may be able to use while developing your Web app or site. Web APIs are typically used with JavaScript, although this doesn't always have to be the case.
-- [PowerShell Learn](https://learn.microsoft.com/en-us/powershell/): PowerShell is a cross-platform (Windows, Linux, and macOS) automation and configuration tool/framework that works well with your existing tools and is optimized for dealing with structured data (e.g. JSON, CSV, XML, etc.), REST APIs, and object models. It includes a command-line shell, an associated scripting language, and a framework for processing cmdlets.
-- [sciter Library and Runtime](https://sciter.com/): Embeddable HTML/CSS/JavaScript engine for modern UI development in C/C++.
 
 ## LICENSE
 

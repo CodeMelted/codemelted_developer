@@ -42,7 +42,7 @@
 <script src="https://codemelted.com/assets/js/header.js"></script>
 <div class="cm-header">
     <div>CodeMelted - DEV</div>
-    <div></div>
+    <a title="Read Aloud" href="#" onclick="readPage(); return false;">▶️</a>
     <a title="Print" href="#" onclick="printPage(); return false;">🖨️</a>
     <a title="Share" href="#" onclick="sharePage(); return false;">🔗</a>
     <a title="To CodeMelted" href="#" onclick="redirectPage(); return false;"><img src="https://codemelted.com/assets/images/favicon_io_pwa/apple-touch-icon.png" /></a>
