@@ -1008,6 +1008,20 @@ class CTabItem {
   }
 }
 
+class CWebViewController extends ChangeNotifier {
+  late String _url;
+
+  CWebViewController({required String url}) {
+    _url = url;
+  }
+
+  String get url => _url;
+  set url(String v) {
+    _url = v;
+    notifyListeners();
+  }
+}
+
 // ============================================================================
 // [Main API Implementation] ==================================================
 // ============================================================================

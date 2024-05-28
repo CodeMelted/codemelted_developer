@@ -29,7 +29,7 @@ Software engineers are now required to learn multiple languages, technologies, a
   - [Build Script](#build-script)
 - [USAGE](#usage)
   - [Cross Platform Modules](#cross-platform-modules)
-  - [Raspberry Pi Project](#raspberry-pi-project)
+  - [CodeMelted Pi Project](#codemelted-pi-project)
 - [LICENSE](#license)
 
 ## FEATURES
@@ -201,9 +201,9 @@ The following are the cross platform modules implementing the identified use cas
 - <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/deno-js.png" /> [JS Module](modules/codemelted_js/README.md): This project aims to give a common fullstack solution for Progressive Web Applications (PWA) utilizing the **CodeMelted - Developer** use cases. It utilizes the **Deno Runtime** to run as your backend service. This was chosen as it has a full range of services for your backend if you choose to utilize it. You can also take your backend and host it on a different platform. This allows you to not be locked into a vendor for your backend. It was also chosen because it implements the **Browser Web APIs**. This allows the module to implement backend and web frontend common code developing a more complete solution. Lastly, Deno provides the use of TypeScript natively out of the box. So you are able to utilize both JavaScript / TypeScript for your solution and roll with any build system.
 - <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/powershell.png" /> [pwsh Module](modules/codemelted_pwsh/README.md): This project aims to implement **CodeMelted - Developer** use cases with the terminal in mind. The terminal serves as the place developers string together Dev OPS or automated solutions to users. With this in mind, **PowerShell Core** was chosen as the target platform. The reason for this is it has full support for Linux, Mac, and Windows allowing for a common scripting language regardless of the operating system.
 
-### Raspberry Pi Project
+### CodeMelted Pi Project
 
-- <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/raspberry-pi.png" /> [Raspberry Pi Project](raspberry_pi/README.md): This project aims to utilize the different **CodeMelted - Developer** modules as services on a Raspberry Pi. These services aim to allow a user to yield different configurations to utilize the Raspberry Pi. The identified services will include getting GPS coordinates, taking still frame pictures tagged with the GPS information, taking video to serve as a dash cam or web camera, provide infotainment within a vehicle, the ability to interface with the raspberry pi via the Internet, and finally, as a sky watching camera for nighttime astronomy.
+- <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/raspberry-pi.png" /> [CodeMelted Pi Project](codemelted_pi/README.md): This project aims to utilize the different **CodeMelted - Developer** modules as services on a Raspberry Pi. These services aim to allow a user to yield different configurations to utilize the Raspberry Pi. The identified services will include getting GPS coordinates, taking still frame pictures tagged with the GPS information, taking video to serve as a dash cam or web camera, provide infotainment within a vehicle, the ability to interface with the raspberry pi via the Internet, and finally, as a sky watching camera for nighttime astronomy.
 
 ## LICENSE
 

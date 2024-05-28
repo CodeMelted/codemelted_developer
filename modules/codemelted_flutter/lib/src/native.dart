@@ -28,11 +28,12 @@ import 'dart:io';
 
 import 'package:codemelted_flutter/codemelted_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 /// Will create an embeddable web view for a mobile native platform. Will fail
 /// for desktop target.s
 Widget createWebView({required String url, Key? key}) {
-  throw "NOT IMPLEMENTED YET";
+  return WebViewWidget(controller: WebViewController());
 }
 
 /// TBD

@@ -25,30 +25,6 @@
 
 [string]$GEN_HTML_PERL_SCRIPT = "/ProgramData/chocolatey/lib/lcov/tools/bin/genhtml"
 
-[string]$htmlSdkHeader = @"
-<link rel="stylesheet" href="https://codemelted.com/assets/css/scrollbars.css">
-<link rel="stylesheet" href="https://codemelted.com/assets/css/header.css">
-<script src="https://codemelted.com/assets/js/header.js"></script>
-<div class="cm-header">
-    <div>CodeMelted - DEV</div>
-    <div></div>
-    <div></div>
-    <a title="Share" href="#" onclick="sharePage(); return false;">🔗</a>
-    <a title="To CodeMelted" href="#" onclick="redirectPage(); return false;"><img src="https://codemelted.com/assets/images/favicon_io_pwa/apple-touch-icon.png" /></a>
-</div><br />
-"@
-
-[string]$htmlHeader = @"
-<script src="https://codemelted.com/assets/js/header.js"></script>
-<div class="cm-header">
-    <div>CodeMelted - DEV</div>
-    <a title="Read Aloud" href="#" onclick="readPage(); return false;">▶️</a>
-    <a title="Print" href="#" onclick="printPage(); return false;">🖨️</a>
-    <a title="Share" href="#" onclick="sharePage(); return false;">🔗</a>
-    <a title="To CodeMelted" href="#" onclick="redirectPage(); return false;"><img src="https://codemelted.com/assets/images/favicon_io_pwa/apple-touch-icon.png" /></a>
-</div>
-"@
-
 [string]$htmlTemplate = @"
 <!DOCTYPE html>
 <html lang="en"><head>
@@ -66,7 +42,6 @@
         }
     </style
 </head><body><div class="content-main">
-$htmlHeader
 [CONTENT]
 [MERMAID_SCRIPT]
 </div></body></html>
@@ -97,7 +72,7 @@ function build([string[]]$params) {
         codemelted_flutter
         codemelted_js
         codemelted_pwsh
-        raspberry_pi
+        codemelted_pi
 
         # Now go copy those static sdk sites.
         Remove-Item -Path _dist -Recurse -Force -ErrorAction Ignore
@@ -106,14 +81,14 @@ function build([string[]]$params) {
         New-Item -Path _dist/modules/codemelted_flutter -ItemType Directory -ErrorAction Ignore
         New-Item -Path _dist/modules/codemelted_js -ItemType Directory -ErrorAction Ignore
         New-Item -Path _dist/modules/codemelted_pwsh -ItemType Directory -ErrorAction Ignore
-        New-Item -Path _dist/raspberry_pi -ItemType Directory -ErrorAction Ignore
+        New-Item -Path _dist/codemelted_pi -ItemType Directory -ErrorAction Ignore
 
         Copy-Item -Path docs/* -Destination _dist/ -Recurse
         Copy-Item -Path modules/codemelted_cpp/docs/* -Destination _dist/modules/codemelted_cpp/ -Recurse
         Copy-Item -Path modules/codemelted_flutter/docs/* -Destination _dist/modules/codemelted_flutter/ -Recurse
         Copy-Item -Path modules/codemelted_js/docs/* -Destination _dist/modules/codemelted_js/ -Recurse
         Copy-Item -Path modules/codemelted_pwsh/docs/* -Destination _dist/modules/codemelted_pwsh/ -Recurse
-        Copy-Item -Path raspberry_pi/docs/* -Destination _dist/raspberry_pi/ -Recurse
+        Copy-Item -Path codemelted_pi/docs/* -Destination _dist/codemelted_pi/ -Recurse
     }
 
     # Builds the codemelted_cpp module.
@@ -125,7 +100,6 @@ function build([string[]]$params) {
         message "Generating doxygen"
         doxygen doxygen.cfg
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
-        $htmlData = $htmlData.Replace("<center>", "$htmlSdkHeader<center>")
         $htmlData = $htmlData.Replace("README.md", "index.html")
         $htmlData | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
@@ -189,7 +163,6 @@ function build([string[]]$params) {
         $html = $html.Replace(".md", ".html")
         $html | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
-        Copy-Item -Path README.md -Destination docs/ -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_develoepr build completed."
@@ -228,7 +201,6 @@ function build([string[]]$params) {
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
         $htmlData = $htmlData.Replace("codemelted_flutter - Dart API docs", "CodeMelted - Flutter Module")
         $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png"')
-        $htmlData = $htmlData.Replace("<center>", "$htmlSdkHeader<center>")
         $htmlData = $htmlData.Replace("README.md", "index.html")
         $htmlData | Out-File docs/index.html -Force
 
@@ -274,7 +246,6 @@ function build([string[]]$params) {
         # Fix the title
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
         $htmlData = $htmlData.Replace("<title>Home</title>", "<title>CodeMelted - JS Module</title>")
-        $htmlData = $htmlData.Replace("<center>", "$htmlSdkHeader<center>")
         $htmlData = $htmlData.Replace("README.md", "index.html")
         $htmlData | Out-File docs/index.html -Force
 
@@ -309,12 +280,12 @@ function build([string[]]$params) {
         message "codemelted_pwsh module build completed."
     }
 
-    # Builds the raspberry_pi module.
-    function raspberry_pi {
-        message "Now building raspberry_pi project"
+    # Builds the codemelted_pi module.
+    function codemelted_pi {
+        message "Now building codemelted_pi project"
 
         $mermaidScript = Get-Content assets/templates/mermaid.html -Raw
-        Set-Location $PSScriptRoot/raspberry_pi
+        Set-Location $PSScriptRoot/codemelted_pi
         Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
         New-Item -Path docs -ItemType Directory -ErrorAction Ignore
 
@@ -333,7 +304,7 @@ function build([string[]]$params) {
         Copy-Item -Path *.png -Destination docs/ -Force
 
         Set-Location $PSScriptRoot
-        message "raspberry_pi project build completed."
+        message "codemelted_pi project build completed."
     }
 
     # Main Exection
@@ -344,7 +315,7 @@ function build([string[]]$params) {
         "--codemelted_flutter" { codemelted_flutter }
         "--codemelted_js" { codemelted_js }
         "--codemelted_pwsh" { codemelted_pwsh }
-        "--raspberry_pi" { raspberry_pi }
+        "--codemelted_pi" { codemelted_pi }
         default { Write-Host "ERROR: Invalid parameter specified." }
     }
 }

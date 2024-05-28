@@ -9,6 +9,7 @@
     "Deno",
     "Embeddable",
     "Fullscreen",
+    "geolocator",
     "HTMLI",
     "lerp",
     "messageerror",
