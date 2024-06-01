@@ -77,24 +77,24 @@ function build([string[]]$params) {
         # Now go copy those static sdk sites.
         Remove-Item -Path _dist -Recurse -Force -ErrorAction Ignore
         New-Item -Path _dist -ItemType Directory -ErrorAction Ignore
-        New-Item -Path _dist/modules/codemelted_cpp -ItemType Directory -ErrorAction Ignore
-        New-Item -Path _dist/modules/codemelted_flutter -ItemType Directory -ErrorAction Ignore
-        New-Item -Path _dist/modules/codemelted_js -ItemType Directory -ErrorAction Ignore
-        New-Item -Path _dist/modules/codemelted_pwsh -ItemType Directory -ErrorAction Ignore
+        New-Item -Path _dist/codemelted_cpp -ItemType Directory -ErrorAction Ignore
+        New-Item -Path _dist/codemelted_flutter -ItemType Directory -ErrorAction Ignore
+        New-Item -Path _dist/codemelted_js -ItemType Directory -ErrorAction Ignore
+        New-Item -Path _dist/codemelted_pwsh -ItemType Directory -ErrorAction Ignore
         New-Item -Path _dist/codemelted_pi -ItemType Directory -ErrorAction Ignore
 
         Copy-Item -Path docs/* -Destination _dist/ -Recurse
-        Copy-Item -Path modules/codemelted_cpp/docs/* -Destination _dist/modules/codemelted_cpp/ -Recurse
-        Copy-Item -Path modules/codemelted_flutter/docs/* -Destination _dist/modules/codemelted_flutter/ -Recurse
-        Copy-Item -Path modules/codemelted_js/docs/* -Destination _dist/modules/codemelted_js/ -Recurse
-        Copy-Item -Path modules/codemelted_pwsh/docs/* -Destination _dist/modules/codemelted_pwsh/ -Recurse
+        Copy-Item -Path codemelted_cpp/docs/* -Destination _dist/codemelted_cpp/ -Recurse
+        Copy-Item -Path codemelted_flutter/docs/* -Destination _dist/codemelted_flutter/ -Recurse
+        Copy-Item -Path codemelted_js/docs/* -Destination _dist/codemelted_js/ -Recurse
+        Copy-Item -Path codemelted_pwsh/docs/* -Destination _dist/codemelted_pwsh/ -Recurse
         Copy-Item -Path codemelted_pi/docs/* -Destination _dist/codemelted_pi/ -Recurse
     }
 
     # Builds the codemelted_cpp module.
     function codemelted_cpp {
         message "Now building codemelted_cpp module."
-        Set-Location $PSScriptRoot/modules/codemelted_cpp
+        Set-Location $PSScriptRoot/codemelted_cpp
         Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
 
         message "Generating doxygen"
@@ -171,7 +171,7 @@ function build([string[]]$params) {
     # Builds the codemelted_flutter module docs directory.
     function codemelted_flutter {
         message "Now building codemelted_flutter module"
-        Set-Location $PSScriptRoot/modules/codemelted_flutter
+        Set-Location $PSScriptRoot/codemelted_flutter
         Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
 
         message "Running flutter test framework"
@@ -211,7 +211,7 @@ function build([string[]]$params) {
     # Builds the codemelted_js module.
     function codemelted_js {
         message "Now building codemelted_js module"
-        Set-Location $PSScriptRoot/modules/codemelted_js
+        Set-Location $PSScriptRoot/codemelted_js
         Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
 
         message "Now Running Deno tests"
@@ -258,7 +258,7 @@ function build([string[]]$params) {
         message "Now building codemelted_pwsh module"
 
         $mermaidScript = Get-Content assets/templates/mermaid.html -Raw
-        Set-Location $PSScriptRoot/modules/codemelted_pwsh
+        Set-Location $PSScriptRoot/codemelted_pwsh
         Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
         New-Item -Path docs -ItemType Directory -ErrorAction Ignore
 
