@@ -41,10 +41,9 @@ import 'package:codemelted_flutter/platform/stub.dart'
 */
 // ----------------------------------------------------------------------------
 
-/// Creates an embedded web view for the mobile / web targets.
-Widget createWebView({required String url, Key? key}) {
-  throw "Stub. Should Not Get This";
-}
+// ----------------------------------------------------------------------------
+// [Async IO Definitions] -----------------------------------------------------
+// ----------------------------------------------------------------------------
 
 /// Creates a dedicated FIFO worker based on the specified target.
 CAsyncWorker createWorker({
@@ -52,12 +51,9 @@ CAsyncWorker createWorker({
 }) =>
     throw 'Stub. Should not get this';
 
-/// Provides the ability to lookup environment variables
-String? getEnvironment(String key) => throw 'Stub. Should not get this';
-
-/// Web target only function to determine if the web app is installed as a
-/// Progressive Web Application (PWA).
-bool get isPWA => throw "Stub. Should Not Get This";
+// ----------------------------------------------------------------------------
+// [Dialog Definitions] -------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 /// Attempts to open the native web browser for the given platform.
 void openWebBrowser({
@@ -67,3 +63,31 @@ void openWebBrowser({
   double? width,
 }) =>
     throw "Stub. Should Not Get This";
+
+// ----------------------------------------------------------------------------
+// [Runtime Definitions] ------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Provides the ability to lookup environment variables
+String? getEnvironment(String key) => throw 'Stub. Should not get this';
+
+/// Web target only function to determine if the web app is installed as a
+/// Progressive Web Application (PWA).
+bool get isPWA => throw "Stub. Should Not Get This";
+
+// ----------------------------------------------------------------------------
+// [Widget Definitions] -------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Creates an embedded web view for the mobile / web targets.
+Widget createWebView(CWebViewController controller) {
+  throw "Stub. Should Not Get This";
+}
+
+/// Creates a web view controller that can be utilized on mobile / web targets.
+CWebViewController createWebViewController({
+  required String url,
+  CWebChannelCallback? onMessageReceived,
+  CWebTargetConfig? webTargetOnlyConfig,
+}) =>
+    throw "Stub. Should not get this.";

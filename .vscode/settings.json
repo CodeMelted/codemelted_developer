@@ -11,6 +11,7 @@
     "Fullscreen",
     "geolocator",
     "HTMLI",
+    "iframe",
     "lerp",
     "messageerror",
     "nodoc",

@@ -37,7 +37,8 @@ import 'dart:isolate';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:codemelted_flutter/src/stub.dart'
     if (dart.library.io) 'package:codemelted_flutter/src/native.dart'
-    if (dart.library.js) 'package:codemelted_flutter/src/web.dart' as platform;
+    if (dart.library.js_interop) 'package:codemelted_flutter/src/web.dart'
+    as platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1008,17 +1009,97 @@ class CTabItem {
   }
 }
 
-class CWebViewController extends ChangeNotifier {
+/// Sets up a channel for allowing the receipt of data from the web content.
+typedef CWebChannelCallback = Future<void> Function(dynamic);
+
+/// Enumerations set specifying the allowed actions within the embedded web
+/// view when the compile target is web.
+enum CSandboxAllow {
+  forms("allow-forms"),
+  modals("allow-modals"),
+  orientationLock("allow-orientation-lock"),
+  pointerLock("allow-pointer-lock"),
+  popups("allow-popups"),
+  popupsToEscapeSandbox("allow-popups-to-escape-sandbox"),
+  presentation("allow-presentation"),
+  sameOrigin("allow-same-origin"),
+  scripts("allow-scripts"),
+  topNavigation("allow-top-navigation"),
+  topNavigationByUserActivation("allow-top-navigation-by-user-activation");
+
+  final String sandbox;
+
+  const CSandboxAllow(this.sandbox);
+}
+
+/// Represents configuration items for the [CWebViewController] specific for
+/// the web target when constructing a [CodeMeltedAPI.uiWebView] widget.
+class CWebTargetConfig {
+  /// The policy defines what features are available to the
+  /// webview element (for example, access to the microphone, camera, battery,
+  /// web-share, etc.) based on the origin of the request.
+  final String allow;
+
+  /// Whether to allow the embedded web view to request full screen access.
+  final bool allowFullScreen;
+
+  /// The set of [CSandboxAllow] permissions for the web view.
+  final List<CSandboxAllow> sandbox;
+
+  const CWebTargetConfig({
+    this.allow = "",
+    this.allowFullScreen = true,
+    this.sandbox = const [],
+  });
+}
+
+/// Sets up the abstract web view controller for being able to change the
+/// web page of the embedded view and if necessary, communicate with the loaded
+/// page when constructing a [CodeMeltedAPI.uiWebView] widget.
+abstract class CWebViewController {
+  /// The [CWebChannelCallback] to receive messages.
+  final CWebChannelCallback? onMessageReceived;
+
+  /// A [CWebTargetConfig] when the embedded web view is for the web compiled
+  /// target.
+  final CWebTargetConfig? webTargetOnlyConfig;
+
+  /// The URL currently loaded in the embedded view widget.
   late String _url;
 
-  CWebViewController({required String url}) {
-    _url = url;
-  }
-
+  /// Sets / gets the currently loaded URL in the embedded web view.
   String get url => _url;
   set url(String v) {
     _url = v;
-    notifyListeners();
+    onUrlChanged();
+  }
+
+  /// Handles the changing of the URL within the web view.
+  Future<void> onUrlChanged();
+
+  /// Posts a message to the currently loaded web page.
+  Future<void> postMessage(String data);
+
+  /// Utility method to construct a controller for the proper target of
+  /// mobile / web.
+  static CWebViewController create({
+    required String url,
+    CWebChannelCallback? onMessageReceived,
+    CWebTargetConfig? webTargetOnlyConfig,
+  }) {
+    return platform.createWebViewController(
+      url: url,
+      onMessageReceived: onMessageReceived,
+    );
+  }
+
+  /// Initial constructor for the controller.
+  CWebViewController({
+    required String url,
+    this.onMessageReceived,
+    this.webTargetOnlyConfig,
+  }) {
+    _url = url;
   }
 }
 
@@ -1379,7 +1460,7 @@ class CodeMeltedAPI {
       actions: [
         _buildButton<void>("OK"),
       ],
-      content: uiWebView(url: url),
+      content: uiWebView(CWebViewController.create(url: url)),
       title: title ?? "Browser",
       height: dlgHeight,
       width: dlgWidth,
@@ -2666,14 +2747,8 @@ class CodeMeltedAPI {
   }
 
   /// Provides the ability to view web content on mobile / web targets.
-  Widget uiWebView({
-    required String url,
-    Key? key,
-  }) {
-    return platform.createWebView(
-      key: key,
-      url: url,
-    );
+  Widget uiWebView(CWebViewController controller) {
+    return platform.createWebView(controller);
   }
 
   /// Retrieves the available width of the specified context.

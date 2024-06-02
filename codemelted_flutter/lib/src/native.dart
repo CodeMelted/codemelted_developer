@@ -30,17 +30,33 @@ import 'package:codemelted_flutter/codemelted_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-/// Will create an embeddable web view for a mobile native platform. Will fail
-/// for desktop target.s
-Widget createWebView({required String url, Key? key}) {
-  return WebViewWidget(controller: WebViewController());
-}
+// ----------------------------------------------------------------------------
+// [Async IO Definitions] -----------------------------------------------------
+// ----------------------------------------------------------------------------
 
 /// TBD
 CAsyncWorker createWorker({
   String? url,
 }) =>
     throw "NOT IMPLEMENTED YET";
+
+// ----------------------------------------------------------------------------
+// [Dialog Definitions] -------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Will attempt to open a web browser depending on the app target.
+void openWebBrowser({
+  required String url,
+  String? target,
+  double? height,
+  double? width,
+}) {
+  throw "NOT IMPLEMENTED YET";
+}
+
+// ----------------------------------------------------------------------------
+// [Runtime Definitions] ------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 /// Searches the platforms environment for the specified key and returns
 /// its value if found or null if not found.
@@ -53,12 +69,76 @@ String? getEnvironment(String key) {
 /// Always returns false. Native apps cannot be PWAs.
 bool get isPWA => false;
 
-/// Will attempt to open a web browser depending on the app target.
-void openWebBrowser({
+// ----------------------------------------------------------------------------
+// [Widget Definitions] -------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Implements the [CWebViewController] specific for the mobile targets.
+class _CWebViewController extends CWebViewController {
+  /// The webview_flutter web view controller for our embeddable widget.
+  late WebViewController controller;
+
+  @override
+  Future<void> onUrlChanged() async => controller.loadRequest(Uri.parse(url));
+
+  @override
+  Future<void> postMessage(String data) async {
+    await controller.runJavaScript(
+      '''
+      if (CodeMeltedChannel.onMessageReceived != null) {
+         CodeMeltedChannel.onMessageReceived($data);
+      }''',
+    );
+  }
+
+  /// Sets up the controller for mobile targets to change the URL web view and
+  /// send / receive messages.
+  _CWebViewController({
+    required super.url,
+    super.onMessageReceived,
+    super.webTargetOnlyConfig,
+  }) {
+    controller = WebViewController();
+    controller.setBackgroundColor(const Color(0x00000000));
+    controller.setJavaScriptMode(JavaScriptMode.unrestricted);
+    if (onMessageReceived != null) {
+      controller.addJavaScriptChannel(
+        "CodeMeltedChannel",
+        onMessageReceived: onMessageReceived!,
+      );
+    }
+    controller.loadRequest(Uri.parse(url));
+  }
+}
+
+/// Will create an embeddable web view for a mobile native platform. Will fail
+/// for desktop targets.
+Widget createWebView(CWebViewController controller) {
+  assert(
+    Platform.isAndroid || Platform.isIOS,
+    "CWebViewController is only supported on mobile native platforms "
+    "and not desktop.",
+  );
+  return WebViewWidget(
+    controller: (controller as _CWebViewController).controller,
+  );
+}
+
+/// Will create the web view controller to support the embedded web view for
+/// mobile native targets.
+CWebViewController createWebViewController({
   required String url,
-  String? target,
-  double? height,
-  double? width,
+  CWebChannelCallback? onMessageReceived,
+  CWebTargetConfig? webTargetOnlyConfig,
 }) {
-  throw "NOT IMPLEMENTED YET";
+  assert(
+    Platform.isAndroid || Platform.isIOS,
+    "CWebViewController is only supported on mobile native platforms "
+    "and not desktop.",
+  );
+  return _CWebViewController(
+    url: url,
+    onMessageReceived: onMessageReceived,
+    webTargetOnlyConfig: webTargetOnlyConfig,
+  );
 }
