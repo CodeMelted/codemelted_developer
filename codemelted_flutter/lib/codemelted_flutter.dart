@@ -72,13 +72,11 @@ class _CAppView extends StatefulWidget {
   static bool _isInitialized = false;
 
   /// Sets up the dictionary for usage with the SPA.
-  static final uiState = CObjectDataNotifier(
-    objData: {
-      "darkTheme": ThemeData.dark(useMaterial3: true),
-      "themeMode": ThemeMode.system,
-      "theme": ThemeData.light(useMaterial3: true),
-    },
-  );
+  static final uiState = <String, dynamic>{
+    "darkTheme": ThemeData.dark(useMaterial3: true),
+    "themeMode": ThemeMode.system,
+    "theme": ThemeData.light(useMaterial3: true),
+  };
 
   /// Sets / gets the dark theme for the [CodeMeltedAPI.app].
   static ThemeData get darkTheme => uiState.get<ThemeData>("darkTheme");
@@ -504,6 +502,56 @@ typedef CArray = List<dynamic>;
 
 /// Provides helper methods for the CArray.
 extension CArrayExtension on CArray {
+  /// Builds a map of ChangeNotifier objects to support notification via the
+  /// [CArray] definition.
+  static final _map = <dynamic, ChangeNotifier?>{};
+
+  /// Adds an event listener so when changes are made via the
+  /// [CObjectExtension.set] method.
+  void addListener(void Function() listener) {
+    if (_map[this] == null) {
+      _map[this] = ChangeNotifier();
+    }
+    _map[this]!.addListener(listener);
+  }
+
+  /// Removes an event listener from the [CArray].
+  void removeListener(void Function() listener) {
+    _map[this]?.removeListener(listener);
+  }
+
+  /// Provides a method to set data elements on the [CArray].
+  void set<T>(int index, T value, {bool notify = false}) {
+    insert(index, value);
+    if (notify) {
+      // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
+      _map[this]?.notifyListeners();
+    }
+  }
+
+  /// Provides the ability to extract a data element from the represented
+  /// [CArray] at the given index.
+  T get<T>(int index) => elementAt(index) as T;
+
+  CArray copy() {
+    var copy = <dynamic>[];
+    copy.addAll(this);
+    return copy;
+  }
+
+  /// Attempts to parse the serialized string data and turn it into a
+  /// [CArray]. Any data previously held by this object is cleared. False is
+  /// returned if it could not parse the data.
+  bool parse(String data) {
+    try {
+      clear();
+      addAll(jsonDecode(data));
+      return true;
+    } catch (ex) {
+      return false;
+    }
+  }
+
   /// Converts the JSON object to a string returning null if it cannot
   String? stringify() => jsonEncode(this);
 }
@@ -511,54 +559,64 @@ extension CArrayExtension on CArray {
 /// Defines an object definition to match a valid JSON Object construct.
 typedef CObject = Map<String, dynamic>;
 
-/// Provides helper methods for the CObject
+/// Provides helper methods for the [CObject] for set / get data, implementing
+/// a [ChangeNotifier], and being able to serialize / deserialize between
+/// JSON and string data.
 extension CObjectExtension on CObject {
+  /// Builds a map of ChangeNotifier objects to support notification via the
+  /// [CObject] definition.
+  static final _map = <dynamic, ChangeNotifier?>{};
+
+  /// Adds an event listener so when changes are made via the
+  /// [CObjectExtension.set] method.
+  void addListener(void Function() listener) {
+    if (_map[this] == null) {
+      _map[this] = ChangeNotifier();
+    }
+    _map[this]!.addListener(listener);
+  }
+
+  /// Removes an event listener from the [CObject].
+  void removeListener(void Function() listener) {
+    _map[this]?.removeListener(listener);
+  }
+
+  /// Attempts to parse the serialized string data and turn it into a
+  /// [CObject]. Any data previously held by this object is cleared. False is
+  /// returned if it could not parse the data.
+  bool parse(String data) {
+    try {
+      clear();
+      addAll(jsonDecode(data));
+      return true;
+    } catch (ex) {
+      return false;
+    }
+  }
+
   /// Converts the JSON object to a string returning null if it cannot.
-  String? stringify() => jsonEncode(this);
-}
-
-/// [CObject] wrapper allowing for using generics to map the data along with
-/// extending a [ChangeNotifier] allowing for alerting listeners to data
-/// changes with the internal data object.
-class CObjectDataNotifier extends ChangeNotifier {
-  /// Holds the [CObject] data map.
-  final _data = CObject();
-
-  /// Constructor for the object with the ability to initialize it from the
-  /// named parameters
-  CObjectDataNotifier({CObject? objData, String? strData}) {
-    assert(
-      (objData != null && strData == null) ||
-          (objData == null && strData != null) ||
-          (objData == null && strData == null),
-      "Only one object can be used for initialization or none at all",
-    );
-    if (objData != null) {
-      _data.addAll(objData);
-    } else if (strData != null) {
-      final data = strData.asObject();
-      if (data != null) {
-        _data.addAll(data);
-      }
+  String? stringify() {
+    try {
+      return jsonEncode(this);
+    } catch (ex) {
+      return null;
     }
   }
 
-  /// Provides a method to set data elements within the internal [CObject].
+  /// Provides a method to set data elements on the [CObject].
   void set<T>(String key, T value, {bool notify = false}) {
-    _data[key] = value;
+    this[key] = value;
     if (notify) {
-      notifyListeners();
+      // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
+      _map[this]?.notifyListeners();
     }
   }
 
-  /// Provides the ability to extract the data element from the internal
+  /// Provides the ability to extract a data element from the represented
   /// [CObject].
   T get<T>(String key) {
-    return _data[key];
+    return this[key];
   }
-
-  /// Utility to get a String representation of the [CObject]
-  String? stringify() => _data.stringify();
 }
 
 /// Provides a series of asXXX() conversion from a string data type and do non
@@ -972,8 +1030,6 @@ enum CButtonType { elevated, filled, icon, outlined, text }
 /// utilized.
 enum CImageType { asset, file, memory, network }
 
-enum CTabIconPlacement { top, leading, trailing }
-
 /// Defines a tab item to utilize with the [CodeMeltedAPI.uiTabView] method.
 class CTabItem {
   /// The content displayed with the tab.
@@ -982,20 +1038,12 @@ class CTabItem {
   /// An icon for the tab within the tab view.
   final dynamic icon;
 
-  /// Determines where to place the icon with the title if title is specified.
-  final CTabIconPlacement iconPlacement;
-
-  /// Specifies the margin between the icon and the title.
-  final EdgeInsetsGeometry? iconMargin;
-
   /// A title with the tab within the tab view.
   final String? title;
 
   CTabItem({
     required this.content,
     this.icon,
-    this.iconPlacement = CTabIconPlacement.top,
-    this.iconMargin,
     this.title,
   }) {
     assert(
@@ -2591,6 +2639,7 @@ class CodeMeltedAPI {
     Color? backgroundColor,
     Clip clipBehavior = Clip.hardEdge,
     double? height,
+    EdgeInsetsGeometry? iconMargin,
     double indicatorWeight = 2.0,
     bool isScrollable = false,
     void Function(int)? onTap,
@@ -2605,7 +2654,7 @@ class CodeMeltedAPI {
         Tab(
           key: key,
           icon: w.icon is IconData ? Icon(w.icon) : w.icon,
-          iconMargin: w.iconMargin,
+          iconMargin: iconMargin,
           height: height,
           text: w.title,
         ),
