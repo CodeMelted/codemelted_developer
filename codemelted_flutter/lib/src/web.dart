@@ -145,13 +145,13 @@ String? getEnvironment(String key) {
 class _CodeMeltedChannel {
   /// The callback to process received messages from the JavaScript postMessage
   /// call into the flutter app.
-  final CWebChannelCallback onMessageReceived;
+  late CWebChannelCallback dartOnMessageReceived;
 
   /// The exposed postMessage function to the JavaScript page.
-  void postMessage(JSAny v) => onMessageReceived(v);
+  void postMessage(JSAny v) => dartOnMessageReceived(v);
 
   /// Constructor for the class.
-  _CodeMeltedChannel(this.onMessageReceived);
+  _CodeMeltedChannel(this.dartOnMessageReceived);
 }
 
 /// Controller specific implementation for the web target to mirror the
@@ -183,7 +183,6 @@ class _CWebViewController extends CWebViewController {
     if (channel != null) {
       // We do, make sure the iframe element gets constructed properly.
       while (_iFrameElement.contentWindow == null) {
-        print("Waiting for iFrameElement");
         await Future.delayed(const Duration(milliseconds: 50));
       }
 
@@ -199,7 +198,7 @@ class _CWebViewController extends CWebViewController {
   @override
   Future<void> postMessage(String data) async {
     // Go get the IFrames content window.
-    var channel = _iFrameElement.contentWindow!.getProperty(
+    var channel = _iFrameElement.contentWindow?.getProperty(
       "CodeMeltedChannel".toJS,
     ) as JSObject?;
 
@@ -249,13 +248,14 @@ Widget createWebView(CWebViewController controller) {
   iFrameElement.src = webController.url;
 
   // Register it and return it.
+  var viewType = UniqueKey();
   platformViewRegistry.registerViewFactory(
-    webController.url,
+    viewType.toString(),
     (int viewId) => iFrameElement,
   );
   webController.iFrameElement = iFrameElement;
   return HtmlElementView(
-    viewType: webController.url,
+    viewType: viewType.toString(),
   );
 }
 

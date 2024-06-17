@@ -297,6 +297,12 @@ class _CAppView extends StatefulWidget {
 
 class _CAppViewState extends State<_CAppView> {
   @override
+  void initState() {
+    _CAppView.uiState.addListener(() => setState(() {}));
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -424,17 +430,17 @@ class CAudioPlayer {
 
   /// Plays or resumes a paused audio source.
   Future<void> play() async {
-    if (_state != CAudioState.paused || _state != CAudioState.stopped) {
+    if (_state == CAudioState.playing) {
       return;
     }
 
     if (_player is FlutterTts) {
-      (_player as FlutterTts).speak(_data);
+      await (_player as FlutterTts).speak(_data);
     } else {
       if (_state == CAudioState.paused) {
-        (_player as AudioPlayer).resume();
+        await (_player as AudioPlayer).resume();
       } else {
-        (_player as AudioPlayer).play(_data);
+        await (_player as AudioPlayer).play(_data);
       }
     }
     _state = CAudioState.playing;
@@ -447,39 +453,25 @@ class CAudioPlayer {
     }
 
     if (_player is FlutterTts) {
-      (_player as FlutterTts).pause();
+      await (_player as FlutterTts).pause();
     } else {
-      (_player as AudioPlayer).pause();
+      await (_player as AudioPlayer).pause();
     }
     _state = CAudioState.paused;
   }
 
   /// Stops the playing audio source.
   Future<void> stop() async {
-    if (_state != CAudioState.playing || _state != CAudioState.paused) {
+    if (_state == CAudioState.stopped) {
       return;
     }
 
     if (_player is FlutterTts) {
-      (_player as FlutterTts).stop();
-    } else {
-      (_player as AudioPlayer).stop();
-    }
-    _state = CAudioState.stopped;
-  }
-
-  /// Disposes of the audio player and resources.
-  Future<void> dispose() async {
-    if (_player is FlutterTts) {
       await (_player as FlutterTts).stop();
-      _player = null;
-      _data = null;
     } else {
       await (_player as AudioPlayer).stop();
-      await (_player as AudioPlayer).dispose();
-      _player = null;
-      _data = null;
     }
+    _state = CAudioState.stopped;
   }
 }
 
@@ -1346,7 +1338,7 @@ class CodeMeltedAPI {
     required String data,
     double volume = 0.5,
     double pitch = 1.0,
-    double rate = 0.5,
+    double rate = 1.0,
     FlutterTts? mock,
   }) async {
     final player = mock ?? FlutterTts();
@@ -1354,6 +1346,9 @@ class CodeMeltedAPI {
     await player.setVolume(volume);
     await player.setSpeechRate(rate);
     player.setErrorHandler((message) {
+      if (message.toString().containsIgnoreCase("interrupted")) {
+        return;
+      }
       logError(data: message, st: StackTrace.current);
     });
     return CAudioPlayer._(player, data);
@@ -1713,33 +1708,33 @@ class CodeMeltedAPI {
         "";
   }
 
-  /// Provides the ability to show a full page within the [CodeMeltedAPI.app] with the
-  /// ability to specify the title and actions in the top bar. You can also
-  /// specify bottom actions.
-  void dlgFullPage({
-    required Widget content,
-    List<Widget>? actions,
-    bool? centerTitle,
-    bool showBackButton = true,
-    String? title,
-  }) async {
-    Navigator.push(
-      cScaffoldKey.currentContext!,
-      MaterialPageRoute(
-        builder: (context) => Material(
-          child: Scaffold(
-            appBar: AppBar(
-              automaticallyImplyLeading: showBackButton,
-              actions: actions,
-              centerTitle: centerTitle,
-              title: title != null ? Text(title) : null,
-            ),
-            body: content,
-          ),
-        ),
-      ),
-    );
-  }
+  // /// Provides the ability to show a full page within the [CodeMeltedAPI.app] with the
+  // /// ability to specify the title and actions in the top bar. You can also
+  // /// specify bottom actions.
+  // void dlgFullPage({
+  //   required Widget content,
+  //   List<Widget>? actions,
+  //   bool? centerTitle,
+  //   bool showBackButton = true,
+  //   String? title,
+  // }) async {
+  //   Navigator.push(
+  //     cScaffoldKey.currentContext!,
+  //     MaterialPageRoute(
+  //       builder: (context) => Material(
+  //         child: Scaffold(
+  //           appBar: AppBar(
+  //             automaticallyImplyLeading: showBackButton,
+  //             actions: actions,
+  //             centerTitle: centerTitle,
+  //             title: title != null ? Text(title) : null,
+  //           ),
+  //           body: content,
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   /// Shows a snackbar at the bottom of the content area to display
   /// information.
@@ -1971,6 +1966,11 @@ class CodeMeltedAPI {
   // [Runtime Implementation] -------------------------------------------------
   // --------------------------------------------------------------------------
 
+  /// Copies data to the system clipboard
+  Future<void> copyToClipboard(String data) async {
+    return Clipboard.setData(ClipboardData(text: data));
+  }
+
   /// Will search for the specified environment variable returning null if not
   /// found.
   String? environment(String key) => platform.getEnvironment(key);
@@ -2041,6 +2041,7 @@ class CodeMeltedAPI {
     SearchViewThemeData? searchViewTheme,
     SegmentedButtonThemeData? segmentedButtonTheme,
     SliderThemeData? sliderTheme,
+    SnackBarThemeData? snackBarTheme,
     InteractiveInkFeatureFactory? splashFactory,
     SwitchThemeData? switchTheme,
     TabBarTheme? tabBarTheme,
@@ -2101,6 +2102,7 @@ class CodeMeltedAPI {
       sliderTheme: sliderTheme,
       splashFactory: splashFactory,
       switchTheme: switchTheme,
+      snackBarTheme: snackBarTheme,
       tabBarTheme: tabBarTheme,
       textButtonTheme: textButtonTheme,
       textSelectionTheme: textSelectionTheme,
