@@ -45,11 +45,30 @@ import 'package:codemelted_flutter/platform/stub.dart'
 // [Async IO Definitions] -----------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Creates a dedicated FIFO worker based on the specified target.
+/// Creates the dedicated FIFO Isolate for background processing on mobile /
+/// native targets.
+CAsyncWorker createIsolate({
+  required CAsyncWorkerListener listener,
+  required CIsolateConfig config,
+}) {
+  throw "Stub. Should not get this";
+}
+
+/// Creates the dedicated FIFO external process to the flutter app.
+CAsyncWorker createProcess({
+  required CAsyncWorkerListener listener,
+  required CProcessConfig config,
+}) {
+  throw "Stub. Should not get this";
+}
+
+/// Creates the dedicated FIFO web worker.
 CAsyncWorker createWorker({
-  String? url,
-}) =>
-    throw 'Stub. Should not get this';
+  required CAsyncWorkerListener listener,
+  required CWorkerConfig config,
+}) {
+  throw "Stub. Should not get this";
+}
 
 // ----------------------------------------------------------------------------
 // [Dialog Definitions] -------------------------------------------------------
@@ -79,15 +98,15 @@ bool get isPWA => throw "Stub. Should Not Get This";
 // [Widget Definitions] -------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Creates an embedded web view for the mobile / web targets.
-Widget createWebView(CWebViewController controller) {
-  throw "Stub. Should Not Get This";
-}
+// /// Creates an embedded web view for the mobile / web targets.
+// Widget createWebView(CWebViewController controller) {
+//   throw "Stub. Should Not Get This";
+// }
 
-/// Creates a web view controller that can be utilized on mobile / web targets.
-CWebViewController createWebViewController({
-  required String url,
-  CWebChannelCallback? onMessageReceived,
-  CWebTargetConfig? webTargetOnlyConfig,
-}) =>
-    throw "Stub. Should not get this.";
+// /// Creates a web view controller that can be utilized on mobile / web targets.
+// CWebViewController createWebViewController({
+//   required String url,
+//   CWebChannelCallback? onMessageReceived,
+//   CWebTargetConfig? webTargetOnlyConfig,
+// }) =>
+//     throw "Stub. Should not get this.";

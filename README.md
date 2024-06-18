@@ -62,8 +62,8 @@ flowchart TD
             ucAudioPlayer([Audio Player])
             ucDatabase([Database])
             ucDeviceOrientation([Device Orientation])
-            ucDeviceHardware([Device Hardware])
-            ucFileManager([File Manager])
+            ucDiskManager([Disk Manager])
+            ucHardwareDevice([Hardware Device])
             ucNetworkSockets([Network Sockets])
             ucWebRTC([Web RTC])
         end

@@ -51,7 +51,7 @@ class CWebWorker extends CAsyncWorker {
   @override
   void terminate() => _worker.terminate();
 
-  CWebWorker(this.url, super.listener) {
+  CWebWorker(super.listener, this.url) {
     _worker = Worker(url);
     _worker.addEventListener(
       "message",
@@ -74,11 +74,30 @@ class CWebWorker extends CAsyncWorker {
   }
 }
 
-/// Creates the [CAsyncWorker] wrapped web worker.
+/// Creates the dedicated FIFO Isolate for background processing on mobile /
+/// native targets.
+CAsyncWorker createIsolate({
+  required CAsyncWorkerListener listener,
+  required CIsolateConfig config,
+}) {
+  throw "Not supported on web platform. Only mobile / native platforms.";
+}
+
+/// Creates the dedicated FIFO external process to the flutter app.
+CAsyncWorker createProcess({
+  required CAsyncWorkerListener listener,
+  required CProcessConfig config,
+}) {
+  throw "Not supported on web platform. Only mobile / native platforms.";
+}
+
+/// Creates the dedicated FIFO web worker.
 CAsyncWorker createWorker({
-  String? url,
-}) =>
-    throw "NOT IMPLEMENTED YET";
+  required CAsyncWorkerListener listener,
+  required CWorkerConfig config,
+}) {
+  return CWebWorker(listener, config.url);
+}
 
 // ----------------------------------------------------------------------------
 // [Dialog Definitions] -------------------------------------------------------
@@ -139,135 +158,135 @@ String? getEnvironment(String key) {
 // [Widget Definitions] -------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Handles the message channel to mirror the native WebViewController
-/// interface.
-@JSExport()
-class _CodeMeltedChannel {
-  /// The callback to process received messages from the JavaScript postMessage
-  /// call into the flutter app.
-  late CWebChannelCallback dartOnMessageReceived;
+// /// Handles the message channel to mirror the native WebViewController
+// /// interface.
+// @JSExport()
+// class _CodeMeltedChannel {
+//   /// The callback to process received messages from the JavaScript postMessage
+//   /// call into the flutter app.
+//   late CWebChannelCallback dartOnMessageReceived;
 
-  /// The exposed postMessage function to the JavaScript page.
-  void postMessage(JSAny v) => dartOnMessageReceived(v);
+//   /// The exposed postMessage function to the JavaScript page.
+//   void postMessage(JSAny v) => dartOnMessageReceived(v);
 
-  /// Constructor for the class.
-  _CodeMeltedChannel(this.dartOnMessageReceived);
-}
+//   /// Constructor for the class.
+//   _CodeMeltedChannel(this.dartOnMessageReceived);
+// }
 
-/// Controller specific implementation for the web target to mirror the
-/// behavior of the native.dart WebViewController object.
-class _CWebViewController extends CWebViewController {
-  /// Reference to the HTMLIframeElement created via the createWebView call.
-  late HTMLIFrameElement _iFrameElement;
+// /// Controller specific implementation for the web target to mirror the
+// /// behavior of the native.dart WebViewController object.
+// class _CWebViewController extends CWebViewController {
+//   /// Reference to the HTMLIframeElement created via the createWebView call.
+//   late HTMLIFrameElement _iFrameElement;
 
-  /// Reference to the [_CodeMeltedChannel] exported JavaScript object.
-  _CodeMeltedChannel? channel;
+//   /// Reference to the [_CodeMeltedChannel] exported JavaScript object.
+//   _CodeMeltedChannel? channel;
 
-  /// Sets the IFrame element post createWebView call.
-  set iFrameElement(HTMLIFrameElement v) {
-    _iFrameElement = v;
-    configureMessageChannel();
-  }
+//   /// Sets the IFrame element post createWebView call.
+//   set iFrameElement(HTMLIFrameElement v) {
+//     _iFrameElement = v;
+//     configureMessageChannel();
+//   }
 
-  /// Handles the [_CodeMeltedChannel.postMessage] call to receive messages
-  /// from the HTML page.
-  void handlePostMessage(JSAny v) {
-    if (onMessageReceived != null) {
-      onMessageReceived!(v);
-    }
-  }
+//   /// Handles the [_CodeMeltedChannel.postMessage] call to receive messages
+//   /// from the HTML page.
+//   void handlePostMessage(JSAny v) {
+//     if (onMessageReceived != null) {
+//       onMessageReceived!(v);
+//     }
+//   }
 
-  /// Sets up the Message Channel to communicate with the web page.
-  Future<void> configureMessageChannel() async {
-    // See if we have a channel to hook up.
-    if (channel != null) {
-      // We do, make sure the iframe element gets constructed properly.
-      while (_iFrameElement.contentWindow == null) {
-        await Future.delayed(const Duration(milliseconds: 50));
-      }
+//   /// Sets up the Message Channel to communicate with the web page.
+//   Future<void> configureMessageChannel() async {
+//     // See if we have a channel to hook up.
+//     if (channel != null) {
+//       // We do, make sure the iframe element gets constructed properly.
+//       while (_iFrameElement.contentWindow == null) {
+//         await Future.delayed(const Duration(milliseconds: 50));
+//       }
 
-      // Now hookup the channel.
-      await Future.delayed(const Duration(milliseconds: 50));
-      _iFrameElement.contentWindow!.setProperty(
-        "CodeMeltedChannel".toJS,
-        createJSInteropWrapper(channel!),
-      );
-    }
-  }
+//       // Now hookup the channel.
+//       await Future.delayed(const Duration(milliseconds: 50));
+//       _iFrameElement.contentWindow!.setProperty(
+//         "CodeMeltedChannel".toJS,
+//         createJSInteropWrapper(channel!),
+//       );
+//     }
+//   }
 
-  @override
-  Future<void> postMessage(String data) async {
-    // Go get the IFrames content window.
-    var channel = _iFrameElement.contentWindow?.getProperty(
-      "CodeMeltedChannel".toJS,
-    ) as JSObject?;
+//   @override
+//   Future<void> postMessage(String data) async {
+//     // Go get the IFrames content window.
+//     var channel = _iFrameElement.contentWindow?.getProperty(
+//       "CodeMeltedChannel".toJS,
+//     ) as JSObject?;
 
-    // See if a channel has been setup.
-    if (channel != null) {
-      if (channel.hasProperty("onMessageReceived".toJS).toDart) {
-        channel.callMethod("onMessageReceived".toJS, data.toJS);
-      }
-    }
-  }
+//     // See if a channel has been setup.
+//     if (channel != null) {
+//       if (channel.hasProperty("onMessageReceived".toJS).toDart) {
+//         channel.callMethod("onMessageReceived".toJS, data.toJS);
+//       }
+//     }
+//   }
 
-  @override
-  Future<void> onUrlChanged() async {
-    _iFrameElement.src = url;
-    configureMessageChannel();
-    await configureMessageChannel();
-  }
+//   @override
+//   Future<void> onUrlChanged() async {
+//     _iFrameElement.src = url;
+//     configureMessageChannel();
+//     await configureMessageChannel();
+//   }
 
-  /// Constructor for the class.
-  _CWebViewController({
-    required super.url,
-    super.onMessageReceived,
-    super.webTargetOnlyConfig,
-  }) {
-    if (onMessageReceived != null) {
-      channel = _CodeMeltedChannel(onMessageReceived!);
-    }
-  }
-}
+//   /// Constructor for the class.
+//   _CWebViewController({
+//     required super.url,
+//     super.onMessageReceived,
+//     super.webTargetOnlyConfig,
+//   }) {
+//     if (onMessageReceived != null) {
+//       channel = _CodeMeltedChannel(onMessageReceived!);
+//     }
+//   }
+// }
 
-/// Creates an IFrame as an embeddable web view for the web target.
-Widget createWebView(CWebViewController controller) {
-  // Create the IFrame.
-  var iFrameElement = HTMLIFrameElement();
-  iFrameElement.style.height = "100%";
-  iFrameElement.style.width = "100%";
-  iFrameElement.style.border = 'none';
+// /// Creates an IFrame as an embeddable web view for the web target.
+// Widget createWebView(CWebViewController controller) {
+//   // Create the IFrame.
+//   var iFrameElement = HTMLIFrameElement();
+//   iFrameElement.style.height = "100%";
+//   iFrameElement.style.width = "100%";
+//   iFrameElement.style.border = 'none';
 
-  // Configure based on the controller configuration.
-  var webController = controller as _CWebViewController;
-  iFrameElement.allow = webController.webTargetOnlyConfig!.allow;
-  iFrameElement.allowFullscreen =
-      webController.webTargetOnlyConfig!.allowFullScreen;
-  for (var sandbox in webController.webTargetOnlyConfig!.sandbox) {
-    iFrameElement.sandbox.add(sandbox.sandbox);
-  }
-  iFrameElement.src = webController.url;
+//   // Configure based on the controller configuration.
+//   var webController = controller as _CWebViewController;
+//   iFrameElement.allow = webController.webTargetOnlyConfig!.allow;
+//   iFrameElement.allowFullscreen =
+//       webController.webTargetOnlyConfig!.allowFullScreen;
+//   for (var sandbox in webController.webTargetOnlyConfig!.sandbox) {
+//     iFrameElement.sandbox.add(sandbox.sandbox);
+//   }
+//   iFrameElement.src = webController.url;
 
-  // Register it and return it.
-  var viewType = UniqueKey();
-  platformViewRegistry.registerViewFactory(
-    viewType.toString(),
-    (int viewId) => iFrameElement,
-  );
-  webController.iFrameElement = iFrameElement;
-  return HtmlElementView(
-    viewType: viewType.toString(),
-  );
-}
+//   // Register it and return it.
+//   var viewType = UniqueKey();
+//   platformViewRegistry.registerViewFactory(
+//     viewType.toString(),
+//     (int viewId) => iFrameElement,
+//   );
+//   webController.iFrameElement = iFrameElement;
+//   return HtmlElementView(
+//     viewType: viewType.toString(),
+//   );
+// }
 
-/// Creates a web view tailored to the web target.
-CWebViewController createWebViewController({
-  required String url,
-  CWebChannelCallback? onMessageReceived,
-  CWebTargetConfig? webTargetOnlyConfig,
-}) {
-  return _CWebViewController(
-    url: url,
-    onMessageReceived: onMessageReceived,
-    webTargetOnlyConfig: webTargetOnlyConfig ?? const CWebTargetConfig(),
-  );
-}
+// /// Creates a web view tailored to the web target.
+// CWebViewController createWebViewController({
+//   required String url,
+//   CWebChannelCallback? onMessageReceived,
+//   CWebTargetConfig? webTargetOnlyConfig,
+// }) {
+//   return _CWebViewController(
+//     url: url,
+//     onMessageReceived: onMessageReceived,
+//     webTargetOnlyConfig: webTargetOnlyConfig ?? const CWebTargetConfig(),
+//   );
+// }
