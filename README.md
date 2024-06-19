@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted - Developer
-PUBLISH_DATE: 2024-05-26
+PUBLISH_DATE: 2024-06-19
 AUTHOR: Mark Shaffer
 KEYWORDS: raspberry-pi, modules, cross-platform, gps, cpp-library, html-css-javascript, c-library, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module
 DESCRIPTION: Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify by developing a set of cross platform modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. This allows a developer to maximize their productivity because regardless of the technology, they are learning a similar module API for their solution.
@@ -63,8 +63,8 @@ flowchart TD
             ucDatabase([Database])
             ucDeviceOrientation([Device Orientation])
             ucDiskManager([Disk Manager])
-            ucHardwareDevice([Hardware Device])
-            ucNetworkSockets([Network Sockets])
+            ucHardwarePeripheral([Hardware Peripheral])
+            ucNetworkSocket([Network Socket])
             ucWebRTC([Web RTC])
         end
     end
@@ -72,7 +72,6 @@ flowchart TD
         pwsh[[pwsh]]
         javascript[[javascript]]
         flutter[[flutter]]
-        C[[C/C++]]
     end
     subgraph os[Operating System]
         app[[app]]
@@ -82,9 +81,6 @@ flowchart TD
         hardware[\hardware/]
     end
     Developer--Develops With-->ucModel
-    pwsh--FFI-->C
-    javascript--FFI-->C
-    flutter--FFI-->C
     ucModel--Implemented In-->sdk
     sdk--Targets-->app
     app--Accesses-->disk
@@ -125,7 +121,7 @@ The advanced set of use cases offer more complex actions a developer may need to
 - [Database](use_cases/advanced/database.md)
 - [Device Orientation](use_cases/advanced/device_orientation.md)
 - [Disk Manager](use_cases/advanced/disk_manager.md)
-- [Hardware Device](use_cases/advanced/hardware_device.md)
+- [Hardware Peripheral](use_cases/advanced/hardware_peripheral.md)
 - [Network Socket](use_cases/advanced/network_socket.md)
 - [Web RTC](use_cases/advanced/web_rtc.md)
 
@@ -183,12 +179,11 @@ The versioning of the module will be captured via GitHub or the modules document
 The `build.ps1` script provides the ability to build different elements of this project. Execute the command option below from the root of the `codemelted_developer` repo to get the specified result.
 
 - **./build.ps1 --cdn:** Builds all the other options to a `_dist` directory allowing for a severable static website.
-- **./build.ps1 --codemelted_cpp:** Compiles the modules to a dynamic linked library and generates its SDK documentation.
 - **./build.ps1 --codemelted_developer:** Converts the `README.md` and `use_cases/` to a static website.
 - **./build.ps1 --codemelted_flutter:** Compiles the module and generates its SDK documentation.
 - **./build.ps1 --codemelted_js:** Compiles the module to serve from a website and generates its SDK documentation.
 - **./build.ps1 --codemelted_pwsh:** Compiles the PowerShell module to be installed on your system and generates its SDK documentation.
-- **./build.ps1 --raspberry_pi:** Generates a static website of the raspberry pi `README.md` and supporting markdown files.
+- **./build.ps1 --codemelted_pi:** Generates a static website of the raspberry pi `README.md` and supporting markdown files.
 
 ## USAGE
 
@@ -196,7 +191,6 @@ The `build.ps1` script provides the ability to build different elements of this 
 
 The following are the cross platform modules implementing the identified use cases of this project. It provides several choices for your development needs. The following links take to the specific module implementations for your given domain.
 
-- <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/c.png" /> [C/C++ Module](modules/codemelted_cpp/README.md): This project aims to implement the use cases from the **CodeMelted - Developer** project allowing for a need of speed in an application. It will be developed with a C header interface and a C++ implementation. This allows for the easiest integration into other modules via a Foreign Function Interface (FFI). It will also support web assembly for usage in the web browser. Last but not least, you can use it as its own compilable target for embedded / desktop / server implementations.
 - <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/flutter.png" /> [Flutter Module](modules/codemelted_flutter/README.md): This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the **CodeMelted - Developer** identified use cases, you can be assured to building a powerful native application.
 - <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/deno-js.png" /> [JS Module](modules/codemelted_js/README.md): This project aims to give a common fullstack solution for Progressive Web Applications (PWA) utilizing the **CodeMelted - Developer** use cases. It utilizes the **Deno Runtime** to run as your backend service. This was chosen as it has a full range of services for your backend if you choose to utilize it. You can also take your backend and host it on a different platform. This allows you to not be locked into a vendor for your backend. It was also chosen because it implements the **Browser Web APIs**. This allows the module to implement backend and web frontend common code developing a more complete solution. Lastly, Deno provides the use of TypeScript natively out of the box. So you are able to utilize both JavaScript / TypeScript for your solution and roll with any build system.
 - <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/powershell.png" /> [pwsh Module](modules/codemelted_pwsh/README.md): This project aims to implement **CodeMelted - Developer** use cases with the terminal in mind. The terminal serves as the place developers string together Dev OPS or automated solutions to users. With this in mind, **PowerShell Core** was chosen as the target platform. The reason for this is it has full support for Linux, Mac, and Windows allowing for a common scripting language regardless of the operating system.

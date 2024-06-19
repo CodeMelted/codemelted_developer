@@ -1,14 +1,14 @@
 <!--
-TITLE: CodeMelted - DEV | Advanced Use Case: Hardware Device
+TITLE: CodeMelted - DEV | Advanced Use Case: Hardware Peripheral
 PUBLISH_DATE:
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMelted - DEV, Hardware Device, Advanced Use Case
+KEYWORDS: CodeMelted - DEV, Hardware Peripheral, Advanced Use Case
 DESCRIPTION:
 -->
 <center>
   <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="header.png" /> Advanced Use Case: Hardware Device</h1>
+<h1><img style="height: 35px;" src="header.png" /> Advanced Use Case: Hardware Peripheral</h1>
 
 **Table of Contents**
 
