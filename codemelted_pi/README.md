@@ -14,15 +14,15 @@ Welcome to the **CodeMelted - Raspberry Pi Project** project. This project aims 
 
 ## FEATURES
 
-<mark>TBD</mark>
+<mark>UNDER DEVELOPMENT</mark>
 
 ## GETTING STARTED
 
-<mark>TBD</mark>
+<mark>UNDER DEVELOPMENT</mark>
 
 ## USAGE
 
-<mark>TBD</mark>
+<mark>UNDER DEVELOPMENT</mark>
 
 ## LICENSE
 

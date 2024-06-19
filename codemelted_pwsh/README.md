@@ -15,11 +15,11 @@ PowerShell Core has a rich set of features thanks to .NET Core. First is object 
 
 ## GETTING STARTED
 
-<mark>TBD</mark>
+<mark>UNDER DEVELOPMENT</mark>
 
 ## USAGE
 
-<mark>TBD</mark>
+<mark>UNDER DEVELOPMENT</mark>
 
 ## LICENSE
 

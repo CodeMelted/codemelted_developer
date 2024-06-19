@@ -7,18 +7,17 @@ Welcome to the **CodeMelted - JS Module** project. This project aims to give a c
 
 **Table of Contents**
 
-- [FEATURES](#features)
 - [GETTING STARTED](#getting-started)
 - [USAGE](#usage)
 - [LICENSE](#license)
 
 ## GETTING STARTED
 
-<mark>TBD</mark>
+<mark>UNDER DEVELOPMENT</mark>
 
 ## USAGE
 
-<mark>TBD</mark>
+<mark>UNDER DEVELOPMENT</mark>
 
 ## LICENSE
 

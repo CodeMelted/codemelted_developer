@@ -215,7 +215,7 @@ function build([string[]]$params) {
         Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
 
         message "Now Running Deno tests"
-        deno test --allow-env --allow-net --allow-read --allow-sys --allow-write --coverage=coverage codemelted_test.js
+        deno test --allow-env --allow-net --allow-read --allow-sys --allow-write --coverage=coverage codemelted_test.ts
         deno coverage coverage --lcov > coverage/lcov.info
 
         if ($IsLinux -or $IsMacOS) {
@@ -232,22 +232,22 @@ function build([string[]]$params) {
             }
         }
 
-        message "Now generating the jsdoc"
-        if ($IsWindows) {
-            jsdoc --configure theme/jsdoc-win.json --verbose
-        }
-        else {
-            jsdoc --configure theme/jsdoc-linux-mac.json --verbose
-        }
+        message "Now generating the typedoc"
+        typedoc ./codemelted.ts --name "CodeMelted - JS Module"
+
+        message "Now compiling *.js file and *.d.ts files"
+        tsc
+
+        # Some final moves to complete the module documentation.
         Move-Item -Path coverage -Destination docs -Force
-        Copy-Item -Path codemelted.js -Destination "docs" -Force
+        Copy-Item -Path codemelted.ts -Destination docs -Force
         Copy-Item -Path *.png -Destination "docs" -Force
 
         # Fix the title
-        [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
-        $htmlData = $htmlData.Replace("<title>Home</title>", "<title>CodeMelted - JS Module</title>")
-        $htmlData = $htmlData.Replace("README.md", "index.html")
-        $htmlData | Out-File docs/index.html -Force
+        # [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
+        # $htmlData = $htmlData.Replace("<title>Home</title>", "<title>CodeMelted - JS Module</title>")
+        # $htmlData = $htmlData.Replace("README.md", "index.html")
+        # $htmlData | Out-File docs/index.html -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_js module build completed."

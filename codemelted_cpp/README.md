@@ -13,11 +13,11 @@ Welcome to the **CodeMelted - C/C++ Module** project. This project aims to imple
 
 ## GETTING STARTED
 
-TBD
+UNDER DEVELOPMENT
 
 ## USAGE
 
-TBD
+UNDER DEVELOPMENT
 
 ## LICENSE
 

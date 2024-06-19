@@ -647,8 +647,8 @@ enum CAudioState {
   stopped,
 }
 
-/// Provides the ability to play audio files via [CodeMeltedAPI.audioFile] or
-/// perform text to speech via [CodeMeltedAPI.audioTTS] within your
+/// Provides the ability to play audio files via [codemelted_audio_file] or
+/// perform text to speech via [codemelted_audio_tts] within your
 /// application.
 class CAudioPlayer {
   // Member Fields:
@@ -1592,11 +1592,11 @@ Future<bool> codemelted_open({
 // [Logger Definitions] -------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Handler to support the [CodeMeltedAPI] for post processing of a logged
-/// event.
+/// Handler to support the codemelted_flutter module for post processing of a
+/// logged event.
 typedef CLogEventHandler = void Function(CLogRecord);
 
-/// Identifies the supported log levels for the [CodeMeltedAPI].
+/// Identifies the supported log levels for the codemelted_flutter module.
 enum CLogLevel {
   /// Give me everything going on with this application. I can take it.
   debug(Level.FINE),
@@ -1806,7 +1806,7 @@ bool get codemelted_is_pwa => platform.isPWA;
 
 /// Provides an alternative to the flutter DialogTheme class. This is due
 /// to the fact it really does not theme much when utilizing the built-in
-/// [AlertDialog] of Flutter wrapped in the [CodeMeltedAPI] dlgXXX functions.
+/// [AlertDialog] of Flutter wrapped in the codemelted_dlg_xxx functions.
 class CDialogTheme extends ThemeExtension<CDialogTheme> {
   /// Background color for the entire dialog panel.
   final Color? backgroundColor;
@@ -1815,7 +1815,7 @@ class CDialogTheme extends ThemeExtension<CDialogTheme> {
   final Color? titleColor;
 
   /// The foreground color of the content color for all dialog types minus
-  /// [CodeMeltedAPI.dlgCustom]. There the developer sets the color of the
+  /// [codemelted_dlg_custom]. There the developer sets the color of the
   /// content.
   final Color? contentColor;
 
@@ -2002,14 +2002,14 @@ ThemeData codemelted_theme_create({
 // [Widget Definitions] -------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Supports identifying the [CodeMeltedAPI.uiButton] widget constructed.
+/// Supports identifying the [codemelted_ui_button] widget constructed.
 enum CButtonType { elevated, filled, icon, outlined, text }
 
-/// Supports identifying what [CodeMeltedAPI.uiImage] is constructed when
+/// Supports identifying what [codemelted_ui_image] is constructed when
 /// utilized.
 enum CImageType { asset, file, memory, network }
 
-/// Defines a tab item to utilize with the [CodeMeltedAPI.uiTabView] method.
+/// Defines a tab item to utilize with the [codemelted_ui_tab_view] method.
 class CTabItem {
   /// The content displayed with the tab.
   final Widget content;
@@ -2060,7 +2060,7 @@ enum CSandboxAllow {
 }
 
 /// Represents configuration items for the [CWebViewController] specific for
-/// the web target when constructing a [CodeMeltedAPI.uiWebView] widget.
+/// the web target when constructing a [codemelted_ui_web_view] widget.
 class CWebTargetConfig {
   /// The policy defines what features are available to the
   /// webview element (for example, access to the microphone, camera, battery,
@@ -2082,7 +2082,7 @@ class CWebTargetConfig {
 
 /// Sets up the abstract web view controller for being able to change the
 /// web page of the embedded view and if necessary, communicate with the loaded
-/// page when constructing a [CodeMeltedAPI.uiWebView] widget.
+/// page when constructing a [codemelted_ui_web_view] widget.
 abstract class CWebViewController {
   /// The [CWebChannelCallback] to receive messages.
   final CWebChannelCallback? onMessageReceived;
