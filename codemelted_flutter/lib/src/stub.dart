@@ -98,15 +98,16 @@ bool get isPWA => throw "Stub. Should Not Get This";
 // [Widget Definitions] -------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-// /// Creates an embedded web view for the mobile / web targets.
-// Widget createWebView(CWebViewController controller) {
-//   throw "Stub. Should Not Get This";
-// }
+/// Creates an embedded web view for the mobile / web targets.
+Widget createWebView(CWebViewController controller) {
+  throw "Stub. Should Not Get This";
+}
 
-// /// Creates a web view controller that can be utilized on mobile / web targets.
-// CWebViewController createWebViewController({
-//   required String url,
-//   CWebChannelCallback? onMessageReceived,
-//   CWebTargetConfig? webTargetOnlyConfig,
-// }) =>
-//     throw "Stub. Should not get this.";
+/// Creates a web view controller that can be utilized on mobile / web targets.
+CWebViewController createWebViewController({
+  required String url,
+  CWebChannelCallback? onMessageReceived,
+  CWebTargetConfig? webTargetOnlyConfig,
+}) {
+  throw "Stub. Should not get this.";
+}
