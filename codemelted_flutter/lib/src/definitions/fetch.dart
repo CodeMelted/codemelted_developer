@@ -28,10 +28,10 @@ import 'dart:typed_data';
 
 import 'data_broker.dart';
 
-/// The actions supported by the [codemelted_fetch] call.
+/// The actions supported by the module fetch call.
 enum CFetchAction { delete, get, post, put }
 
-/// The response object that results from the [codemelted_fetch] call.
+/// The response object that results from the module fetch call.
 class CFetchResponse {
   /// The data received.
   final dynamic data;

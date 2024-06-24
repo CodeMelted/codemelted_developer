@@ -11,10 +11,10 @@ G_BEGIN_DECLS
 #define FLUTTER_PLUGIN_EXPORT
 #endif
 
-typedef struct _CodemeltedFlutterPlugin CodemeltedFlutterPlugin;
+typedef struct _CodeMeltedFlutterPlugin CodeMeltedFlutterPlugin;
 typedef struct {
   GObjectClass parent_class;
-} CodemeltedFlutterPluginClass;
+} CodeMeltedFlutterPluginClass;
 
 FLUTTER_PLUGIN_EXPORT GType codemelted_flutter_plugin_get_type();
 

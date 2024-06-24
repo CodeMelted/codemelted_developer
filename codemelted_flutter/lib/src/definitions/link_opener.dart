@@ -108,7 +108,7 @@ class CMailToParams {
   });
 }
 
-/// Identifies the scheme to utilize as part of the [codemelted_open]
+/// Identifies the scheme to utilize as part of the module open
 /// function.
 enum CSchemeType {
   /// Will open the program associated with the file.

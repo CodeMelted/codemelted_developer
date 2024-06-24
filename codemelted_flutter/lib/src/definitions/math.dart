@@ -40,6 +40,6 @@ extension CMathFormulaExtension on CMathFormula {
     CMathFormula.area_km2_to_m2: (List<double> v) => v[0] * 1e+6,
   };
 
-  /// Private method to support the [codemelted_math] method.
+  /// Private method to support the module math method.
   double calculate(List<double> v) => _data[this]!(v);
 }

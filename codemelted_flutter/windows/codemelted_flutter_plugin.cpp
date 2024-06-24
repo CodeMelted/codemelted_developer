@@ -16,14 +16,14 @@
 namespace codemelted_flutter {
 
 // static
-void CodemeltedFlutterPlugin::RegisterWithRegistrar(
+void CodeMeltedFlutterPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarWindows *registrar) {
   auto channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
           registrar->messenger(), "codemelted_flutter",
           &flutter::StandardMethodCodec::GetInstance());
 
-  auto plugin = std::make_unique<CodemeltedFlutterPlugin>();
+  auto plugin = std::make_unique<CodeMeltedFlutterPlugin>();
 
   channel->SetMethodCallHandler(
       [plugin_pointer = plugin.get()](const auto &call, auto result) {
@@ -33,11 +33,11 @@ void CodemeltedFlutterPlugin::RegisterWithRegistrar(
   registrar->AddPlugin(std::move(plugin));
 }
 
-CodemeltedFlutterPlugin::CodemeltedFlutterPlugin() {}
+CodeMeltedFlutterPlugin::CodeMeltedFlutterPlugin() {}
 
-CodemeltedFlutterPlugin::~CodemeltedFlutterPlugin() {}
+CodeMeltedFlutterPlugin::~CodeMeltedFlutterPlugin() {}
 
-void CodemeltedFlutterPlugin::HandleMethodCall(
+void CodeMeltedFlutterPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue> &method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
   if (method_call.method_name().compare("getPlatformVersion") == 0) {

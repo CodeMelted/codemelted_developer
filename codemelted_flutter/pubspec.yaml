@@ -1,6 +1,6 @@
 name: codemelted_flutter
 description: "Welcome to the CodeMelted - Flutter Module project. This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the CodeMelted - Developer identified use cases, you can be assured to building a powerful native application."
-version: 0.0.1
+version: 0.0.0
 homepage:
 
 environment:
@@ -38,15 +38,15 @@ flutter:
     platforms:
       android:
         package: com.codemelted.codemelted_flutter
-        pluginClass: CodemeltedFlutterPlugin
+        pluginClass: CodeMeltedFlutterPlugin
       ios:
-        pluginClass: CodemeltedFlutterPlugin
+        pluginClass: CodeMeltedFlutterPlugin
       linux:
-        pluginClass: CodemeltedFlutterPlugin
+        pluginClass: CodeMeltedFlutterPlugin
       macos:
-        pluginClass: CodemeltedFlutterPlugin
+        pluginClass: CodeMeltedFlutterPlugin
       windows:
-        pluginClass: CodemeltedFlutterPluginCApi
+        pluginClass: CodeMeltedFlutterPluginCApi
       web:
-        pluginClass: CodemeltedFlutterWeb
+        pluginClass: CodeMeltedFlutterWeb
         fileName: codemelted_flutter_web.dart

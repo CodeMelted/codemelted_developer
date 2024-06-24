@@ -8,17 +8,17 @@
 
 namespace codemelted_flutter {
 
-class CodemeltedFlutterPlugin : public flutter::Plugin {
+class CodeMeltedFlutterPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar);
 
-  CodemeltedFlutterPlugin();
+  CodeMeltedFlutterPlugin();
 
-  virtual ~CodemeltedFlutterPlugin();
+  virtual ~CodeMeltedFlutterPlugin();
 
   // Disallow copy and assign.
-  CodemeltedFlutterPlugin(const CodemeltedFlutterPlugin&) = delete;
-  CodemeltedFlutterPlugin& operator=(const CodemeltedFlutterPlugin&) = delete;
+  CodeMeltedFlutterPlugin(const CodeMeltedFlutterPlugin&) = delete;
+  CodeMeltedFlutterPlugin& operator=(const CodeMeltedFlutterPlugin&) = delete;
 
   // Called when a method is called on this plugin's channel from Dart.
   void HandleMethodCall(

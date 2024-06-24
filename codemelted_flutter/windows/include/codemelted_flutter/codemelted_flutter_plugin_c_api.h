@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-FLUTTER_PLUGIN_EXPORT void CodemeltedFlutterPluginCApiRegisterWithRegistrar(
+FLUTTER_PLUGIN_EXPORT void CodeMeltedFlutterPluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar);
 
 #if defined(__cplusplus)

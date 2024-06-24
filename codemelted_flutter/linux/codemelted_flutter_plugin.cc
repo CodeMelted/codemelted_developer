@@ -10,17 +10,17 @@
 
 #define CODEMELTED_FLUTTER_PLUGIN(obj) \
   (G_TYPE_CHECK_INSTANCE_CAST((obj), codemelted_flutter_plugin_get_type(), \
-                              CodemeltedFlutterPlugin))
+                              CodeMeltedFlutterPlugin))
 
-struct _CodemeltedFlutterPlugin {
+struct _CodeMeltedFlutterPlugin {
   GObject parent_instance;
 };
 
-G_DEFINE_TYPE(CodemeltedFlutterPlugin, codemelted_flutter_plugin, g_object_get_type())
+G_DEFINE_TYPE(CodeMeltedFlutterPlugin, codemelted_flutter_plugin, g_object_get_type())
 
 // Called when a method call is received from Flutter.
 static void codemelted_flutter_plugin_handle_method_call(
-    CodemeltedFlutterPlugin* self,
+    CodeMeltedFlutterPlugin* self,
     FlMethodCall* method_call) {
   g_autoptr(FlMethodResponse) response = nullptr;
 
@@ -47,20 +47,20 @@ static void codemelted_flutter_plugin_dispose(GObject* object) {
   G_OBJECT_CLASS(codemelted_flutter_plugin_parent_class)->dispose(object);
 }
 
-static void codemelted_flutter_plugin_class_init(CodemeltedFlutterPluginClass* klass) {
+static void codemelted_flutter_plugin_class_init(CodeMeltedFlutterPluginClass* klass) {
   G_OBJECT_CLASS(klass)->dispose = codemelted_flutter_plugin_dispose;
 }
 
-static void codemelted_flutter_plugin_init(CodemeltedFlutterPlugin* self) {}
+static void codemelted_flutter_plugin_init(CodeMeltedFlutterPlugin* self) {}
 
 static void method_call_cb(FlMethodChannel* channel, FlMethodCall* method_call,
                            gpointer user_data) {
-  CodemeltedFlutterPlugin* plugin = CODEMELTED_FLUTTER_PLUGIN(user_data);
+  CodeMeltedFlutterPlugin* plugin = CODEMELTED_FLUTTER_PLUGIN(user_data);
   codemelted_flutter_plugin_handle_method_call(plugin, method_call);
 }
 
 void codemelted_flutter_plugin_register_with_registrar(FlPluginRegistrar* registrar) {
-  CodemeltedFlutterPlugin* plugin = CODEMELTED_FLUTTER_PLUGIN(
+  CodeMeltedFlutterPlugin* plugin = CODEMELTED_FLUTTER_PLUGIN(
       g_object_new(codemelted_flutter_plugin_get_type(), nullptr));
 
   g_autoptr(FlStandardMethodCodec) codec = fl_standard_method_codec_new();

@@ -4,9 +4,9 @@
 
 #include "codemelted_flutter_plugin.h"
 
-void CodemeltedFlutterPluginCApiRegisterWithRegistrar(
+void CodeMeltedFlutterPluginCApiRegisterWithRegistrar(
     FlutterDesktopPluginRegistrarRef registrar) {
-  codemelted_flutter::CodemeltedFlutterPlugin::RegisterWithRegistrar(
+  codemelted_flutter::CodeMeltedFlutterPlugin::RegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrarWindows>(registrar));
 }

@@ -4,26 +4,26 @@ import 'package:codemelted_flutter/src/codemelted_flutter_platform_interface.dar
 import 'package:codemelted_flutter/src/native/codemelted_flutter_native.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-// class MockCodemeltedFlutterPlatform
+// class MockCodeMeltedFlutterPlatform
 //     with MockPlatformInterfaceMixin
-//     implements CodemeltedFlutterPlatform {
+//     implements CodeMeltedFlutterPlatform {
 //   @override
 //   Future<String?> getPlatformVersion() => Future.value('42');
 // }
 
 void main() {
-  // final CodemeltedFlutterPlatform initialPlatform =
-  //     CodemeltedFlutterPlatform.instance;
+  // final CodeMeltedFlutterPlatform initialPlatform =
+  //     CodeMeltedFlutterPlatform.instance;
 
-  // test('$MethodChannelCodemeltedFlutter is the default instance', () {
-  //   expect(initialPlatform, isInstanceOf<MethodChannelCodemeltedFlutter>());
+  // test('$MethodChannelCodeMeltedFlutter is the default instance', () {
+  //   expect(initialPlatform, isInstanceOf<MethodChannelCodeMeltedFlutter>());
   // });
 
   // test('getPlatformVersion', () async {
-  //   CodemeltedFlutter codemeltedFlutterPlugin = CodemeltedFlutter();
-  //   MockCodemeltedFlutterPlatform fakePlatform =
-  //       MockCodemeltedFlutterPlatform();
-  //   CodemeltedFlutterPlatform.instance = fakePlatform;
+  //   CodeMeltedFlutter codemeltedFlutterPlugin = CodeMeltedFlutter();
+  //   MockCodeMeltedFlutterPlatform fakePlatform =
+  //       MockCodeMeltedFlutterPlatform();
+  //   CodeMeltedFlutterPlatform.instance = fakePlatform;
 
   //   expect(await codemeltedFlutterPlugin.getPlatformVersion(), '42');
   // });

@@ -16,7 +16,7 @@
 namespace codemelted_flutter {
 namespace test {
 
-TEST(CodemeltedFlutterPlugin, GetPlatformVersion) {
+TEST(CodeMeltedFlutterPlugin, GetPlatformVersion) {
   g_autoptr(FlMethodResponse) response = get_platform_version();
   ASSERT_NE(response, nullptr);
   ASSERT_TRUE(FL_IS_METHOD_SUCCESS_RESPONSE(response));

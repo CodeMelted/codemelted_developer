@@ -1,10 +1,10 @@
 import Flutter
 import UIKit
 
-public class CodemeltedFlutterPlugin: NSObject, FlutterPlugin {
+public class CodeMeltedFlutterPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "codemelted_flutter", binaryMessenger: registrar.messenger())
-    let instance = CodemeltedFlutterPlugin()
+    let instance = CodeMeltedFlutterPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 

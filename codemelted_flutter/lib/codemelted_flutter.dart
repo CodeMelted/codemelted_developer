@@ -623,7 +623,7 @@ class CodeMeltedFlutter {
   }
 
   /// Provides the ability to run an async task and present a wait dialog. It
-  /// is important you call [codemelted_dlg_close] to properly clear the
+  /// is important you call [CodeMeltedFlutter.dlgClose] to properly clear the
   /// dialog and return any value expected.
   Future<T?> dlgLoading<T>({
     double height = _smallHeight,

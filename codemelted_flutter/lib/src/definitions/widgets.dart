@@ -27,14 +27,13 @@ DEALINGS IN THE SOFTWARE.
 import 'package:codemelted_flutter/src/codemelted_flutter_platform_interface.dart';
 import 'package:flutter/material.dart';
 
-/// Supports identifying the [codemelted_ui_button] widget constructed.
+/// Supports identifying the module uiButton widget constructed.
 enum CButtonType { elevated, filled, icon, outlined, text }
 
-/// Supports identifying what [codemelted_ui_image] is constructed when
-/// utilized.
+/// Supports identifying what module uiImage is constructed when utilized.
 enum CImageType { asset, file, memory, network }
 
-/// Defines a tab item to utilize with the [codemelted_ui_tab_view] method.
+/// Defines a tab item to utilize with the module uiTabView method.
 class CTabItem {
   /// The content displayed with the tab.
   final Widget content;
@@ -85,7 +84,7 @@ enum CSandboxAllow {
 }
 
 /// Represents configuration items for the [CWebViewController] specific for
-/// the web target when constructing a [codemelted_ui_web_view] widget.
+/// the web target when constructing a module uiWebView widget.
 class CWebTargetConfig {
   /// The policy defines what features are available to the
   /// webview element (for example, access to the microphone, camera, battery,
@@ -107,7 +106,7 @@ class CWebTargetConfig {
 
 /// Sets up the abstract web view controller for being able to change the
 /// web page of the embedded view and if necessary, communicate with the loaded
-/// page when constructing a [codemelted_ui_web_view] widget.
+/// page when constructing a module uiWebView widget.
 abstract class CWebViewController {
   /// The [CWebChannelCallback] to receive messages.
   final CWebChannelCallback? onMessageReceived;
