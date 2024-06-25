@@ -67,7 +67,6 @@ function build([string[]]$params) {
     # deployment.
     function cdn {
         # Build all the project static sdk sites.
-        codemelted_cpp
         codemelted_developer
         codemelted_flutter
         codemelted_js
@@ -91,22 +90,6 @@ function build([string[]]$params) {
         Copy-Item -Path codemelted_pi/docs/* -Destination _dist/codemelted_pi/ -Recurse
     }
 
-    # Builds the codemelted_cpp module.
-    function codemelted_cpp {
-        message "Now building codemelted_cpp module."
-        Set-Location $PSScriptRoot/codemelted_cpp
-        Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
-
-        message "Generating doxygen"
-        doxygen doxygen.cfg
-        [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
-        $htmlData = $htmlData.Replace("README.md", "index.html")
-        $htmlData | Out-File docs/index.html -Force
-        Copy-Item -Path *.png -Destination docs/ -Force
-
-        Set-Location $PSScriptRoot
-        message "codemelted_cpp module build completed."
-    }
 
     # Transforms the README.md of this repo along with all the use_cases into
     # a static website for CDN deployment.
@@ -233,14 +216,14 @@ function build([string[]]$params) {
         }
 
         message "Now generating the typedoc"
-        typedoc ./codemelted.ts --name "CodeMelted - JS Module"
+        typedoc ./codemelted.js --name "CodeMelted - JS Module"
 
         message "Now compiling *.js file and *.d.ts files"
         tsc
 
         # Some final moves to complete the module documentation.
         Move-Item -Path coverage -Destination docs -Force
-        Copy-Item -Path codemelted.ts -Destination docs -Force
+        # Copy-Item -Path codemelted.js -Destination docs -Force
         Copy-Item -Path *.png -Destination "docs" -Force
 
         # Fix the title

@@ -32,8 +32,8 @@ import {
     assertFalse,
 } from "https://deno.land/std@0.192.0/testing/asserts.ts";
 import {
-    codemelted_check_has_property,
-} from "./codemelted.ts";
+    codemelted,
+} from "./codemelted.js";
 
 // ----------------------------------------------------------------------------
 // [App View Definition] ------------------------------------------------------
@@ -63,10 +63,8 @@ Deno.test("Data Broker Validation", () => {
     const obj = {
         "field1": 42,
     };
-    assert(codemelted_check_has_property(obj, "field1"));
-    assertFalse(codemelted_check_has_property(obj, "field2"));
-
-
+    assert(codemelted.checkHasProperty(obj, "field1"));
+    assertFalse(codemelted.checkHasProperty(obj, "field2"));
 });
 
 // ----------------------------------------------------------------------------
