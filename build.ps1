@@ -40,7 +40,8 @@
         .mermaid {
             background-color: grey;
         }
-    </style
+    </style>
+    <script src="https://codemelted.com/assets/js/channel.js"></script>
 </head><body><div class="content-main">
 [CONTENT]
 [MERMAID_SCRIPT]
@@ -83,7 +84,6 @@ function build([string[]]$params) {
         New-Item -Path _dist/codemelted_pi -ItemType Directory -ErrorAction Ignore
 
         Copy-Item -Path docs/* -Destination _dist/ -Recurse
-        Copy-Item -Path codemelted_cpp/docs/* -Destination _dist/codemelted_cpp/ -Recurse
         Copy-Item -Path codemelted_flutter/docs/* -Destination _dist/codemelted_flutter/ -Recurse
         Copy-Item -Path codemelted_js/docs/* -Destination _dist/codemelted_js/ -Recurse
         Copy-Item -Path codemelted_pwsh/docs/* -Destination _dist/codemelted_pwsh/ -Recurse
@@ -179,12 +179,14 @@ function build([string[]]$params) {
         Move-Item -Path coverage -Destination docs -Force
         Copy-Item -Path CHANGELOG.md -Destination docs -Force
         Copy-Item -Path header.png -Destination docs -Force
+        Copy-Item -Path README.md -Destination "docs" -Force
 
         # Fix the title
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
         $htmlData = $htmlData.Replace("codemelted_flutter - Dart API docs", "CodeMelted - Flutter Module")
         $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png"')
         $htmlData = $htmlData.Replace("README.md", "index.html")
+        $htmlData = $htmlData.Replace("</head>", '<script src="https://codemelted.com/assets/js/channel.js"></script></head>')
         $htmlData | Out-File docs/index.html -Force
 
         Set-Location $PSScriptRoot
@@ -223,14 +225,14 @@ function build([string[]]$params) {
 
         # Some final moves to complete the module documentation.
         Move-Item -Path coverage -Destination docs -Force
-        # Copy-Item -Path codemelted.js -Destination docs -Force
         Copy-Item -Path *.png -Destination "docs" -Force
+        Copy-Item -Path README.md -Destination "docs" -Force
 
         # Fix the title
-        # [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
-        # $htmlData = $htmlData.Replace("<title>Home</title>", "<title>CodeMelted - JS Module</title>")
-        # $htmlData = $htmlData.Replace("README.md", "index.html")
-        # $htmlData | Out-File docs/index.html -Force
+        [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
+        $htmlData = $htmlData.Replace("</head>", '<script src="https://codemelted.com/assets/js/channel.js"></script></head>')
+        $htmlData = $htmlData.Replace("README.md", "index.html")
+        $htmlData | Out-File docs/index.html -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_js module build completed."
@@ -258,6 +260,7 @@ function build([string[]]$params) {
         $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
+        Copy-Item -Path README.md -Destination "docs" -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_pwsh module build completed."
@@ -285,6 +288,7 @@ function build([string[]]$params) {
         $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
+        Copy-Item -Path README.md -Destination "docs" -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_pi project build completed."
@@ -293,7 +297,6 @@ function build([string[]]$params) {
     # Main Exection
     switch ($params[0]) {
         "--cdn" { cdn }
-        "--codemelted_cpp" { codemelted_cpp }
         "--codemelted_developer" { codemelted_developer }
         "--codemelted_flutter" { codemelted_flutter }
         "--codemelted_js" { codemelted_js }

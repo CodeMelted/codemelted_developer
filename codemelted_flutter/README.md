@@ -1,8 +1,8 @@
 <!--
 TITLE: CodeMelted - Flutter Module
-PUBLISH_DATE: 2024-04-25
+PUBLISH_DATE: 2024-06-25
 AUTHOR: Mark Shaffer
-KEYWORDS: modules, cross-platform, flutter-apps, flutter-library,
+KEYWORDS: raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module
 DESCRIPTION: Welcome to the CodeMelted - Flutter Module project. This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the CodeMelted - Developer identified use cases, you can be assured to building a powerful native application.
 -->
 <center>
