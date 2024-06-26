@@ -146,6 +146,7 @@ function build([string[]]$params) {
         $html = $html.Replace(".md", ".html")
         $html | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
+        Copy-Item -Path README.md -Destination docs/ -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_develoepr build completed."
