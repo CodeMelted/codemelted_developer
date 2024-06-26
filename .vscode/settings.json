@@ -19,5 +19,6 @@
     "rtnval",
     "RUNTIMES",
     "scrollbars"
-  ]
+  ],
+  "deno.enable": true,
 }

@@ -24,10 +24,10 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
-/// A collection of extensions, utility objects, and widgets with a minimum set
-/// dart/flutter package dependencies. Allow for you to leverage the raw power
-/// of flutter to build your cross platform applications for all available
-/// flutter targets utilizing the [codemelted] namespace.
+/// A collection of extensions, utility functions, and objects with a minimum
+/// set dart / flutter package dependencies. Allows for you to leverage the raw
+/// power of flutter to build your cross platform applications for all
+/// available flutter targets.
 library codemelted_flutter;
 
 import 'dart:async';
@@ -35,1144 +35,74 @@ import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:codemelted_flutter/src/stub.dart'
-    if (dart.library.io) 'package:codemelted_flutter/src/native.dart'
-    if (dart.library.js_interop) 'package:codemelted_flutter/src/web.dart'
-    as platform;
+import 'package:codemelted_flutter/src/codemelted_flutter_platform_interface.dart';
+import 'package:codemelted_flutter/src/definitions/app_view.dart';
+import 'package:codemelted_flutter/src/definitions/async_io.dart';
+import 'package:codemelted_flutter/src/definitions/audio_player.dart';
+import 'package:codemelted_flutter/src/definitions/data_broker.dart';
+import 'package:codemelted_flutter/src/definitions/fetch.dart';
+import 'package:codemelted_flutter/src/definitions/link_opener.dart';
+import 'package:codemelted_flutter/src/definitions/logger.dart';
+import 'package:codemelted_flutter/src/definitions/math.dart';
+import 'package:codemelted_flutter/src/definitions/themes.dart';
+import 'package:codemelted_flutter/src/definitions/widgets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:logging/logging.dart';
 import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-export 'package:url_launcher/url_launcher_string.dart' show LaunchMode;
 
-// ============================================================================
-// [Use Case Support Definitions] =============================================
-// ============================================================================
-
-// ----------------------------------------------------------------------------
-// [App View Definitions] -----------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// Sets up a global navigator key for usage with dialogs rendered with the
-/// [CodeMeltedAPI] dlgXXX functions.
-final cNavigatorKey = GlobalKey<NavigatorState>();
-
-/// Sets up a global scaffold key for opening drawers and such on the
-/// [CodeMeltedAPI] appXXX functions.
-final cScaffoldKey = GlobalKey<ScaffoldState>();
-
-/// Provides the Single Page Application for the [CodeMeltedAPI.app] property
-/// that returns the main view.
-class _CAppView extends StatefulWidget {
-  /// Tracks if the [CodeMeltedAPI.app] has already been called.
-  static bool _isInitialized = false;
-
-  /// Sets up the dictionary for usage with the SPA.
-  static final uiState = <String, dynamic>{
-    "darkTheme": ThemeData.dark(useMaterial3: true),
-    "themeMode": ThemeMode.system,
-    "theme": ThemeData.light(useMaterial3: true),
-  };
-
-  /// Sets / gets the dark theme for the [CodeMeltedAPI.app].
-  static ThemeData get darkTheme => uiState.get<ThemeData>("darkTheme");
-  static set darkTheme(ThemeData? v) =>
-      uiState.set<ThemeData?>("darkTheme", v, notify: true);
-
-  /// Sets / gets the light theme for the [CodeMeltedAPI.app].
-  static ThemeData get theme => uiState.get<ThemeData>("theme");
-  static set theme(ThemeData? v) =>
-      uiState.set<ThemeData?>("theme", v, notify: true);
-
-  /// Sets / gets the theme mode for the [CodeMeltedAPI.app].
-  static ThemeMode get themeMode => uiState.get<ThemeMode>("themeMode");
-  static set themeMode(ThemeMode v) =>
-      uiState.set<ThemeMode?>("themeMode", v, notify: true);
-
-  /// Sets / gets the app title for the [CodeMeltedAPI.app].
-  static String? get title => uiState.get<String?>("title");
-  static set title(String? v) => uiState.set<String?>("title", v, notify: true);
-
-  /// Sets / removes the header area of the [CodeMeltedAPI.app].
-  static void header({
-    List<Widget>? actions,
-    bool automaticallyImplyLeading = true,
-    bool forceMaterialTransparency = false,
-    Widget? leading,
-    AppBarTheme? style,
-    Widget? title,
-  }) {
-    if (actions == null && leading == null && title == null) {
-      uiState.set<AppBar?>("appBar", null);
-    } else {
-      uiState.set<AppBar?>(
-        "appBar",
-        AppBar(
-          actions: actions,
-          actionsIconTheme: style?.actionsIconTheme,
-          automaticallyImplyLeading: automaticallyImplyLeading,
-          backgroundColor: style?.backgroundColor,
-          centerTitle: style?.centerTitle,
-          elevation: style?.elevation,
-          foregroundColor: style?.foregroundColor,
-          forceMaterialTransparency: forceMaterialTransparency,
-          iconTheme: style?.iconTheme,
-          leading: leading,
-          scrolledUnderElevation: style?.scrolledUnderElevation,
-          shadowColor: style?.shadowColor,
-          shape: style?.shape,
-          surfaceTintColor: style?.surfaceTintColor,
-          title: title,
-          titleSpacing: style?.titleSpacing,
-          titleTextStyle: style?.titleTextStyle,
-          toolbarHeight: style?.toolbarHeight,
-          toolbarTextStyle: style?.toolbarTextStyle,
-          systemOverlayStyle: style?.systemOverlayStyle,
-        ),
-        notify: true,
-      );
-    }
-  }
-
-  /// Sets / removes the content area of the [CodeMeltedAPI.app].
-  static void content({
-    required Widget? body,
-    bool extendBody = false,
-    bool extendBodyBehindAppBar = false,
-  }) {
-    uiState.set<CObject>(
-      "content",
-      {
-        "body": body,
-        "extendBody": extendBody,
-        "extendBodyBehindAppBar": extendBodyBehindAppBar,
-      },
-      notify: true,
-    );
-  }
-
-  /// Sets / removes the footer area of the [CodeMeltedAPI.app].
-  static void footer({
-    List<Widget>? actions,
-    bool automaticallyImplyLeading = true,
-    bool forceMaterialTransparency = false,
-    Widget? leading,
-    AppBarTheme? style,
-    Widget? title,
-  }) {
-    if (actions == null && leading == null && title == null) {
-      uiState.set<BottomAppBar?>("bottomAppBar", null);
-    } else {
-      uiState.set<BottomAppBar?>(
-        "bottomAppBar",
-        BottomAppBar(
-          notchMargin: 0.0,
-          padding: EdgeInsets.zero,
-          height: style != null
-              ? style.toolbarHeight
-              : theme.appBarTheme.toolbarHeight,
-          child: AppBar(
-            actions: actions,
-            actionsIconTheme: style?.actionsIconTheme,
-            automaticallyImplyLeading: automaticallyImplyLeading,
-            backgroundColor: style?.backgroundColor,
-            centerTitle: style?.centerTitle,
-            elevation: style?.elevation,
-            foregroundColor: style?.foregroundColor,
-            forceMaterialTransparency: forceMaterialTransparency,
-            iconTheme: style?.iconTheme,
-            leading: leading,
-            scrolledUnderElevation: style?.scrolledUnderElevation,
-            shadowColor: style?.shadowColor,
-            shape: style?.shape,
-            surfaceTintColor: style?.surfaceTintColor,
-            title: title,
-            titleSpacing: style?.titleSpacing,
-            titleTextStyle: style?.titleTextStyle,
-            toolbarHeight: style?.toolbarHeight,
-            toolbarTextStyle: style?.toolbarTextStyle,
-            systemOverlayStyle: style?.systemOverlayStyle,
-          ),
-        ),
-        notify: true,
-      );
-    }
-  }
-
-  /// Sets / removes a floating action button for the [CodeMeltedAPI.app].
-  static void floatingActionButton({
-    Widget? button,
-    FloatingActionButtonLocation? location,
-  }) {
-    uiState.set<Widget?>(
-      "floatingActionButton",
-      button != null
-          ? PointerInterceptor(
-              intercepting: kIsWeb,
-              child: button,
-            )
-          : null,
-    );
-    uiState.set<FloatingActionButtonLocation?>(
-      "floatingActionButtonLocation",
-      location,
-      notify: true,
-    );
-  }
-
-  /// Sets / removes a left sided drawer for the [CodeMeltedAPI.app].
-  static void drawer({Widget? header, List<Widget>? items}) {
-    if (header == null && items == null) {
-      uiState.set<Drawer?>("drawer", null);
-    } else {
-      uiState.set<Drawer?>(
-        "drawer",
-        Drawer(
-          child: ListView(
-            children: [
-              if (header != null) header,
-              if (items != null) ...items,
-            ],
-          ),
-        ),
-        notify: true,
-      );
-    }
-  }
-
-  /// Sets / removes a right sided drawer from the [CodeMeltedAPI.app].
-  static void endDrawer({Widget? header, List<Widget>? items}) {
-    if (header == null && items == null) {
-      uiState.set<Drawer?>("endDrawer", null);
-    } else {
-      uiState.set<Drawer?>(
-        "endDrawer",
-        Drawer(
-          child: ListView(
-            children: [
-              if (header != null) header,
-              if (items != null) ...items,
-            ],
-          ),
-        ),
-        notify: true,
-      );
-    }
-  }
-
-  /// Will programmatically close an open drawer on the [CodeMeltedAPI.app].
-  static void closeDrawer() {
-    if (cScaffoldKey.currentState!.isDrawerOpen) {
-      cScaffoldKey.currentState!.closeDrawer();
-    }
-    if (cScaffoldKey.currentState!.isEndDrawerOpen) {
-      cScaffoldKey.currentState!.closeEndDrawer();
-    }
-  }
-
-  /// Will programmatically open a drawer on the [CodeMeltedAPI.app].
-  static void openDrawer({bool isEndDrawer = false}) {
-    if (!isEndDrawer && cScaffoldKey.currentState!.hasDrawer) {
-      cScaffoldKey.currentState!.openDrawer();
-    } else if (cScaffoldKey.currentState!.hasEndDrawer) {
-      cScaffoldKey.currentState!.openEndDrawer();
-    }
-  }
-
-  @override
-  State<StatefulWidget> createState() => _CAppViewState();
-
-  _CAppView() {
-    assert(
-      !_isInitialized,
-      "Only one CAppView can be created. It sets up a SPA.",
-    );
-    _isInitialized = true;
-  }
-}
-
-class _CAppViewState extends State<_CAppView> {
-  @override
-  void initState() {
-    _CAppView.uiState.addListener(() => setState(() {}));
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      darkTheme: _CAppView.darkTheme,
-      navigatorKey: cNavigatorKey,
-      theme: _CAppView.theme,
-      themeMode: _CAppView.themeMode,
-      title: _CAppView.title ?? "",
-      home: Scaffold(
-        appBar: _CAppView.uiState.get<AppBar?>("appBar"),
-        body: _CAppView.uiState.get<CObject?>("content")?['body'],
-        extendBody:
-            _CAppView.uiState.get<CObject?>("content")?['extendBody'] ?? false,
-        extendBodyBehindAppBar: _CAppView.uiState
-                .get<CObject?>("content")?["extendBodyBehindAppBar"] ??
-            false,
-        bottomNavigationBar:
-            _CAppView.uiState.get<BottomAppBar?>("bottomAppBar"),
-        drawer: _CAppView.uiState.get<Widget?>("drawer"),
-        endDrawer: _CAppView.uiState.get<Widget?>("endDrawer"),
-        floatingActionButton:
-            _CAppView.uiState.get<Widget?>("floatingActionButton"),
-        floatingActionButtonLocation: _CAppView.uiState
-            .get<FloatingActionButtonLocation?>("floatingActionButtonLocation"),
-        key: cScaffoldKey,
-      ),
-    );
-  }
-}
-
-// ----------------------------------------------------------------------------
-// [Async IO Definition] ------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// Defines the actions supported by the [CodeMeltedAPI.asyncTask] function.
-enum CAsyncTaskAction { background, interval, sleep, timeout }
-
-/// The task to run as part of the [CodeMeltedAPI.asyncTask] function. It
-/// defines the logic to run as part of the async call and possibly return
-/// a result.
-typedef CAsyncTaskFunction = dynamic Function([dynamic]);
-
-/// Defines the supported worker types for the [CodeMeltedAPI.asyncWorker]
-/// function that provides a dedicated FIFO background task.
-enum CAsyncWorkerType { isolate, process, webWorker }
-
-/// Identifies the data reported via the [CAsyncWorkerListener] so appropriate
-/// action can be taken.
-class CAsyncWorkerData {
-  /// Signals whether the data is an error or not.
-  final bool isError;
-
-  /// The data processed by the [CAsyncWorker].
-  final dynamic data;
-
-  /// Constructor for the object.
-  CAsyncWorkerData(this.isError, this.data);
-}
-
-/// Listener for data received via the dedicated [CAsyncWorker] so an
-/// application can respond to those events.
-typedef CAsyncWorkerListener = void Function(CAsyncWorkerData);
-
-/// Base definition class for the returned [CodeMeltedAPI.asyncWorker] call
-/// to post messages to the background worker
-abstract class CAsyncWorker {
-  /// Posts dynamic data to the background worker.
-  void postMessage([dynamic data]);
-
-  /// Terminates the dedicated background worker.
-  void terminate();
-
-  /// Holds the listener for the dedicated worker.
-  final CAsyncWorkerListener onDataReceived;
-
-  /// Super constructor for the base object.
-  CAsyncWorker(this.onDataReceived);
-}
-
-// ----------------------------------------------------------------------------
-// [Audio Player Definition] --------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// Identifies the source for the [CAudioPlayer] data playback.
-enum CAudioSource {
-  /// A bundled asset with your application
-  asset,
-
-  /// A file on the file system probably chosen via file picker
-  file,
-
-  /// A internet resource to download and play
-  url,
-}
-
-/// Identifies the state of the [CAudioPlayer] object.
-enum CAudioState {
-  /// Currently in a playback mode.
-  playing,
-
-  /// Audio has been paused.
-  paused,
-
-  /// Audio has been stopped and will reset with playing.
-  stopped,
-}
-
-/// Provides the ability to play audio files via [CodeMeltedAPI.audioFile] or
-/// perform text to speech via [CodeMeltedAPI.audioTTS] within your
-/// application.
-class CAudioPlayer {
-  // Member Fields:
-  late CAudioState _state;
-  late dynamic _data;
-  late dynamic _player;
-
-  CAudioPlayer._(dynamic player, dynamic data) {
-    _state = CAudioState.stopped;
-    _data = data;
-    _player = player;
-  }
-
-  /// Identifies the current state of the audio player.
-  CAudioState get state => _state;
-
-  /// Plays or resumes a paused audio source.
-  Future<void> play() async {
-    if (_state == CAudioState.playing) {
-      return;
-    }
-
-    if (_player is FlutterTts) {
-      await (_player as FlutterTts).speak(_data);
-    } else {
-      if (_state == CAudioState.paused) {
-        await (_player as AudioPlayer).resume();
-      } else {
-        await (_player as AudioPlayer).play(_data);
-      }
-    }
-    _state = CAudioState.playing;
-  }
-
-  /// Pauses a currently playing audio source.
-  Future<void> pause() async {
-    if (_state != CAudioState.playing) {
-      return;
-    }
-
-    if (_player is FlutterTts) {
-      await (_player as FlutterTts).pause();
-    } else {
-      await (_player as AudioPlayer).pause();
-    }
-    _state = CAudioState.paused;
-  }
-
-  /// Stops the playing audio source.
-  Future<void> stop() async {
-    if (_state == CAudioState.stopped) {
-      return;
-    }
-
-    if (_player is FlutterTts) {
-      await (_player as FlutterTts).stop();
-    } else {
-      await (_player as AudioPlayer).stop();
-    }
-    _state = CAudioState.stopped;
-  }
-}
-
-// ----------------------------------------------------------------------------
-// [Console] ------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// Console is not applicable to flutter as it is a widget based library.
-
-// ----------------------------------------------------------------------------
-// [Database Definition] ------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
-// [Data Broker Definitions] --------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// Defines an array definition to match JSON Array construct.
-typedef CArray = List<dynamic>;
-
-/// Provides helper methods for the CArray.
-extension CArrayExtension on CArray {
-  /// Builds a map of ChangeNotifier objects to support notification via the
-  /// [CArray] definition.
-  static final _map = <dynamic, ChangeNotifier?>{};
-
-  /// Adds an event listener so when changes are made via the
-  /// [CObjectExtension.set] method.
-  void addListener(void Function() listener) {
-    if (_map[this] == null) {
-      _map[this] = ChangeNotifier();
-    }
-    _map[this]!.addListener(listener);
-  }
-
-  /// Removes an event listener from the [CArray].
-  void removeListener(void Function() listener) {
-    _map[this]?.removeListener(listener);
-  }
-
-  /// Provides a method to set data elements on the [CArray].
-  void set<T>(int index, T value, {bool notify = false}) {
-    insert(index, value);
-    if (notify) {
-      // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
-      _map[this]?.notifyListeners();
-    }
-  }
-
-  /// Provides the ability to extract a data element from the represented
-  /// [CArray] at the given index.
-  T get<T>(int index) => elementAt(index) as T;
-
-  CArray copy() {
-    var copy = <dynamic>[];
-    copy.addAll(this);
-    return copy;
-  }
-
-  /// Attempts to parse the serialized string data and turn it into a
-  /// [CArray]. Any data previously held by this object is cleared. False is
-  /// returned if it could not parse the data.
-  bool parse(String data) {
-    try {
-      clear();
-      addAll(jsonDecode(data));
-      return true;
-    } catch (ex) {
-      return false;
-    }
-  }
-
-  /// Converts the JSON object to a string returning null if it cannot
-  String? stringify() => jsonEncode(this);
-}
-
-/// Defines an object definition to match a valid JSON Object construct.
-typedef CObject = Map<String, dynamic>;
-
-/// Provides helper methods for the [CObject] for set / get data, implementing
-/// a [ChangeNotifier], and being able to serialize / deserialize between
-/// JSON and string data.
-extension CObjectExtension on CObject {
-  /// Builds a map of ChangeNotifier objects to support notification via the
-  /// [CObject] definition.
-  static final _map = <dynamic, ChangeNotifier?>{};
-
-  /// Adds an event listener so when changes are made via the
-  /// [CObjectExtension.set] method.
-  void addListener(void Function() listener) {
-    if (_map[this] == null) {
-      _map[this] = ChangeNotifier();
-    }
-    _map[this]!.addListener(listener);
-  }
-
-  /// Removes an event listener from the [CObject].
-  void removeListener(void Function() listener) {
-    _map[this]?.removeListener(listener);
-  }
-
-  /// Attempts to parse the serialized string data and turn it into a
-  /// [CObject]. Any data previously held by this object is cleared. False is
-  /// returned if it could not parse the data.
-  bool parse(String data) {
-    try {
-      clear();
-      addAll(jsonDecode(data));
-      return true;
-    } catch (ex) {
-      return false;
-    }
-  }
-
-  /// Converts the JSON object to a string returning null if it cannot.
-  String? stringify() {
-    try {
-      return jsonEncode(this);
-    } catch (ex) {
-      return null;
-    }
-  }
-
-  /// Provides a method to set data elements on the [CObject].
-  void set<T>(String key, T value, {bool notify = false}) {
-    this[key] = value;
-    if (notify) {
-      // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
-      _map[this]?.notifyListeners();
-    }
-  }
-
-  /// Provides the ability to extract a data element from the represented
-  /// [CObject].
-  T get<T>(String key) {
-    return this[key];
-  }
-}
-
-/// Provides a series of asXXX() conversion from a string data type and do non
-/// case sensitive compares.
-extension CStringExtension on String {
-  /// Will attempt to return an array object ir null if it cannot.
-  CArray? asArray() {
-    try {
-      return jsonDecode(this) as CArray?;
-    } catch (ex) {
-      return null;
-    }
-  }
-
-  /// Will attempt to convert to a bool from a series of strings that can
-  /// represent a true value.
-  bool asBool() {
-    List<String> trueStrings = [
-      "true",
-      "1",
-      "t",
-      "y",
-      "yes",
-      "yeah",
-      "yup",
-      "certainly",
-      "uh-huh"
-    ];
-    return trueStrings.contains(toLowerCase());
-  }
-
-  /// Will attempt to return a double from the string value or null if it
-  /// cannot.
-  num? asDouble() => double.tryParse(this);
-
-  /// Will attempt to return a int from the string value or null if it cannot.
-  num? asInt() => int.tryParse(this);
-
-  /// Will attempt to return Map<String, dynamic> object or null if it cannot.
-  CObject? asObject() {
-    try {
-      return jsonDecode(this) as CObject?;
-    } catch (ex) {
-      return null;
-    }
-  }
-
-  /// Determines if a string is contained within this string.
-  bool containsIgnoreCase(String v) => toLowerCase().contains(v.toLowerCase());
-
-  /// Determines if a string is equal to another ignoring case.
-  bool equalsIgnoreCase(String v) => toLowerCase() == v.toLowerCase();
-}
-
-// ----------------------------------------------------------------------------
-// [Device Orientation Definition] --------------------------------------------
-// ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
-// [Dialog Definition] --------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
-// [Disk Manager Definition] --------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
-// [Fetch Data Definitions] ---------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// The actions supported by the [CodeMeltedAPI.fetch] call.
-enum CFetchAction { delete, get, post, put }
-
-/// The response object that results from the [CodeMeltedAPI.fetch] call.
-class CFetchResponse {
-  /// The data received.
-  final dynamic data;
-
-  /// That status of the  call.
-  final int status;
-
-  /// Any text associated with the status.
-  final String statusText;
-
-  /// Data is assumed to be a [CObject] JSON format and is returned as such or
-  /// null if it is not.
-  CObject? get asObject => data as CObject?;
-
-  /// Data is assumed to be a collection of bytes.
-  Uint8List get asBytes => data as Uint8List;
-
-  /// Data is assumed to be a String and is returned as such or null if it is
-  /// not.
-  String? get asString => data as String?;
-
-  /// Constructs the [CFetchResponse] object.
-  CFetchResponse(this.data, this.status, this.statusText);
-}
-
-// ----------------------------------------------------------------------------
-// [Hardware Device Definition] -----------------------------------------------
-// ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
-// [Link Opener Definition] ---------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// Represents how the [CodeMeltedAPI.open] launches a [CSchemeType].
-typedef LaunchUrlStringHandler = Future<bool> Function(
-  String urlString, {
-  LaunchMode mode,
-  WebViewConfiguration webViewConfiguration,
-  String? webOnlyWindowName,
-});
-
-/// Optional parameter for the [CodeMeltedAPI.open] mailto scheme to facilitate
-/// translating the more complicated URL.
-class CMailToParams {
-  /// The list of email addresses to send the email.
-  final List<String> mailto;
-
-  /// The carbon copies to send the email.
-  final List<String> cc;
-
-  /// The blind carbon copies to send the email.
-  final List<String> bcc;
-
-  /// The subject of the email.
-  final String subject;
-
-  /// The body of the email.
-  final String body;
-
-  @override
-  String toString() {
-    var url = "";
-
-    // Go format the mailto part of the url
-    for (final e in mailto) {
-      url += "$e;";
-    }
-    url = url.substring(0, url.length - 1);
-
-    // Go format the cc part of the url
-    var delimiter = "?";
-    if (cc.isNotEmpty) {
-      url += "${delimiter}cc=";
-      delimiter = "&";
-      for (final e in cc) {
-        url += "$e;";
-      }
-      url = url.substring(0, url.length - 1);
-    }
-
-    // Go format the bcc part of the url
-    if (bcc.isNotEmpty) {
-      url += "${delimiter}bcc=";
-      delimiter = "&";
-      for (final e in bcc) {
-        url += "$e;";
-      }
-      url = url.substring(0, url.length - 1);
-    }
-
-    // Go format the subject part
-    if (subject.trim().isNotEmpty) {
-      url += "${delimiter}subject=${subject.trim()}";
-      delimiter = "&";
-    }
-
-    // Go format the body part
-    if (body.trim().isNotEmpty) {
-      url += "${delimiter}body=${body.trim()}";
-      delimiter = "&";
-    }
-
-    return url;
-  }
-
-  /// Constructs the object.
-  CMailToParams({
-    required this.mailto,
-    this.cc = const <String>[],
-    this.bcc = const <String>[],
-    this.subject = "",
-    this.body = "",
-  });
-}
-
-/// Identifies the scheme to utilize as part of the [CodeMeltedAPI.open]
-/// function.
-enum CSchemeType {
-  /// Will open the program associated with the file.
-  file("file:"),
-
-  /// Will open a web browser with http.
-  http("http://"),
-
-  /// Will open a web browser with https.
-  https("https://"),
-
-  /// Will open the default email program to send an email.
-  mailto("mailto:"),
-
-  /// Will open the default telephone program to make a call.
-  tel("tel:"),
-
-  /// Will open the default texting app to send a text.
-  sms("sms:");
-
-  /// Identifies the leading scheme to form a URL.
-  final String leading;
-
-  const CSchemeType(this.leading);
-
-  /// Will return the formatted URL based on the scheme and the
-  /// data provided.
-  String getUrl(String data) => "$leading$data";
-}
-
-// ----------------------------------------------------------------------------
-// [Logger Definitions] -------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// Handler to support the [CodeMeltedAPI] for post processing of a logged
-/// event.
-typedef CLogEventHandler = void Function(CLogRecord);
-
-/// Identifies the supported log levels for the [CodeMeltedAPI].
-enum CLogLevel {
-  /// Give me everything going on with this application. I can take it.
-  debug(Level.FINE),
-
-  /// Let someone know a services is starting or going away.
-  info(Level.INFO),
-
-  /// We encountered something that can be handled or recovered from.
-  warning(Level.WARNING),
-
-  /// Danger will robinson, danger.
-  error(Level.SEVERE),
-
-  /// It's too much, shut it off.
-  off(Level.OFF);
-
-  /// The associated logger level to our more simpler logger.
-  final Level _level;
-
-  const CLogLevel(this._level);
-}
-
-/// Wraps the handle logged event for logging and later processing.
-class CLogRecord {
-  /// The log record handled by the module logging facility.
-  late LogRecord _record;
-
-  CLogRecord(LogRecord r) {
-    _record = r;
-  }
-
-  /// The time the logged event occurred.
-  DateTime get time => _record.time;
-
-  /// The log level associated with the event as a string.
-  CLogLevel get level {
-    return CLogLevel.values.firstWhere(
-      (element) => element._level == _record.level,
-    );
-  }
-
-  /// The data associated with the logged event.
-  String get data => _record.message;
-
-  /// Optional stack trace in the event of an error.
-  StackTrace? get stackTrace => _record.stackTrace;
-
-  @override
-  String toString() {
-    var msg = "${time.toIso8601String()} ${_record.toString()}";
-    msg = stackTrace != null ? "$msg\n${stackTrace.toString()}" : msg;
-    return msg;
-  }
-}
-
-// ----------------------------------------------------------------------------
-// [Math Definition] ----------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// Defines the formulas supported by the [CodeMeltedAPI.math] function.
-enum CMathFormula {
-  /// Kilometers squared to meters squared
-  area_km2_to_m2;
-}
-
-/// Internal extension to tie the formulas to the [CMathFormula] enumerated
-/// values.
-extension on CMathFormula {
-  /// The mapping of the enumerated formulas to actual formulas.
-  static final _data = {
-    CMathFormula.area_km2_to_m2: (List<double> v) => v[0] * 1e+6,
-  };
-
-  /// Private method to support the [CodeMeltedAPI.math] method.
-  double _calculate(List<double> v) => _data[this]!(v);
-}
-
-// ----------------------------------------------------------------------------
-// [Network Socket Definition] ------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
-// [Runtime Definition] -------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
-// [Share Definition] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
-// [Storage Definition] -------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
-// [Themes Definitions] -------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// TODO: Tab Theme definition to follow style of other widgets.
-//       1. Remove items from CTabItem. They should be in theme.
-//       2. Allow for customization of icon placement in relation to title.
-//       3. Ensure at least title or icon are specified.
-//       4. Take some of the scaffold items from the uiTabView and add to the
-//          theme.
-
-// TODO: Text Field Theme definition to follow style of other uiComboBox.
-//       This represents the standard I would like to shoot for.
-
-/// Provides an alternative to the flutter DialogTheme class. This is due
-/// to the fact it really does not theme much when utilizing the built-in
-/// [AlertDialog] of Flutter wrapped in the [CodeMeltedAPI] dlgXXX functions.
-class CDialogTheme extends ThemeExtension<CDialogTheme> {
-  /// Background color for the entire dialog panel.
-  final Color? backgroundColor;
-
-  /// The title foreground color for the text and close icon.
-  final Color? titleColor;
-
-  /// The foreground color of the content color for all dialog types minus
-  /// [CodeMeltedAPI.dlgCustom]. There the developer sets the color of the
-  /// content.
-  final Color? contentColor;
-
-  /// The foreground color of the Text buttons for the dialog.
-  final Color? actionsColor;
-
-  @override
-  CDialogTheme copyWith({
-    Color? backgroundColor,
-    Color? titleColor,
-    Color? contentColor,
-    Color? actionsColor,
-  }) {
-    return CDialogTheme(
-      backgroundColor: backgroundColor ?? this.backgroundColor,
-      titleColor: titleColor ?? this.titleColor,
-      contentColor: contentColor ?? this.contentColor,
-      actionsColor: actionsColor ?? this.actionsColor,
-    );
-  }
-
-  @override
-  CDialogTheme lerp(CDialogTheme? other, double t) {
-    if (other is! CDialogTheme) {
-      return this;
-    }
-    return CDialogTheme(
-      backgroundColor: Color.lerp(backgroundColor, other.backgroundColor, t),
-      titleColor: Color.lerp(titleColor, other.titleColor, t),
-      contentColor: Color.lerp(contentColor, other.contentColor, t),
-      actionsColor: Color.lerp(actionsColor, other.actionsColor, t),
-    );
-  }
-
-  /// Constructor for the theme. Sets up generic colors if none are specified.
-  const CDialogTheme({
-    this.backgroundColor = const Color.fromARGB(255, 2, 48, 32),
-    this.titleColor = Colors.amber,
-    this.contentColor = Colors.white,
-    this.actionsColor = Colors.lightBlueAccent,
-  });
-}
-
-/// Provides an extension on the ThemeData object to access the [CDialogTheme]
-/// object as part of the ThemeData object.
-extension on ThemeData {
-  /// Accesses the [CDialogTheme] for the [CodeMeltedAPI] dlgXXX methods.
-  CDialogTheme get cDialogTheme => extension<CDialogTheme>()!;
-}
-
-// ----------------------------------------------------------------------------
-// [Web RTC Definition] -------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
-// [Widget Definitions] -------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// Supports identifying the [CodeMeltedAPI.uiButton] widget constructed.
-enum CButtonType { elevated, filled, icon, outlined, text }
-
-/// Supports identifying what [CodeMeltedAPI.uiImage] is constructed when
-/// utilized.
-enum CImageType { asset, file, memory, network }
-
-/// Defines a tab item to utilize with the [CodeMeltedAPI.uiTabView] method.
-class CTabItem {
-  /// The content displayed with the tab.
-  final Widget content;
-
-  /// An icon for the tab within the tab view.
-  final dynamic icon;
-
-  /// A title with the tab within the tab view.
-  final String? title;
-
-  CTabItem({
-    required this.content,
-    this.icon,
-    this.title,
-  }) {
-    assert(
-      icon != null || title != null,
-      "At least icon or title must have a valid value",
-    );
-    assert(
-      icon is IconData || icon is Image || icon == null,
-      "icon can only be an Image / IconData / null type",
-    );
-  }
-}
-
-/// Sets up a channel for allowing the receipt of data from the web content.
-typedef CWebChannelCallback = Future<void> Function(dynamic);
-
-/// Enumerations set specifying the allowed actions within the embedded web
-/// view when the compile target is web.
-enum CSandboxAllow {
-  forms("allow-forms"),
-  modals("allow-modals"),
-  orientationLock("allow-orientation-lock"),
-  pointerLock("allow-pointer-lock"),
-  popups("allow-popups"),
-  popupsToEscapeSandbox("allow-popups-to-escape-sandbox"),
-  presentation("allow-presentation"),
-  sameOrigin("allow-same-origin"),
-  scripts("allow-scripts"),
-  topNavigation("allow-top-navigation"),
-  topNavigationByUserActivation("allow-top-navigation-by-user-activation");
-
-  final String sandbox;
-
-  const CSandboxAllow(this.sandbox);
-}
-
-/// Represents configuration items for the [CWebViewController] specific for
-/// the web target when constructing a [CodeMeltedAPI.uiWebView] widget.
-class CWebTargetConfig {
-  /// The policy defines what features are available to the
-  /// webview element (for example, access to the microphone, camera, battery,
-  /// web-share, etc.) based on the origin of the request.
-  final String allow;
-
-  /// Whether to allow the embedded web view to request full screen access.
-  final bool allowFullScreen;
-
-  /// The set of [CSandboxAllow] permissions for the web view.
-  final List<CSandboxAllow> sandbox;
-
-  const CWebTargetConfig({
-    this.allow = "",
-    this.allowFullScreen = true,
-    this.sandbox = const [],
-  });
-}
-
-/// Sets up the abstract web view controller for being able to change the
-/// web page of the embedded view and if necessary, communicate with the loaded
-/// page when constructing a [CodeMeltedAPI.uiWebView] widget.
-abstract class CWebViewController {
-  /// The [CWebChannelCallback] to receive messages.
-  final CWebChannelCallback? onMessageReceived;
-
-  /// A [CWebTargetConfig] when the embedded web view is for the web compiled
-  /// target.
-  final CWebTargetConfig? webTargetOnlyConfig;
-
-  /// The URL currently loaded in the embedded view widget.
-  late String _url;
-
-  /// Sets / gets the currently loaded URL in the embedded web view.
-  String get url => _url;
-  set url(String v) {
-    _url = v;
-    onUrlChanged();
-  }
-
-  /// Handles the changing of the URL within the web view.
-  Future<void> onUrlChanged();
-
-  /// Posts a message to the currently loaded web page.
-  Future<void> postMessage(String data);
-
-  /// Utility method to construct a controller for the proper target of
-  /// mobile / web.
-  static CWebViewController create({
-    required String url,
-    CWebChannelCallback? onMessageReceived,
-    CWebTargetConfig? webTargetOnlyConfig,
-  }) {
-    return platform.createWebViewController(
-      url: url,
-      onMessageReceived: onMessageReceived,
-    );
-  }
-
-  /// Initial constructor for the controller.
-  CWebViewController({
-    required String url,
-    this.onMessageReceived,
-    this.webTargetOnlyConfig,
-  }) {
-    _url = url;
-  }
-}
-
-// ============================================================================
-// [Main API Implementation] ==================================================
-// ============================================================================
-
-/// Sets up the API wrapper implemented the codemelted_developer identified use
-/// cases for flutter applications.
-class CodeMeltedAPI {
+export 'package:codemelted_flutter/src/definitions/async_io.dart';
+export 'package:codemelted_flutter/src/definitions/audio_player.dart';
+export 'package:codemelted_flutter/src/definitions/data_broker.dart';
+export 'package:codemelted_flutter/src/definitions/fetch.dart';
+export 'package:codemelted_flutter/src/definitions/link_opener.dart';
+export 'package:codemelted_flutter/src/definitions/logger.dart';
+export 'package:codemelted_flutter/src/definitions/math.dart';
+export 'package:codemelted_flutter/src/definitions/themes.dart';
+export 'package:codemelted_flutter/src/definitions/widgets.dart';
+
+/// Say something cool
+class CodeMeltedFlutter {
   // --------------------------------------------------------------------------
-  // [App View Implementation] ------------------------------------------------
+  // [App View Definitions] ---------------------------------------------------
   // --------------------------------------------------------------------------
 
   /// Accesses a Single Page Application (SPA) for the overall module. This
   /// is called after being configured via the appXXX functions in the runApp
   /// of the main().
-  Widget get app => _CAppView();
+  Widget get app {
+    return CAppView();
+  }
 
-  /// Sets the [CodeMeltedAPI.app] dark theme.
-  set appDarkTheme(ThemeData? v) => _CAppView.darkTheme = v;
+  /// Sets the [CodeMeltedFlutter.app] dark theme.
+  set appDarkTheme(ThemeData? v) {
+    CAppView.darkTheme = v;
+  }
 
-  /// Sets the [CodeMeltedAPI.app] light theme.
-  set appTheme(ThemeData? v) => _CAppView.theme = v;
+  /// Sets the [CodeMeltedFlutter.app] light theme.
+  set appTheme(ThemeData? v) {
+    CAppView.theme = v;
+  }
 
-  /// Sets the [CodeMeltedAPI.app] theme mode.
-  set appThemeMode(ThemeMode v) => _CAppView.themeMode = v;
+  /// Sets the [CodeMeltedFlutter.app] theme mode.
+  set appThemeMode(ThemeMode v) {
+    CAppView.themeMode = v;
+  }
 
-  /// Sets / removes the [CodeMeltedAPI.app] title.
-  set appTitle(String? v) => _CAppView.title = v;
-  String? get appTitle => _CAppView.title;
+  /// Sets / removes the [CodeMeltedFlutter.app] title.
+  set appTitle(String? v) {
+    CAppView.title = v;
+  }
 
-  /// Sets / removes the [CodeMeltedAPI.app] header area.
+  String? get appTitle {
+    return CAppView.title;
+  }
+
+  /// Sets / removes the [CodeMeltedFlutter.app] header area.
   void appHeader({
     List<Widget>? actions,
     bool automaticallyImplyLeading = true,
@@ -1181,7 +111,7 @@ class CodeMeltedAPI {
     AppBarTheme? style,
     Widget? title,
   }) {
-    _CAppView.header(
+    CAppView.header(
       actions: actions,
       automaticallyImplyLeading: automaticallyImplyLeading,
       forceMaterialTransparency: forceMaterialTransparency,
@@ -1191,20 +121,20 @@ class CodeMeltedAPI {
     );
   }
 
-  /// Sets / removes the [CodeMeltedAPI.app] content area.
+  /// Sets / removes the [CodeMeltedFlutter.app] content area.
   void appContent({
     required Widget? body,
     bool extendBody = false,
     bool extendBodyBehindAppBar = false,
   }) {
-    _CAppView.content(
+    CAppView.content(
       body: body,
       extendBody: extendBody,
       extendBodyBehindAppBar: extendBodyBehindAppBar,
     );
   }
 
-  /// Sets / removes the [CodeMeltedAPI.app] footer area.
+  /// Sets / removes the [CodeMeltedFlutter.app] footer area.
   void appFooter({
     List<Widget>? actions,
     bool automaticallyImplyLeading = true,
@@ -1213,7 +143,7 @@ class CodeMeltedAPI {
     AppBarTheme? style,
     Widget? title,
   }) {
-    _CAppView.footer(
+    CAppView.footer(
       actions: actions,
       automaticallyImplyLeading: automaticallyImplyLeading,
       forceMaterialTransparency: forceMaterialTransparency,
@@ -1223,89 +153,112 @@ class CodeMeltedAPI {
     );
   }
 
-  /// Sets / removes the [CodeMeltedAPI.app] floating action button.
+  /// Sets / removes the [CodeMeltedFlutter.app] floating action button.
   void appFloatingActionButton({
     Widget? button,
     FloatingActionButtonLocation? location,
   }) {
-    _CAppView.floatingActionButton(button: button, location: location);
+    CAppView.floatingActionButton(button: button, location: location);
   }
 
-  /// Sets / removes the [CodeMeltedAPI.app] drawer.
+  /// Sets / removes the [CodeMeltedFlutter.app] drawer.
   void appDrawer({Widget? header, List<Widget>? items}) {
-    _CAppView.drawer(header: header, items: items);
+    CAppView.drawer(header: header, items: items);
   }
 
-  /// Sets / removes the [CodeMeltedAPI.app] end drawer.
+  /// Sets / removes the [CodeMeltedFlutter.app] end drawer.
   void appEndDrawer({Widget? header, List<Widget>? items}) {
-    _CAppView.endDrawer(header: header, items: items);
+    CAppView.endDrawer(header: header, items: items);
   }
 
-  /// Closes the [CodeMeltedAPI.app] drawer or end drawer.
-  void appCloseDrawer() => _CAppView.closeDrawer();
+  /// Closes the [CodeMeltedFlutter.app] drawer or end drawer.
+  void appCloseDrawer() {
+    CAppView.closeDrawer();
+  }
 
-  /// Opens the [CodeMeltedAPI.app] drawer or end drawer.
+  /// Opens the [CodeMeltedFlutter.app] drawer or end drawer.
   void appOpenDrawer({bool isEndDrawer = false}) {
-    _CAppView.openDrawer(isEndDrawer: isEndDrawer);
+    CAppView.openDrawer(isEndDrawer: isEndDrawer);
   }
 
   /// Provides the ability to get items from the global app state.
-  T getAppState<T>(String key) => _CAppView.uiState.get<T>(key);
+  T getAppState<T>({required String key}) {
+    return CAppView.uiState.get<T>(key);
+  }
 
   /// Provides the ability to set items on the global app state.
-  void setAppState<T>(String key, T value) =>
-      _CAppView.uiState.set<T>(key, value);
+  void setAppState<T>({required String key, required T value}) {
+    CAppView.uiState.set<T>(key, value);
+  }
 
   // --------------------------------------------------------------------------
-  // [Async IO Implementation] ------------------------------------------------
+  // [Async IO Definition] ----------------------------------------------------
   // --------------------------------------------------------------------------
 
-  /// Supports the running of singular tasks asynchronously. This is either
-  /// as a [CAsyncTaskAction.background] isolate (native only), a
-  /// repeating [CAsyncTaskAction.interval] returned as as a [Timer] object,
-  /// a [CAsyncTaskAction.sleep] action of an async task, or running a
-  /// [CAsyncTaskAction.timeout] action. The background and timeout actions
-  /// can also return results that are calculated via the [CAsyncTaskFunction]
-  /// definition.
+  /// Will sleep an asynchronous task for the specified delay in milliseconds.
+  Future<void> asyncSleep({required int delay}) async {
+    return (await Future.delayed(Duration(milliseconds: delay)));
+  }
+
+  /// Will process a one off asynchronous task either on the main flutter thread
+  /// or in a background isolate. The isBackground is only supported on native
+  /// and mobile platforms.
   Future<dynamic> asyncTask({
-    required CAsyncTaskAction action,
-    CAsyncTaskFunction? task,
+    required CAsyncTask task,
     dynamic data,
     int delay = 0,
+    bool isBackground = false,
   }) async {
-    switch (action) {
-      case CAsyncTaskAction.background:
-        assert(!kIsWeb, "This is only available on native platforms");
-        return (await Isolate.run<dynamic>(() => task!(data)));
-      case CAsyncTaskAction.interval:
-        return Timer.periodic(
-          Duration(milliseconds: delay),
-          (timer) {
-            task!();
-          },
-        );
-      case CAsyncTaskAction.sleep:
-        return (await Future.delayed(Duration(milliseconds: delay)));
-      case CAsyncTaskAction.timeout:
-        return (
-          await Future.delayed(
-            Duration(milliseconds: delay),
-            () => task!(data),
-          ),
-        );
+    assert(
+      !kIsWeb && isBackground,
+      "background processing is only available on native platforms",
+    );
+
+    if (isBackground) {
+      return (await Isolate.run<dynamic>(() => task(data)));
     }
+
+    return (
+      await Future.delayed(
+        Duration(milliseconds: delay),
+        () => task(data),
+      ),
+    );
+  }
+
+  /// Kicks off a timer to schedule tasks on the thread for which it is created
+  /// calling the task on the interval specified in milliseconds.
+  Timer asyncTimer({
+    required CAsyncTask task,
+    required int interval,
+  }) {
+    assert(interval > 0, "interval specified must be greater than 0.");
+    return Timer.periodic(
+      Duration(milliseconds: interval),
+      (timer) {
+        task();
+      },
+    );
   }
 
   /// @nodoc
-  Future<CAsyncWorker> asyncWorker({
-    required CAsyncWorkerType type,
+  CAsyncWorker asyncWorker({
     required CAsyncWorkerListener listener,
-    String? url,
-  }) async =>
-      throw "NOT IMPLEMENTED YET";
+    required dynamic config,
+  }) {
+    // if (config is CIsolateConfig) {
+    //   return platform.createIsolate(listener: listener, config: config);
+    // } else if (config is CProcessConfig) {
+    //   return platform.createProcess(listener: listener, config: config);
+    // } else if (config is CWorkerConfig) {
+    //   return platform.createWorker(listener: listener, config: config);
+    // }
+    throw "CodeMeltedFlutter.asyncWorker: did not receive a supported "
+        "configuration object";
+  }
 
   // --------------------------------------------------------------------------
-  // [Audio Player Implementation] --------------------------------------------
+  // [Audio Player Definition] ------------------------------------------------
   // --------------------------------------------------------------------------
 
   /// Builds a [CAudioPlayer] identifying an audio source and specifying the
@@ -1330,7 +283,7 @@ class CodeMeltedAPI {
     player.onLog.listen((event) {
       logError(data: event, st: StackTrace.current);
     });
-    return CAudioPlayer._(player, audioSource);
+    return CAudioPlayer(player, audioSource);
   }
 
   /// Builds a [CAudioPlayer] to perform text-to-speech of the specified data.
@@ -1351,69 +304,84 @@ class CodeMeltedAPI {
       }
       logError(data: message, st: StackTrace.current);
     });
-    return CAudioPlayer._(player, data);
+    return CAudioPlayer(player, data);
   }
 
   // --------------------------------------------------------------------------
-  // [Console Implementation] -------------------------------------------------
+  // [Console] ----------------------------------------------------------------
   // --------------------------------------------------------------------------
 
-  // Not applicable to the flutter module.
+  // Console is not applicable to flutter as it is a widget based library.
 
   // --------------------------------------------------------------------------
-  // [Database Implementation] ------------------------------------------------
+  // [Database Definition] ----------------------------------------------------
   // --------------------------------------------------------------------------
 
+  // TBD
+
   // --------------------------------------------------------------------------
-  // [Data Broker Implementation] ---------------------------------------------
+  // [Data Broker Definitions] ------------------------------------------------
   // --------------------------------------------------------------------------
 
   /// Determines if a [CObject] has a given property contained within.
-  bool checkHasProperty(CObject obj, String key) => obj.containsKey(key);
+  bool checkHasProperty({required CObject obj, required String key}) {
+    return obj.containsKey(key);
+  }
 
   /// Determines if the variable is of the expected type.
-  bool checkType<T>(dynamic v) => v is T;
+  bool checkType<T>({required dynamic data}) {
+    return data is T;
+  }
 
   /// Determines if the data type is a valid URL.
-  bool checkValidURL(String v) => Uri.tryParse(v) != null;
+  bool checkValidUrl({required String data}) {
+    return Uri.tryParse(data) != null;
+  }
 
   /// Will convert data into a JSON [CObject] or return null if the decode
   /// could not be achieved.
-  CObject? jsonParse(String data) => data.asObject();
+  CObject? jsonParse({required String data}) {
+    return data.asObject();
+  }
 
   /// Will encode the JSON [CObject] into a string or null if the encode
   /// could not be achieved.
-  String? jsonStringify(CObject data) => data.stringify();
+  String? jsonStringify({required CObject data}) {
+    return data.stringify();
+  }
 
-  /// Same as [checkHasProperty] but throws an exception if the key is not
-  /// found.
-  void tryHasProperty(CObject obj, String key) {
-    if (!checkHasProperty(obj, key)) {
+  /// Same as [checkHasProperty] but throws an exception if the key
+  /// is not found.
+  void tryHasProperty({required CObject obj, required String key}) {
+    if (!checkHasProperty(obj: obj, key: key)) {
       throw "obj does not contain '$key' key";
     }
   }
 
-  /// Same as [checkType] but throws an exception if not of the expected
-  /// type.
-  void tryType<T>(dynamic v) {
-    if (!checkType<T>(v)) {
+  /// Same as [checkType] but throws an exception if not of the
+  /// expected type.
+  void tryType<T>({required dynamic data}) {
+    if (!checkType<T>(data: data)) {
       throw "variable was not of type '$T'";
     }
   }
 
-  /// Same as [checkValidURL] but throws an exception if not a valid URL type.
-  void tryValidURL(String v) {
-    if (!checkValidURL(v)) {
+  /// Same as [checkValidUrl] but throws an exception if not a valid
+  /// URL type.
+  void tryValidUrl({required String data}) {
+    if (!checkValidUrl(data: data)) {
       throw "v was not a valid URL string";
     }
   }
 
   // --------------------------------------------------------------------------
-  // [Device Orientation Implementation] --------------------------------------
+  // [Device Orientation Definition] ------------------------------------------
   // --------------------------------------------------------------------------
 
+  // TBD
+
   // --------------------------------------------------------------------------
-  // [Dialog Implementation] --------------------------------------------------
+  // [Dialog Definition] ------------------------------------------------------
   // --------------------------------------------------------------------------
 
   /// Internal tracking variable to properly handle browser display within
@@ -1425,6 +393,25 @@ class CodeMeltedAPI {
 
   /// The default width for a medium dialog.
   static const _smallWidth = 320.0;
+
+  /// Helper action to build text buttons for our basic dialogs.
+  Widget _buildButton<T>(String title, [T? answer]) {
+    return uiButton(
+      type: CButtonType.text,
+      title: title,
+      style: ButtonStyle(
+        foregroundColor: WidgetStatePropertyAll(
+          _getTheme().actionsColor,
+        ),
+      ),
+      onPressed: () => dlgClose<T>(answer),
+    );
+  }
+
+  /// Helper method to get the currently active dialog theme.
+  CDialogTheme _getTheme() {
+    return Theme.of(cScaffoldKey.currentContext!).cDialogTheme;
+  }
 
   /// Will display information about your flutter app.
   Future<void> dlgAbout({
@@ -1478,7 +465,7 @@ class CodeMeltedAPI {
   }) async {
     // Now figure what browser window action we are taking
     if (useNativeBrowser) {
-      platform.openWebBrowser(
+      _platform.openWebBrowser(
         target: title,
         height: height,
         url: url,
@@ -1601,7 +588,7 @@ class CodeMeltedAPI {
 
   /// Shows a custom dialog for a more complex form where at the end you can
   /// apply changes as a returned value if necessary. You will make use of
-  /// [CodeMeltedAPI.dlgClose] for returning values via your actions array.
+  /// [CodeMeltedFlutter.dlgClose] for returning values via your actions array.
   Future<T?> dlgCustom<T>({
     required Widget content,
     required String title,
@@ -1636,7 +623,7 @@ class CodeMeltedAPI {
   }
 
   /// Provides the ability to run an async task and present a wait dialog. It
-  /// is important you call [CodeMeltedAPI.dlgClose] to properly clear the
+  /// is important you call [CodeMeltedFlutter.dlgClose] to properly clear the
   /// dialog and return any value expected.
   Future<T?> dlgLoading<T>({
     double height = _smallHeight,
@@ -1708,34 +695,6 @@ class CodeMeltedAPI {
         "";
   }
 
-  // /// Provides the ability to show a full page within the [CodeMeltedAPI.app] with the
-  // /// ability to specify the title and actions in the top bar. You can also
-  // /// specify bottom actions.
-  // void dlgFullPage({
-  //   required Widget content,
-  //   List<Widget>? actions,
-  //   bool? centerTitle,
-  //   bool showBackButton = true,
-  //   String? title,
-  // }) async {
-  //   Navigator.push(
-  //     cScaffoldKey.currentContext!,
-  //     MaterialPageRoute(
-  //       builder: (context) => Material(
-  //         child: Scaffold(
-  //           appBar: AppBar(
-  //             automaticallyImplyLeading: showBackButton,
-  //             actions: actions,
-  //             centerTitle: centerTitle,
-  //             title: title != null ? Text(title) : null,
-  //           ),
-  //           body: content,
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
   /// Shows a snackbar at the bottom of the content area to display
   /// information.
   void dlgSnackbar({
@@ -1756,28 +715,14 @@ class CodeMeltedAPI {
     );
   }
 
-  /// Helper action to build text buttons for our basic dialogs.
-  Widget _buildButton<T>(String title, [T? answer]) => uiButton(
-        type: CButtonType.text,
-        title: title,
-        style: ButtonStyle(
-          foregroundColor: WidgetStatePropertyAll(
-            _getTheme().actionsColor,
-          ),
-        ),
-        onPressed: () => dlgClose<T>(answer),
-      );
-
-  /// Helper method to get the currently active dialog theme.
-  static CDialogTheme _getTheme() =>
-      Theme.of(cScaffoldKey.currentContext!).cDialogTheme;
-
   // --------------------------------------------------------------------------
-  // [Disk Manager Implementation] --------------------------------------------
+  // [Disk Manager Definition] ------------------------------------------------
   // --------------------------------------------------------------------------
 
+  // TBD
+
   // --------------------------------------------------------------------------
-  // [Fetch Implementation] ---------------------------------------------------
+  // [Fetch Definitions] ------------------------------------------------------
   // --------------------------------------------------------------------------
 
   /// Implements the ability to fetch a server's REST API endpoint to retrieve
@@ -1840,13 +785,17 @@ class CodeMeltedAPI {
   }
 
   // --------------------------------------------------------------------------
-  // [Hardware Device Implementation] -----------------------------------------
+  // [Hardware Device Definition] ---------------------------------------------
   // --------------------------------------------------------------------------
 
+  // TBD
+
   // --------------------------------------------------------------------------
-  // [Link Opener Implementation] ---------------------------------------------
+  // [Link Opener Definition] -------------------------------------------------
   // --------------------------------------------------------------------------
 
+  /// Utilizes available desktop services to open te specified scheme protocol
+  /// url link.
   Future<bool> open({
     required CSchemeType scheme,
     CMailToParams? mailtoParams,
@@ -1884,111 +833,98 @@ class CodeMeltedAPI {
   }
 
   // --------------------------------------------------------------------------
-  // [Logger Implementation] --------------------------------------------------
+  // [Logger Definitions] -----------------------------------------------------
   // --------------------------------------------------------------------------
 
   /// Sets up the internal logger for the module.
   final _logger = Logger("CodeMelted-Logger");
 
-  /// Handles the initialization of the logger for the [CodeMeltedAPI] module.
-  void _initLogger() {
-    // Hookup into the flutter runtime error handlers so any error it
-    // encounters, is also reported.
-    FlutterError.onError = (details) {
-      logError(data: details.exception, st: details.stack);
-    };
-
-    PlatformDispatcher.instance.onError = (error, st) {
-      logError(data: error.toString(), st: st);
-      return true;
-    };
-
-    // Now configure our logger items.
-    Logger.root.level = CLogLevel.warning._level;
-    Logger.root.onRecord.listen((v) {
-      var record = CLogRecord(v);
-      if (kDebugMode || kIsWeb) {
-        if (platform.getEnvironment('FLUTTER_TEST') == null) {
-          // ignore: avoid_print
-          print(record);
-        }
-      }
-
-      if (onLoggedEvent != null) {
-        onLoggedEvent!(record);
-      }
-    });
+  /// Sets / gets the [CLogLevel] of the codemelted_flutter module logging
+  /// facility.
+  set logLevel(CLogLevel v) {
+    Logger.root.level = v.level;
   }
 
-  /// Sets / gets the [CLogLevel] of the [CodeMeltedAPI] module logging
-  /// facility.
-  static set logLevel(CLogLevel v) => Logger.root.level = v._level;
-  static CLogLevel get logLevel {
+  CLogLevel get logLevel {
     return CLogLevel.values.firstWhere(
-      (element) => element._level == Logger.root.level,
+      (element) => element.level == Logger.root.level,
     );
   }
 
   /// Establishes the [CLogEventHandler] to facilitate post log processing
-  /// of a [CodeMeltedAPI] module logged event.
+  /// of a codemelted_flutter module logged event.
   CLogEventHandler? onLoggedEvent;
 
   /// Will log debug level messages via the module.
-  void logDebug({Object? data, StackTrace? st}) =>
-      _logger.log(CLogLevel.debug._level, data, null, st);
+  void logDebug({Object? data, StackTrace? st}) {
+    _logger.log(CLogLevel.debug.level, data, null, st);
+  }
 
   /// Will log info level messages via the module.
-  void logInfo({Object? data, StackTrace? st}) =>
-      _logger.log(CLogLevel.info._level, data, null, st);
+  void logInfo({Object? data, StackTrace? st}) {
+    _logger.log(CLogLevel.info.level, data, null, st);
+  }
 
   /// Will log warning level messages via the module.
-  void logWarning({Object? data, StackTrace? st}) =>
-      _logger.log(CLogLevel.warning._level, data, null, st);
+  void logWarning({Object? data, StackTrace? st}) {
+    _logger.log(CLogLevel.warning.level, data, null, st);
+  }
 
   /// Will log error level messages via the module.
-  void logError({Object? data, StackTrace? st}) =>
-      _logger.log(CLogLevel.error._level, data, null, st);
+  void logError({Object? data, StackTrace? st}) {
+    _logger.log(CLogLevel.error.level, data, null, st);
+  }
 
   // --------------------------------------------------------------------------
-  // [Math Implementation] ----------------------------------------------------
+  // [Math Definition] --------------------------------------------------------
   // --------------------------------------------------------------------------
 
   /// Runs the specified [CMathFormula] with the specified variables returning
   /// the calculated result.
-  double math({required CMathFormula formula, required List<double> vars}) =>
-      formula._calculate(vars);
+  double math({
+    required CMathFormula formula,
+    required List<double> vars,
+  }) {
+    return formula.calculate(vars);
+  }
 
   // --------------------------------------------------------------------------
-  // [Network Socket Implementation] ------------------------------------------
+  // [Network Socket Definition] ----------------------------------------------
   // --------------------------------------------------------------------------
 
+  // TBD
+
   // --------------------------------------------------------------------------
-  // [Runtime Implementation] -------------------------------------------------
+  // [Runtime Definition] -----------------------------------------------------
   // --------------------------------------------------------------------------
 
   /// Copies data to the system clipboard
-  Future<void> copyToClipboard(String data) async {
+  Future<void> copyToClipboard({required String data}) async {
     return Clipboard.setData(ClipboardData(text: data));
   }
 
   /// Will search for the specified environment variable returning null if not
   /// found.
-  String? environment(String key) => platform.getEnvironment(key);
+  String? environment(String key) => _platform.environment(key);
 
   /// Determines if the application is a PWA. Will only return true if the
   /// app is a web targeted app and installed as a PWA.
-  bool get isPWA => platform.isPWA;
+  bool get isPWA => _platform.isPWA;
 
   // --------------------------------------------------------------------------
-  // [Share Implementation] ---------------------------------------------------
+  // [Share Definition] -------------------------------------------------------
   // --------------------------------------------------------------------------
 
-  // --------------------------------------------------------------------------
-  // [Storage Implementation] -------------------------------------------------
-  // --------------------------------------------------------------------------
+  // TBD
 
   // --------------------------------------------------------------------------
-  // [Theme Implementation] ---------------------------------------------------
+  // [Storage Definition] -----------------------------------------------------
+  // --------------------------------------------------------------------------
+
+  // TBD
+
+  // --------------------------------------------------------------------------
+  // [Themes Definitions] -----------------------------------------------------
   // --------------------------------------------------------------------------
 
   /// Utility method to create ThemeData objects but it only exposes the
@@ -2120,11 +1056,13 @@ class CodeMeltedAPI {
   }
 
   // --------------------------------------------------------------------------
-  // [Web RTC Implementation] -------------------------------------------------
+  // [Web RTC Definition] -----------------------------------------------------
   // --------------------------------------------------------------------------
 
+  // TBD
+
   // --------------------------------------------------------------------------
-  // [Widget Implementation] --------------------------------------------------
+  // [Widget Definition] ------------------------------------------------------
   // --------------------------------------------------------------------------
 
   /// Will construct a stateless button to handle press events of said button.
@@ -2421,7 +1359,7 @@ class CodeMeltedAPI {
 
   /// Creates a scrollable grid layout of widgets that based on the
   /// crossAxisCount.
-  static Widget uiGridView({
+  Widget uiGridView({
     required int crossAxisCount,
     required List<Widget> children,
     Key? key,
@@ -2452,7 +1390,9 @@ class CodeMeltedAPI {
   }
 
   /// Retrieves the total height of the specified context.
-  double uiHeight(BuildContext context) => MediaQuery.of(context).size.height;
+  double uiHeight(BuildContext context) {
+    return MediaQuery.of(context).size.height;
+  }
 
   /// Will create an image widget based on the specified [CImageType]
   /// enumerated value and display it when available based on the
@@ -2799,28 +1739,62 @@ class CodeMeltedAPI {
 
   /// Provides the ability to view web content on mobile / web targets.
   Widget uiWebView(CWebViewController controller) {
-    return platform.createWebView(controller);
+    return _platform.createWebView(controller);
   }
 
   /// Retrieves the available width of the specified context.
-  double uiWidth(BuildContext context) => MediaQuery.of(context).size.width;
+  double uiWidth(BuildContext context) {
+    return MediaQuery.of(context).size.width;
+  }
+
+  // Future<String?> getPlatformVersion() {
+  //   return CodeMeltedFlutterPlatform.instance.getPlatformVersion();
+  // }
 
   // --------------------------------------------------------------------------
-  // [API Implementation] -----------------------------------------------------
+  // [API Setup] --------------------------------------------------------------
   // --------------------------------------------------------------------------
 
-  /// Holds the private instance of the [CodeMeltedAPI].
-  static CodeMeltedAPI? _instance;
+  /// Holds the singular instance of the API.
+  static CodeMeltedFlutter? _instance;
 
-  /// Factory method to access this API.
-  factory CodeMeltedAPI() => _instance ?? CodeMeltedAPI._();
+  /// Factory constructor to support the [codemelted] namespace setup.
+  factory CodeMeltedFlutter() => _instance ?? CodeMeltedFlutter._();
 
-  /// Private constructor to ensure only one instance of this.
-  CodeMeltedAPI._() {
+  /// Hold a reference to the platform runtime for native target methods.
+  final _platform = CodeMeltedFlutterPlatform.instance;
+
+  /// Private constructor so no-one can construct another instance of this API.
+  CodeMeltedFlutter._() {
     _instance = this;
-    _initLogger();
+    // Hookup into the flutter runtime error handlers so any error it
+    // encounters, is also reported.
+    FlutterError.onError = (details) {
+      logError(data: details.exception, st: details.stack);
+    };
+
+    PlatformDispatcher.instance.onError = (error, st) {
+      logError(data: error.toString(), st: st);
+      return true;
+    };
+
+    // Now configure our logger items.
+    Logger.root.level = CLogLevel.warning.level;
+    Logger.root.onRecord.listen((v) {
+      var record = CLogRecord(v);
+      if (kDebugMode || kIsWeb) {
+        if (_platform.environment('FLUTTER_TEST') == null) {
+          // ignore: avoid_print
+          print(record);
+        }
+      }
+
+      if (onLoggedEvent != null) {
+        onLoggedEvent!(record);
+      }
+    });
   }
 }
 
-/// Sets up a namespace object to access the [CodeMeltedAPI].
-final codemelted = CodeMeltedAPI();
+/// Sets up a namespace object to access the [CodeMeltedFlutter] main API.
+final codemelted = CodeMeltedFlutter();

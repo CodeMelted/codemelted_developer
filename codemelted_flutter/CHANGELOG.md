@@ -1,3 +1,3 @@
-## 0.1.0 - 2024-04-25
+## 0.0.0
 
-* CLogger modeled, tested, and documented.
+* TODO: Describe initial release.

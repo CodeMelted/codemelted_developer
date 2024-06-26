@@ -1,3 +1,10 @@
+<!--
+TITLE: CodeMelted - JS Module
+PUBLISH_DATE: 2024-06-25
+AUTHOR: Mark Shaffer
+KEYWORDS: raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module
+DESCRIPTION: Welcome to the CodeMelted - Raspberry Pi Project project. This project aims to utilize the different CodeMelted - Developer modules as services on a Raspberry Pi. These services aim to allow a user to yield different configurations to utilize the Raspberry Pi. The identified services will include getting GPS coordinates, taking still frame pictures tagged with the GPS information, taking video to serve as a dash cam or web camera, provide infotainment within a vehicle, the ability to interface with the raspberry pi via the Internet, and finally, as a sky watching camera for nighttime astronomy.
+-->
 <center>
   <a href="../README.md"><img style="width: 100%; max-width: 375px;" src="logo.png" /></a><br />
 </center>
@@ -14,15 +21,15 @@ Welcome to the **CodeMelted - Raspberry Pi Project** project. This project aims 
 
 ## FEATURES
 
-<mark>TBD</mark>
+<mark>UNDER DEVELOPMENT</mark>
 
 ## GETTING STARTED
 
-<mark>TBD</mark>
+<mark>UNDER DEVELOPMENT</mark>
 
 ## USAGE
 
-<mark>TBD</mark>
+<mark>UNDER DEVELOPMENT</mark>
 
 ## LICENSE
 
