@@ -1,9 +1,7 @@
 // @ts-check
 /**
+ * @author Mark Shaffer
  * @license MIT
- *
- * (C) 2024 Mark Shaffer. All Rights Reserved.
- *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the “Software”),
  * to deal in the Software without restriction, including without limitation
@@ -28,24 +26,89 @@
 // ----------------------------------------------------------------------------
 
 /**
- * The object that results from the codemelted.fetch() function call.
+ * Defines the version for the module.
+ */
+const _version = "X.Y.Z (Last Updated yyyy-dd-mm)";
+
+/**
+ * The object that results from the codemelted.fetch function call.
  * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Blob
  * @see https://developer.mozilla.org/en-US/docs/Web/API/FormData
- * @typedef {object} CFetchResult
- * @property {any} data something
- * @property {number} status something
- * @property {string} statusText something
- * @property {FormData?} asFormData something
- * @property {Blob?} asBlob something
  */
+export class CFetchResult {
+    /** @type {any} */
+    #data = undefined;
+    /** @type {number} */
+    #status = -1;
+    /** @type {string} */
+    #statusText = "";
+
+    /**
+     * Data captured with request.
+     * @readonly
+     * @type {any}
+     */
+    get data() { return this.#data; }
+
+    /**
+     * The HTTP status code of the request.
+     * @readonly
+     * @type {number}
+     */
+    get status() { return this.#status; }
+
+    /**
+     * Any text associated with the request.
+     * @readonly
+     * @type {string}
+     */
+    get statusText() { return this.#statusText; }
+
+    /**
+     * Gets the data as a Blob reference if it is a Blob.
+     * @readonly
+     * @type {Blob?}
+     */
+    get asBlob() {
+        return this.#data instanceof Blob
+            ? this.#data
+            : null;
+    }
+
+    /**
+     * Gets the data as a FormData reference if it is a FormData.
+     * @readonly
+     * @type {FormData?}
+     */
+    get asFormData() {
+        return this.#data instanceof FormData
+            ? this.#data
+            : null;
+    }
+
+    /**
+     * Constructor for the class.
+     * @param {any} data The data from the request.
+     * @param {number} status The status code of the request.
+     * @param {string} statusText Any text associated with the request.
+     */
+    constructor(data, status, statusText) {
+        this.#data = data;
+        this.#status = status;
+        this.#statusText = statusText;
+    }
+}
 
 // ----------------------------------------------------------------------------
 // [Public API Implementation] ------------------------------------------------
 // ----------------------------------------------------------------------------
 
 /**
- * Something....
+ * Implements the CodeMelted - Developer identified use cases to support the
+ * Deno / Web runtimes. It leverages pure JavaScript with the power of JSDoc
+ * and generated TypeScript types to leverage both developer environments
+ * to catch bugs early and often.
  */
 export class codemelted {
     /**
@@ -55,6 +118,13 @@ export class codemelted {
     constructor() {
         throw new SyntaxError("Static utility interface. Do not instantiate.");
     }
+
+    /**
+     * The current version of the module.
+     * @readonly
+     * @type {string}
+     */
+    static get version() { return _version; }
 
     // ------------------------------------------------------------------------
     // [App View Implementation] ----------------------------------------------
@@ -92,54 +162,60 @@ export class codemelted {
 
     /**
      * Determines if the specified object has the specified property.
-     * @param {object} obj The object to check.
-     * @param {string} key The property to find.
+     * @param {object} params The named parameters.
+     * @param {object} params.obj The object to check for the key.
+     * @param {string} params.key The property to check for.
      * @returns {boolean} true if property was found, false otherwise.
      */
-    static checkHasProperty(obj, key) {
+    static checkHasProperty({obj, key}) {
         return Object.hasOwn(obj, key);
     }
 
     /**
      * Utility to check parameters of a function to ensure they are of an
      * expected type.
-     * @param {string | any} type
-     * @param {any} v The parameter to be checked.
-     * @param {number} [count] Checks the v parameter function signature
-     * to ensure the appropriate number of parameters are specified.
+     * @param {object} params The named parameters.
+     * @param {string | any} params.type The specified type to check the data
+     * against.
+     * @param {any} params.data The parameter to be checked.
+     * @param {number} [params.count] Checks the data parameter function
+     * signature to ensure the appropriate number of parameters are
+     * specified.
      * @returns {boolean} true if it meets the expectations, false otherwise.
      */
-    static checkType(type, v, count = undefined) {
+    static checkType({type, data, count = undefined}) {
         const isExpectedType = typeof type !== "string"
-            ? (v instanceof type)
+            ? (data instanceof type)
             // deno-lint-ignore valid-typeof
-            : typeof v === type;
+            : typeof data === type;
         return typeof count === "number"
-            ? isExpectedType && v.length === count
+            ? isExpectedType && data.length === count
             : isExpectedType;
     }
 
     /**
      * Checks for a valid URL.
-     * @param {string} v String to parse to see if it is a valid URL.
+     * @param {object} params The named parameters.
+     * @param {string} params.data String to parse to see if it is a valid URL.
      * @returns {boolean} true if valid, false otherwise.
      */
-    static checkValidUrl(v) {
+    static checkValidUrl({data}) {
         let url = undefined;
         try {
-            url = new URL(v);
+            url = new URL(data);
         } catch (_ex) {
             url = undefined;
         }
-        return codemelted.checkType(URL, url);
+        return codemelted.checkType({type: URL, data: url});
     }
 
     /**
      * Converts a string to a JavaScript object.
-     * @param {string} data The data to parse.
+     * @param {object} params The named parameters.
+     * @param {string} params.data The data to parse.
      * @returns {object | null} Object or null if the parse failed.
      */
-    static jsonParse(data) {
+    static jsonParse({data}) {
         try {
             return JSON.parse(data);
         } catch (_ex) {
@@ -149,11 +225,12 @@ export class codemelted {
 
     /**
      * Converts a JavaScript object into a string.
-     * @param {object} data An object with valid JSON attributes.
+     * @param {object} params The named parameters.
+     * @param {object} params.data An object with valid JSON attributes.
      * @returns {string | null} The string representation or null if the
      * stringify failed.
      */
-    static jsonStringify(data) {
+    static jsonStringify({data}) {
         try {
             return JSON.stringify(data);
         } catch (_ex) {
@@ -163,13 +240,14 @@ export class codemelted {
 
     /**
      * Determines if the specified object has the specified property.
-     * @param {object} obj The object to check.
-     * @param {string} key The property to find.
+     * @param {object} params The named parameters.
+     * @param {object} params.obj The object to check for the key.
+     * @param {string} params.key The property to check for.
      * @returns {void}
      * @throws {SyntaxError} if the property is not found.
      */
-    static tryHasProperty(obj, key) {
-        if (!codemelted.checkHasProperty(obj, key)) {
+    static tryHasProperty({obj, key}) {
+        if (!codemelted.checkHasProperty({obj: obj, key: key})) {
             throw new SyntaxError(`${obj} does not have property ${key}`);
         }
     }
@@ -177,17 +255,20 @@ export class codemelted {
     /**
      * Utility to check parameters of a function to ensure they are of an
      * expected type.
-     * @param {string | any} type
-     * @param {any} v The parameter to be checked.
-     * @param {number} [count] Checks the v parameter function signature
-     * to ensure the appropriate number of parameters are specified.
+     * @param {object} params The named parameters.
+     * @param {string | any} params.type he specified type to check the data
+     * against.
+     * @param {any} params.data The parameter to be checked.
+     * @param {number} [params.count] Checks the data parameter function
+     * signature to ensure the appropriate number of parameters are
+     * specified.
      * @returns {void}
      * @throws {SyntaxError} if the type was not as expected
      */
-    static tryType(type, v, count = undefined) {
-        if (!codemelted.checkType(type, v, count)) {
+    static tryType({type, data, count = undefined}) {
+        if (!codemelted.checkType({type: type, data: data, count: count})) {
             throw new SyntaxError(
-                `${v} parameter is not of type ${type} or does not ` +
+                `${data} parameter is not of type ${type} or does not ` +
                 `contain expected ${count} for function`
             );
         }
@@ -195,13 +276,14 @@ export class codemelted {
 
     /**
      * Checks for a valid URL.
-     * @param {string} v String to parse to see if it is a valid URL.
+     * @param {object} params The named parameters.
+     * @param {string} params.data String to parse to see if it is a valid URL.
      * @returns {void}
      * @throws {SyntaxError} If v is not a valid url.
      */
-    static tryValidUrl(v) {
-        if (!codemelted.checkValidUrl(v)) {
-            throw new SyntaxError(`'${v}' is not a valid url`);
+    static tryValidUrl({data}) {
+        if (!codemelted.checkValidUrl({data: data})) {
+            throw new SyntaxError(`'${data}' is not a valid url`);
         }
     }
 
@@ -285,23 +367,15 @@ export class codemelted {
                             ? await resp.text()
                             : "";
 
-            return {
-                data: data,
-                status: status,
-                statusText: statusText,
-                asBlob: data instanceof Blob ? data : null,
-                asFormData: data instanceof FormData ? data : null,
-            }
+            return new CFetchResult(data, status, statusText);
         } catch (ex) {
-            return {
-                data: null,
-                status: 500,
-                statusText: ex instanceof Error
+            return new CFetchResult(
+                null,
+                500,
+                ex instanceof Error
                     ? ex.message
                     : "unknown error occurred",
-                asBlob: null,
-                asFormData: null,
-            };
+            );
         }
     }
 
@@ -347,15 +421,16 @@ export class codemelted {
      * event type to listen for.
      * @param {EventListener} params.listener Callback function to handle the
      * event fired with optional receipt of an event object.
-     * @param {EventTarget} [params.obj] The optional
+     * @param {EventTarget} [params.obj] The optional EventTarget to attach
+     * the event vs. globalThis event listener.
      */
     static addEventListener({
         type,
         listener,
         obj,
     }) {
-        codemelted.tryType("string", type);
-        codemelted.tryType("function", listener);
+        codemelted.tryType({type: "string", data: type});
+        codemelted.tryType({type: "function", data: listener});
         if (!obj) {
             globalThis.addEventListener(type, listener);
         } else {
@@ -370,7 +445,7 @@ export class codemelted {
      * @returns {void}
      */
     static print() {
-        codemelted.tryHasProperty(globalThis, "print");
+        codemelted.tryHasProperty({obj: globalThis, key: "print"});
         // @ts-ignore In web context, print will exist.
         globalThis.print();
     }
@@ -390,13 +465,14 @@ export class codemelted {
      *
      * SUPPORTED RUNTIMES: deno / web
      * @see https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage
-     * @param {string} key The key to associate with the value.
-     * @param {string} value The value to store.
+     * @param {object} params The named parameters for this method.
+     * @param {string} params.key The key to associate with the value.
+     * @param {string} params.value The value to store.
      * @returns {void}
      */
-    static storageSet(key, value) {
-        codemelted.tryType("string", key);
-        codemelted.tryType("string", value);
+    static storageSet({key, value}) {
+        codemelted.tryType({type: "string", data: key});
+        codemelted.tryType({type: "string", data: value});
         globalThis.localStorage.setItem(key, value);
     }
 
@@ -405,11 +481,12 @@ export class codemelted {
      *
      * SUPPORTED RUNTIMES: deno / web
      * @see https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage
-     * @param {string} key The key to retrieve.
+     * @param {object} params The named parameters for this method.
+     * @param {string} params.key The key to retrieve.
      * @returns {string | null} The string value or null if not found.
      */
-    static storageGet(key) {
-        codemelted.tryType("string", key);
+    static storageGet({key}) {
+        codemelted.tryType({type: "string", data: key});
         return globalThis.localStorage.getItem(key);
     }
 
@@ -418,11 +495,12 @@ export class codemelted {
      *
      * SUPPORTED RUNTIMES: deno / web
      * @see https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage
-     * @param {string} key The key to associate with the value.
+     * @param {object} params The named parameters for this method.
+     * @param {string} params.key The key to associate with the value.
      * @returns {void}
      */
-    static storageRemove(key) {
-        codemelted.tryType("string", key);
+    static storageRemove({key}) {
+        codemelted.tryType({type: "string", data: key});
         globalThis.localStorage.removeItem(key);
     }
 

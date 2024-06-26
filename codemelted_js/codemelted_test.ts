@@ -63,8 +63,8 @@ Deno.test("Data Broker Validation", () => {
     const obj = {
         "field1": 42,
     };
-    assert(codemelted.checkHasProperty(obj, "field1"));
-    assertFalse(codemelted.checkHasProperty(obj, "field2"));
+    assert(codemelted.checkHasProperty({obj: obj, key: "field1"}));
+    assertFalse(codemelted.checkHasProperty({obj: obj, key: "field2"}));
 });
 
 // ----------------------------------------------------------------------------

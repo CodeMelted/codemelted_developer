@@ -182,12 +182,12 @@ class CodeMeltedFlutter {
   }
 
   /// Provides the ability to get items from the global app state.
-  T getAppState<T>(String key) {
+  T getAppState<T>({required String key}) {
     return CAppView.uiState.get<T>(key);
   }
 
   /// Provides the ability to set items on the global app state.
-  void setAppState<T>(String key, T value) {
+  void setAppState<T>({required String key, required T value}) {
     CAppView.uiState.set<T>(key, value);
   }
 
@@ -196,7 +196,7 @@ class CodeMeltedFlutter {
   // --------------------------------------------------------------------------
 
   /// Will sleep an asynchronous task for the specified delay in milliseconds.
-  Future<void> asyncSleep(int delay) async {
+  Future<void> asyncSleep({required int delay}) async {
     return (await Future.delayed(Duration(milliseconds: delay)));
   }
 
@@ -324,52 +324,52 @@ class CodeMeltedFlutter {
   // --------------------------------------------------------------------------
 
   /// Determines if a [CObject] has a given property contained within.
-  bool checkHasProperty(CObject obj, String key) {
+  bool checkHasProperty({required CObject obj, required String key}) {
     return obj.containsKey(key);
   }
 
   /// Determines if the variable is of the expected type.
-  bool checkType<T>(dynamic v) {
-    return v is T;
+  bool checkType<T>({required dynamic data}) {
+    return data is T;
   }
 
   /// Determines if the data type is a valid URL.
-  bool checkValidUrl(String v) {
-    return Uri.tryParse(v) != null;
+  bool checkValidUrl({required String data}) {
+    return Uri.tryParse(data) != null;
   }
 
   /// Will convert data into a JSON [CObject] or return null if the decode
   /// could not be achieved.
-  CObject? jsonParse(String data) {
+  CObject? jsonParse({required String data}) {
     return data.asObject();
   }
 
   /// Will encode the JSON [CObject] into a string or null if the encode
   /// could not be achieved.
-  String? jsonStringify(CObject data) {
+  String? jsonStringify({required CObject data}) {
     return data.stringify();
   }
 
   /// Same as [checkHasProperty] but throws an exception if the key
   /// is not found.
-  void tryHasProperty(CObject obj, String key) {
-    if (!checkHasProperty(obj, key)) {
+  void tryHasProperty({required CObject obj, required String key}) {
+    if (!checkHasProperty(obj: obj, key: key)) {
       throw "obj does not contain '$key' key";
     }
   }
 
   /// Same as [checkType] but throws an exception if not of the
   /// expected type.
-  void tryType<T>(dynamic v) {
-    if (!checkType<T>(v)) {
+  void tryType<T>({required dynamic data}) {
+    if (!checkType<T>(data: data)) {
       throw "variable was not of type '$T'";
     }
   }
 
   /// Same as [checkValidUrl] but throws an exception if not a valid
   /// URL type.
-  void tryValidUrl(String v) {
-    if (!checkValidUrl(v)) {
+  void tryValidUrl({required String data}) {
+    if (!checkValidUrl(data: data)) {
       throw "v was not a valid URL string";
     }
   }
@@ -899,7 +899,7 @@ class CodeMeltedFlutter {
   // --------------------------------------------------------------------------
 
   /// Copies data to the system clipboard
-  Future<void> copyToClipboard(String data) async {
+  Future<void> copyToClipboard({required String data}) async {
     return Clipboard.setData(ClipboardData(text: data));
   }
 
