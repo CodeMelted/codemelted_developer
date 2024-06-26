@@ -64,6 +64,7 @@ export 'package:codemelted_flutter/src/definitions/logger.dart';
 export 'package:codemelted_flutter/src/definitions/math.dart';
 export 'package:codemelted_flutter/src/definitions/themes.dart';
 export 'package:codemelted_flutter/src/definitions/widgets.dart';
+export 'package:url_launcher/url_launcher_string.dart';
 
 /// Say something cool
 class CodeMeltedFlutter {

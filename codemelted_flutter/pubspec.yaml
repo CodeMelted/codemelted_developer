@@ -49,4 +49,4 @@ flutter:
         pluginClass: CodeMeltedFlutterPluginCApi
       web:
         pluginClass: CodeMeltedFlutterWeb
-        fileName: codemelted_flutter_web.dart
+        fileName: src/web/codemelted_flutter_web.dart
