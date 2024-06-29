@@ -22,8 +22,8 @@ class CodeMeltedFlutterPlugin: FlutterPlugin, MethodCallHandler {
   }
 
   override fun onMethodCall(call: MethodCall, result: Result) {
-    if (call.method == "getPlatformVersion") {
-      result.success("Android ${android.os.Build.VERSION.RELEASE}")
+    if (call.method == "isPlatformConnected") {
+      result.success(true)
     } else {
       result.notImplemented()
     }
