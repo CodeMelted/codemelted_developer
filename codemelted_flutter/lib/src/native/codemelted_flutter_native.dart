@@ -28,6 +28,7 @@ import "dart:io";
 
 import "package:codemelted_flutter/src/codemelted_flutter_platform_interface.dart";
 import "package:codemelted_flutter/src/definitions/async_io.dart";
+import "package:codemelted_flutter/src/definitions/logger.dart";
 import "package:codemelted_flutter/src/definitions/widgets.dart";
 import "package:codemelted_flutter/src/native/definitions/widgets.dart";
 import "package:flutter/material.dart";
@@ -85,6 +86,19 @@ class CodeMeltedNative extends CodeMeltedFlutterPlatform {
     return Platform.environment.containsKey(key)
         ? Platform.environment[key]
         : null;
+  }
+
+  @override
+  Future<bool> get isPlatformConnected async {
+    try {
+      final connected = await methodChannel.invokeMethod<bool?>(
+        "isPlatformConnected",
+      );
+      return connected ?? false;
+    } catch (ex, st) {
+      logError(data: ex, st: st);
+      return false;
+    }
   }
 
   @override

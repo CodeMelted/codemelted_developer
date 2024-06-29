@@ -44,25 +44,19 @@ abstract class CodeMeltedFlutterPlatform extends PlatformInterface {
   CAsyncWorker createIsolate({
     required CAsyncWorkerListener listener,
     required CIsolateConfig config,
-  }) {
-    throw UnimplementedError("stub for target platform");
-  }
+  });
 
   /// Creates the dedicated FIFO external process to the flutter app.
   CAsyncWorker createProcess({
     required CAsyncWorkerListener listener,
     required CProcessConfig config,
-  }) {
-    throw UnimplementedError("stub for target platform");
-  }
+  });
 
   /// Creates the dedicated FIFO web worker.
   CAsyncWorker createWorker({
     required CAsyncWorkerListener listener,
     required CWorkerConfig config,
-  }) {
-    throw UnimplementedError("stub for target platform");
-  }
+  });
 
   // --------------------------------------------------------------------------
   // [Dialog Definitions] -----------------------------------------------------
@@ -74,9 +68,7 @@ abstract class CodeMeltedFlutterPlatform extends PlatformInterface {
     String? target,
     double? height,
     double? width,
-  }) {
-    throw UnimplementedError("stub for target platform");
-  }
+  });
 
   // --------------------------------------------------------------------------
   // [Runtime Definitions] ----------------------------------------------------
@@ -84,40 +76,33 @@ abstract class CodeMeltedFlutterPlatform extends PlatformInterface {
 
   /// Searches the platforms environment for the specified key and returns
   /// its value if found or null if not found.
-  String? environment(String key) {
-    throw UnimplementedError("stub for target platform");
-  }
+  String? environment(String key);
+
+  /// Determines if we successfully connected to the native code support or
+  /// not.
+  Future<bool> get isPlatformConnected;
 
   /// Web target only function to determine if the web app is installed as a
   /// Progressive Web Application (PWA).
-  bool get isPWA => throw UnimplementedError("stub for target platform");
+  bool get isPWA;
 
 // ----------------------------------------------------------------------------
 // [Widget Definitions] -------------------------------------------------------
 // ----------------------------------------------------------------------------
 
   /// Creates an embedded web view for the mobile / web targets.
-  Widget createWebView(CWebViewController controller) {
-    throw UnimplementedError("stub for target platform");
-  }
+  Widget createWebView(CWebViewController controller);
 
   /// Creates a web view controller that can be utilized on mobile / web targets.
   CWebViewController createWebViewController({
     required String url,
     CWebChannelCallback? onMessageReceived,
     CWebTargetConfig? webTargetOnlyConfig,
-  }) {
-    throw UnimplementedError("stub for target platform");
-  }
+  });
 
   // --------------------------------------------------------------------------
   // [Object Setup] -----------------------------------------------------------
   // --------------------------------------------------------------------------
-
-  // EXAMPLE TO GET TO NATIVE
-  // Future<String?> getPlatformVersion() {
-  //   throw UnimplementedError("platformVersion() has not been implemented.");
-  // }
 
   /// Holds the token of the object.
   static final Object _token = Object();

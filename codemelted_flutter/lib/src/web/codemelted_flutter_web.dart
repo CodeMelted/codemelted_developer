@@ -110,6 +110,9 @@ class CodeMeltedFlutterWeb extends CodeMeltedFlutterPlatform {
   }
 
   @override
+  Future<bool> get isPlatformConnected async => true;
+
+  @override
   bool get isPWA {
     var queries = [
       '(display-mode: fullscreen)',
@@ -180,11 +183,4 @@ class CodeMeltedFlutterWeb extends CodeMeltedFlutterPlatform {
   static void registerWith(Registrar registrar) {
     CodeMeltedFlutterPlatform.instance = CodeMeltedFlutterWeb();
   }
-
-  // /// Returns a [String] containing the version of the platform.
-  // @override
-  // Future<String?> getPlatformVersion() async {
-  //   final version = web.window.navigator.userAgent;
-  //   return version;
-  // }
 }

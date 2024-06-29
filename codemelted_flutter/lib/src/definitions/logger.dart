@@ -85,3 +85,26 @@ class CLogRecord {
     return msg;
   }
 }
+
+/// Creates the first instance of the logger for usage within this module.
+final _logger = Logger("CodeMelted-Logger");
+
+/// Will log debug level messages via the module.
+void logDebug({Object? data, StackTrace? st}) {
+  _logger.log(CLogLevel.debug.level, data, null, st);
+}
+
+/// Will log info level messages via the module.
+void logInfo({Object? data, StackTrace? st}) {
+  _logger.log(CLogLevel.info.level, data, null, st);
+}
+
+/// Will log warning level messages via the module.
+void logWarning({Object? data, StackTrace? st}) {
+  _logger.log(CLogLevel.warning.level, data, null, st);
+}
+
+/// Will log error level messages via the module.
+void logError({Object? data, StackTrace? st}) {
+  _logger.log(CLogLevel.error.level, data, null, st);
+}

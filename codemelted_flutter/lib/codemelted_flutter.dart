@@ -837,9 +837,6 @@ class CodeMeltedFlutter {
   // [Logger Definitions] -----------------------------------------------------
   // --------------------------------------------------------------------------
 
-  /// Sets up the internal logger for the module.
-  final _logger = Logger("CodeMelted-Logger");
-
   /// Sets / gets the [CLogLevel] of the codemelted_flutter module logging
   /// facility.
   set logLevel(CLogLevel v) {
@@ -858,22 +855,22 @@ class CodeMeltedFlutter {
 
   /// Will log debug level messages via the module.
   void logDebug({Object? data, StackTrace? st}) {
-    _logger.log(CLogLevel.debug.level, data, null, st);
+    logDebug(data: data, st: st);
   }
 
   /// Will log info level messages via the module.
   void logInfo({Object? data, StackTrace? st}) {
-    _logger.log(CLogLevel.info.level, data, null, st);
+    logInfo(data: data, st: st);
   }
 
   /// Will log warning level messages via the module.
   void logWarning({Object? data, StackTrace? st}) {
-    _logger.log(CLogLevel.warning.level, data, null, st);
+    logWarning(data: data, st: st);
   }
 
   /// Will log error level messages via the module.
   void logError({Object? data, StackTrace? st}) {
-    _logger.log(CLogLevel.error.level, data, null, st);
+    logError(data: data, st: st);
   }
 
   // --------------------------------------------------------------------------
@@ -907,6 +904,10 @@ class CodeMeltedFlutter {
   /// Will search for the specified environment variable returning null if not
   /// found.
   String? environment(String key) => _platform.environment(key);
+
+  /// Determines if we were successful in connecting to the native code
+  /// required for fully supporting the module.
+  Future<bool> get isPlatformConnected => _platform.isPlatformConnected;
 
   /// Determines if the application is a PWA. Will only return true if the
   /// app is a web targeted app and installed as a PWA.
