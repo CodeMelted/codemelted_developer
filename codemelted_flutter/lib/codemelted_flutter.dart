@@ -42,7 +42,7 @@ import 'package:codemelted_flutter/src/definitions/audio_player.dart';
 import 'package:codemelted_flutter/src/definitions/data_broker.dart';
 import 'package:codemelted_flutter/src/definitions/fetch.dart';
 import 'package:codemelted_flutter/src/definitions/link_opener.dart';
-import 'package:codemelted_flutter/src/definitions/logger.dart';
+import 'package:codemelted_flutter/src/definitions/logger.dart' as logger;
 import 'package:codemelted_flutter/src/definitions/math.dart';
 import 'package:codemelted_flutter/src/definitions/themes.dart';
 import 'package:codemelted_flutter/src/definitions/widgets.dart';
@@ -839,38 +839,38 @@ class CodeMeltedFlutter {
 
   /// Sets / gets the [CLogLevel] of the codemelted_flutter module logging
   /// facility.
-  set logLevel(CLogLevel v) {
+  set logLevel(logger.CLogLevel v) {
     Logger.root.level = v.level;
   }
 
-  CLogLevel get logLevel {
-    return CLogLevel.values.firstWhere(
+  logger.CLogLevel get logLevel {
+    return logger.CLogLevel.values.firstWhere(
       (element) => element.level == Logger.root.level,
     );
   }
 
   /// Establishes the [CLogEventHandler] to facilitate post log processing
   /// of a codemelted_flutter module logged event.
-  CLogEventHandler? onLoggedEvent;
+  logger.CLogEventHandler? onLoggedEvent;
 
   /// Will log debug level messages via the module.
   void logDebug({Object? data, StackTrace? st}) {
-    logDebug(data: data, st: st);
+    logger.logDebug(data: data, st: st);
   }
 
   /// Will log info level messages via the module.
   void logInfo({Object? data, StackTrace? st}) {
-    logInfo(data: data, st: st);
+    logger.logInfo(data: data, st: st);
   }
 
   /// Will log warning level messages via the module.
   void logWarning({Object? data, StackTrace? st}) {
-    logWarning(data: data, st: st);
+    logger.logWarning(data: data, st: st);
   }
 
   /// Will log error level messages via the module.
   void logError({Object? data, StackTrace? st}) {
-    logError(data: data, st: st);
+    logger.logError(data: data, st: st);
   }
 
   // --------------------------------------------------------------------------
@@ -1781,9 +1781,9 @@ class CodeMeltedFlutter {
     };
 
     // Now configure our logger items.
-    Logger.root.level = CLogLevel.warning.level;
+    Logger.root.level = logger.CLogLevel.warning.level;
     Logger.root.onRecord.listen((v) {
-      var record = CLogRecord(v);
+      var record = logger.CLogRecord(v);
       if (kDebugMode || kIsWeb) {
         if (_platform.environment('FLUTTER_TEST') == null) {
           // ignore: avoid_print
