@@ -140,12 +140,15 @@ class CodeMeltedFlutterWeb extends CodeMeltedFlutterPlatform {
 
     // Configure based on the controller configuration.
     var webController = controller as CWebTargetWebViewController;
-    iFrameElement.allow = webController.webTargetOnlyConfig!.allow;
-    iFrameElement.allowFullscreen =
-        webController.webTargetOnlyConfig!.allowFullScreen;
-    for (var sandbox in webController.webTargetOnlyConfig!.sandbox) {
-      iFrameElement.sandbox.add(sandbox.sandbox);
+    if (webController.webTargetOnlyConfig != null) {
+      iFrameElement.allow = webController.webTargetOnlyConfig!.allow;
+      iFrameElement.allowFullscreen =
+          webController.webTargetOnlyConfig!.allowFullScreen;
+      for (var sandbox in webController.webTargetOnlyConfig!.sandbox) {
+        iFrameElement.sandbox.add(sandbox.sandbox);
+      }
     }
+
     iFrameElement.src = webController.url;
 
     // Register it and return it.

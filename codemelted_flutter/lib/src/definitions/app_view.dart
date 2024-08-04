@@ -199,16 +199,19 @@ class CAppView extends StatefulWidget {
   /// Sets / removes a left sided drawer for the [codemelted_app].
   static void drawer({Widget? header, List<Widget>? items}) {
     if (header == null && items == null) {
-      uiState.set<Drawer?>("drawer", null);
+      uiState.set<Widget?>("drawer", null);
     } else {
-      uiState.set<Drawer?>(
+      uiState.set<Widget?>(
         "drawer",
-        Drawer(
-          child: ListView(
-            children: [
-              if (header != null) header,
-              if (items != null) ...items,
-            ],
+        PointerInterceptor(
+          intercepting: kIsWeb,
+          child: Drawer(
+            child: ListView(
+              children: [
+                if (header != null) header,
+                if (items != null) ...items,
+              ],
+            ),
           ),
         ),
         notify: true,
@@ -219,16 +222,19 @@ class CAppView extends StatefulWidget {
   /// Sets / removes a right sided drawer from the [codemelted_app].
   static void endDrawer({Widget? header, List<Widget>? items}) {
     if (header == null && items == null) {
-      uiState.set<Drawer?>("endDrawer", null);
+      uiState.set<Widget?>("endDrawer", null);
     } else {
-      uiState.set<Drawer?>(
+      uiState.set<Widget?>(
         "endDrawer",
-        Drawer(
-          child: ListView(
-            children: [
-              if (header != null) header,
-              if (items != null) ...items,
-            ],
+        PointerInterceptor(
+          intercepting: kIsWeb,
+          child: Drawer(
+            child: ListView(
+              children: [
+                if (header != null) header,
+                if (items != null) ...items,
+              ],
+            ),
           ),
         ),
         notify: true,

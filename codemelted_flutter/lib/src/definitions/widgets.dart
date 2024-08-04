@@ -141,6 +141,7 @@ abstract class CWebViewController {
     return CodeMeltedFlutterPlatform.instance.createWebViewController(
       url: url,
       onMessageReceived: onMessageReceived,
+      webTargetOnlyConfig: webTargetOnlyConfig,
     );
   }
 
