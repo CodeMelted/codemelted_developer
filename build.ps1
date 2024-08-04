@@ -26,17 +26,13 @@
 [string]$GEN_HTML_PERL_SCRIPT = "/ProgramData/chocolatey/lib/lcov/tools/bin/genhtml"
 
 [string]$footerTemplate = @"
-<!-- Links to main domain assets for embedding this widget code into different configurations -->
-<link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css" />
-<script src="https://codemelted.com/assets/js/footer.js" defer></script>
-
 <!-- Footer for all codemelted.com domain content -->
 <div class="codemelted-footer">
     <div id="snackbar">Link Copied!</div>
     <div style="display: none;" id="disqus_thread"></div>
     <div class="codemelted-footer-main-control-layout">
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
         <div><a id="anchorComments" href="#" onclick="onCommentsClicked(); return false;">⬆️ Comments</a></div>
-        <div class="codemelted-footer-copyright">Socials</div>
         <div>
             <a style="display: none;" title="Read / Pause Article" href="#">⏯️</a>
             <a title="Print" onclick="onPrintPageClicked(); return false;" href="#">🖨️</a>
@@ -48,6 +44,7 @@
         <a title="Follow the codemelted-developer Project" href="#" onclick="onOpenLinkClicked('github.com/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icons/github.png" /></a>
         <a title="Get the Latest Happenings" href="#" onclick="onOpenLinkClicked('twitter.com/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icons/twitterx.png" /></a>
         <a title="Get the Latest Podcast / Videos" href="#" onclick="onOpenLinkClicked('youtube.com/@codemelted'); return false;"><img src="https://codemelted.com/assets/images/icons/youtube.png" /></a>
+        <a title="Open CodeMelted - PWA" href="https://codemelted.com" target="_parent"><img src="https://codemelted.com/assets/images/favicon_io_pwa/apple-touch-icon.png" /></a>
     </div>
 </div>
 <script>
