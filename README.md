@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted - Developer
-PUBLISH_DATE: 2024-06-25
+PUBLISH_DATE: 2024-08-03
 AUTHOR: Mark Shaffer
 KEYWORDS: raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module
 DESCRIPTION: Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify by developing a set of cross platform modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. This allows a developer to maximize their productivity because regardless of the technology, they are learning a similar module API for their solution.
@@ -21,12 +21,6 @@ Software engineers are now required to learn multiple languages, technologies, a
   - [User Interface](#user-interface)
   - [Advanced](#advanced)
 - [GETTING STARTED](#getting-started)
-  - [Environment Setup](#environment-setup)
-    - [GitHub](#github)
-    - [Programming Languages](#programming-languages)
-    - [VS Code](#vs-code)
-  - [Versioning](#versioning)
-  - [Build Script](#build-script)
 - [USAGE](#usage)
   - [Cross Platform Modules](#cross-platform-modules)
   - [CodeMelted Pi Project](#codemelted-pi-project)
@@ -127,68 +121,13 @@ The advanced set of use cases offer more complex actions a developer may need to
 
 ## GETTING STARTED
 
-The following sections capture how to setup and utilize this repo with your local clone.
-
-### Environment Setup
-
-The following are the items recommended for installation to properly make use of this repo in your development environment.
-
-#### GitHub
-
-- [ ] [git](https://git-scm.com/downloads)
-- [ ] [GitHub Desktop](https://desktop.github.com/)
-
-#### Programming Languages
-
-- [ ] [C/C++](https://code.visualstudio.com/docs/languages/cpp)
-- [ ] [Deno](https://deno.com/)
-- [ ] [Flutter](https://flutter.dev/)
-- [ ] [PowerShell Core](https://github.com/PowerShell/PowerShell)
-
-#### VS Code
-
-**The Application:**
-
-- [ ] [VS Code](https://code.visualstudio.com/)
-
-**Extensions:**
-
-- [ ] [C/C++ Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools-extension-pack)
-- [ ] [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker)
-- [ ] [Dart](https://marketplace.visualstudio.com/items?itemName=Dart-Code.dart-code)
-- [ ] [Deno](https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno)
-- [ ] [Docker](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)
-- [ ] [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
-- [ ] [Flutter](https://marketplace.visualstudio.com/items?itemName=Dart-Code.flutter)
-- [ ] [Markdown All in One](https://marketplace.visualstudio.com/items?itemName=yzhang.markdown-all-in-one)
-- [ ] [Markdown Preview Mermaid Support](https://marketplace.visualstudio.com/items?itemName=bierner.markdown-mermaid)
-- [ ] [PowerShell](https://marketplace.visualstudio.com/items?itemName=ms-vscode.PowerShell)
-- [ ] [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
-- [ ] [WSL](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl)
-
-### Versioning
-
-The versioning of the module will be captured via GitHub or the modules documentation method. It will utilize semantic versioning `X.Y.Z` with the following rules for the numbering scheme this project.
-
-- **X:** Completion of either Core / User Interface / Advance set of use cases.
-- **Y:** Use case implemented, documented, tested, and ready for usage by a developer.
-- **Z:** Bug fix or expansion of a use case.
-
-### Build Script
-
-The `build.ps1` script provides the ability to build different elements of this project. Execute the command option below from the root of the `codemelted_developer` repo to get the specified result.
-
-- `./build.ps1 --cdn`: Builds all the other options to a `_dist` directory allowing for a severable static website.
-- `./build.ps1 --codemelted_flutter`: Compiles the module and generates its SDK documentation.
-- `./build.ps1 --codemelted_js`: Compiles the module to serve from a website and generates its SDK documentation.
-- `./build.ps1 --codemelted_pwsh`: Compiles the PowerShell module to be installed on your system and generates its SDK documentation.
-- `./build.ps1 --codemelted_pi`: Generates a static website of the raspberry pi `README.md` and supporting markdown files.
+The [Getting Started](getting_started.md) documents setup and utilize this repo once clone.
 
 ## USAGE
 
 ### Cross Platform Modules
 
-The following are the cross platform modules implementing the identified use cases of this project. It provides several choices for your development needs. The following links take to the specific module implementations for your given domain.
+The following are the cross platform modules implementing the identified use cases of this project. It provides several choices for your development needs. The following links take you to the specific module implementations for your given domain.
 
 - <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/flutter.png" /> [Flutter Module](codemelted_flutter/README.md): This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the **CodeMelted - Developer** identified use cases, you can be assured to building a powerful native application.
 - <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/deno-js.png" /> [JS Module](codemelted_js/README.md): This project aims to give a common fullstack solution for Progressive Web Applications (PWA) utilizing the **CodeMelted - Developer** use cases. It utilizes the **Deno Runtime** to run as your backend service. This was chosen as it has a full range of services for your backend if you choose to utilize it. You can also take your backend and host it on a different platform. This allows you to not be locked into a vendor for your backend. It was also chosen because it implements the **Browser Web APIs**. This allows the module to implement backend and web frontend common code developing a more complete solution. Lastly, Deno provides the use of TypeScript natively out of the box. So you are able to utilize both JavaScript / TypeScript for your solution and roll with any build system.

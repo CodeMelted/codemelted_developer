@@ -26,13 +26,17 @@
 [string]$GEN_HTML_PERL_SCRIPT = "/ProgramData/chocolatey/lib/lcov/tools/bin/genhtml"
 
 [string]$footerTemplate = @"
+<!-- Links to main domain assets for embedding this widget code into different configurations -->
+<link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css" />
+<script src="https://codemelted.com/assets/js/footer.js" defer></script>
+
 <!-- Footer for all codemelted.com domain content -->
 <div class="codemelted-footer">
     <div id="snackbar">Link Copied!</div>
     <div style="display: none;" id="disqus_thread"></div>
     <div class="codemelted-footer-main-control-layout">
         <div><a id="anchorComments" href="#" onclick="onCommentsClicked(); return false;">⬆️ Comments</a></div>
-        <div></div>
+        <div class="codemelted-footer-copyright">Socials</div>
         <div>
             <a style="display: none;" title="Read / Pause Article" href="#">⏯️</a>
             <a title="Print" onclick="onPrintPageClicked(); return false;" href="#">🖨️</a>
@@ -45,7 +49,6 @@
         <a title="Get the Latest Happenings" href="#" onclick="onOpenLinkClicked('twitter.com/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icons/twitterx.png" /></a>
         <a title="Get the Latest Podcast / Videos" href="#" onclick="onOpenLinkClicked('youtube.com/@codemelted'); return false;"><img src="https://codemelted.com/assets/images/icons/youtube.png" /></a>
     </div>
-    <div class="codemelted-footer-copyright">© 2024 Mark Shaffer. All Rights Reserved.</div>
 </div>
 <script>
     var disqus_config = function () {
@@ -77,7 +80,6 @@
             background-color: grey;
         }
     </style>
-    <script src="https://codemelted.com/assets/js/footer.js" defer></script>
 </head><body><div class="content-main">
 [CONTENT]
 [FOOTER_TEMPLATE]
@@ -103,7 +105,7 @@ function build([string[]]$params) {
 
     # Builds all project files for inclusion in the codemelted.com domain
     # deployment.
-    function cdn {
+    function build_all {
         # Build all the project static sdk sites.
         codemelted_developer
         codemelted_flutter
@@ -112,19 +114,19 @@ function build([string[]]$params) {
         codemelted_pi
 
         # Now go copy those static sdk sites.
-        Remove-Item -Path _dist -Recurse -Force -ErrorAction Ignore
-        New-Item -Path _dist -ItemType Directory -ErrorAction Ignore
-        New-Item -Path _dist/codemelted_cpp -ItemType Directory -ErrorAction Ignore
-        New-Item -Path _dist/codemelted_flutter -ItemType Directory -ErrorAction Ignore
-        New-Item -Path _dist/codemelted_js -ItemType Directory -ErrorAction Ignore
-        New-Item -Path _dist/codemelted_pwsh -ItemType Directory -ErrorAction Ignore
-        New-Item -Path _dist/codemelted_pi -ItemType Directory -ErrorAction Ignore
+        Remove-Item -Path developer -Recurse -Force -ErrorAction Ignore
+        New-Item -Path developer -ItemType Directory -ErrorAction Ignore
+        New-Item -Path developer/codemelted_cpp -ItemType Directory -ErrorAction Ignore
+        New-Item -Path developer/codemelted_flutter -ItemType Directory -ErrorAction Ignore
+        New-Item -Path developer/codemelted_js -ItemType Directory -ErrorAction Ignore
+        New-Item -Path developer/codemelted_pwsh -ItemType Directory -ErrorAction Ignore
+        New-Item -Path developer/codemelted_pi -ItemType Directory -ErrorAction Ignore
 
-        Copy-Item -Path docs/* -Destination _dist/ -Recurse
-        Copy-Item -Path codemelted_flutter/docs/* -Destination _dist/codemelted_flutter/ -Recurse
-        Copy-Item -Path codemelted_js/docs/* -Destination _dist/codemelted_js/ -Recurse
-        Copy-Item -Path codemelted_pwsh/docs/* -Destination _dist/codemelted_pwsh/ -Recurse
-        Copy-Item -Path codemelted_pi/docs/* -Destination _dist/codemelted_pi/ -Recurse
+        Copy-Item -Path docs/* -Destination developer/ -Recurse
+        Copy-Item -Path codemelted_flutter/docs/* -Destination developer/codemelted_flutter/ -Recurse
+        Copy-Item -Path codemelted_js/docs/* -Destination developer/codemelted_js/ -Recurse
+        Copy-Item -Path codemelted_pwsh/docs/* -Destination developer/codemelted_pwsh/ -Recurse
+        Copy-Item -Path codemelted_pi/docs/* -Destination developer/codemelted_pi/ -Recurse
     }
 
 
@@ -184,6 +186,24 @@ function build([string[]]$params) {
         $html = $html.Replace("README.md", "index.html")
         $html = $html.Replace(".md", ".html")
         $html | Out-File docs/index.html -Force
+        Copy-Item -Path *.png -Destination docs/ -Force
+        Copy-Item -Path README.md -Destination docs/ -Force
+
+        # Don't forget the getting_started.md
+        $readme = ConvertFrom-Markdown -Path getting_started.md
+        $title = extract "TITLE:" $readme.Html
+        $keywords = extract "KEYWORDS:" $readme.Html
+        $description = extract "DESCRIPTION:" $readme.Html
+        $html = $htmlTemplate
+        $html = $html.Replace("[TITLE]", $title)
+        $html = $html.Replace("[DESCRIPTION]", $description)
+        $html = $html.Replace("[KEYWORDS]", $keywords)
+        $html = $html.Replace("[CONTENT]", $readme.Html)
+        $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
+        $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
+        $html = $html.Replace("README.md", "index.html")
+        $html = $html.Replace(".md", ".html")
+        $html | Out-File docs/getting_started.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
         Copy-Item -Path README.md -Destination docs/ -Force
 
@@ -360,14 +380,27 @@ function build([string[]]$params) {
         message "codemelted_pi project build completed."
     }
 
+    # Handles the deployment to developer.codemelted.com
+    function deploy {
+        Write-Host "MESSAGE: Now uploading developer.codemelted.com content.";
+        Compress-Archive -Path developer -DestinationPath developer.zip -Force
+        $hostService = $env:CODEMELTED_USER_AND_IP + $env:CODEMELTED_HOME
+        scp developer.zip $hostService
+        ssh $env:CODEMELTED_USER_AND_IP
+        Remove-Item -Path developer.zip
+        Set-Location $PSScriptRoot
+        Write-Host "MESSAGE: Upload completed.";
+    }
+
     # Main Exection
     switch ($params[0]) {
-        "--cdn" { cdn }
+        "--build_all" { build_all }
         "--codemelted_developer" { codemelted_developer }
         "--codemelted_flutter" { codemelted_flutter }
         "--codemelted_js" { codemelted_js }
         "--codemelted_pwsh" { codemelted_pwsh }
         "--codemelted_pi" { codemelted_pi }
+        "--deploy" { deploy }
         default { Write-Host "ERROR: Invalid parameter specified." }
     }
 }
