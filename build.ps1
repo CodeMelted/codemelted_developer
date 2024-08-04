@@ -25,6 +25,42 @@
 
 [string]$GEN_HTML_PERL_SCRIPT = "/ProgramData/chocolatey/lib/lcov/tools/bin/genhtml"
 
+[string]$footerTemplate = @"
+<!-- Footer for all codemelted.com domain content -->
+<div class="codemelted-footer">
+    <div id="snackbar">Link Copied!</div>
+    <div style="display: none;" id="disqus_thread"></div>
+    <div class="codemelted-footer-main-control-layout">
+        <div><a id="anchorComments" href="#" onclick="onCommentsClicked(); return false;">⬆️ Comments</a></div>
+        <div></div>
+        <div>
+            <a style="display: none;" title="Read / Pause Article" href="#">⏯️</a>
+            <a title="Print" onclick="onPrintPageClicked(); return false;" href="#">🖨️</a>
+            <a title="Get Link" href="#" onclick="onCopyLinkClicked(); return false;">🔗</a>
+        </div>
+    </div>
+    <div class="codemelted-footer-socials-layout">
+        <a title="Support My Work" href="#" onclick="onOpenLinkClicked('www.buymeacoffee.com/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icons/buy-me-a-coffee.png" /></a>
+        <a title="Follow the codemelted-developer Project" href="#" onclick="onOpenLinkClicked('github.com/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icons/github.png" /></a>
+        <a title="Get the Latest Happenings" href="#" onclick="onOpenLinkClicked('twitter.com/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icons/twitterx.png" /></a>
+        <a title="Get the Latest Podcast / Videos" href="#" onclick="onOpenLinkClicked('youtube.com/@codemelted'); return false;"><img src="https://codemelted.com/assets/images/icons/youtube.png" /></a>
+    </div>
+    <div class="codemelted-footer-copyright">© 2024 Mark Shaffer. All Rights Reserved.</div>
+</div>
+<script>
+    var disqus_config = function () {
+        this.page.url = window.href;
+    };
+    (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = 'https://codemelted.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+"@
+
 [string]$htmlTemplate = @"
 <!DOCTYPE html>
 <html lang="en"><head>
@@ -41,9 +77,10 @@
             background-color: grey;
         }
     </style>
-    <script src="https://codemelted.com/assets/js/channel.js"></script>
+    <script src="https://codemelted.com/assets/js/footer.js" defer></script>
 </head><body><div class="content-main">
 [CONTENT]
+[FOOTER_TEMPLATE]
 [MERMAID_SCRIPT]
 </div></body></html>
 "@
@@ -122,6 +159,7 @@ function build([string[]]$params) {
             $html = $html.Replace("[DESCRIPTION]", $description)
             $html = $html.Replace("[KEYWORDS]", $keywords)
             $html = $html.Replace("[CONTENT]", $readme.Html)
+            $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
             $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
             $html = $html.Replace("README.md", "index.html")
             $htmlFilename = $file.Name.Replace(".md", ".html")
@@ -141,6 +179,7 @@ function build([string[]]$params) {
         $html = $html.Replace("[DESCRIPTION]", $description)
         $html = $html.Replace("[KEYWORDS]", $keywords)
         $html = $html.Replace("[CONTENT]", $readme.Html)
+        $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
         $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
         $html = $html.Replace("README.md", "index.html")
         $html = $html.Replace(".md", ".html")
@@ -185,10 +224,20 @@ function build([string[]]$params) {
         # Fix the title
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
         $htmlData = $htmlData.Replace("codemelted_flutter - Dart API docs", "CodeMelted - Flutter Module")
-        $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png"')
+        $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
         $htmlData = $htmlData.Replace("README.md", "index.html")
-        $htmlData = $htmlData.Replace("</head>", '<script src="https://codemelted.com/assets/js/channel.js"></script></head>')
+        $htmlData = $htmlData.Replace("</head>", '<link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css"><script src="https://codemelted.com/assets/js/footer.js" defer></script></head>')
+        $htmlData = $htmlData.Replace("<footer>", "<footer>`n$footerTemplate")
         $htmlData | Out-File docs/index.html -Force
+
+        $files = Get-ChildItem -Path docs/codemelted_flutter/*.html, docs/codemelted_flutter/*/*.html -Exclude "*sidebar*"
+        foreach ($file in $files) {
+            [string]$htmlData = Get-Content -Path $file.FullName -Raw
+            $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
+            $htmlData = $htmlData.Replace("</head>", '<link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css"><script src="https://codemelted.com/assets/js/footer.js" defer></script></head>')
+            $htmlData = $htmlData.Replace("<footer>", "<footer>`n$footerTemplate")
+            $htmlData | Out-File $file.FullName -Force
+        }
 
         Set-Location $PSScriptRoot
         message "codemelted_flutter module build completed."
@@ -229,11 +278,25 @@ function build([string[]]$params) {
         Copy-Item -Path *.png -Destination "docs" -Force
         Copy-Item -Path README.md -Destination "docs" -Force
 
-        # Fix the title
+        # Fix items and apply our footer.
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
-        $htmlData = $htmlData.Replace("</head>", '<script src="https://codemelted.com/assets/js/channel.js"></script></head>')
+        $htmlData = $htmlData.Replace("</head>", '<link rel="icon" href="https://codemelted.com/favicon.png"><link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css"><script src="https://codemelted.com/assets/js/footer.js" defer></script></head>')
+        $htmlData = $htmlData.Replace("</body></html>", "$footerTemplate</body></html>")
         $htmlData = $htmlData.Replace("README.md", "index.html")
         $htmlData | Out-File docs/index.html -Force
+
+        [string]$htmlData = Get-Content -Path "docs/modules.html" -Raw
+        $htmlData = $htmlData.Replace("</head>", '<link rel="icon" href="https://codemelted.com/favicon.png"><link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css"><script src="https://codemelted.com/assets/js/footer.js" defer></script></head>')
+        $htmlData = $htmlData.Replace("</body></html>", "$footerTemplate</body></html>")
+        $htmlData | Out-File docs/modules.html -Force
+
+        $files = Get-ChildItem -Path docs/classes/*.html
+        foreach ($file in $files) {
+            [string]$htmlData = Get-Content -Path $file.FullName -Raw
+            $htmlData = $htmlData.Replace("</head>", '<link rel="icon" href="https://codemelted.com/favicon.png"><link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css"><script src="https://codemelted.com/assets/js/footer.js" defer></script></head>')
+            $htmlData = $htmlData.Replace("</body></html>", "$footerTemplate</body></html>")
+            $htmlData | Out-File $file.FullName -Force
+        }
 
         Set-Location $PSScriptRoot
         message "codemelted_js module build completed."
@@ -257,6 +320,7 @@ function build([string[]]$params) {
         $html = $html.Replace("[DESCRIPTION]", $description)
         $html = $html.Replace("[KEYWORDS]", $keywords)
         $html = $html.Replace("[CONTENT]", $readme.Html)
+        $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
         $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
         $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
@@ -285,6 +349,7 @@ function build([string[]]$params) {
         $html = $html.Replace("[DESCRIPTION]", $description)
         $html = $html.Replace("[KEYWORDS]", $keywords)
         $html = $html.Replace("[CONTENT]", $readme.Html)
+        $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
         $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
         $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
