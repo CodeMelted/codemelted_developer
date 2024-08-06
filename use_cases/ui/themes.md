@@ -1,14 +1,16 @@
 <!--
 TITLE: CodeMelted - DEV | UI Use Case: Themes
-PUBLISH_DATE:
+PUBLISH_DATE: 2024-08-05
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMelted - DEV, Themes, User Interface Use Case
-DESCRIPTION:
+DESCRIPTION: Each SDK environment provide the ability to theme the Widget use case components of user interface. This use case will setup a common ability setup the look and feel of the user interface experience.
 -->
 <center>
   <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
 <h1><img style="height: 35px;" src="header.png" /> UI Use Case: Themes</h1>
+
+Each SDK environment provide the ability to theme the Widget use case components of user interface. This use case will setup a common ability setup the look and feel of the user interface experience.
 
 **Table of Contents**
 
@@ -19,26 +21,16 @@ DESCRIPTION:
 
 ## FUNCTIONAL DECOMPOSITION
 
-**Description:** [GENERAL DESCRIPTION OF WHAT THIS USE CASE IS ABOUT]
-
-**Actors:**  [A LIST OF STAKEHOLDERS (human or computer) THAT PERFORMS A BEHAVIOR WITH THIS GIVEN USE CASE]
-
-**Pre-Condition:** [WHAT MUST BE TRUE BEFORE THE CASE CASE RUNS]
-
-**Post-Condition:** [WHAT MUST BE TRUE AFTER THE CASE CASE RUNS]
-
-**Scenario:** [SEQUENCE OF STEPS IN WHICH EVERYTHING GOES PERFECT]
-
-**Exceptions:** [THE VARIATION OFF THE MAIN SEQUENCE. THIS IS USUALLY THINGS THAT GO WRONG AND HOW TO RECOVER TO GET BACK TO THE MAIN SCENARIO]
+<mark>TBD</mark>
 
 ## DESIGN NOTES
 
-[UML, API EXAMPLES, etc.]
+<mark>TBD</mark>
 
 ## TEST NOTES
 
-[FORMAL TESTS TO RUN, NEW TEST NOTES, CONFIGURATIONS, etc.]
+<mark>TBD</mark>
 
 ## REFERENCES
 
-[ANY OUTSIDE ARTIFACTS RELATED TO THIS]
+<mark>TBD</mark>

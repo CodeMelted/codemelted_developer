@@ -11,6 +11,7 @@
     "Embeddable",
     "Fullscreen",
     "geolocator",
+    "Geospatial",
     "HTMLI",
     "iframe",
     "lerp",

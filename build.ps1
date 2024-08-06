@@ -188,7 +188,6 @@ function build([string[]]$params) {
         $html = $html.Replace(".md", ".html")
         $html | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
-        Copy-Item -Path README.md -Destination docs/ -Force
 
         # Don't forget the getting_started.md
         $readme = ConvertFrom-Markdown -Path getting_started.md
@@ -206,7 +205,6 @@ function build([string[]]$params) {
         $html = $html.Replace(".md", ".html")
         $html | Out-File docs/getting_started.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
-        Copy-Item -Path README.md -Destination docs/ -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_develoepr build completed."
@@ -240,7 +238,6 @@ function build([string[]]$params) {
         Move-Item -Path coverage -Destination docs -Force
         Copy-Item -Path CHANGELOG.md -Destination docs -Force
         Copy-Item -Path header.png -Destination docs -Force
-        Copy-Item -Path README.md -Destination "docs" -Force
 
         # Fix the title
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
@@ -297,7 +294,6 @@ function build([string[]]$params) {
         # Some final moves to complete the module documentation.
         Move-Item -Path coverage -Destination docs -Force
         Copy-Item -Path *.png -Destination "docs" -Force
-        Copy-Item -Path README.md -Destination "docs" -Force
 
         # Fix items and apply our footer.
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
@@ -346,7 +342,6 @@ function build([string[]]$params) {
         $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
-        Copy-Item -Path README.md -Destination "docs" -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_pwsh module build completed."
@@ -375,7 +370,6 @@ function build([string[]]$params) {
         $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
-        Copy-Item -Path README.md -Destination "docs" -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_pi project build completed."

@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted - Developer
-PUBLISH_DATE: 2024-08-03
+PUBLISH_DATE: 2024-08-05
 AUTHOR: Mark Shaffer
 KEYWORDS: raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module
 DESCRIPTION: Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify by developing a set of cross platform modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. This allows a developer to maximize their productivity because regardless of the technology, they are learning a similar module API for their solution.
@@ -87,37 +87,37 @@ flowchart TD
 
 The core set of use cases represent the most common actions you will carry out when developing an application.
 
-- [Data Broker](use_cases/core/data_broker.md)
-- [Fetch](use_cases/core/file_explorer.md)
-- [Link Opener](use_cases/core/link_opener.md)
-- [Logger](use_cases/core/logger.md)
-- [Math](use_cases/core/math.md)
-- [Runtime](use_cases/core/runtime.md)
-- [Share](use_cases/core/share.md)
-- [Storage](use_cases/core/storage.md)
+- [Data Broker](use_cases/core/data_broker.md): JSON (JavaScript Object Notation) is a lightweight data-interchange format. Unlike XML (Extensible Markup Language), it is universal for data transport, manipulation, and representing complex data structures. This use case will expose functions for working / validating this set of datasets.
+- [Fetch](use_cases/core/fetch.md): REST, or REpresentational State Transfer, is an architectural style for providing standards between computer systems on the web, making it easier for systems to communicate with each other. This is the most basic way of getting data between a backend server and a client application. This use case will implement this capability.
+- [Link Opener](use_cases/core/link_opener.md): A different set of protocols (a.k.a. file, http, sms, etc.) can be opened via a set of desktop services exposed via the host system of your application. This use case will wrap these desktop services allowing you to open the host service for the given protocol.
+- [Logger](use_cases/core/logger.md): Logging is the most basic way of either debugging your application or relaying information to your user base. This use case will provide a logging service for this purpose.
+- [Math](use_cases/core/math.md): All applications will have to exercise mathematical computations. This use case will setup a collection of of these mathematical formulas easily accessible for usage within an application.
+- [Runtime](use_cases/core/runtime.md): The runtime represents specific functionality to a specific language SDK. This use case will provide common properties common to all these SDKs. The use case will also expose functions that are specific to the given SDK.
+- [Share](use_cases/core/share.md): In line with the Link Opener use case, most host systems also provide the ability to share information via a host service. This use case will expose this functionality.
+- [Storage](use_cases/core/storage.md): The ability to store key / value pairs into storage is a easy simple way to quickly access information for an application. In combination with the Data Broker use case working with JSON data, this use case will provide the developer quick access to this storage concept.
 
 ### User Interface
 
 The user interface set of use cases solidifies the ability to have a standard set of actions to interact with your user without limiting you from utilizing the options available in a given SDK module.
 
-- [App View](use_cases/ui/app_view.md)
-- [Console](use_cases/ui/console.md)
-- [Dialog](use_cases/ui/dialog.md)
-- [Themes](use_cases/ui/themes.md)
-- [Widgets](use_cases/ui/widgets.md)
+- [App View](use_cases/ui/app_view.md): An SPA (Single-page application) is an app implementation that loads only a single view, and then updates the body content of that single document view. This use case will provide this singular view concept regardless of the underlying UI architecture.
+- [Console](use_cases/ui/console.md): Command Line Interface (CLI) tools are common via the terminal of most backend systems. This use case will expose functions for exploiting this type of interface.
+- [Dialog](use_cases/ui/dialog.md): Most SDKs provide basic popup dialogs for interacting with users to either gather information or provide user's information. This use case will provide a set of common dialogs for the given SDK to interact with the user. It will also allow for building complex dialogs for user interactions via the App View use case.
+- [Themes](use_cases/ui/themes.md): Each SDK environment provide the ability to theme the Widget use case components of user interface. This use case will setup a common ability setup the look and feel of the user interface experience.
+- [Widgets](use_cases/ui/widgets.md): Each SDK has a rich set of widget components. This use case will setup a common set of these widget components while not limiting the developer's ability to utilize other widget components of the SDK.
 
 ### Advanced
 
 The advanced set of use cases offer more complex actions a developer may need to carry out in their application. This aims to simplify the complexity of the given actions.
 
-- [Async IO](use_cases/advanced/async_io.md)
-- [Audio Player](use_cases/advanced/audio_player.md)
-- [Database](use_cases/advanced/database.md)
-- [Device Orientation](use_cases/advanced/device_orientation.md)
-- [Disk Manager](use_cases/advanced/disk_manager.md)
-- [Hardware Peripheral](use_cases/advanced/hardware_peripheral.md)
-- [Network Socket](use_cases/advanced/network_socket.md)
-- [Web RTC](use_cases/advanced/web_rtc.md)
+- [Async IO](use_cases/advanced/async_io.md): All programming happens synchronously (i.e. one instruction to the next). This occurs within the event loop of the main SDK execution thread. This use case will provide the ability to chunk work within this main event loop along with scheduling work within a background event loop thread.
+- [Audio Player](use_cases/advanced/audio_player.md): Host systems provide the ability to either play audio files or translate a string into text-to-speech. This use case will expose this host processing to the developer.
+- [Database](use_cases/advanced/database.md): Databases provide the ability of storing complex data structures. The two main concepts for this is either relational database structures (SQL) or no-SQL indexed databases. These are available depending on the SDK environment. This use case will expose the ability to access these services for the given SDK.
+- [Device Orientation](use_cases/advanced/device_orientation.md): Geospatial relates to or denoting data that is associated with a particular location. This use case will expose the ability of access your application in this 3D space orientation and GPS location on the Earth.
+- [Disk Manager](use_cases/advanced/disk_manager.md): Applications have access to hard disk which houses directories, files, and other information. This use case will expose the ability to manage the disk along with interface with said files from the disk.
+- [Hardware Peripheral](use_cases/advanced/hardware_peripheral.md): Systems have the ability to interface with external hardware that connect via different protocols. This use case will expose these different protocols for exchanging information with these connected devices.
+- [Network Socket](use_cases/advanced/network_socket.md): The Open Systems Interconnection (OSI) model describes seven layers that computer systems use to communicate over a network. It was the first standard model for network communications, adopted by all major computer and telecommunication companies in the early 1980s. Sockets and network protocols provide the means to communicate between client / server applications. This use case will expose these different network protocols to allow for application inter-communication over a network.
+- [Web RTC](use_cases/advanced/web_rtc.md): With WebRTC, you can add real-time communication capabilities to your application that works on top of an open standard. It supports video, voice, and generic data to be sent between peers, allowing developers to build powerful voice- and video-communication solutions. This use case will provide modules the ability to utilize this technology for user communication.
 
 ## GETTING STARTED
 

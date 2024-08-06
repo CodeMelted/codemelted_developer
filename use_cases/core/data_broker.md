@@ -1,14 +1,16 @@
 <!--
 TITLE: CodeMelted - DEV | Core Use Case: Data Broker
-PUBLISH_DATE:
+PUBLISH_DATE: 2024-08-05
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMelted - DEV, Data Broker, Core Use Case
-DESCRIPTION:
+DESCRIPTION:J SON (JavaScript Object Notation) is a lightweight data-interchange format. Unlike XML (Extensible Markup Language), it is universal for data transport, manipulation, and representing complex data structures. This use case will expose functions for working / validating this set of datasets.
 -->
 <center>
   <a href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
 <h1><img style="height: 35px;" src="header.png" /> Core Use Case: Data Broker</h1>
+
+JSON (JavaScript Object Notation) is a lightweight data-interchange format. Unlike XML (Extensible Markup Language), it is universal for data transport, manipulation, and representing complex data structures. This use case will expose functions for working / validating this set of datasets.
 
 **Table of Contents**
 
@@ -19,26 +21,16 @@ DESCRIPTION:
 
 ## FUNCTIONAL DECOMPOSITION
 
-**Description:** [GENERAL DESCRIPTION OF WHAT THIS USE CASE IS ABOUT]
-
-**Actors:**  [A LIST OF STAKEHOLDERS (human or computer) THAT PERFORMS A BEHAVIOR WITH THIS GIVEN USE CASE]
-
-**Pre-Condition:** [WHAT MUST BE TRUE BEFORE THE CASE CASE RUNS]
-
-**Post-Condition:** [WHAT MUST BE TRUE AFTER THE CASE CASE RUNS]
-
-**Scenario:** [SEQUENCE OF STEPS IN WHICH EVERYTHING GOES PERFECT]
-
-**Exceptions:** [THE VARIATION OFF THE MAIN SEQUENCE. THIS IS USUALLY THINGS THAT GO WRONG AND HOW TO RECOVER TO GET BACK TO THE MAIN SCENARIO]
+<mark>TBD</mark>
 
 ## DESIGN NOTES
 
-[UML, API EXAMPLES, etc.]
+<mark>TBD</mark>
 
 ## TEST NOTES
 
-[FORMAL TESTS TO RUN, NEW TEST NOTES, CONFIGURATIONS, etc.]
+<mark>TBD</mark>
 
 ## REFERENCES
 
-[ANY OUTSIDE ARTIFACTS RELATED TO THIS]
+<mark>TBD</mark>

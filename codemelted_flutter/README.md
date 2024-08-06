@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted - Flutter Module
-PUBLISH_DATE: 2024-06-25
+PUBLISH_DATE: 2024-08-05
 AUTHOR: Mark Shaffer
 KEYWORDS: raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module
 DESCRIPTION: Welcome to the CodeMelted - Flutter Module project. This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the CodeMelted - Developer identified use cases, you can be assured to building a powerful native application.
@@ -73,15 +73,15 @@ The following examples represent the implementation of the **CodeMelted - Develo
 
 ### App View
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Async IO
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Audio Player
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Console
 
@@ -89,71 +89,71 @@ Not applicable to this module.
 
 ### Database
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Data Broker
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Device Orientation
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Dialog
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Disk Manager
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Fetch
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Link Opener
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Logger
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Hardware Peripheral
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Math
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Network Sockets
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Runtime
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Share
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Storage
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Themes
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Web RTC
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Widgets
 
-UNDER DEVELOPMENT
+<mark>UNDER DEVELOPMENT</mark>
 
 ## LICENSE
 
