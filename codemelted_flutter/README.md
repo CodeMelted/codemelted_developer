@@ -15,37 +15,27 @@ Welcome to the **CodeMelted - Flutter Module** project. This project aims to pro
 **Table of Contents**
 
 - [GETTING STARTED](#getting-started)
-  - [GitHub](#github)
-  - [pub.dev](#pubdev)
 - [USAGE](#usage)
-  - [App View](#app-view)
-  - [Async IO](#async-io)
-  - [Audio Player](#audio-player)
+  - [Async](#async)
+  - [Audio](#audio)
   - [Console](#console)
   - [Database](#database)
-  - [Data Broker](#data-broker)
-  - [Device Orientation](#device-orientation)
-  - [Dialog](#dialog)
-  - [Disk Manager](#disk-manager)
-  - [Fetch](#fetch)
-  - [Link Opener](#link-opener)
+  - [Disk](#disk)
+  - [Firebase](#firebase)
+  - [Game](#game)
+  - [Hardware](#hardware)
+  - [JSON](#json)
   - [Logger](#logger)
-  - [Hardware Peripheral](#hardware-peripheral)
   - [Math](#math)
-  - [Network Sockets](#network-sockets)
+  - [Network](#network)
   - [Runtime](#runtime)
-  - [Share](#share)
   - [Storage](#storage)
-  - [Themes](#themes)
-  - [Web RTC](#web-rtc)
-  - [Widgets](#widgets)
+  - [UI](#ui)
 - [LICENSE](#license)
 
 ## GETTING STARTED
 
 Perform the following to pull the `codemelted_flutter` module into your project.
-
-### GitHub
 
 ```yaml
 dependencies:
@@ -54,80 +44,74 @@ dependencies:
       url: https://github.com/CodeMelted/codemelted_developer.git
       ref: main
       # Or by tagged version
-      # ref: flutter_X.Y.Z
+      # ref: codemelted_flutter_X.Y.Z
       path: codemelted_flutter
 ```
-Then import it to use it.
-
-```dart
-import 'package:codemelted_flutter/codemelted_flutter.dart';
-```
-
-### pub.dev
-
-TBD.
 
 ## USAGE
 
 The following examples represent the implementation of the **CodeMelted - Developer Cross Platform Module** identified use cases.
 
-### App View
+### Async
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Async IO
-
-<mark>UNDER DEVELOPMENT</mark>
-
-### Audio Player
+### Audio
 
 <mark>UNDER DEVELOPMENT</mark>
 
 ### Console
 
-Not applicable to this module.
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Database
 
-<mark>UNDER DEVELOPMENT</mark>
+Not applicable to this module.
 
-### Data Broker
-
-<mark>UNDER DEVELOPMENT</mark>
-
-### Device Orientation
+### Disk
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Dialog
+### Firebase
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Disk Manager
+### Game
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Fetch
+### Hardware
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Link Opener
+### JSON
 
 <mark>UNDER DEVELOPMENT</mark>
 
 ### Logger
 
-<mark>UNDER DEVELOPMENT</mark>
+```dart
+// Import it.
+import 'package:codemelted_flutter/codemelted_logger.dart';
 
-### Hardware Peripheral
+// Set it up
+codemelted_logger.level = CLogLevel.warning;
+codemelted_logger.onLogEvent = (rec) async {
+  // Handle the CLogRecord object.
+};
 
-<mark>UNDER DEVELOPMENT</mark>
+// Log stuff
+codemelted_logger.debug(data: 'debug', stackTrace: StackTrace.current);
+codemelted_logger.info(data: 'info', stackTrace: StackTrace.current);
+codemelted_logger.warning(data: 'warning', stackTrace: StackTrace.current);
+codemelted_logger.error(data: 'error', stackTrace: StackTrace.current);
+```
 
 ### Math
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Network Sockets
+### Network
 
 <mark>UNDER DEVELOPMENT</mark>
 
@@ -135,23 +119,11 @@ Not applicable to this module.
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Share
-
-<mark>UNDER DEVELOPMENT</mark>
-
 ### Storage
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Themes
-
-<mark>UNDER DEVELOPMENT</mark>
-
-### Web RTC
-
-<mark>UNDER DEVELOPMENT</mark>
-
-### Widgets
+### UI
 
 <mark>UNDER DEVELOPMENT</mark>
 
