@@ -183,25 +183,10 @@ function build([string[]]$params) {
         Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
 
         message "Running flutter test framework"
-        flutter test --coverage
-
-        if ($IsLinux -or $IsMacOS) {
-            genhtml -o coverage --ignore-errors unused --dark-mode coverage/lcov.info
-        }
-        else {
-            $exists = Test-Path -Path $GEN_HTML_PERL_SCRIPT -PathType Leaf
-            if ($exists) {
-                perl $GEN_HTML_PERL_SCRIPT -o coverage coverage/lcov.info
-            }
-            else {
-                Write-Host "WARNING: genhtml not installed for windows. Run " +
-                "'choco install lcov' for pwsh terminal as Admin to install it."
-            }
-        }
+        flutter test --platform chrome
 
         message "Now generating dart doc"
         dart doc --output "docs"
-        Move-Item -Path coverage -Destination docs -Force
         Copy-Item -Path CHANGELOG.md -Destination docs -Force
         Copy-Item -Path header.png -Destination docs -Force
 
@@ -213,7 +198,7 @@ function build([string[]]$params) {
         $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
         $htmlData | Out-File docs/index.html -Force
 
-        $files = Get-ChildItem -Path docs/codemelted_flutter/*.html, docs/codemelted_flutter/*/*.html -Exclude "*sidebar*"
+        $files = Get-ChildItem -Path docs/codemelted_*/*.html, docs/codemelted_*/*/*.html -Exclude "*sidebar*"
         foreach ($file in $files) {
             [string]$htmlData = Get-Content -Path $file.FullName -Raw
             $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')

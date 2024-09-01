@@ -142,7 +142,7 @@ enum CFetchAction {
   put;
 }
 
-/// The response object that results from the module [CodeMeltedAPI.fetch]
+/// The response object that results from the module [CodeMeltedNetwork.fetch]
 /// call.
 ///
 /// See https://developer.mozilla.org/en-US/docs/Web/API/Response of the

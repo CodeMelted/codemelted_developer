@@ -31,6 +31,7 @@ Welcome to the **CodeMelted - Flutter Module** project. This project aims to pro
   - [Runtime](#runtime)
   - [Storage](#storage)
   - [UI](#ui)
+- [CHANGE LOG](#change-log)
 - [LICENSE](#license)
 
 ## GETTING STARTED
@@ -126,6 +127,10 @@ codemelted_logger.error(data: 'error', stackTrace: StackTrace.current);
 ### UI
 
 <mark>UNDER DEVELOPMENT</mark>
+
+## CHANGE LOG
+
+<iframe style="border: none;" width="100%" height="400px;" src="CHANGELOG.md"></iframe>
 
 ## LICENSE
 

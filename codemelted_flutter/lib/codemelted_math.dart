@@ -33,6 +33,18 @@ import 'dart:math' as math;
 /// Provides a math utility API with a collection of mathematical formulas I
 /// have either had to use, research, or just found on the Internet.
 class CodeMeltedMath {
+  /// Converts celsius to fahrenheit.
+  double celsiusToFahrenheit(double v) => (v * (9 / 5)) + 32;
+
+  /// Converts celsius to kelvin
+  double celsiusToKelvin(double v) => v + 273.15;
+
+  /// Converts fahrenheit to celsius.
+  double fahrenheitToCelsius(double v) => (v - 32) * (5 / 9);
+
+  /// Converts fahrenheit to kelvin.
+  double fahrenheitToKelvin(double v) => (v - 32) * (5 / 9) + 273.15;
+
   /// Calculates the distance in meters between two WGS84 points.
   double geodeticDistance({
     required double startLatitude,
@@ -113,18 +125,6 @@ class CodeMeltedMath {
     final timeS = (endMilliseconds - startMilliseconds) / 1000.0;
     return distMeters / timeS;
   }
-
-  /// Converts celsius to fahrenheit.
-  double celsiusToFahrenheit(double v) => (v * (9 / 5)) + 32;
-
-  /// Converts celsius to kelvin
-  double celsiusToKelvin(double v) => v + 273.15;
-
-  /// Converts fahrenheit to celsius.
-  double fahrenheitToCelsius(double v) => (v - 32) * (5 / 9);
-
-  /// Converts fahrenheit to kelvin.
-  double fahrenheitToKelvin(double v) => (v - 32) * (5 / 9) + 273.15;
 
   /// Converts kelvin to celsius
   double kelvinToCelsius(double v) => v - 273.15;
