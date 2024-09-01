@@ -27,42 +27,8 @@
 
 [string]$footerTemplate = @"
 <!-- Links to main domain assets for embedding this widget code into different configurations -->
-<link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css" />
-<script src="https://codemelted.com/assets/js/footer.js" defer></script>
-
-<!-- Footer for all codemelted.com domain content -->
-<div class="codemelted-footer">
-    <div id="snackbar">Link Copied!</div>
-    <div style="display: none;" id="disqus_thread"></div>
-    <div class="codemelted-footer-main-control-layout">
-        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
-        <div><a id="anchorComments" href="#" onclick="onCommentsClicked(); return false;">⬆️ Comments</a></div>
-        <div>
-            <a style="display: none;" title="Read / Pause Article" href="#">⏯️</a>
-            <a title="Print" onclick="onPrintPageClicked(); return false;" href="#">🖨️</a>
-            <a title="Get Link" href="#" onclick="onCopyLinkClicked(); return false;">🔗</a>
-        </div>
-    </div>
-    <div class="codemelted-footer-socials-layout">
-        <a title="Support My Work" href="#" onclick="onOpenLinkClicked('www.buymeacoffee.com/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icons/buy-me-a-coffee.png" /></a>
-        <a title="Follow the codemelted-developer Project" href="#" onclick="onOpenLinkClicked('github.com/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icons/github.png" /></a>
-        <a title="Get the Latest Happenings" href="#" onclick="onOpenLinkClicked('twitter.com/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icons/twitterx.png" /></a>
-        <a title="Get the Latest Podcast / Videos" href="#" onclick="onOpenLinkClicked('youtube.com/@codemelted'); return false;"><img src="https://codemelted.com/assets/images/icons/youtube.png" /></a>
-        <a title="Open CodeMelted - PWA" href="#" onclick="onOpenPWAClicked(); return false;" ><img src="https://codemelted.com/assets/images/favicon_io_pwa/apple-touch-icon.png" /></a>
-    </div>
-</div>
-<script>
-    var disqus_config = function () {
-        this.page.url = window.href;
-    };
-    (function() { // DON'T EDIT BELOW THIS LINE
-        var d = document, s = d.createElement('script');
-        s.src = 'https://codemelted.disqus.com/embed.js';
-        s.setAttribute('data-timestamp', +new Date());
-        (d.head || d.body).appendChild(s);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<codemelted-navigation></codemelted-navigation>
+<script src="https://codemelted.com/assets/js/codemelted_navigation.js" defer></script>
 "@
 
 [string]$htmlTemplate = @"
@@ -244,8 +210,7 @@ function build([string[]]$params) {
         $htmlData = $htmlData.Replace("codemelted_flutter - Dart API docs", "CodeMelted - Flutter Module")
         $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
         $htmlData = $htmlData.Replace("README.md", "index.html")
-        $htmlData = $htmlData.Replace("</head>", '<link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css"><script src="https://codemelted.com/assets/js/footer.js" defer></script></head>')
-        $htmlData = $htmlData.Replace("<footer>", "<footer>`n$footerTemplate")
+        $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
         $htmlData | Out-File docs/index.html -Force
 
         $files = Get-ChildItem -Path docs/codemelted_flutter/*.html, docs/codemelted_flutter/*/*.html -Exclude "*sidebar*"
@@ -253,7 +218,7 @@ function build([string[]]$params) {
             [string]$htmlData = Get-Content -Path $file.FullName -Raw
             $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
             $htmlData = $htmlData.Replace("</head>", '<link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css"><script src="https://codemelted.com/assets/js/footer.js" defer></script></head>')
-            $htmlData = $htmlData.Replace("<footer>", "<footer>`n$footerTemplate")
+            $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
             $htmlData | Out-File $file.FullName -Force
         }
 
@@ -297,13 +262,13 @@ function build([string[]]$params) {
 
         # Fix items and apply our footer.
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
-        $htmlData = $htmlData.Replace("</head>", '<link rel="icon" href="https://codemelted.com/favicon.png"><link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css"><script src="https://codemelted.com/assets/js/footer.js" defer></script></head>')
+        $htmlData = $htmlData.Replace("</head>", '<link rel="icon" href="https://codemelted.com/favicon.png"></head>')
         $htmlData = $htmlData.Replace("</body></html>", "$footerTemplate</body></html>")
         $htmlData = $htmlData.Replace("README.md", "index.html")
         $htmlData | Out-File docs/index.html -Force
 
         [string]$htmlData = Get-Content -Path "docs/modules.html" -Raw
-        $htmlData = $htmlData.Replace("</head>", '<link rel="icon" href="https://codemelted.com/favicon.png"><link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css"><script src="https://codemelted.com/assets/js/footer.js" defer></script></head>')
+        $htmlData = $htmlData.Replace("</head>", '<link rel="icon" href="https://codemelted.com/favicon.png"></head>')
         $htmlData = $htmlData.Replace("</body></html>", "$footerTemplate</body></html>")
         $htmlData | Out-File docs/modules.html -Force
 
@@ -314,6 +279,10 @@ function build([string[]]$params) {
             $htmlData = $htmlData.Replace("</body></html>", "$footerTemplate</body></html>")
             $htmlData | Out-File $file.FullName -Force
         }
+
+        [string]$cssFile = Get-Content -Path "docs/assets/style.css" -Raw
+        $cssFile = $cssFile.Replace("z-index: 1024;", "z-index: 2147483647;")
+        $cssFile | Out-File docs/assets/style.css -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_js module build completed."
