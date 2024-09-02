@@ -8,7 +8,7 @@ DESCRIPTION: Game engines provide the logic for running simple side scroller, RP
 <center>
   <a href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="assets/header.png" /> Use Case: Game</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> Use Case: Game</h1>
 
 Game engines provide the logic for running simple side scroller, RPGs, and others. This use case will build a common game engine to apply across different type of apps / game genres. This will facilitate being able to quickly build new games within an application.
 

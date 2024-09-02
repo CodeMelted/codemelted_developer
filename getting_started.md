@@ -8,7 +8,7 @@ DESCRIPTION: Describes how to setup and make changes to the CodeMelted - Develop
 <center>
   <a href="README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="header.png" /> CodeMelted - Getting Started</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> CodeMelted - Getting Started</h1>
 
 **Table of Contents**
 

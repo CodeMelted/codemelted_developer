@@ -8,7 +8,7 @@ DESCRIPTION: JSON (JavaScript Object Notation) is a lightweight data-interchange
 <center>
   <a href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="assets/header.png" /> Use Case: JSON</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> Use Case: JSON</h1>
 
 JSON (JavaScript Object Notation) is a lightweight data-interchange format. Unlike XML (Extensible Markup Language), it is universal for data transport, manipulation, and representing complex data structures. This use case will expose functions for working / validating this set of datasets.
 

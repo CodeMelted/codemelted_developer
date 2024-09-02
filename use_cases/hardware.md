@@ -8,7 +8,7 @@ DESCRIPTION: Systems have the ability to interface with external hardware that c
 <center>
   <a href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="assets/header.png" /> Use Case: Hardware</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> Use Case: Hardware</h1>
 
 Systems have the ability to interface with external hardware that connect via different protocols. This use case will expose these different protocols for exchanging information with these connected devices.
 

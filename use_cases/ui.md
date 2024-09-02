@@ -8,7 +8,7 @@ DESCRIPTION: A SPA (single-page application) is an app implementation that loads
 <center>
   <a href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="assets/header.png" /> Use Case: User Interface</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> Use Case: User Interface</h1>
 
 A SPA (single-page application) is an app implementation that loads only a single view, and then updates the body content of that single document view. This use case will provide this singular view concept regardless of the underlying UI architecture. It will also provide the ability to properly theme based on the SDK target so an entire app can be changed. Lastly, the use case will identify basic widget types and dialogs to support the SPA.
 

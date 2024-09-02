@@ -8,7 +8,7 @@ DESCRIPTION: Host systems provide the ability to either play audio files or tran
 <center>
   <a href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="assets/header.png" /> Use Case: Audio</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> Use Case: Audio</h1>
 
 Host systems provide the ability to either play audio files or translate a string into text-to-speech. This use case will expose this host processing to the developer.
 

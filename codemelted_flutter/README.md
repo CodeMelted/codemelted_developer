@@ -8,31 +8,9 @@ DESCRIPTION: Welcome to the CodeMelted - Flutter Module project. This project ai
 <center>
   <a href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="header.png" /> CodeMelted - Flutter Module</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/flutter.png" /> CodeMelted - Flutter Module</h1>
 
 Welcome to the **CodeMelted - Flutter Module** project. This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the **CodeMelted - Developer** identified use cases, you can be assured to building a powerful native application.
-
-**Table of Contents**
-
-- [GETTING STARTED](#getting-started)
-- [USAGE](#usage)
-  - [Async](#async)
-  - [Audio](#audio)
-  - [Console](#console)
-  - [Database](#database)
-  - [Disk](#disk)
-  - [Firebase](#firebase)
-  - [Game](#game)
-  - [Hardware](#hardware)
-  - [JSON](#json)
-  - [Logger](#logger)
-  - [Math](#math)
-  - [Network](#network)
-  - [Runtime](#runtime)
-  - [Storage](#storage)
-  - [UI](#ui)
-- [CHANGE LOG](#change-log)
-- [LICENSE](#license)
 
 ## GETTING STARTED
 
@@ -67,7 +45,7 @@ The following examples represent the implementation of the **CodeMelted - Develo
 
 ### Database
 
-Not applicable to this module.
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Disk
 

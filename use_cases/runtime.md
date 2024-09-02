@@ -8,7 +8,7 @@ DESCRIPTION: The runtime represents specific functionality to a specific languag
 <center>
   <a href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="assets/header.png" /> Use Case: Runtime</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> Use Case: Runtime</h1>
 
 The runtime represents specific functionality to a specific language SDK. This use case will provide common properties common to all these SDKs. The use case will also expose functions that are specific to the given SDK.
 

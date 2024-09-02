@@ -135,7 +135,6 @@ function build([string[]]$params) {
         $html = $html.Replace("README.md", "index.html")
         $html = $html.Replace(".md", ".html")
         $html | Out-File docs/index.html -Force
-        Copy-Item -Path *.png -Destination docs/ -Force
 
         # Don't forget the getting_started.md
         $readme = ConvertFrom-Markdown -Path getting_started.md
@@ -151,7 +150,6 @@ function build([string[]]$params) {
         $html = $html.Replace("README.md", "index.html")
         $html = $html.Replace(".md", ".html")
         $html | Out-File docs/getting_started.html -Force
-        Copy-Item -Path *.png -Destination docs/ -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_develoepr build completed."
@@ -169,7 +167,6 @@ function build([string[]]$params) {
         message "Now generating dart doc"
         dart doc --output "docs"
         Copy-Item -Path CHANGELOG.md -Destination docs -Force
-        Copy-Item -Path header.png -Destination docs -Force
 
         # Fix the title
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
@@ -216,39 +213,22 @@ function build([string[]]$params) {
             }
         }
 
-        message "Now generating the typedoc"
-        typedoc ./codemelted.js --name "CodeMelted - JS Module"
+        # Generate and cleanup the documentation
+        message "Now generating the jsdoc"
+        jsdoc ./codemelted.js --readme ./README.md --destination docs
+        $files = Get-ChildItem -Path docs/*.html
+        foreach ($file in $files) {
+            [string]$htmlData = Get-Content -Path $file.FullName -Raw
+            $htmlData = $htmlData.Replace("README.md", "index.html")
+            $htmlData = $htmlData.Replace("</body>", "`n$footerTemplate</body>")
+            $htmlData = $htmlData.Replace("</head>", '<meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="https://codemelted.com/favicon.png"></head>')
+            $htmlData | Out-File $file.FullName -Force
+        }
+        Copy-Item jsdoc-default.css -Destination docs/styles
 
-        message "Now compiling *.js file and *.d.ts files"
-        tsc
 
         # Some final moves to complete the module documentation.
         Move-Item -Path coverage -Destination docs -Force
-        Copy-Item -Path *.png -Destination "docs" -Force
-
-        # Fix items and apply our footer.
-        [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
-        $htmlData = $htmlData.Replace("</head>", '<link rel="icon" href="https://codemelted.com/favicon.png"></head>')
-        $htmlData = $htmlData.Replace("</body></html>", "$footerTemplate</body></html>")
-        $htmlData = $htmlData.Replace("README.md", "index.html")
-        $htmlData | Out-File docs/index.html -Force
-
-        [string]$htmlData = Get-Content -Path "docs/modules.html" -Raw
-        $htmlData = $htmlData.Replace("</head>", '<link rel="icon" href="https://codemelted.com/favicon.png"></head>')
-        $htmlData = $htmlData.Replace("</body></html>", "$footerTemplate</body></html>")
-        $htmlData | Out-File docs/modules.html -Force
-
-        $files = Get-ChildItem -Path docs/classes/*.html
-        foreach ($file in $files) {
-            [string]$htmlData = Get-Content -Path $file.FullName -Raw
-            $htmlData = $htmlData.Replace("</head>", '<link rel="icon" href="https://codemelted.com/favicon.png"><link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css"><script src="https://codemelted.com/assets/js/footer.js" defer></script></head>')
-            $htmlData = $htmlData.Replace("</body></html>", "$footerTemplate</body></html>")
-            $htmlData | Out-File $file.FullName -Force
-        }
-
-        [string]$cssFile = Get-Content -Path "docs/assets/style.css" -Raw
-        $cssFile = $cssFile.Replace("z-index: 1024;", "z-index: 2147483647;")
-        $cssFile | Out-File docs/assets/style.css -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_js module build completed."
@@ -261,6 +241,7 @@ function build([string[]]$params) {
         Set-Location $PSScriptRoot/codemelted_pwsh
         Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
         New-Item -Path docs -ItemType Directory -ErrorAction Ignore
+        Copy-Item -Path assets -Destination docs -Recurse -ErrorAction Ignore
 
         $readme = ConvertFrom-Markdown -Path README.md
         $title = extract "TITLE:" $readme.Html
@@ -274,7 +255,6 @@ function build([string[]]$params) {
         $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
         $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
-        Copy-Item -Path *.png -Destination docs/ -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_pwsh module build completed."
@@ -300,7 +280,6 @@ function build([string[]]$params) {
         $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
         $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
-        Copy-Item -Path *.png -Destination docs/ -Force
 
         Set-Location $PSScriptRoot
         message "codemelted_pi project build completed."

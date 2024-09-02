@@ -8,36 +8,9 @@ DESCRIPTION: Welcome to the CodeMelted - JS Module project. This project aims to
 <center>
   <a href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="header.png" /> CodeMelted - JS Module</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/deno-js.png" /> CodeMelted - JS Module</h1>
 
 Welcome to the **CodeMelted - JS Module** project. This project aims to give a common fullstack solution for Progressive Web Applications (PWA) utilizing the **CodeMelted - Developer** use cases. It utilizes the **Deno Runtime** to run as your backend service. This was chosen as it has a full range of services for your backend if you choose to utilize it. You can also take your backend and host it on a different platform. This allows you to not be locked into a vendor for your backend. It was also chosen because it implements the **Browser Web APIs**. This allows the module to implement backend and web frontend common code developing a more complete solution. Lastly, Deno provides the use of TypeScript natively out of the box. So you are able to utilize both JavaScript / TypeScript for your solution and roll with any build system.
-
-**Table of Contents**
-
-- [GETTING STARTED](#getting-started)
-- [USAGE](#usage)
-  - [App View](#app-view)
-  - [Async IO](#async-io)
-  - [Audio Player](#audio-player)
-  - [Console](#console)
-  - [Database](#database)
-  - [Data Broker](#data-broker)
-  - [Device Orientation](#device-orientation)
-  - [Dialog](#dialog)
-  - [Disk Manager](#disk-manager)
-  - [Fetch](#fetch)
-  - [Link Opener](#link-opener)
-  - [Logger](#logger)
-  - [Hardware Peripheral](#hardware-peripheral)
-  - [Math](#math)
-  - [Network Sockets](#network-sockets)
-  - [Runtime](#runtime)
-  - [Share](#share)
-  - [Storage](#storage)
-  - [Themes](#themes)
-  - [Web RTC](#web-rtc)
-  - [Widgets](#widgets)
-- [LICENSE](#license)
 
 ## GETTING STARTED
 
@@ -47,15 +20,11 @@ Welcome to the **CodeMelted - JS Module** project. This project aims to give a c
 
 The following examples represent the implementation of the **CodeMelted - Developer Cross Platform Module** identified use cases.
 
-### App View
+### Async
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Async IO
-
-<mark>UNDER DEVELOPMENT</mark>
-
-### Audio Player
+### Audio
 
 <mark>UNDER DEVELOPMENT</mark>
 
@@ -67,27 +36,23 @@ The following examples represent the implementation of the **CodeMelted - Develo
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Data Broker
+### Disk
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Device Orientation
+### Firebase
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Dialog
+### Game
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Disk Manager
+### Hardware
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Fetch
-
-<mark>UNDER DEVELOPMENT</mark>
-
-### Link Opener
+### JSON
 
 <mark>UNDER DEVELOPMENT</mark>
 
@@ -95,15 +60,11 @@ The following examples represent the implementation of the **CodeMelted - Develo
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Hardware Peripheral
-
-<mark>UNDER DEVELOPMENT</mark>
-
 ### Math
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Network Sockets
+### Network
 
 <mark>UNDER DEVELOPMENT</mark>
 
@@ -111,23 +72,11 @@ The following examples represent the implementation of the **CodeMelted - Develo
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Share
-
-<mark>UNDER DEVELOPMENT</mark>
-
 ### Storage
 
 <mark>UNDER DEVELOPMENT</mark>
 
-### Themes
-
-<mark>UNDER DEVELOPMENT</mark>
-
-### Web RTC
-
-<mark>UNDER DEVELOPMENT</mark>
-
-### Widgets
+### UI
 
 <mark>UNDER DEVELOPMENT</mark>
 

@@ -28,5 +28,7 @@
     "scroller",
     "webrtc"
   ],
+  "deno.config": "codemelted_js/deno.json",
   "deno.enable": true,
+  "deno.lint": true,
 }
