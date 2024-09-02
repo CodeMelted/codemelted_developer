@@ -42,15 +42,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://codemelted.com/assets/css/developer-theme.css">
     <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png">
-    <style>
-        .mermaid {
-            background-color: grey;
-        }
-    </style>
 </head><body><div class="content-main">
 [CONTENT]
 [FOOTER_TEMPLATE]
-[MERMAID_SCRIPT]
 </div></body></html>
 "@
 
@@ -105,21 +99,13 @@ function build([string[]]$params) {
         # Setup for a fresh build
         Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
         New-Item -Path docs -ItemType Directory -ErrorAction Ignore
-        New-Item -Path docs/use_cases/advanced -ItemType Directory -ErrorAction Ignore
-        New-Item -Path docs/use_cases/core -ItemType Directory -ErrorAction Ignore
-        New-Item -Path docs/use_cases/ui -ItemType Directory -ErrorAction Ignore
-
-        # Get the mermaid script to render diagrams
-        $mermaidScript = Get-Content assets/templates/mermaid.html -Raw
+        New-Item -Path docs/use_cases -ItemType Directory -ErrorAction Ignore
 
         # Build each of the use case areas
-        $files = Get-ChildItem -Path $PSScriptRoot/use_cases/*/*.md
+        $files = Get-ChildItem -Path $PSScriptRoot/use_cases/*.md
         foreach ($file in $files) {
             # Extract the information needed
             $readme = ConvertFrom-Markdown -Path $file.FullName
-            $splitChar = $IsWindows ? "\" : "/"
-            $paths = $file.DirectoryName.Split($splitChar);
-            $pathName = $paths[$paths.Length - 2] + $splitChar + $paths[$paths.Length - 1]
             $title = extract "TITLE:" $readme.Html
             $keywords = extract "KEYWORDS:" $readme.Html
             $description = extract "DESCRIPTION:" $readme.Html
@@ -129,14 +115,11 @@ function build([string[]]$params) {
             $html = $html.Replace("[KEYWORDS]", $keywords)
             $html = $html.Replace("[CONTENT]", $readme.Html)
             $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
-            $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
             $html = $html.Replace("README.md", "index.html")
             $htmlFilename = $file.Name.Replace(".md", ".html")
-            $html | Out-File docs/$pathName/$htmlFilename -Force
+            $html | Out-File docs/use_cases/$htmlFilename -Force
         }
-        Copy-Item -Path use_cases/advanced/*.png -Destination docs/use_cases/advanced
-        Copy-Item -Path use_cases/core/*.png -Destination docs/use_cases/core
-        Copy-Item -Path use_cases/ui/*.png -Destination docs/use_cases/ui
+        Copy-Item -Path use_cases/assets -Destination docs/use_cases -Recurse
 
         # Now build the main README.md
         $readme = ConvertFrom-Markdown -Path README.md
@@ -149,7 +132,6 @@ function build([string[]]$params) {
         $html = $html.Replace("[KEYWORDS]", $keywords)
         $html = $html.Replace("[CONTENT]", $readme.Html)
         $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
-        $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
         $html = $html.Replace("README.md", "index.html")
         $html = $html.Replace(".md", ".html")
         $html | Out-File docs/index.html -Force
@@ -166,7 +148,6 @@ function build([string[]]$params) {
         $html = $html.Replace("[KEYWORDS]", $keywords)
         $html = $html.Replace("[CONTENT]", $readme.Html)
         $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
-        $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
         $html = $html.Replace("README.md", "index.html")
         $html = $html.Replace(".md", ".html")
         $html | Out-File docs/getting_started.html -Force
@@ -183,25 +164,10 @@ function build([string[]]$params) {
         Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
 
         message "Running flutter test framework"
-        flutter test --coverage
-
-        if ($IsLinux -or $IsMacOS) {
-            genhtml -o coverage --ignore-errors unused --dark-mode coverage/lcov.info
-        }
-        else {
-            $exists = Test-Path -Path $GEN_HTML_PERL_SCRIPT -PathType Leaf
-            if ($exists) {
-                perl $GEN_HTML_PERL_SCRIPT -o coverage coverage/lcov.info
-            }
-            else {
-                Write-Host "WARNING: genhtml not installed for windows. Run " +
-                "'choco install lcov' for pwsh terminal as Admin to install it."
-            }
-        }
+        flutter test --platform chrome
 
         message "Now generating dart doc"
         dart doc --output "docs"
-        Move-Item -Path coverage -Destination docs -Force
         Copy-Item -Path CHANGELOG.md -Destination docs -Force
         Copy-Item -Path header.png -Destination docs -Force
 
@@ -213,7 +179,7 @@ function build([string[]]$params) {
         $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
         $htmlData | Out-File docs/index.html -Force
 
-        $files = Get-ChildItem -Path docs/codemelted_flutter/*.html, docs/codemelted_flutter/*/*.html -Exclude "*sidebar*"
+        $files = Get-ChildItem -Path docs/codemelted_*/*.html, docs/codemelted_*/*/*.html -Exclude "*sidebar*"
         foreach ($file in $files) {
             [string]$htmlData = Get-Content -Path $file.FullName -Raw
             $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
@@ -292,7 +258,6 @@ function build([string[]]$params) {
     function codemelted_pwsh {
         message "Now building codemelted_pwsh module"
 
-        $mermaidScript = Get-Content assets/templates/mermaid.html -Raw
         Set-Location $PSScriptRoot/codemelted_pwsh
         Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
         New-Item -Path docs -ItemType Directory -ErrorAction Ignore
@@ -307,7 +272,6 @@ function build([string[]]$params) {
         $html = $html.Replace("[KEYWORDS]", $keywords)
         $html = $html.Replace("[CONTENT]", $readme.Html)
         $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
-        $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
         $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force
@@ -320,7 +284,6 @@ function build([string[]]$params) {
     function codemelted_pi {
         message "Now building codemelted_pi project"
 
-        $mermaidScript = Get-Content assets/templates/mermaid.html -Raw
         Set-Location $PSScriptRoot/codemelted_pi
         Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
         New-Item -Path docs -ItemType Directory -ErrorAction Ignore
@@ -335,7 +298,6 @@ function build([string[]]$params) {
         $html = $html.Replace("[KEYWORDS]", $keywords)
         $html = $html.Replace("[CONTENT]", $readme.Html)
         $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
-        $html = $html.Replace("[MERMAID_SCRIPT]", $mermaidScript)
         $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
         Copy-Item -Path *.png -Destination docs/ -Force

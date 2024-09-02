@@ -1,52 +1,24 @@
 name: codemelted_flutter
 description: "Welcome to the CodeMelted - Flutter Module project. This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the CodeMelted - Developer identified use cases, you can be assured to building a powerful native application."
-version: 0.0.0
-homepage:
+version: 0.1.0
+homepage: https://developer.codemelted.com
+
+platforms:
+  web:
 
 environment:
   sdk: '>=3.4.1 <4.0.0'
   flutter: '>=3.3.0'
 
 dependencies:
-  audioplayers: ^6.0.0
   flutter:
     sdk: flutter
-  flutter_tts: ^4.0.2
   flutter_web_plugins:
     sdk: flutter
-  geolocator: ^12.0.0
-  http: ^1.2.1
-  logging: ^1.2.0
-  plugin_platform_interface: ^2.0.2
-  pointer_interceptor: ^0.10.1+1
-  sensors_plus: ^5.0.1
-  share_plus: ^9.0.0
-  shared_preferences: ^2.2.3
-  sqlite3: ^2.4.3
-  url_launcher: ^6.2.6
-  web: ^0.5.1
-  webview_flutter: ^4.8.0
+  pointer_interceptor: 0.10.1+2
+  web: ^1.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-
-# The following section is specific to Flutter packages.
-flutter:
-  plugin:
-    platforms:
-      android:
-        package: com.codemelted.codemelted_flutter
-        pluginClass: CodeMeltedFlutterPlugin
-      ios:
-        pluginClass: CodeMeltedFlutterPlugin
-      linux:
-        pluginClass: CodeMeltedFlutterPlugin
-      macos:
-        pluginClass: CodeMeltedFlutterPlugin
-      windows:
-        pluginClass: CodeMeltedFlutterPluginCApi
-      web:
-        pluginClass: CodeMeltedFlutterWeb
-        fileName: src/web/codemelted_flutter_web.dart

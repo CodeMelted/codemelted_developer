@@ -1,6 +1,7 @@
 {
   "cSpell.words": [
     "ARGB",
+    "asyncio",
     "audioplayers",
     "autocorrect",
     "autofocus",
@@ -14,13 +15,18 @@
     "Geospatial",
     "HTMLI",
     "iframe",
+    "jsify",
+    "keepalive",
     "lerp",
     "messageerror",
     "nodoc",
+    "onmessageerror",
     "pwsh",
     "rtnval",
     "RUNTIMES",
-    "scrollbars"
+    "scrollbars",
+    "scroller",
+    "webrtc"
   ],
   "deno.enable": true,
 }
