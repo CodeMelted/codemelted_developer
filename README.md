@@ -17,9 +17,6 @@ Software engineers are now required to learn multiple languages, technologies, a
 **Table of Contents**
 
 - [FEATURES](#features)
-  - [Core](#core)
-  - [User Interface](#user-interface)
-  - [Advanced](#advanced)
 - [GETTING STARTED](#getting-started)
 - [USAGE](#usage)
   - [Cross Platform Modules](#cross-platform-modules)
@@ -28,96 +25,25 @@ Software engineers are now required to learn multiple languages, technologies, a
 
 ## FEATURES
 
-```mermaid
----
-title: Use Case Model
----
-flowchart TD
-    subgraph ucModel[Use Cases]
-        subgraph Core
-            ucDataBroker([Data Broker])
-            ucFetch([Fetch])
-            ucLinkOpener([Link Opener])
-            ucLogger([Logger])
-            ucMath([Math])
-            ucRuntime([Runtime])
-            ucShare([Share])
-            ucStorage([Storage])
-        end
-        subgraph User Interface
-            ucAppView([App View])
-            ucConsole([Console])
-            ucDialog([Dialog])
-            ucThemes([Themes])
-            ucWidgets([Widgets])
-        end
-        subgraph Advanced
-            ucAsyncIO([Async IO])
-            ucAudioPlayer([Audio Player])
-            ucDatabase([Database])
-            ucDeviceOrientation([Device Orientation])
-            ucDiskManager([Disk Manager])
-            ucHardwarePeripheral([Hardware Peripheral])
-            ucNetworkSocket([Network Socket])
-            ucWebRTC([Web RTC])
-        end
-    end
-    subgraph sdk[SDK]
-        pwsh[[pwsh]]
-        javascript[[javascript]]
-        flutter[[flutter]]
-    end
-    subgraph os[Operating System]
-        app[[app]]
-        disk[(disk)]
-        network((network))
-        display{{display}}
-        hardware[\hardware/]
-    end
-    Developer--Develops With-->ucModel
-    ucModel--Implemented In-->sdk
-    sdk--Targets-->app
-    app--Accesses-->disk
-    app--Accesses-->network
-    app--Accesses-->display
-    app--Accesses-->hardware
-    appUser[App User]--Uses-->app
-```
-### Core
+<center><img style="width: 100%; max-width: 560px;" src="use_cases/assets/module-use-case-model.drawio.png" /></center>
 
-The core set of use cases represent the most common actions you will carry out when developing an application.
+**Use Cases:**
 
-- [Data Broker](use_cases/core/data_broker.md): JSON (JavaScript Object Notation) is a lightweight data-interchange format. Unlike XML (Extensible Markup Language), it is universal for data transport, manipulation, and representing complex data structures. This use case will expose functions for working / validating this set of datasets.
-- [Fetch](use_cases/core/fetch.md): REST, or REpresentational State Transfer, is an architectural style for providing standards between computer systems on the web, making it easier for systems to communicate with each other. This is the most basic way of getting data between a backend server and a client application. This use case will implement this capability.
-- [Link Opener](use_cases/core/link_opener.md): A different set of protocols (a.k.a. file, http, sms, etc.) can be opened via a set of desktop services exposed via the host system of your application. This use case will wrap these desktop services allowing you to open the host service for the given protocol.
-- [Logger](use_cases/core/logger.md): Logging is the most basic way of either debugging your application or relaying information to your user base. This use case will provide a logging service for this purpose.
-- [Math](use_cases/core/math.md): All applications will have to exercise mathematical computations. This use case will setup a collection of of these mathematical formulas easily accessible for usage within an application.
-- [Runtime](use_cases/core/runtime.md): The runtime represents specific functionality to a specific language SDK. This use case will provide common properties common to all these SDKs. The use case will also expose functions that are specific to the given SDK.
-- [Share](use_cases/core/share.md): In line with the Link Opener use case, most host systems also provide the ability to share information via a host service. This use case will expose this functionality.
-- [Storage](use_cases/core/storage.md): The ability to store key / value pairs into storage is a easy simple way to quickly access information for an application. In combination with the Data Broker use case working with JSON data, this use case will provide the developer quick access to this storage concept.
-
-### User Interface
-
-The user interface set of use cases solidifies the ability to have a standard set of actions to interact with your user without limiting you from utilizing the options available in a given SDK module.
-
-- [App View](use_cases/ui/app_view.md): An SPA (Single-page application) is an app implementation that loads only a single view, and then updates the body content of that single document view. This use case will provide this singular view concept regardless of the underlying UI architecture.
-- [Console](use_cases/ui/console.md): Command Line Interface (CLI) tools are common via the terminal of most backend systems. This use case will expose functions for exploiting this type of interface.
-- [Dialog](use_cases/ui/dialog.md): Most SDKs provide basic popup dialogs for interacting with users to either gather information or provide user's information. This use case will provide a set of common dialogs for the given SDK to interact with the user. It will also allow for building complex dialogs for user interactions via the App View use case.
-- [Themes](use_cases/ui/themes.md): Each SDK environment provide the ability to theme the Widget use case components of user interface. This use case will setup a common ability setup the look and feel of the user interface experience.
-- [Widgets](use_cases/ui/widgets.md): Each SDK has a rich set of widget components. This use case will setup a common set of these widget components while not limiting the developer's ability to utilize other widget components of the SDK.
-
-### Advanced
-
-The advanced set of use cases offer more complex actions a developer may need to carry out in their application. This aims to simplify the complexity of the given actions.
-
-- [Async IO](use_cases/advanced/async_io.md): All programming happens synchronously (i.e. one instruction to the next). This occurs within the event loop of the main SDK execution thread. This use case will provide the ability to chunk work within this main event loop along with scheduling work within a background event loop thread.
-- [Audio Player](use_cases/advanced/audio_player.md): Host systems provide the ability to either play audio files or translate a string into text-to-speech. This use case will expose this host processing to the developer.
-- [Database](use_cases/advanced/database.md): Databases provide the ability of storing complex data structures. The two main concepts for this is either relational database structures (SQL) or no-SQL indexed databases. These are available depending on the SDK environment. This use case will expose the ability to access these services for the given SDK.
-- [Device Orientation](use_cases/advanced/device_orientation.md): Geospatial relates to or denoting data that is associated with a particular location. This use case will expose the ability of access your application in this 3D space orientation and GPS location on the Earth.
-- [Disk Manager](use_cases/advanced/disk_manager.md): Applications have access to hard disk which houses directories, files, and other information. This use case will expose the ability to manage the disk along with interface with said files from the disk.
-- [Hardware Peripheral](use_cases/advanced/hardware_peripheral.md): Systems have the ability to interface with external hardware that connect via different protocols. This use case will expose these different protocols for exchanging information with these connected devices.
-- [Network Socket](use_cases/advanced/network_socket.md): The Open Systems Interconnection (OSI) model describes seven layers that computer systems use to communicate over a network. It was the first standard model for network communications, adopted by all major computer and telecommunication companies in the early 1980s. Sockets and network protocols provide the means to communicate between client / server applications. This use case will expose these different network protocols to allow for application inter-communication over a network.
-- [Web RTC](use_cases/advanced/web_rtc.md): With WebRTC, you can add real-time communication capabilities to your application that works on top of an open standard. It supports video, voice, and generic data to be sent between peers, allowing developers to build powerful voice- and video-communication solutions. This use case will provide modules the ability to utilize this technology for user communication.
+- [Async IO](use_cases/async.md): All programming happens synchronously (i.e. one instruction to the next). This occurs within the event loop of the main SDK execution thread. This use case will provide the ability to chunk work within this main event loop along with scheduling work within a background event loop thread.
+- [Audio](use_cases/audio.md): Host systems provide the ability to either play audio files or translate a string into text-to-speech. This use case will expose this host processing to the developer.
+- [Console](use_cases/console.md): The Console of a system supports STDIN / STDOUT / STDERR. This use case will expose these descriptors to support a developer making simple command line interface tools.
+- [Database](use_cases/database.md): Databases provide the ability of storing complex data structures. The two main concepts for this is either relational database structures (SQL) or no-SQL indexed databases. These are available depending on the SDK environment. This use case will expose the ability to access these services for the given SDK.
+- [Disk](use_cases/disk.md): Applications have access to hard disk which houses directories, files, and other information. This use case will expose the ability to manage the disk along with interface with said files from the disk.
+- [Firebase](use_cases/firebase.md): Firebase is Googles Platform as a Service (PaaS) that exposes a subset of the Google Cloud infrastructure. This use case will wrap the common libraries from auth, writing to the database, calling cloud functions, and other features from the client apps point of view.
+- [Game](use_cases/game.md): Game engines provide the logic for running simple side scroller, RPGs, and others. This use case will build a common game engine to apply across different type of apps / game genres. This will facilitate being able to quickly build new games within an application.
+- [Hardware](use_cases/hardware.md): Systems have the ability to interface with external hardware that connect via different protocols. This use case will expose these different protocols for exchanging information with these connected devices.
+- [JSON](use_cases/json.md): JSON (JavaScript Object Notation) is a lightweight data-interchange format. Unlike XML (Extensible Markup Language), it is universal for data transport, manipulation, and representing complex data structures. This use case will expose functions for working / validating this set of datasets.
+- [Logger](use_cases/logger.md): Logging is the most basic way of either debugging your application or relaying information to your user base. This use case will provide a logging service for this purpose.
+- [Math](use_cases/math.md): All applications will have to exercise mathematical computations. This use case will setup a collection of of these mathematical formulas easily accessible for usage within an application.
+- [Network](use_cases/network.md): The Open Systems Interconnection (OSI) model describes seven layers that computer systems use to communicate over a network. It was the first standard model for network communications, adopted by all major computer and telecommunication companies in the early 1980s. Sockets and network protocols provide the means to communicate between client / server applications. This use case will expose these different network protocols to allow for application inter-communication over a network.
+- [Runtime](use_cases/runtime.md): The runtime represents specific functionality to a specific language SDK. This use case will provide common properties common to all these SDKs. The use case will also expose functions that are specific to the given SDK.
+- [Storage](use_cases/storage.md): The ability to store key / value pairs into storage is a easy simple way to quickly access information for an application. In combination with the Data Broker use case working with JSON data, this use case will provide the developer quick access to this storage concept.
+- [User Interface](use_cases/ui.md): A SPA (single-page application) is an app implementation that loads only a single view, and then updates the body content of that single document view. This use case will provide this singular view concept regardless of the underlying UI architecture. It will also provide the ability to properly theme based on the SDK target so an entire app can be changed. Lastly, the use case will identify basic widget types and dialogs to support the SPA.
 
 ## GETTING STARTED
 

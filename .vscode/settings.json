@@ -25,6 +25,7 @@
     "rtnval",
     "RUNTIMES",
     "scrollbars",
+    "scroller",
     "webrtc"
   ],
   "deno.enable": true,
