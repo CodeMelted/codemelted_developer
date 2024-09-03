@@ -267,6 +267,7 @@ function build([string[]]$params) {
         Set-Location $PSScriptRoot/codemelted_pi
         Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
         New-Item -Path docs -ItemType Directory -ErrorAction Ignore
+        Copy-Item -Path assets -Destination docs -Recurse -ErrorAction Ignore
 
         $readme = ConvertFrom-Markdown -Path README.md
         $title = extract "TITLE:" $readme.Html
