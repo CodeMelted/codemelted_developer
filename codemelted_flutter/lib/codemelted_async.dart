@@ -71,7 +71,7 @@ class CAsyncWorker {
       "messageerror",
       (e) {
         onDataReceived({
-          "type": "data",
+          "type": "error",
           "data": e.toString(),
         });
       }.toJS,
@@ -80,7 +80,7 @@ class CAsyncWorker {
       "error",
       (e) {
         onDataReceived({
-          "type": "data",
+          "type": "error",
           "data": e.toString(),
         });
       }.toJS,
@@ -99,8 +99,7 @@ class CodeMeltedAsync {
     return (await Future.delayed(Duration(milliseconds: delay)));
   }
 
-  /// Will process a one off asynchronous task either on the main flutter
-  /// thread.
+  /// Will process a one off asynchronous task on the main flutter thread.
   Future<dynamic> task({
     required CAsyncTask task,
     dynamic data,

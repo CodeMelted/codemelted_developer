@@ -106,7 +106,7 @@ class CodeMeltedLogger {
         data: data,
         stackTrace: stackTrace,
       );
-      web.console.debug(record.toString().toJS);
+      web.console.log(record.toString().toJS);
 
       if (onLogEvent != null) {
         onLogEvent!(record);

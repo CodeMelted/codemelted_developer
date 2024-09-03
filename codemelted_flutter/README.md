@@ -41,7 +41,7 @@ The following examples represent the implementation of the **CodeMelted - Develo
 
 ### Console
 
-<mark>UNDER DEVELOPMENT</mark>
+Use case not applicable to this module.
 
 ### Database
 

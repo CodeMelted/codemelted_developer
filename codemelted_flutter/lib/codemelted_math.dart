@@ -34,16 +34,17 @@ import 'dart:math' as math;
 /// have either had to use, research, or just found on the Internet.
 class CodeMeltedMath {
   /// Converts celsius to fahrenheit.
-  double celsiusToFahrenheit(double v) => (v * (9 / 5)) + 32;
+  double celsiusToFahrenheit({required double temp}) => (temp * (9 / 5)) + 32;
 
   /// Converts celsius to kelvin
-  double celsiusToKelvin(double v) => v + 273.15;
+  double celsiusToKelvin({required double temp}) => temp + 273.15;
 
   /// Converts fahrenheit to celsius.
-  double fahrenheitToCelsius(double v) => (v - 32) * (5 / 9);
+  double fahrenheitToCelsius({required double temp}) => (temp - 32) * (5 / 9);
 
   /// Converts fahrenheit to kelvin.
-  double fahrenheitToKelvin(double v) => (v - 32) * (5 / 9) + 273.15;
+  double fahrenheitToKelvin({required double temp}) =>
+      (temp - 32) * (5 / 9) + 273.15;
 
   /// Calculates the distance in meters between two WGS84 points.
   double geodeticDistance({
@@ -107,13 +108,14 @@ class CodeMeltedMath {
   }
 
   /// Calculates the speed between two points in meters per second.
-  double geodeticSpeed(
-      {required double startMilliseconds,
-      required double startLatitude,
-      required double startLongitude,
-      required double endMilliseconds,
-      required double endLatitude,
-      required double endLongitude}) {
+  double geodeticSpeed({
+    required double startMilliseconds,
+    required double startLatitude,
+    required double startLongitude,
+    required double endMilliseconds,
+    required double endLatitude,
+    required double endLongitude,
+  }) {
     // Get the lat / lon for start / end positions
     final distMeters = geodeticDistance(
       startLatitude: startLatitude,
@@ -127,10 +129,11 @@ class CodeMeltedMath {
   }
 
   /// Converts kelvin to celsius
-  double kelvinToCelsius(double v) => v - 273.15;
+  double kelvinToCelsius({required double temp}) => temp - 273.15;
 
   /// Converts kelvin to fahrenheit
-  double kelvinToFahrenheit(double v) => (v - 273.15) * (9 / 5) + 32;
+  double kelvinToFahrenheit({required double temp}) =>
+      (temp - 273.15) * (9 / 5) + 32;
 
   /// Gets the single instance of the API.
   static CodeMeltedMath? _instance;

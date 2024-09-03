@@ -41,7 +41,7 @@ import "package:web/web.dart" as web;
 /// Message handler that receives a JSON object with two fields. "type" which
 /// equals either "error" or "data". Then "data" which contains the actual data
 /// received.
-typedef OnMessageListener = Future<void> Function(CObject);
+typedef COnMessageListener = Future<void> Function(CObject);
 
 /// Wrapper object for the Broadcast Channel API. Constructed via the
 /// [CodeMeltedNetwork] API and provides the flutter bindings for working with
@@ -51,12 +51,6 @@ typedef OnMessageListener = Future<void> Function(CObject);
 class CBroadcastChannel {
   /// Holds the constructed broadcast channel for this object.
   late web.BroadcastChannel _channel;
-
-  /// Handles the receipt of messages from the channel.
-  final OnMessageListener onMessage;
-
-  /// The url to connect the channel.
-  final String url;
 
   /// Closes the channel.
   Future<void> close() async {
@@ -69,8 +63,8 @@ class CBroadcastChannel {
   }
 
   /// Constructor for the object.
-  CBroadcastChannel._(this.url, this.onMessage) {
-    _channel = web.BroadcastChannel(url);
+  CBroadcastChannel._(String name, COnMessageListener onMessage) {
+    _channel = web.BroadcastChannel(name);
     _channel.onmessage = (e) {
       onMessage({
         "type": "data",
@@ -96,20 +90,16 @@ class CEventSource {
   /// Holds the server sent event object constructed.
   late web.EventSource _eventSource;
 
-  /// Handles the receipt of messages from the channel.
-  final OnMessageListener onMessage;
-
-  /// The url to connect the channel.
-  final String url;
-
   /// Closes the server sent event object.
   Future<void> close() async {
     _eventSource.close();
   }
 
   /// Constructor for the object.
-  CEventSource._(this.url, this.onMessage) {
-    _eventSource = web.EventSource(url);
+  CEventSource._(
+      String url, bool withCredentials, COnMessageListener onMessage) {
+    _eventSource = web.EventSource(
+        url, web.EventSourceInit(withCredentials: withCredentials));
     _eventSource.onmessage = (e) {
       onMessage({
         "type": "message",
@@ -174,7 +164,7 @@ class CFetchResponse {
 }
 
 /// Event listener for messages received from different loaded pages.
-typedef OnWindowMessengerListener = Future<void> Function(String, dynamic);
+typedef COnWindowMessengerListener = Future<void> Function(String, dynamic);
 
 /// Wrapper object for receiving and posting messages between pages.
 ///
@@ -183,9 +173,6 @@ class CWindowMessenger {
   /// Tracks to ensure only 1 [CWindowMessenger] exists to ensure proper
   /// cleanup of the callbacks.
   static int _count = 0;
-
-  /// Listens for posts between pages.
-  final OnWindowMessengerListener onMessage;
 
   /// Removes the callback from the window object.
   Future<void> close() async {
@@ -206,7 +193,7 @@ class CWindowMessenger {
   }
 
   /// Constructor for the object.
-  CWindowMessenger._(this.onMessage) {
+  CWindowMessenger._(COnWindowMessengerListener onMessage) {
     assert(_count < 2, "Only one CWindowMessenger can exist");
     _count += 1;
     web.window.onmessage = (e) {
@@ -230,10 +217,10 @@ class CodeMeltedNetwork {
   /// Constructs a [CBroadcastChannel] object for posting messages between
   /// pages within the same domain.
   CBroadcastChannel broadcastChannel({
-    required String url,
-    required OnMessageListener onMessage,
+    required String name,
+    required COnMessageListener onMessage,
   }) {
-    return CBroadcastChannel._(url, onMessage);
+    return CBroadcastChannel._(name, onMessage);
   }
 
   /// Implements the ability to fetch a server's REST API endpoint to retrieve
@@ -247,7 +234,6 @@ class CodeMeltedNetwork {
   Future<CFetchResponse> fetch({
     required CFetchAction action,
     required String url,
-    web.AttributionReportingRequestOptions? attributionReporting,
     bool? adAuctionHeaders,
     CObject? body,
     String? cache,
@@ -268,9 +254,6 @@ class CodeMeltedNetwork {
       request.method = action.name.toUpperCase();
       if (adAuctionHeaders != null) {
         request.adAuctionHeaders = adAuctionHeaders;
-      }
-      if (attributionReporting != null) {
-        request.attributionReporting = attributionReporting;
       }
       if (body != null) {
         request.body = body.jsify();
@@ -337,15 +320,16 @@ class CodeMeltedNetwork {
   /// HTTP server to receive messages only.
   CEventSource severSentEvents({
     required String url,
-    required OnMessageListener onMessage,
+    required COnMessageListener onMessage,
+    bool withCredentials = false,
   }) {
-    return CEventSource._(url, onMessage);
+    return CEventSource._(url, withCredentials, onMessage);
   }
 
   /// Constructs a [CWindowMessenger] object to allow for communication between
   /// pages.
   CWindowMessenger windowMessenger({
-    required OnWindowMessengerListener onMessage,
+    required COnWindowMessengerListener onMessage,
   }) {
     return CWindowMessenger._(onMessage);
   }

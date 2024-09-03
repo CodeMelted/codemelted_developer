@@ -62,9 +62,7 @@ class CMailToParams {
     var url = "";
 
     // Go format the mailto part of the url
-    for (final e in mailto) {
-      url += "$e;";
-    }
+    url += "$mailto;";
     url = url.substring(0, url.length - 1);
 
     // Go format the cc part of the url
@@ -169,7 +167,7 @@ class CodeMeltedRuntime {
   }
 
   /// Searches the URLSearchParams for any passed key values.
-  String? environment(String key) {
+  String? environment({required String key}) {
     var urlParams = web.URLSearchParams(web.window.location.search as JSAny);
     return urlParams.get(key);
   }
@@ -212,7 +210,7 @@ class CodeMeltedRuntime {
         urlToLaunch = scheme.getUrl(url!);
       } else {
         urlToLaunch = mailtoParams != null
-            ? mailtoParams.toString()
+            ? scheme.getUrl(mailtoParams.toString())
             : scheme.getUrl(url!);
       }
 

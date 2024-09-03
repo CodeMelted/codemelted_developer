@@ -106,7 +106,12 @@ class CodeMeltedStorage {
     } else if (method == CStorageMethod.session) {
       return web.window.sessionStorage.key(index);
     } else {
-      throw UnsupportedError("CStorageMethod.cookie does not support this.");
+      var ca = web.document.cookie.split(';');
+      if (ca.length >= index) {
+        return null;
+      }
+      var key = ca[index].split("=");
+      return key[0];
     }
   }
 

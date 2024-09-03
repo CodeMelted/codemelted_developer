@@ -14,7 +14,35 @@ Welcome to the **CodeMelted - JS Module** project. This project aims to give a c
 
 ## GETTING STARTED
 
-<mark>UNDER DEVELOPMENT</mark>
+The `codemelted.js` file is a module that implements a series of global namespaces in accordance with the **CodeMelted - Developer** identified use cases. Once imported, these namespace are available in your target runtime (Deno, Web Browser). In addition to the global namespaces are data / utility classes that may be the return result of a namespace function call.
+
+### From GitHub Repo
+
+You can clone the repo:
+
+```bash
+git clone https://github.com/CodeMelted/codemelted_developer.git
+```
+
+You can download the tagged version [codemelted_js_X.Y.Z](https://github.com/CodeMelted/codemelted_developer/releases) and place it into your project structure.
+
+Then include the module as follows:
+
+```javascript
+import {
+  // Support classes to utilize.
+} from "codemelted_developer/codemelted_js/codemelted.js";
+```
+
+### From Web
+
+If you want to be brave and utilize the latest deployed `codemelted.js` module you can simple import it from the web as follows:
+
+```javascript
+import {
+  // Support classes to utilize.
+} from "https://codemelted.com/developer/codemelted_js/codemelted.js";
+```
 
 ## USAGE
 
