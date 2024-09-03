@@ -243,11 +243,134 @@ globalThis["codemelted_audio"] = Object.freeze({
 // ----------------------------------------------------------------------------
 
 /**
- * UNDER DEVELOPMENT
+ * Provides the console use case function to gather data via a
+ * terminal. The actions correspond to the type of input / output
+ * that will be interacted with via STDIN and STDOUT.
  * @namespace codemelted.codemelted_console
  */
 globalThis["codemelted_console"] = Object.freeze({
-    //
+    /**
+     * Alerts a message to STDOUT with a [Enter] to halt execution.
+     * @memberof codemelted.codemelted_console
+     * @param {object} params The named parameters.
+     * @param {string} params.message The message to display to STDOUT.
+     * @returns {void}
+     */
+    alert: function({message}) {
+        codemelted_runtime.tryDeno();
+        codemelted_json.tryType({type: "string", data: message});
+        globalThis.alert(message);
+    },
+
+    /**
+     * Prompts a [y/N] to STDOUT with the message as a question.
+     * @memberof codemelted.codemelted_console
+     * @param {object} params The named parameters.
+     * @param {string} params.message The message to display to STDOUT.
+     * @returns {boolean} true if y selected, false otherwise.
+     */
+    confirm: function({message}) {
+        codemelted_runtime.tryDeno();
+        codemelted_json.tryType({type: "string", data: message});
+        return globalThis.confirm(message);
+    },
+
+    /**
+     * Prompts a list of choices for the user to select from.
+     * @memberof codemelted.codemelted_console
+     * @param {object} params The named parameters.
+     * @param {string} params.message The message to display to STDOUT.
+     * @param {string[]} params.choices The choices to select from.
+     * @returns {number} The index of the chosen item.
+     */
+    choose: function({message, choices}) {
+        codemelted_runtime.tryDeno();
+        codemelted_json.tryType({type: "string", data: message});
+        codemelted_json.tryType({type: Array, data: choices});
+
+        let answer = -1;
+        do {
+            globalThis.console.log();
+            globalThis.console.log("-".repeat(message.length));
+            globalThis.console.log(message);
+            globalThis.console.log("-".repeat(message.length));
+            choices.forEach((v, index) => {
+                globalThis.console.log(`${index}. ${v}`);
+            });
+            answer = parseInt(globalThis.prompt(
+                `Make a Selection [0 = ${choices.length - 1}]:`
+            ) ?? "-1");
+            if (isNaN(answer) || answer >= choices.length) {
+                console.log(
+                    "ERROR: Entered value was invalid. " +
+                    "Please try again."
+                );
+                answer = -1;
+            }
+        } while (answer === -1);
+        return answer;
+    },
+
+    /**
+     * Prompts for a password not showing the text typed via STDIN.
+     * @memberof codemelted.codemelted_console
+     * @param {object} params The named parameters.
+     * @param {string} params.message The message to display to STDOUT.
+     * @returns {string} The typed password.
+     */
+    password: function({message}) {
+        // Setup our variables
+        const deno = codemelted_runtime.tryDeno();
+        codemelted_json.tryType({type: "string", data: message});
+        const buf = new Uint8Array(1);
+        const decoder = new TextDecoder();
+        let answer = "";
+        let done = false;
+
+        // Go prompt for the password
+        deno.stdin.setRaw(true);
+        globalThis.console.log(`${message}:`);
+        do {
+            const nread = deno.stdin.readSync(buf);
+            if (nread === null) {
+                done = true;
+            } else if (buf && buf[0] === 0x03) {
+                done = true;
+            } else if (buf && buf[0] === 13) {
+                done = true;
+            }
+            const text = decoder.decode(buf.subarray(0, nread ?? undefined));
+            answer += text;
+        } while (!done);
+        deno.stdin.setRaw(false);
+        return answer;
+    },
+
+    /**
+     * Prompts to STDOUT and returns the typed message via STDIN.
+     * @memberof codemelted.codemelted_console
+     * @param {object} params The named parameters.
+     * @param {string} params.message The message to display to STDOUT.
+     * @returns {string?} The result typed.
+     */
+    prompt: function({message}) {
+        codemelted_runtime.tryDeno();
+        codemelted_json.tryType({type: "string", data: message});
+        return globalThis.prompt(message);
+    },
+
+    /**
+     * Write a message to STDOUT.
+     * @memberof codemelted.codemelted_console
+     * @param {object} params The named parameters.
+     * @param {string} params.message The message to display to STDOUT.
+     * @returns {void}
+     */
+    writeln: function({message}) {
+        codemelted_runtime.tryDeno();
+        codemelted_json.tryType({type: "string", data: message});
+        globalThis.console.log(message);
+    },
 });
 
 // ----------------------------------------------------------------------------
@@ -266,12 +389,274 @@ globalThis["codemelted_database"] = Object.freeze({
 // [disk use case] ------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
+// TODO: CFileBroker for reading / writing data to a file.
+
 /**
- * UNDER DEVELOPMENT
+ * Identifies file information based on a codemelted_disk.ls call.
+ */
+export class CFileInfo {
+    /** @type {string} */
+    #filename;
+
+    /**
+     * The name of the file on disk.
+     * @readonly
+     * @type {string}
+     */
+    get filename() { return this.#filename; }
+
+    /** @type {boolean} */
+    #isDirectory;
+
+    /**
+     * Is a directory or not.
+     * @readonly
+     * @type {boolean}
+     */
+    get isDirectory() { return this.#isDirectory; }
+
+    /** @type {boolean} */
+    #isFile;
+
+    /**
+     * Is a file or not.
+     * @readonly
+     * @type {boolean}
+     */
+    get isFile() { return this.#isFile; }
+
+    /** @type {boolean} */
+    #isSymLink;
+
+     /**
+      * If symbolic link or not.
+     * @readonly
+     * @type {boolean}
+     */
+     get isSymLink() { return this.#isSymLink; }
+
+    /** @type {number} */
+    #size;
+
+    /**
+     * Size of file on disk.
+     * @readonly
+     * @type {number}
+     */
+    get size() { return this.#size; }
+
+    /**
+     * Constructor for the class.
+     * @param {string} filename The filename to include full path.
+     * @param {boolean} isDirectory true if directory, false otherwise.
+     * @param {boolean} isFile true if file, false otherwise.
+     * @param {boolean} isSymLink true if symbolic link, false otherwise.
+     * @param {number} size Size of the file in bytes on disk.
+     */
+    constructor(filename, isDirectory, isFile, isSymLink, size) {
+        this.#filename = filename;
+        this.#isDirectory = isDirectory;
+        this.#isFile = isFile;
+        this.#isSymLink = isSymLink;
+        this.#size = size;
+    }
+}
+
+/**
+ * Provides the ability to manage items on disk. This includes file
+ * manipulation, reading / writing files, and opening files for additional
+ * work. Only supported on the Deno runtime and will throw a SyntaxError if
+ * attempting to run within a Web Browser.
  * @namespace codemelted.codemelted_disk
  */
 globalThis["codemelted_disk"] = Object.freeze({
-    //
+    /**
+     * Copies a file / directory from its currently source location to the
+     * specified destination.
+     * @memberof codemelted.codemelted_disk
+     * @param {object} params The named parameters.
+     * @param {string} params.src The source item to copy.
+     * @param {string} params.dest The destination of where to copy the item.
+     * @returns {boolean} true if carried out, false otherwise.
+     */
+    cp: function({src, dest}) {
+        try {
+            const deno = codemelted_runtime.tryDeno();
+            codemelted_json.tryType({type: "string", data: src});
+            codemelted_json.tryType({type: "string", data: dest});
+            deno.copyFileSync(src, dest);
+            return true;
+        } catch (err) {
+            if (err instanceof SyntaxError) {
+                throw err;
+            }
+            return false;
+        }
+    },
+
+    /**
+     * List the files in the specified source location.
+     * @memberof codemelted.codemelted_disk
+     * @param {object} params The named parameters.
+     * @param {string} params.path The path to list.
+     * @returns {CFileInfo[]?} Array of files found.
+     */
+    ls: function({path}) {
+        try {
+            const deno = codemelted_runtime.tryDeno();
+            codemelted_json.tryType({type: "string", data: path});
+            const dirList = deno.readDirSync(path);
+            const fileInfoList = [];
+            for (const dirEntry of dirList) {
+                const fileInfo = deno.lstatSync(
+                    `${path}/${dirEntry.name}`
+                );
+                fileInfoList.push(new CFileInfo(
+                    dirEntry.name,
+                    fileInfo.isDirectory,
+                    fileInfo.isFile,
+                    fileInfo.isSymlink,
+                    fileInfo.size
+                ));
+            }
+            return fileInfoList;
+        } catch (err) {
+            if (err instanceof SyntaxError) {
+                throw err;
+            }
+            return null;
+        }
+    },
+
+    /**
+     * Makes a directory at the specified location.
+     * @memberof codemelted.codemelted_disk
+     * @param {object} params The named parameters.
+     * @param {string} params.path The source item to create.
+     * @returns {boolean}
+     */
+    mkdir: function({path}) {
+        try {
+            const deno = codemelted_runtime.tryDeno();
+            codemelted_json.tryType({type: "string", data: path});
+            deno.mkdirSync(path);
+            return true;
+        } catch (err) {
+            if (err instanceof SyntaxError) {
+                throw err;
+            }
+            return false;
+        }
+    },
+
+    /**
+     * Identifies the path separator for files on disk.
+     * @memberof codemelted.codemelted_disk
+     * @readonly
+     * @type {string}
+     */
+    get pathSeparator() {
+        return codemelted_runtime.osName === "windows"
+            ? "\\"
+            : "/"
+    },
+
+    /**
+     * Reads a file to disk.
+     * @memberof codemelted.codemelted_disk
+     * @param {object} params The named parameters.
+     * @param {string} params.filename The filename to write.
+     * @param {boolean} params.isTextFile true if text file, false if binary.
+     * @returns {string | Uint8Array | null}
+     */
+    readFile: function({filename, isTextFile}) {
+        try {
+            const deno = codemelted_runtime.tryDeno();
+            codemelted_json.tryType({type: "string", data: filename});
+            codemelted_json.tryType({type: "boolean", data: isTextFile});
+            if (isTextFile) {
+                return deno.readTextFileSync(filename);
+            } else {
+                return deno.readFileSync(filename);
+            }
+        } catch (err) {
+            if (err instanceof SyntaxError) {
+                throw err;
+            }
+            return null;
+        }
+    },
+
+    /**
+     * Removes a file or directory at the specified location.
+     * @memberof codemelted.codemelted_disk
+     * @param {object} params The named parameters.
+     * @param {string} params.path The source item to create.
+     * @returns {boolean}
+     */
+    rm: function({path}) {
+        try {
+            const deno = codemelted_runtime.tryDeno();
+            codemelted_json.tryType({type: "string", data: path});
+            deno.removeSync(path);
+            return true;
+        } catch (err) {
+            if (err instanceof SyntaxError) {
+                throw err;
+            }
+            return false;
+        }
+    },
+
+    /**
+     * Identifies the temp directory on disk. Null is returned if on
+     * web browser.
+     * @memberof codemelted.codemelted_disk
+     * @readonly
+     * @type {string?}
+     */
+    get tempPath() {
+        return codemelted_runtime.isDeno
+            ? codemelted_runtime.tryDeno().env.get("TMPDIR") ||
+              codemelted_runtime.tryDeno().env.get("TMP") ||
+              codemelted_runtime.tryDeno().env.get("TEMP") ||
+              "/tmp"
+            : null;
+    },
+
+    /**
+     * Writes a file to disk.
+     * @memberof codemelted.codemelted_disk
+     * @param {object} params The named parameters.
+     * @param {string} params.filename The filename to write.
+     * @param {string | Uint8Array} params.data The data to write.
+     * @param {boolean} params.append true to append the data, false
+     * to overwrite the file.
+     * @returns {boolean} true if successful, false otherwise.
+     */
+    writeFile: function({filename, data, append}) {
+        try {
+            const deno = codemelted_runtime.tryDeno();
+            codemelted_json.tryType({type: "string", data: filename});
+            codemelted_json.tryType({type: "boolean", data: append});
+            if (codemelted_json.checkType({type: "string", data: data})) {
+                // @ts-ignore: checked it is string previous line.
+                deno.writeTextFileSync(filename, data, append)
+            } else if (codemelted_json.checkType({
+                    type: Uint8Array, data: data})) {
+                // @ts-ignore: checked it is string previous line.
+                deno.writeFileSync(filename, data, append);
+            } else {
+                throw SyntaxError("data is not of an expected type");
+            }
+            return true;
+        } catch (err) {
+            if (err instanceof SyntaxError) {
+                throw err;
+            }
+            return false;
+        }
+    },
 });
 
 // ----------------------------------------------------------------------------
@@ -1441,8 +1826,6 @@ globalThis["codemelted_network"] = Object.freeze({
 // [runtime use case] ---------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-// TODO: share, properties, etc.
-
 /**
  * Optional parameter for the mailto scheme to facilitate translating the
  * more complicated URL.
@@ -1525,11 +1908,112 @@ export class CMailToParams {
 }
 
 /**
+ * The result of the codemelted_runtime.share function call.
+ */
+export class CShareResult {
+    /**
+     * The share was successful.
+     * @readonly
+     * @type {number}
+     */
+    static get success() { return 0; }
+
+    /**
+     * The user canceled the share operation or there are no share targets
+     * available.
+     * @readonly
+     * @type {number}
+     */
+    static get abort() { return 1; }
+
+    /**
+     * There was a problem starting the share target or transmitting the data.
+     * The specified share data cannot be validated.
+     * @readonly
+     * @type {number}
+     */
+    static get dataIssue() { return 2; }
+
+    /**
+     * The document is not fully active, or other sharing operations are in
+     * progress.
+     * @readonly
+     * @type {number}
+     */
+    static get invalidState() { return 3; }
+
+    /**
+     * The user canceled the share operation or there are no share targets
+     * available.
+     * @readonly
+     * @type {number}
+     */
+    static get notAllowed() { return 4; }
+
+    /**
+     * Unknown error encountered.
+     * @readonly
+     * @type {number}
+     */
+    static get unknown() { return 5; }
+
+    /** @type {number} */
+    #status = 0;
+
+    /**
+     * Provides the status of the transaction. The codes are constants on this
+     * object.
+     * @readonly
+     * @type {number}
+     */
+    get status() { return this.#status; }
+
+    /** @type {string} */
+    #message = "";
+
+    /**
+     * Provides the message associated with any status code that is not 0.
+     * @readonly
+     * @type {string}
+     */
+    get message() { return this.#message; }
+
+    /**
+     * Constructor for the class.
+     * @param {any} ex The exception if one occurred or undefined if the share
+     * was successful.
+     */
+    constructor(ex) {
+        if (!ex) {
+            this.#status = CShareResult.success;
+            this.#message = "";
+        } else if (ex instanceof TypeError) {
+            this.#status = CShareResult.dataIssue;
+            this.#message = ex.message;
+        } else if (ex instanceof DOMException) {
+            if (ex.name.includes("AbortError")) {
+                this.#status = CShareResult.abort;
+            } else if (ex.name.includes("DataError")) {
+                this.#status = CShareResult.dataIssue;
+            } else if (ex.name.includes("InvalidStateError")) {
+                this.#status = CShareResult.invalidState;
+            } else if (ex.name.includes("NotAllowedError")) {
+                this.#status = CShareResult.notAllowed;
+            } else {
+                this.#status = CShareResult.unknown;
+            }
+            this.#message = ex.toString();
+        }
+    }
+}
+
+/**
  * Binds a series of properties and utility methods that are specific to the
  * deno / web runtimes.
  * @namespace codemelted.codemelted_runtime
  * @see https://developer.mozilla.org/en-US/docs/Web/API/EventTarget
  * @see https://docs.deno.com/api/deno/
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Window
  */
 globalThis["codemelted_runtime"] = Object.freeze({
@@ -1555,6 +2039,33 @@ globalThis["codemelted_runtime"] = Object.freeze({
         else {
             obj.addEventListener(type, listener);
         }
+    },
+
+    /**
+     * Gets the name of the browser your page is running.
+     * @memberof codemelted.codemelted_runtime
+     * @readonly
+     * @type {string}
+     */
+    get browserName() {
+        const browserName = this.isWeb
+            ? globalThis.navigator.userAgent.toLowerCase()
+            : "deno";
+        if (browserName.includes("firefox/")) {
+            return "firefox";
+        } else if (browserName.includes("opr/")
+                || browserName.includes("presto/")) {
+            return "opera";
+        } else if (browserName.includes("mobile/")
+                || browserName.includes("version/")) {
+            return "safari";
+        } else if (browserName.includes("edg/")) {
+            return "edge";
+        } else if (browserName.includes("chrome/")) {
+            return "chrome";
+        }
+
+        return browserName == "deno" ? "deno" : "unknown";
     },
 
     /**
@@ -1591,6 +2102,40 @@ globalThis["codemelted_runtime"] = Object.freeze({
     },
 
     /**
+     * Gets the newline character specific to the operating system.
+     * @memberof codemelted.codemelted_runtime
+     * @readonly
+     * @type {string}
+     */
+    get eol() {
+        return this.osName === "windows" ? "\r\n" : "\n";
+    },
+
+    /**
+     * Gets the hostname your page is running
+     * @memberof codemelted.codemelted_runtime
+     * @readonly
+     * @type {string}
+     */
+    get hostname() {
+        return this.isDeno
+            ? this.tryDeno().hostname()
+            : this.tryWeb().location.hostname;
+    },
+
+    /**
+     * Gets the href of where your page is loaded.
+     * @memberof codemelted.codemelted_runtime
+     * @readonly
+     * @type {string}
+     */
+    get href() {
+        return this.isWeb
+            ? this.tryWeb().location.href
+            : "";
+    },
+
+    /**
      * Determines if the runtime is Deno.
      * @memberof codemelted.codemelted_runtime
      * @readonly
@@ -1598,6 +2143,28 @@ globalThis["codemelted_runtime"] = Object.freeze({
      */
     get isDeno() {
         return typeof globalThis.Deno === "undefined";
+    },
+
+    /**
+     * Identifies if you are on desktop or not.
+     * @memberof codemelted.codemelted_runtime
+     * @readonly
+     * @type {boolean}
+     */
+    get isDesktop() {
+        return this.isDeno;
+    },
+
+    /**
+     * Identifies if you are on mobile or not.
+     * @memberof codemelted.codemelted_runtime
+     * @readonly
+     * @type {boolean}
+     */
+    get isMobile() {
+        const osName = this.osName;
+        return osName.includes("android") ||
+            osName.includes("ios");
     },
 
     /**
@@ -1615,7 +2182,7 @@ globalThis["codemelted_runtime"] = Object.freeze({
             ];
             let pwaDetected = false;
             for (const query in queries) {
-            pwaDetected = pwaDetected || globalThis.matchMedia(query).matches;
+                pwaDetected = pwaDetected || globalThis.matchMedia(query).matches;
             }
             return pwaDetected;
         }
@@ -1697,6 +2264,33 @@ globalThis["codemelted_runtime"] = Object.freeze({
     },
 
     /**
+     * Gets the name of the operating system your page is running.
+     * @memberof codemelted.codemelted_runtime
+     * @readonly
+     * @type {string}
+     */
+    get osName() {
+        const osName = this.isDeno
+            ? this.tryDeno().build.os
+            : this.tryWeb().navigator.userAgent.toLowerCase();
+
+        if (osName.includes("android")) {
+            return "android";
+        } else if (osName.includes("ios") || osName.includes("iphone")
+            || osName.includes("ipad")) {
+            return "ios";
+        } else if (osName.includes("linux")) {
+            return "linux";
+        } else if (osName.includes("mac")) {
+            return "macos";
+        } else if (osName.includes("windows")) {
+            return "windows";
+        }
+
+        return "unknown";
+    },
+
+    /**
      * Will open a print dialog when running in a Web Browser.
      * @memberof codemelted.codemelted_runtime
      * @returns {void}
@@ -1727,6 +2321,25 @@ globalThis["codemelted_runtime"] = Object.freeze({
         }
         else {
             obj.removeEventListener(type, listener);
+        }
+    },
+
+    /**
+     * Provides the ability to share items via the share services. You specify
+     * options via the shareData object parameters. Only available on the web
+     * browser runtime.
+     * @memberof codemelted.codemelted_runtime
+     * @param {object} params The named parameters.
+     * @param {object} params.shareData The object specifying the data to
+     * share.
+     * @returns {Promise<CShareResult>} The result of the call.
+     */
+    share: async function({shareData}) {
+        try {
+            await this.tryWeb().navigator.share(shareData);
+            return new CShareResult(undefined);
+        } catch (err) {
+            return new CShareResult(err);
         }
     },
 

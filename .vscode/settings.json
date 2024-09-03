@@ -20,6 +20,7 @@
     "lerp",
     "messageerror",
     "nodoc",
+    "nread",
     "onmessageerror",
     "pwsh",
     "rtnval",
