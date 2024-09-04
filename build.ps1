@@ -224,11 +224,11 @@ function build([string[]]$params) {
             $htmlData = $htmlData.Replace("</head>", '<meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="https://codemelted.com/favicon.png"></head>')
             $htmlData | Out-File $file.FullName -Force
         }
-        Copy-Item jsdoc-default.css -Destination docs/styles
-
 
         # Some final moves to complete the module documentation.
         Move-Item -Path coverage -Destination docs -Force
+        Copy-Item jsdoc-default.css -Destination docs/styles
+        Copy-Item codemelted.js -Destination docs
 
         Set-Location $PSScriptRoot
         message "codemelted_js module build completed."
