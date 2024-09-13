@@ -2,7 +2,7 @@
 TITLE: CodeMelted - DEV | Use Case: Game
 PUBLISH_DATE: 2024-08-05
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMelted - DEV, Game, Use Case
+KEYWORDS: CodeMelted - DEV, Game, Use Case, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: Game engines provide the logic for running simple side scroller, RPGs, and others. This use case will build a common game engine to apply across different type of apps / game genres. This will facilitate being able to quickly build new games within an application.
 -->
 <center>

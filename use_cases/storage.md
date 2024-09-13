@@ -2,7 +2,7 @@
 TITLE: CodeMelted - DEV | Use Case: Storage
 PUBLISH_DATE: 2024-08-05
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMelted - DEV, Storage, Use Case
+KEYWORDS: CodeMelted - DEV, Storage, Use Case, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: The ability to store key / value pairs into storage is a easy simple way to quickly access information for an application. In combination with the Data Broker use case working with JSON data, this use case will provide the developer quick access to this storage concept.
 -->
 <center>

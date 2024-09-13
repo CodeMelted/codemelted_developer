@@ -68,6 +68,7 @@ function build([string[]]$params) {
     # deployment.
     function build_all {
         # Build all the project static sdk sites.
+        codemelted_cpp
         codemelted_developer
         codemelted_flutter
         codemelted_js
@@ -84,12 +85,44 @@ function build([string[]]$params) {
         New-Item -Path developer/codemelted_pi -ItemType Directory -ErrorAction Ignore
 
         Copy-Item -Path docs/* -Destination developer/ -Recurse
+        Copy-Item -Path codemelted_cpp/docs/* -Destination developer/codemelted_cpp/ -Recurse
         Copy-Item -Path codemelted_flutter/docs/* -Destination developer/codemelted_flutter/ -Recurse
         Copy-Item -Path codemelted_js/docs/* -Destination developer/codemelted_js/ -Recurse
         Copy-Item -Path codemelted_pwsh/docs/* -Destination developer/codemelted_pwsh/ -Recurse
         Copy-Item -Path codemelted_pi/docs/* -Destination developer/codemelted_pi/ -Recurse
     }
 
+
+    # Builds the codemelted_cpp module.
+    function codemelted_cpp {
+        message "Now building codemelted_cpp module."
+        Set-Location $PSScriptRoot/codemelted_cpp
+        Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
+
+        message "Generating doxygen"
+        doxygen doxygen.cfg
+        [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
+        $htmlData = $htmlData.Replace("<center>", "$htmlSdkHeader<center>")
+        $htmlData = $htmlData.Replace("README.md", "index.html")
+        $htmlData = $htmlData.Replace("</head>", '    <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png"></head>')
+        $htmlData = $htmlData.Replace("</body>", "<br /><br /><br /><br /><br />`n$footerTemplate`n</body>")
+        $htmlData | Out-File docs/index.html -Force
+
+        $files = Get-ChildItem -Path docs/*.html -Exclude "index.html"
+        foreach ($file in $files) {
+            [string]$htmlData = Get-Content -Path $file.FullName -Raw
+            $htmlData = $htmlData.Replace("</head>", '    <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png"></head>')
+            $htmlData = $htmlData.Replace("</body>", "<br /><br /><br /><br /><br />`n$footerTemplate`n</body>")
+            $htmlData | Out-File $file.FullName -Force
+        }
+
+        [string]$htmlData = Get-Content -Path "docs/navtree.css" -Raw
+        $htmlData = $htmlData.Replace("overflow:auto", "overflow:display")
+        $htmlData | Out-File docs/navtree.css -Force
+
+        Set-Location $PSScriptRoot
+        message "codemelted_cpp module build completed."
+    }
 
     # Transforms the README.md of this repo along with all the use_cases into
     # a static website for CDN deployment.
@@ -301,6 +334,7 @@ function build([string[]]$params) {
     # Main Exection
     switch ($params[0]) {
         "--build_all" { build_all }
+        "--codemelted_cpp" { codemelted_cpp }
         "--codemelted_developer" { codemelted_developer }
         "--codemelted_flutter" { codemelted_flutter }
         "--codemelted_js" { codemelted_js }

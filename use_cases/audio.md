@@ -2,7 +2,7 @@
 TITLE: CodeMelted - DEV | Use Case: Audio
 PUBLISH_DATE: 2024-08-05
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMelted - DEV, Audio, Use Case
+KEYWORDS: CodeMelted - DEV, Audio, Use Case, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: Host systems provide the ability to either play audio files or translate a string into text-to-speech. This use case will expose this host processing to the developer.
 -->
 <center>

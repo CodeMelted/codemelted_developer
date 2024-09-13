@@ -2,7 +2,7 @@
 TITLE: CodeMelted - DEV | Use Case: Console
 PUBLISH_DATE: 2024-08-05
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMelted - DEV, Console, Use Case
+KEYWORDS: CodeMelted - DEV, Console, Use Case, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: The Console of a system supports STDIN / STDOUT / STDERR. This use case will expose these descriptors to support a developer making simple command line interface tools.
 -->
 <center>

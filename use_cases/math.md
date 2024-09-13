@@ -2,7 +2,7 @@
 TITLE: CodeMelted - DEV | Use Case: Math
 PUBLISH_DATE: 2024-08-05
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMelted - DEV, Math, Use Case
+KEYWORDS: CodeMelted - DEV, Math, Use Case, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: All applications will have to exercise mathematical computations. This use case will setup a collection of of these mathematical formulas easily accessible for usage within an application.
 -->
 <center>
