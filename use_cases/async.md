@@ -81,12 +81,12 @@ All programming happens synchronously (i.e. one instruction to the next). This o
 
 ## REFERENCES
 
-CPP Reference contributors. (2023, October 24). std::thread. In *C++ Concurrency support library*. Retrieved 20:53, September 13, 2024, from https://en.cppreference.com/w/cpp/thread/thread
+CPP Reference contributors. (2023, October 24). std::thread. In *C++ Concurrency support library*. Retrieved 20:53, September 12, 2024, from https://en.cppreference.com/w/cpp/thread/thread
 
-Dart contributors. (2024, August 4). Asynchronous programming: futures, async, await. In *dart.dev Libraries*. Retrieved 21:00, September 13, 2024, from https://dart.dev/libraries/async/async-await
+Dart contributors. (2024, August 4). Asynchronous programming: futures, async, await. In *dart.dev Libraries*. Retrieved 21:00, September 12, 2024, from https://dart.dev/libraries/async/async-await
 
 MDN contributors. (2024, July 24). Worker. In *Web Workers API*. Retrieved 20:51, September 13, 2024, from https://developer.mozilla.org/en-US/docs/Web/API/Worker
 
-Microsoft Learn contributors. (n.d.). Start-ThreadJob. In *PowerShell 7.4 (LTS) Reference: ThreadJob*. Retrieved 21:01, September 13, 2024, from https://learn.microsoft.com/en-us/powershell/module/threadjob/start-threadjob?view=powershell-7.4
+Microsoft Learn contributors. (n.d.). Start-ThreadJob. In *PowerShell 7.4 (LTS) Reference: ThreadJob*. Retrieved 21:01, September 12, 2024, from https://learn.microsoft.com/en-us/powershell/module/threadjob/start-threadjob?view=powershell-7.4
 
-Wikipedia contributors. (2023, February 11). Thread pool. In *Wikipedia, The Free Encyclopedia*. Retrieved 00:24, September 13, 2024, from https://en.wikipedia.org/w/index.php?title=Thread_pool&oldid=1138829275
+Wikipedia contributors. (2023, February 11). Thread pool. In *Wikipedia, The Free Encyclopedia*. Retrieved 00:24, September 12, 2024, from https://en.wikipedia.org/w/index.php?title=Thread_pool&oldid=1138829275
