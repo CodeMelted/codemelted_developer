@@ -6,9 +6,9 @@ KEYWORDS: raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutt
 DESCRIPTION: Welcome to the CodeMelted - C/C++ Module project. This project aims to implement the use cases from the CodeMelted - Developer project allowing for a need of speed for in application. It will be developed with a C header interface and a C++ implementation. This allows for the easiest integration into other modules via a Foreign Function Interface (FFI). It will also support web assembly for usage in the web browser. Last but not least, you can use it as part of your compiled application.
 -->
 <center>
-  <a href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
+  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/c.png" /> CodeMelted - C/C++ Module</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/c.png" /> CodeMelted - C Module</h1>
 
 <center>UNDER DEVELOPMENT - ONLY ALPHA MODULE AT THIS TIME AS DESIGN IS FLESHED OUT.</center>
 

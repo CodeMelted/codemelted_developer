@@ -25,6 +25,16 @@
 
 [string]$GEN_HTML_PERL_SCRIPT = "/ProgramData/chocolatey/lib/lcov/tools/bin/genhtml"
 
+[string]$htmlNavTemplate = @"
+<div class="codemelted-dev-nav">
+    <a title="C Module" href="https://developer.codemelted.com/codemelted_c" ><img src="https://codemelted.com/assets/images/icons/c.png" /></a>
+    <a title="Flutter Module" href="https://developer.codemelted.com/codemelted_flutter"><img src="https://codemelted.com/assets/images/icons/flutter.png" /></a>
+    <a title="JavaScript Module" href="https://developer.codemelted.com/codemelted_js"><img src="https://codemelted.com/assets/images/icons/deno-js.png" /></a>
+    <a title="pwsh Module" href="https://developer.codemelted.com/codemelted_pwsh"><img src="https://codemelted.com/assets/images/icons/powershell.png" /></a>
+    <a title="CodeMelted Pi Project" href="https://developer.codemelted.com/codemelted_pi"><img src="https://codemelted.com/assets/images/icons/raspberry-pi.png" /></a>
+</div>
+"@
+
 [string]$footerTemplate = @"
 <!-- Links to main domain assets for embedding this widget code into different configurations -->
 <codemelted-navigation></codemelted-navigation>
@@ -68,7 +78,7 @@ function build([string[]]$params) {
     # deployment.
     function build_all {
         # Build all the project static sdk sites.
-        codemelted_cpp
+        codemelted_c
         codemelted_developer
         codemelted_flutter
         codemelted_js
@@ -78,14 +88,14 @@ function build([string[]]$params) {
         # Now go copy those static sdk sites.
         Remove-Item -Path developer -Recurse -Force -ErrorAction Ignore
         New-Item -Path developer -ItemType Directory -ErrorAction Ignore
-        New-Item -Path developer/codemelted_cpp -ItemType Directory -ErrorAction Ignore
+        New-Item -Path developer/codemelted_c -ItemType Directory -ErrorAction Ignore
         New-Item -Path developer/codemelted_flutter -ItemType Directory -ErrorAction Ignore
         New-Item -Path developer/codemelted_js -ItemType Directory -ErrorAction Ignore
         New-Item -Path developer/codemelted_pwsh -ItemType Directory -ErrorAction Ignore
         New-Item -Path developer/codemelted_pi -ItemType Directory -ErrorAction Ignore
 
         Copy-Item -Path docs/* -Destination developer/ -Recurse
-        Copy-Item -Path codemelted_cpp/docs/* -Destination developer/codemelted_cpp/ -Recurse
+        Copy-Item -Path codemelted_c/docs/* -Destination developer/codemelted_c/ -Recurse
         Copy-Item -Path codemelted_flutter/docs/* -Destination developer/codemelted_flutter/ -Recurse
         Copy-Item -Path codemelted_js/docs/* -Destination developer/codemelted_js/ -Recurse
         Copy-Item -Path codemelted_pwsh/docs/* -Destination developer/codemelted_pwsh/ -Recurse
@@ -93,26 +103,27 @@ function build([string[]]$params) {
     }
 
 
-    # Builds the codemelted_cpp module.
-    function codemelted_cpp {
-        message "Now building codemelted_cpp module."
-        Set-Location $PSScriptRoot/codemelted_cpp
+    # Builds the codemelted_c module.
+    function codemelted_c {
+        message "Now building codemelted_c module."
+        Set-Location $PSScriptRoot/codemelted_c
         Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
 
         message "Generating doxygen"
         doxygen doxygen.cfg
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
-        $htmlData = $htmlData.Replace("<center>", "$htmlSdkHeader<center>")
+        $htmlData = $htmlData.Replace("/></a><br  />", "/></a><br  />`n$htmlNavTemplate")
         $htmlData = $htmlData.Replace("README.md", "index.html")
         $htmlData = $htmlData.Replace("</head>", '    <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png"></head>')
-        $htmlData = $htmlData.Replace("</body>", "<br /><br /><br /><br /><br />`n$footerTemplate`n</body>")
+        $htmlData = $htmlData.Replace("</body>", "<p><br /><br /><br /><br /><br /></p><p><br /><br /><br /><br /><br /></p>`n$footerTemplate`n</body>")
         $htmlData | Out-File docs/index.html -Force
 
         $files = Get-ChildItem -Path docs/*.html -Exclude "index.html"
         foreach ($file in $files) {
             [string]$htmlData = Get-Content -Path $file.FullName -Raw
             $htmlData = $htmlData.Replace("</head>", '    <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png"></head>')
-            $htmlData = $htmlData.Replace("</body>", "<br /><br /><br /><br /><br />`n$footerTemplate`n</body>")
+            $htmlData = $htmlData.Replace("/></a><br  />", "/></a><br  />`n$htmlNavTemplate")
+            $htmlData = $htmlData.Replace("</body>", "<p><br /><br /><br /><br /><br /></p><p><br /><br /><br /><br /><br /></p>`n$footerTemplate`n</body>")
             $htmlData | Out-File $file.FullName -Force
         }
 
@@ -121,7 +132,7 @@ function build([string[]]$params) {
         $htmlData | Out-File docs/navtree.css -Force
 
         Set-Location $PSScriptRoot
-        message "codemelted_cpp module build completed."
+        message "codemelted_c module build completed."
     }
 
     # Transforms the README.md of this repo along with all the use_cases into
@@ -147,6 +158,7 @@ function build([string[]]$params) {
             $html = $html.Replace("[DESCRIPTION]", $description)
             $html = $html.Replace("[KEYWORDS]", $keywords)
             $html = $html.Replace("[CONTENT]", $readme.Html)
+            $html = $html.Replace("/></a><br />", "/></a><br />`n$htmlNavTemplate")
             $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
             $html = $html.Replace("README.md", "index.html")
             $htmlFilename = $file.Name.Replace(".md", ".html")
@@ -164,6 +176,7 @@ function build([string[]]$params) {
         $html = $html.Replace("[DESCRIPTION]", $description)
         $html = $html.Replace("[KEYWORDS]", $keywords)
         $html = $html.Replace("[CONTENT]", $readme.Html)
+        $html = $html.Replace("/></a><br />", "/></a><br />`n$htmlNavTemplate")
         $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
         $html = $html.Replace("README.md", "index.html")
         $html = $html.Replace(".md", ".html")
@@ -179,6 +192,7 @@ function build([string[]]$params) {
         $html = $html.Replace("[DESCRIPTION]", $description)
         $html = $html.Replace("[KEYWORDS]", $keywords)
         $html = $html.Replace("[CONTENT]", $readme.Html)
+        $html = $html.Replace("/></a><br />", "/></a><br />`n$htmlNavTemplate")
         $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
         $html = $html.Replace("README.md", "index.html")
         $html = $html.Replace(".md", ".html")
@@ -205,6 +219,7 @@ function build([string[]]$params) {
         [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
         $htmlData = $htmlData.Replace("codemelted_flutter - Dart API docs", "CodeMelted - Flutter Module")
         $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
+        $htmlData = $htmlData.Replace("></a><br>", "></a><br>`n$htmlNavTemplate")
         $htmlData = $htmlData.Replace("README.md", "index.html")
         $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
         $htmlData | Out-File docs/index.html -Force
@@ -214,6 +229,7 @@ function build([string[]]$params) {
             [string]$htmlData = Get-Content -Path $file.FullName -Raw
             $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
             $htmlData = $htmlData.Replace("</head>", '<link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css"><script src="https://codemelted.com/assets/js/footer.js" defer></script></head>')
+            $htmlData = $htmlData.Replace("></a><br>", "></a><br>`n$htmlNavTemplate")
             $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
             $htmlData | Out-File $file.FullName -Force
         }
@@ -253,6 +269,7 @@ function build([string[]]$params) {
         foreach ($file in $files) {
             [string]$htmlData = Get-Content -Path $file.FullName -Raw
             $htmlData = $htmlData.Replace("README.md", "index.html")
+            $htmlData = $htmlData.Replace("/></a><br />", "/></a><br />`n$htmlNavTemplate")
             $htmlData = $htmlData.Replace("</body>", "`n$footerTemplate</body>")
             $htmlData = $htmlData.Replace("</head>", '<meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="https://codemelted.com/favicon.png"></head>')
             $htmlData | Out-File $file.FullName -Force
@@ -285,6 +302,7 @@ function build([string[]]$params) {
         $html = $html.Replace("[DESCRIPTION]", $description)
         $html = $html.Replace("[KEYWORDS]", $keywords)
         $html = $html.Replace("[CONTENT]", $readme.Html)
+        $html = $html.Replace("/></a><br />", "/></a><br />`n$htmlNavTemplate")
         $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
         $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
@@ -311,6 +329,7 @@ function build([string[]]$params) {
         $html = $html.Replace("[DESCRIPTION]", $description)
         $html = $html.Replace("[KEYWORDS]", $keywords)
         $html = $html.Replace("[CONTENT]", $readme.Html)
+        $html = $html.Replace("/></a><br />", "/></a><br />`n$htmlNavTemplate")
         $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
         $html = $html.Replace("README.md", "index.html")
         $html | Out-File docs/index.html -Force
@@ -334,7 +353,7 @@ function build([string[]]$params) {
     # Main Exection
     switch ($params[0]) {
         "--build_all" { build_all }
-        "--codemelted_cpp" { codemelted_cpp }
+        "--codemelted_c" { codemelted_c }
         "--codemelted_developer" { codemelted_developer }
         "--codemelted_flutter" { codemelted_flutter }
         "--codemelted_js" { codemelted_js }
