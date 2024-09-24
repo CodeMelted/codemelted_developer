@@ -232,11 +232,11 @@ globalThis["codemelted_async"] = Object.freeze({
 
 /**
  * UNDER DEVELOPMENT
- * @namespace codemelted.codemelted_audio
+ * @namespace codemelted_audio
  */
-globalThis["codemelted_audio"] = Object.freeze({
-    //
-});
+globalThis["codemelted_audio"] = (function() {
+
+})();
 
 // ----------------------------------------------------------------------------
 // [console use case] ---------------------------------------------------------
