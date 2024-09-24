@@ -10,8 +10,6 @@ DESCRIPTION: Welcome to the CodeMelted - Flutter Module project. This project ai
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/flutter.png" /> CodeMelted - Flutter Module</h1>
 
-<center>UNDER DEVELOPMENT - ONLY ALPHA MODULE AT THIS TIME AS DESIGN IS FLESHED OUT.</center>
-
 Welcome to the **CodeMelted - Flutter Module** project. This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the **CodeMelted - Developer** identified use cases, you can be assured to building a powerful native application.
 
 ## GETTING STARTED
@@ -32,6 +30,8 @@ dependencies:
 ## USAGE
 
 The following examples represent the implementation of the **CodeMelted - Developer Cross Platform Module** identified use cases.
+
+*NOTE: Items marked UNDER DEVELOPMENT are considered unstable. They may have implementations simple not documented as they are being developed. Use at your own risk. Items documented have been through a level of testing and are considered stable enough for usage.*
 
 ### Async
 
@@ -71,7 +71,9 @@ Use case not applicable to this module.
 
 ### Logger
 
-```dart
+<mark>UNDER DEVELOPMENT</mark>
+
+<!-- ```dart
 // Import it.
 import 'package:codemelted_flutter/codemelted_logger.dart';
 
@@ -86,9 +88,13 @@ codemelted_logger.debug(data: 'debug', stackTrace: StackTrace.current);
 codemelted_logger.info(data: 'info', stackTrace: StackTrace.current);
 codemelted_logger.warning(data: 'warning', stackTrace: StackTrace.current);
 codemelted_logger.error(data: 'error', stackTrace: StackTrace.current);
-```
+``` -->
 
 ### Math
+
+<mark>UNDER DEVELOPMENT</mark>
+
+### Memory
 
 <mark>UNDER DEVELOPMENT</mark>
 

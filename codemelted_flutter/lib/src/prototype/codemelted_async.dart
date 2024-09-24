@@ -31,7 +31,7 @@ library codemelted_async;
 import 'dart:async';
 import 'dart:js_interop';
 
-import 'package:codemelted_flutter/codemelted_json.dart';
+import 'package:codemelted_flutter/src/prototype/codemelted_json.dart';
 import "package:web/web.dart" as web;
 
 /// The task to run as part of the different module async functions.

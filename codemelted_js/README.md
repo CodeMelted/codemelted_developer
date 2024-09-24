@@ -62,6 +62,8 @@ import "https://codemelted.com/developer/codemelted_js/codemelted.js";
 
 The following examples represent the implementation of the **CodeMelted - Developer Cross Platform Module** identified use cases.
 
+*NOTE: Items marked UNDER DEVELOPMENT are considered unstable. They may have implementations simple not documented as they are being developed. Use at your own risk. Items documented have been through a level of testing and are considered stable enough for usage.*
+
 ### Async
 
 <mark>UNDER DEVELOPMENT</mark>

@@ -30,8 +30,8 @@ library codemelted_ui;
 
 import 'dart:ui_web';
 
-import 'package:codemelted_flutter/codemelted_json.dart';
-import 'package:codemelted_flutter/codemelted_runtime.dart';
+import 'package:codemelted_flutter/src/prototype/codemelted_json.dart';
+import 'package:codemelted_flutter/src/prototype/codemelted_runtime.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

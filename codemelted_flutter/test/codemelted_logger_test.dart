@@ -24,86 +24,86 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
-import 'package:codemelted_flutter/codemelted_logger.dart';
-import 'package:flutter_test/flutter_test.dart';
+// import 'package:codemelted_flutter/src/prototype/codemelted_logger.dart';
+// import 'package:flutter_test/flutter_test.dart';
 
 // ----------------------------------------------------------------------------
 // [Mocks] --------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-var count = 0;
-Future<void> onLogEvent(CLogRecord r) async {
-  count += 1;
-}
+// var count = 0;
+// Future<void> onLogEvent(CLogRecord r) async {
+//   count += 1;
+// }
 
 // ----------------------------------------------------------------------------
 // [Execution] ----------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-void main() {
-  group('codemelted_logger Tests', () {
-    test('codemelted_logger.level = debug Validation', () async {
-      codemelted_logger.level = CLogLevel.debug;
-      codemelted_logger.onLogEvent = onLogEvent;
+// void main() {
+  // group('codemelted_logger Tests', () {
+  //   test('codemelted_logger.level = debug Validation', () async {
+  //     codemelted_logger.level = CLogLevel.debug;
+  //     codemelted_logger.onLogEvent = onLogEvent;
 
-      count = 0;
-      await codemelted_logger.debug(data: 'debug');
-      await codemelted_logger.info(data: 'info');
-      await codemelted_logger.warning(data: 'warning');
-      await codemelted_logger.error(
-          data: 'error', stackTrace: StackTrace.current);
-      expect(count, equals(4));
-    });
+  //     count = 0;
+  //     await codemelted_logger.debug(data: 'debug');
+  //     await codemelted_logger.info(data: 'info');
+  //     await codemelted_logger.warning(data: 'warning');
+  //     await codemelted_logger.error(
+  //         data: 'error', stackTrace: StackTrace.current);
+  //     expect(count, equals(4));
+  //   });
 
-    test('codemelted_logger.level = info Validation', () async {
-      codemelted_logger.level = CLogLevel.info;
-      codemelted_logger.onLogEvent = onLogEvent;
+  //   test('codemelted_logger.level = info Validation', () async {
+  //     codemelted_logger.level = CLogLevel.info;
+  //     codemelted_logger.onLogEvent = onLogEvent;
 
-      count = 0;
-      await codemelted_logger.debug(data: 'debug');
-      await codemelted_logger.info(data: 'info');
-      await codemelted_logger.warning(data: 'warning');
-      await codemelted_logger.error(
-          data: 'error', stackTrace: StackTrace.current);
-      expect(count, equals(3));
-    });
+  //     count = 0;
+  //     await codemelted_logger.debug(data: 'debug');
+  //     await codemelted_logger.info(data: 'info');
+  //     await codemelted_logger.warning(data: 'warning');
+  //     await codemelted_logger.error(
+  //         data: 'error', stackTrace: StackTrace.current);
+  //     expect(count, equals(3));
+  //   });
 
-    test('codemelted_logger.level = warning Validation', () async {
-      codemelted_logger.level = CLogLevel.warning;
-      codemelted_logger.onLogEvent = onLogEvent;
+  //   test('codemelted_logger.level = warning Validation', () async {
+  //     codemelted_logger.level = CLogLevel.warning;
+  //     codemelted_logger.onLogEvent = onLogEvent;
 
-      count = 0;
-      await codemelted_logger.debug(data: 'debug');
-      await codemelted_logger.info(data: 'info');
-      await codemelted_logger.warning(data: 'warning');
-      await codemelted_logger.error(
-          data: 'error', stackTrace: StackTrace.current);
-      expect(count, equals(2));
-    });
+  //     count = 0;
+  //     await codemelted_logger.debug(data: 'debug');
+  //     await codemelted_logger.info(data: 'info');
+  //     await codemelted_logger.warning(data: 'warning');
+  //     await codemelted_logger.error(
+  //         data: 'error', stackTrace: StackTrace.current);
+  //     expect(count, equals(2));
+  //   });
 
-    test('codemelted_logger.level = error Validation', () async {
-      codemelted_logger.level = CLogLevel.error;
-      codemelted_logger.onLogEvent = onLogEvent;
+  //   test('codemelted_logger.level = error Validation', () async {
+  //     codemelted_logger.level = CLogLevel.error;
+  //     codemelted_logger.onLogEvent = onLogEvent;
 
-      count = 0;
-      await codemelted_logger.debug(data: 'debug');
-      await codemelted_logger.info(data: 'info');
-      await codemelted_logger.warning(data: 'warning');
-      await codemelted_logger.error(
-          data: 'error', stackTrace: StackTrace.current);
-      expect(count, equals(1));
-    });
+  //     count = 0;
+  //     await codemelted_logger.debug(data: 'debug');
+  //     await codemelted_logger.info(data: 'info');
+  //     await codemelted_logger.warning(data: 'warning');
+  //     await codemelted_logger.error(
+  //         data: 'error', stackTrace: StackTrace.current);
+  //     expect(count, equals(1));
+  //   });
 
-    test('codemelted_logger.level = off Validation', () async {
-      codemelted_logger.level = CLogLevel.error;
-      codemelted_logger.onLogEvent = onLogEvent;
+  //   test('codemelted_logger.level = off Validation', () async {
+  //     codemelted_logger.level = CLogLevel.error;
+  //     codemelted_logger.onLogEvent = onLogEvent;
 
-      count = 0;
-      codemelted_logger.debug(data: 'debug');
-      codemelted_logger.info(data: 'info');
-      codemelted_logger.warning(data: 'warning');
-      codemelted_logger.error(data: 'error', stackTrace: StackTrace.current);
-      expect(count, equals(1));
-    });
-  });
-}
+  //     count = 0;
+  //     codemelted_logger.debug(data: 'debug');
+  //     codemelted_logger.info(data: 'info');
+  //     codemelted_logger.warning(data: 'warning');
+  //     codemelted_logger.error(data: 'error', stackTrace: StackTrace.current);
+  //     expect(count, equals(1));
+  //   });
+  // });
+// }

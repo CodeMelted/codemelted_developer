@@ -34,8 +34,8 @@ library codemelted_network;
 import "dart:io";
 import 'dart:js_interop';
 
-import "package:codemelted_flutter/codemelted_json.dart";
-import "package:codemelted_flutter/codemelted_logger.dart";
+import "package:codemelted_flutter/src/prototype/codemelted_json.dart";
+import "package:codemelted_flutter/src/prototype/codemelted_logger.dart";
 import "package:web/web.dart" as web;
 
 /// Message handler that receives a JSON object with two fields. "type" which

@@ -30,7 +30,7 @@ library codemelted_runtime;
 
 import 'dart:js_interop';
 
-import 'package:codemelted_flutter/codemelted_logger.dart';
+import 'package:codemelted_flutter/src/prototype/codemelted_logger.dart';
 import 'package:flutter/services.dart';
 import "package:web/web.dart" as web;
 
