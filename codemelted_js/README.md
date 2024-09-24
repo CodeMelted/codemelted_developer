@@ -10,13 +10,11 @@ DESCRIPTION: Welcome to the CodeMelted - JS Module project. This project aims to
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/deno-js.png" /> CodeMelted - JS Module</h1>
 
-<center>UNDER DEVELOPMENT - ONLY ALPHA MODULE AT THIS TIME AS DESIGN IS FLESHED OUT.</center>
-
 Welcome to the **CodeMelted - JS Module** project. This project aims to give a common fullstack solution for Progressive Web Applications (PWA) utilizing the **CodeMelted - Developer** use cases. It utilizes the **Deno Runtime** to run as your backend service. This was chosen as it has a full range of services for your backend if you choose to utilize it. You can also take your backend and host it on a different platform. This allows you to not be locked into a vendor for your backend. It was also chosen because it implements the **Browser Web APIs**. This allows the module to implement backend and web frontend common code developing a more complete solution. Lastly, Deno provides the use of TypeScript natively out of the box. So you are able to utilize both JavaScript / TypeScript for your solution and roll with any build system.
 
 ## GETTING STARTED
 
-The `codemelted.js` file is a module that implements a series of global namespaces in accordance with the **CodeMelted - Developer** identified use cases. Once imported, these namespace are available in your target runtime (Deno, Web Browser). In addition to the global namespaces are data / utility classes that may be the return result of a namespace function call.
+The `codemelted.js` file implements the `codemelted` global namespaces. This namespace accesses features as attached namespaces in accordance with the **CodeMelted - Developer** identified use cases. Once this file is imported, the `codemelted` global namespace is available in your target runtime (Deno, Web Browser).
 
 ### From GitHub Repo
 
@@ -30,20 +28,34 @@ You can download the tagged version [codemelted_js_X.Y.Z](https://github.com/Cod
 
 Then include the module as follows:
 
+**Module Import:**
+
 ```javascript
-import {
-  // Support classes to utilize.
-} from "codemelted_developer/codemelted_js/codemelted.js";
+import "codemelted_developer/codemelted_js/codemelted.js";
+```
+
+**HTML Import:**
+
+```html
+<!-- defer or async will work. Could be placed in <head> or at the end of<body> -->
+<script src="codemelted_developer/codemelted_js/codemelted.js"></script>
 ```
 
 ### From Web
 
 If you want to be brave and utilize the latest deployed `codemelted.js` module you can simple import it from the web as follows:
 
+**Module Import:**
+
 ```javascript
-import {
-  // Support classes to utilize.
-} from "https://codemelted.com/developer/codemelted_js/codemelted.js";
+import "https://codemelted.com/developer/codemelted_js/codemelted.js";
+```
+
+**HTML Import:**
+
+```html
+<!-- defer or async will work. Could be placed in <head> or at the end of<body> -->
+<script src="https://codemelted.com/developer/codemelted_js/codemelted.js"></script>
 ```
 
 ## USAGE
