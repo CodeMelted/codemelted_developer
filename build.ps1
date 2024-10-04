@@ -38,7 +38,7 @@
 [string]$footerTemplate = @"
 <!-- Links to main domain assets for embedding this widget code into different configurations -->
 <codemelted-navigation></codemelted-navigation>
-<script src="https://codemelted.com/assets/js/codemelted_navigation.js" defer></script>
+<script src="https://codemelted.com/assets/codemelted_navigation/codemelted_navigation.js" defer></script>
 "@
 
 [string]$htmlTemplate = @"

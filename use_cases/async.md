@@ -20,8 +20,6 @@ All programming happens synchronously (i.e. one instruction to the next). This o
   - [Queue Task](#queue-task)
 - [DESIGN NOTES](#design-notes)
 - [TEST NOTES](#test-notes)
-  - [Functional Demonstration](#functional-demonstration)
-  - [Unit Testing](#unit-testing)
 - [REFERENCES](#references)
 
 ## FUNCTIONAL DECOMPOSITION
@@ -63,25 +61,11 @@ All programming happens synchronously (i.e. one instruction to the next). This o
 
 ## TEST NOTES
 
-### Functional Demonstration
-
-- [ ] When an example usage is documented in the module generated documentation.
-- [ ] When the module SDK details specific to each module target is documented.
-- [ ] When a unit test (if applicable) specific to each module passes all tests.
-
-### Unit Testing
-
-- [ ] **Flutter Module:** The `test/codemelted_async_test.dart` defines the unit tests for the Async I/O unit test implementation.
-- [ ] **JavaScript Module:** Broken into the three areas:
-  - `codemelted_test.ts`: Deno runtime tests with coverage.
-  - `codemelted_test.html`: Mocha / Chai browser based tests executed from the PWA.
-  - `codemelted_worker_test.js`: Background worker to ensure `codemelted.js` modules ability to properly load in a web worker.
-- [ ] **PowerShell Module:** <mark>TBD</mark>
-- [ ] **C/C++ Module:** <mark>TBD</mark>
+<mark>TBD</mark>
 
 ## REFERENCES
 
-CPP Reference contributors. (2023, October 24). std::thread. In *C++ Concurrency support library*. Retrieved 20:53, September 12, 2024, from https://en.cppreference.com/w/cpp/thread/thread
+*NOTE: The following references reflect Flutter, JavaScript, and PowerShell research. Lower scripting environments and C will need identifying.*
 
 Dart contributors. (2024, August 4). Asynchronous programming: futures, async, await. In *dart.dev Libraries*. Retrieved 21:00, September 12, 2024, from https://dart.dev/libraries/async/async-await
 

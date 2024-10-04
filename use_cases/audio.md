@@ -63,23 +63,11 @@ Host systems provide the ability to either play audio files or translate a strin
 
 ## TEST NOTES
 
-### Functional Demonstration
-
-- [ ] When an example usage is documented in the module generated documentation.
-- [ ] When the module SDK details specific to each module target is documented.
-- [ ] When a unit test (if applicable) specific to each module passes all tests.
-
-### Unit Testing
-
-- [ ] **Flutter Module:** The `test/codemelted_audio_test.dart` defines the unit tests for the Async I/O unit test implementation.
-- [ ] **JavaScript Module:** Broken into the three areas:
-  - `codemelted_test.ts`: Deno runtime tests with coverage.
-  - `codemelted_test.html`: Mocha / Chai browser based tests executed from the PWA.
-  - `codemelted_worker_test.js`: Background worker to ensure `codemelted.js` modules ability to properly load in a web worker.
-- [ ] **PowerShell Module:** <mark>TBD</mark>
-- [ ] **C/C++ Module:** <mark>TBD</mark>
+<mark>TBD</mark>
 
 ## REFERENCES
+
+*NOTE: The following references reflect Flutter, JavaScript, and PowerShell research. Lower scripting environments and C will need identifying.*
 
 MDN contributors. (2023, Feb 23). HTMLAudioElement. In *References Web APIs HTMLAudioElement*. Retrieved 18:51, September 13, 2024, from https://developer.mozilla.org/en-US/docs/Web/API/HTMLAudioElement
 
