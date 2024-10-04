@@ -50,6 +50,12 @@ final cNavigatorKey = GlobalKey<NavigatorState>();
 /// [CodeMeltedUI] app functions.
 final cScaffoldKey = GlobalKey<ScaffoldState>();
 
+/// Will allow for hooking up to get resize events update to determine if a
+/// change to the UI state is necessary for the SPA. Return true if you are
+/// handling the resize event, false to propagate the event up the widget
+/// tree.
+typedef OnResizeEventHandler = bool Function(Size);
+
 /// Provides the Single Page Application for the [CodeMeltedUI.app] property
 /// that returns the main view.
 class CAppView extends StatefulWidget {
@@ -62,6 +68,13 @@ class CAppView extends StatefulWidget {
     "themeMode": ThemeMode.system,
     "theme": ThemeData.light(useMaterial3: true),
   };
+
+  /// Sets / gets the ability to detect resize events with the
+  /// [CodeMeltedUI.app] to update the main body if necessary.
+  static OnResizeEventHandler? get onResizeEvent =>
+      uiState.get<OnResizeEventHandler?>("onResizeEvent");
+  static set onResizeEvent(OnResizeEventHandler? v) =>
+      uiState.set<OnResizeEventHandler?>("onResizeEvent", v);
 
   /// Sets / gets the dark theme for the [CodeMeltedUI.app].
   static ThemeData get darkTheme => uiState.get<ThemeData>("darkTheme");
@@ -302,23 +315,35 @@ class _CAppViewState extends State<CAppView> {
       theme: CAppView.theme,
       themeMode: CAppView.themeMode,
       title: CAppView.title ?? "",
-      home: Scaffold(
-        appBar: CAppView.uiState.get<AppBar?>("appBar"),
-        body: CAppView.uiState.get<CObject?>("content")?['body'],
-        extendBody:
-            CAppView.uiState.get<CObject?>("content")?['extendBody'] ?? false,
-        extendBodyBehindAppBar: CAppView.uiState
-                .get<CObject?>("content")?["extendBodyBehindAppBar"] ??
-            false,
-        bottomNavigationBar:
-            CAppView.uiState.get<BottomAppBar?>("bottomAppBar"),
-        drawer: CAppView.uiState.get<Widget?>("drawer"),
-        endDrawer: CAppView.uiState.get<Widget?>("endDrawer"),
-        floatingActionButton:
-            CAppView.uiState.get<Widget?>("floatingActionButton"),
-        floatingActionButtonLocation: CAppView.uiState
-            .get<FloatingActionButtonLocation?>("floatingActionButtonLocation"),
-        key: cScaffoldKey,
+      home: NotificationListener<SizeChangedLayoutNotification>(
+        onNotification: (notification) {
+          var handler = CAppView.onResizeEvent;
+          if (handler != null) {
+            return handler(MediaQuery.of(context).size);
+          }
+          return false;
+        },
+        child: Scaffold(
+          appBar: CAppView.uiState.get<AppBar?>("appBar"),
+          body: SizeChangedLayoutNotifier(
+            child: CAppView.uiState.get<CObject?>("content")?['body'],
+          ),
+          extendBody:
+              CAppView.uiState.get<CObject?>("content")?['extendBody'] ?? false,
+          extendBodyBehindAppBar: CAppView.uiState
+                  .get<CObject?>("content")?["extendBodyBehindAppBar"] ??
+              false,
+          bottomNavigationBar:
+              CAppView.uiState.get<BottomAppBar?>("bottomAppBar"),
+          drawer: CAppView.uiState.get<Widget?>("drawer"),
+          endDrawer: CAppView.uiState.get<Widget?>("endDrawer"),
+          floatingActionButton:
+              CAppView.uiState.get<Widget?>("floatingActionButton"),
+          floatingActionButtonLocation: CAppView.uiState
+              .get<FloatingActionButtonLocation?>(
+                  "floatingActionButtonLocation"),
+          key: cScaffoldKey,
+        ),
       ),
     );
   }
@@ -721,6 +746,11 @@ class CodeMeltedUI {
 
   String? get appTitle {
     return CAppView.title;
+  }
+
+  /// Sets up the ability to detect resize events with the SPA.
+  set appOnResizeEvent(OnResizeEventHandler? v) {
+    CAppView.onResizeEvent = v;
   }
 
   /// Sets / removes the [CodeMeltedUI.app] header area.
@@ -1522,7 +1552,7 @@ class CodeMeltedUI {
       key: key,
       enabled: enabled,
       leading: leading is IconData ? Icon(leading) : leading,
-      initiallyExpanded: false,
+      initiallyExpanded: initiallyExpanded,
       title: title,
       subtitle: subtitle,
       trailing: trailing is IconData ? Icon(trailing) : trailing,

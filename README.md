@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted - Developer
-PUBLISH_DATE: 2024-08-05
+PUBLISH_DATE: 2024-10-04
 AUTHOR: Mark Shaffer
 KEYWORDS: raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify by developing a set of cross platform modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. This allows a developer to maximize their productivity because regardless of the technology, they are learning a similar module API for their solution.
@@ -17,6 +17,8 @@ Software engineers are now required to learn multiple languages, technologies, a
 **Table of Contents**
 
 - [FEATURES](#features)
+  - [Baseline Use Cases](#baseline-use-cases)
+  - [Future Use Cases](#future-use-cases)
 - [GETTING STARTED](#getting-started)
 - [USAGE](#usage)
   - [Cross Platform Modules](#cross-platform-modules)
@@ -27,15 +29,13 @@ Software engineers are now required to learn multiple languages, technologies, a
 
 <center><img style="width: 100%; max-width: 560px;" src="use_cases/assets/module-use-case-model.drawio.png" /></center>
 
-**Use Cases:**
+### Baseline Use Cases
 
 - [Async IO](use_cases/async.md): All programming happens synchronously (i.e. one instruction to the next). This occurs within the event loop of the main SDK execution thread. This use case will provide the ability to chunk work within this main event loop along with scheduling work within a background event loop thread.
 - [Audio](use_cases/audio.md): Host systems provide the ability to either play audio files or translate a string into text-to-speech. This use case will expose this host processing to the developer.
 - [Console](use_cases/console.md): The Console of a system supports STDIN / STDOUT / STDERR. This use case will expose these descriptors to support a developer making simple command line interface tools.
 - [Database](use_cases/database.md): Databases provide the ability of storing complex data structures. The two main concepts for this is either relational database structures (SQL) or no-SQL indexed databases. These are available depending on the SDK environment. This use case will expose the ability to access these services for the given SDK.
 - [Disk](use_cases/disk.md): Applications have access to hard disk which houses directories, files, and other information. This use case will expose the ability to manage the disk along with interface with said files from the disk.
-- [Firebase](use_cases/firebase.md): Firebase is Googles Platform as a Service (PaaS) that exposes a subset of the Google Cloud infrastructure. This use case will wrap the common libraries from auth, writing to the database, calling cloud functions, and other features from the client apps point of view.
-- [Game](use_cases/game.md): Game engines provide the logic for running simple side scroller, RPGs, and others. This use case will build a common game engine to apply across different type of apps / game genres. This will facilitate being able to quickly build new games within an application.
 - [Hardware](use_cases/hardware.md): Systems have the ability to interface with external hardware that connect via different protocols. This use case will expose these different protocols for exchanging information with these connected devices.
 - [JSON](use_cases/json.md): JSON (JavaScript Object Notation) is a lightweight data-interchange format. Unlike XML (Extensible Markup Language), it is universal for data transport, manipulation, and representing complex data structures. This use case will expose functions for working / validating this set of datasets.
 - [Logger](use_cases/logger.md): Logging is the most basic way of either debugging your application or relaying information to your user base. This use case will provide a logging service for this purpose.
@@ -45,6 +45,11 @@ Software engineers are now required to learn multiple languages, technologies, a
 - [Runtime](use_cases/runtime.md): The runtime represents specific functionality to a specific language SDK. This use case will provide common properties common to all these SDKs. The use case will also expose functions that are specific to the given SDK.
 - [Storage](use_cases/storage.md): The ability to store key / value pairs into storage is a easy simple way to quickly access information for an application. In combination with the Data Broker use case working with JSON data, this use case will provide the developer quick access to this storage concept.
 - [User Interface](use_cases/ui.md): A SPA (single-page application) is an app implementation that loads only a single view, and then updates the body content of that single document view. This use case will provide this singular view concept regardless of the underlying UI architecture. It will also provide the ability to properly theme based on the SDK target so an entire app can be changed. Lastly, the use case will identify basic widget types and dialogs to support the SPA.
+
+### Future Use Cases
+
+- [Firebase](use_cases/firebase.md): Firebase is Googles Platform as a Service (PaaS) that exposes a subset of the Google Cloud infrastructure. This use case will wrap the common libraries from auth, writing to the database, calling cloud functions, and other features from the client apps point of view.
+- [Game](use_cases/game.md): Game engines provide the logic for running simple side scroller, RPGs, and others. This use case will build a common game engine to apply across different type of apps / game genres. This will facilitate being able to quickly build new games within an application.
 
 ## GETTING STARTED
 

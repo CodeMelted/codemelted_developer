@@ -15,13 +15,37 @@ Applications have access to hard disk which houses directories, files, and other
 **Table of Contents**
 
 - [FUNCTIONAL DECOMPOSITION](#functional-decomposition)
+  - [Manage Items on Disk](#manage-items-on-disk)
+  - [Read / Write Files](#read--write-files)
 - [DESIGN NOTES](#design-notes)
 - [TEST NOTES](#test-notes)
 - [REFERENCES](#references)
 
 ## FUNCTIONAL DECOMPOSITION
 
-<mark>TBD</mark>
+<center><img style="width: 100%; max-width: 560px;" src="assets/disk/use-case-model.drawio.png" /></center>
+
+### Manage Items on Disk
+
+**Description:** This use case is the management of files / directories on a local disk. This includes getting of listing of files, being able to copy, delete, or move those file. Along with this is the management of directories to also include copying, deleting, or moving them. Lastly is the ability to determine the temporary and user's home directory on the disk.
+
+**Acceptance Criteria:**
+
+1. The disk namespace will provide the ability to copy files and directories on disk.
+2. The disk namespace will provide the ability to delete files and directories on disk.
+3. The disk namespace will provide the ability to move files and directories on disk.
+4. The disk namespace will provide the ability to query for a system's temporary directory or a user's home directory.
+
+### Read / Write Files
+
+**Description:** Besides managing files, a user will want to read and write data from a file. This use case will provide the ability to work with files in an array of configurations based on the targeted SDK environment.
+
+**Acceptance Criteria:**
+
+1. The disk namespace will provide the ability to read an entire file as either bytes or a string.
+2. The disk namespace will provide the ability to write an entire file as either bytes or a string.
+3. The disk namespace will provide the ability to append to an existing file as either bytes or a string.
+4. The disk namespace will provide the ability to read / write a file in chunks vs. the entire file contents as reflected in acceptance criteria 2 and 3.
 
 ## DESIGN NOTES
 
