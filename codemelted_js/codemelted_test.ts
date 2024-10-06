@@ -1,25 +1,8 @@
 /**
- * @file Something about the file
- * @version 0.0.0 [Last Updated YYYY-mm-dd]
- * @copyright © 2024 Mark Shaffer. All Rights Reserved
+ * @file Provides the Deno.test of the codemelted.js file.
+ * @version 0.1.0
+ * @author Mark Shaffer
  * @license MIT
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the “Software”),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
  */
 
 // ----------------------------------------------------------------------------
@@ -27,13 +10,10 @@
 // ----------------------------------------------------------------------------
 
 import {
-    assert,
-    // assertThrows,
-    assertFalse,
-} from "https://deno.land/std@0.192.0/testing/asserts.ts";
-import {
-
-} from "./codemelted.js";
+    assertExists,
+    fail,
+} from "jsr:@std/assert";
+import codemelted from "./codemelted.js";
 
 // ----------------------------------------------------------------------------
 // [async use case] -----------------------------------------------------------
@@ -47,6 +27,15 @@ import {
 // ----------------------------------------------------------------------------
 // [console use case] ---------------------------------------------------------
 // ----------------------------------------------------------------------------
+
+Deno.test("codemelted.console Tests", () => {
+  assertExists(codemelted.console);
+  try {
+    codemelted.console.writeln();
+  } catch (err) {
+    fail("Should not throw.")
+  }
+});
 
 // ----------------------------------------------------------------------------
 // [database use case] --------------------------------------------------------

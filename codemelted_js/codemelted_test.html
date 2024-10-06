@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<!--
+@file Provides a mocha / chai test harness for the codemelted.js module. It is
+modeled off of Vitaliy Potapov Medium article below. Adapted and styled so I
+can show all testing efforts with the module.
+@see https://medium.com/dailyjs/running-mocha-tests-as-native-es6-modules-in-a-browser-882373f2ecb0
+-->
+<html lang="en"><head>
+  <title>CodeMelted - JS Module | Test Results</title>
+  <meta charset="UTF-8">
+  <meta name="description" content="An implementation of the mocha test environment for validating the codemelted.js module in a web environment. It will also reflect the code coverage of the deno environment.">
+  <meta name="keywords" content="mocha, chai, codemelted_developer, codemelted, js_module">
+  <meta name="author" content="Mark Shaffer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png">
+  <!-- Includes mocha.css with overrides to add deno coverage information. -->
+  <style>
+    @import url("https://unpkg.com/mocha@10.7.3/mocha.css");
+    body {
+      margin-top: 175px;
+    }
+    .codemelted-title {
+      background-color: #36454F;
+      position: fixed;
+      top: 40px;
+      left: 0;
+      right: 0;
+    }
+    .codemelted-title img {
+      height: 35px;
+      padding: 5px;
+    }
+    .codemelted-title div {
+      display: grid;
+      grid-template-columns: auto auto;
+    }
+    .codemelted-title button {
+      font-size: medium;
+      background-color: black;
+      color: white;
+      width: 150px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .codemelted-title button:hover {
+      background-color: darkslategrey;
+      color: yellow;
+    }
+
+    #coverage {
+      position: fixed;
+      display: none;
+      background-color: wheat;
+      left: 0px;
+      top: 154px;
+      height: calc(99.5vh - 154px);
+      width: 100%;
+    }
+  </style>
+
+  <!-- Sets up the button click handles for the different tests. -->
+  <script>
+    function btnMochaChaiClicked() {
+      document.getElementById("mocha").style.display = "inherit";
+      document.getElementById("coverage").style.display = "none";
+    }
+
+    function btnDenoTestsClicked() {
+      document.getElementById("mocha").style.display = "none";
+      document.getElementById("coverage").style.display = "inherit";
+    }
+  </script>
+</head><body>
+  <!-- Sets up our title area offset from mocha's display area. -->
+  <h2 class="codemelted-title">
+    <img src="https://codemelted.com/assets/images/icons/deno-js.png" />
+    CodeMelted - JS Module Test Results
+    <div>
+      <center><button onclick="btnMochaChaiClicked();">☕ Mocha / Chai</button></center>
+      <center><button onclick="btnDenoTestsClicked();">🦖 Deno Test</button></center>
+    </div>
+  </h2>
+
+  <!-- Our test results from the different tests. -->
+  <div id="mocha"></div>
+  <iframe id="coverage" frameborder="0" src="coverage/index.html" ></iframe>
+
+  <!-- Our actual test run from mocha for browser based testing. -->
+  <script type="module">
+    // ------------------------------------------------------------------------
+    // [Setup Test Environment] -----------------------------------------------
+    // ------------------------------------------------------------------------
+    import {assert} from "https://unpkg.com/chai@5.1.1/chai.js";
+    import "https://unpkg.com/mocha@10.7.3/mocha.js";
+    mocha.setup('bdd');
+
+    // ------------------------------------------------------------------------
+    // [Test Definitions] -----------------------------------------------------
+    // ------------------------------------------------------------------------
+    const codemelted = (await import("./codemelted.js")).default;
+    describe("codemelted.console Tests", () => {
+      it("codemelted.console.* Functions Throws", () => {
+        assert.throws(() => codemelted.console.alert(), SyntaxError);
+        assert.throws(() => codemelted.console.confirm(), SyntaxError);
+        assert.throws(() => codemelted.console.choose(), SyntaxError);
+        assert.throws(() => codemelted.console.password(), SyntaxError);
+        assert.throws(() => codemelted.console.prompt(), SyntaxError);
+        assert.throws(() => codemelted.console.writeln(), SyntaxError);
+      });
+    });
+
+    // ------------------------------------------------------------------------
+    // [Run Tests] ------------------------------------------------------------
+    // ------------------------------------------------------------------------
+    mocha.checkLeaks();
+    mocha.run();
+  </script>
+</body></html>

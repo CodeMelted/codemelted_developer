@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted - DEV | Use Case: Console
-PUBLISH_DATE: 2024-10-04
+PUBLISH_DATE: 2024-10-06
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMelted - DEV, Console, Use Case, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: The Console of a system supports STDIN / STDOUT / STDERR. This use case will expose these descriptors to support a developer making simple command line interface tools.
@@ -19,6 +19,10 @@ The Console of a system supports STDIN / STDOUT / STDERR. This use case will exp
   - [STDOUT](#stdout)
 - [DESIGN NOTES](#design-notes)
 - [TEST NOTES](#test-notes)
+  - [Flutter](#flutter)
+  - [JavaScript](#javascript)
+  - [PowerShell](#powershell)
+  - [C](#c)
 - [REFERENCES](#references)
 
 ## FUNCTIONAL DECOMPOSITION
@@ -52,6 +56,22 @@ The Console of a system supports STDIN / STDOUT / STDERR. This use case will exp
 - The **CodeMelted - Flutter Module** has no console mechanism within it.
 
 ## TEST NOTES
+
+### Flutter
+
+<mark>TBD</mark>
+
+### JavaScript
+
+- This was validated via the deno interactive shell command exercising each of the `codemelted.console` options specified in the use case.
+- The `codemelted_test.html` confirms that a `SyntaxError` is thrown with each attempt to utilize one of the functions in an unsupported target runtime.
+- The `codemelted_test.ts` deno test environment exercises the access to the namespace ensuring it is not null or undefined in a deno environment.
+
+### PowerShell
+
+<mark>TBD</mark>
+
+### C
 
 <mark>TBD</mark>
 

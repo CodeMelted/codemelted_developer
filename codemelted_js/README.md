@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted - JS Module
-PUBLISH_DATE: 2024-08-05
+PUBLISH_DATE: 2024-10-06
 AUTHOR: Mark Shaffer
 KEYWORDS: raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: Welcome to the CodeMelted - JS Module project. This project aims to give a common fullstack solution for Progressive Web Applications (PWA) utilizing the CodeMelted - Developer use cases. It utilizes the Deno Runtime to run as your backend service. This was chosen as it has a full range of services for your backend if you choose to utilize it. You can also take your backend and host it on a different platform. This allows you to not be locked into a vendor for your backend. It was also chosen because it implements the Browser Web APIs. This allows the module to implement backend and web frontend common code developing a more complete solution. Lastly, Deno provides the use of TypeScript natively out of the box. So you are able to utilize both JavaScript / TypeScript for your solution and roll with any build system.
@@ -14,7 +14,7 @@ Welcome to the **CodeMelted - JS Module** project. This project aims to give a c
 
 ## GETTING STARTED
 
-The `codemelted.js` file implements the `codemelted` global namespaces. This namespace accesses features as attached namespaces in accordance with the **CodeMelted - Developer** identified use cases. Once this file is imported, the `codemelted` global namespace is available in your target runtime (Deno, Web Browser).
+The `codemelted.js` file implements ES6 module with namespace default exports. The namespaces access functions in accordance with the **CodeMelted - Developer** identified use cases. Once the module is imported, the `codemelted` object is available in your target runtime (Deno, Web Browser).
 
 ### From GitHub Repo
 
@@ -28,43 +28,59 @@ You can download the tagged version [codemelted_js_X.Y.Z](https://github.com/Cod
 
 Then include the module as follows:
 
+**Dynamic Import:**
+
+```javascript
+const codemelted = (await import("codemelted_developer/codemelted_js/codemelted.js")).default;
+```
+
 **Module Import:**
 
 ```javascript
-import "codemelted_developer/codemelted_js/codemelted.js";
+import codemelted from "codemelted_developer/codemelted_js/codemelted.js";
 ```
 
 **HTML Import:**
 
 ```html
-<!-- defer or async will work. Could be placed in <head> or at the end of<body> -->
-<script src="codemelted_developer/codemelted_js/codemelted.js"></script>
+<!-- Can be placed in <head> or at the end of<body> -->
+<script type="module">
+  import codemelted from "codemelted_developer/codemelted_js/codemelted.js";
+  // Do what you will do.
+</script>
 ```
 
 ### From Web
 
 If you want to be brave and utilize the latest deployed `codemelted.js` module you can simple import it from the web as follows:
 
+**Dynamic Import:**
+
+```javascript
+const codemelted = (await import("codemelted_developer/codemelted_js/codemelted.js")).default;
+```
+
 **Module Import:**
 
 ```javascript
-import "https://codemelted.com/developer/codemelted_js/codemelted.js";
+import codemelted from "https://codemelted.com/developer/codemelted_js/codemelted.js";
 ```
 
 **HTML Import:**
 
 ```html
 <!-- defer or async will work. Could be placed in <head> or at the end of<body> -->
-<script src="https://codemelted.com/developer/codemelted_js/codemelted.js"></script>
+<script type="module">
+  import codemelted from "https://codemelted.com/developer/codemelted_js/codemelted.js";
+</script>
 ```
-
-## USAGE
+¬## USAGE
 
 The following examples represent the implementation of the **CodeMelted - Developer Cross Platform Module** identified use cases.
 
 *NOTE: Items marked UNDER DEVELOPMENT are considered unstable. They may have implementations simple not documented as they are being developed. Use at your own risk. Items documented have been through a level of testing and are considered stable enough for usage.*
 
-### Async
+### Async IO
 
 <mark>UNDER DEVELOPMENT</mark>
 
@@ -74,7 +90,39 @@ The following examples represent the implementation of the **CodeMelted - Develo
 
 ### Console
 
-<mark>UNDER DEVELOPMENT</mark>
+*NOTE: This is only valid on the Deno runtime. Calling this on web target will result in a SyntaxError.*
+
+```javascript
+// Alert a message to STDOUT with [Enter] prompt to continue processing.
+// Non string message will result in SyntaxError
+codemelted.console.alert({message: "Hello"});
+// Pause processing no message.
+codemelted.console.alert();
+
+/// Confirm a choice. True if y and false if N
+const answer = codemelted.console.confirm({message: "Are You Sure"});
+/// With no message specified you get a generic CONFIRM message.
+const answer = codemelted.console.confirm();
+
+/// To select a set of choices and get the index of that choice.
+const answer = codemelted.console.choose({message: "Which Jeep", choices: ["Jeep 1", "Jeep 2", "Jeep 3"]});
+/// With no message specified you get a generic CHOOSE message.
+const answer = codemelted.console.choose({choices: ["Jeep 1", "Jeep 2", "Jeep 3"]});
+
+// To get someone's password
+const password = codemelted.console.password({message: "System Password"});
+// With no message specified, you get a generic PASSWORD message.
+const password = codemelted.console.password();
+
+// To prompt for general user input returned as a string
+const answer = codemelted.console.prompt({message: "Who's on First?"});
+// With no message specified, you get a generic PROMPT: message.
+const answer = codemelted.console.prompt({message: "Who's on First?"});
+
+// To write a general message to STDOUT with no pausing
+codemelted.console.writeln({message: "It Worked!"});
+// With no message specified, you get a new line written to STDOUT.
+```
 
 ### Database
 
