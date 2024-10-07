@@ -1,7 +1,8 @@
 // @ts-check
 // ============================================================================
 /**
- * @file The JavaScript implementation CodeMelted - Developer use cases.
+ * @file The JavaScript implementation of the CodeMelted - Developer use
+ * cases.
  * @author Mark Shaffer
  * @version 0.2.0 (Last Modified 2024-10-07) <br />
  * - 0.2.0 (2024-10-07): Completed codemelted.disk <br />

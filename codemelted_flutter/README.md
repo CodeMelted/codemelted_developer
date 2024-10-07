@@ -99,7 +99,7 @@ Use case not applicable to this module.
 
 ## CHANGE LOG
 
-<iframe style="border: none;" width="100%" height="400px;" src="CHANGELOG.md"></iframe>
+<iframe style="border: none; background-color: white;" width="100%" height="400px;" src="CHANGELOG.md"></iframe>
 
 ## LICENSE
 

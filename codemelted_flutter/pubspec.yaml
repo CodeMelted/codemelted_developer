@@ -1,6 +1,6 @@
 name: codemelted_flutter
 description: "Welcome to the CodeMelted - Flutter Module project. This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the CodeMelted - Developer identified use cases, you can be assured to building a powerful native application."
-version: 0.0.0
+version: 0.0.2
 homepage: https://developer.codemelted.com
 
 platforms:
