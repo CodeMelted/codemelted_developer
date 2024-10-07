@@ -10,6 +10,8 @@ DESCRIPTION: Welcome to the CodeMelted - JS Module project. This project aims to
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/deno-js.png" /> CodeMelted - JS Module</h1>
 
+<center><a href="codemelted_test.html">Test Results</a></center>
+
 Welcome to the **CodeMelted - JS Module** project. This project aims to give a common fullstack solution for Progressive Web Applications (PWA) utilizing the **CodeMelted - Developer** use cases. It utilizes the **Deno Runtime** to run as your backend service. This was chosen as it has a full range of services for your backend if you choose to utilize it. You can also take your backend and host it on a different platform. This allows you to not be locked into a vendor for your backend. It was also chosen because it implements the **Browser Web APIs**. This allows the module to implement backend and web frontend common code developing a more complete solution. Lastly, Deno provides the use of TypeScript natively out of the box. So you are able to utilize both JavaScript / TypeScript for your solution and roll with any build system.
 
 ## GETTING STARTED
@@ -95,33 +97,34 @@ The following examples represent the implementation of the **CodeMelted - Develo
 ```javascript
 // Alert a message to STDOUT with [Enter] prompt to continue processing.
 // Non string message will result in SyntaxError
-codemelted.console.alert({message: "Hello"});
+codemelted.console.alert("Hello");
 // Pause processing no message.
 codemelted.console.alert();
 
 /// Confirm a choice. True if y and false if N
-const answer = codemelted.console.confirm({message: "Are You Sure"});
+const answer = codemelted.console.confirm("Are You Sure");
 /// With no message specified you get a generic CONFIRM message.
 const answer = codemelted.console.confirm();
 
 /// To select a set of choices and get the index of that choice.
-const answer = codemelted.console.choose({message: "Which Jeep", choices: ["Jeep 1", "Jeep 2", "Jeep 3"]});
+const answer = codemelted.console.choose("Which Jeep", ["Jeep 1", "Jeep 2", "Jeep 3"]);
 /// With no message specified you get a generic CHOOSE message.
-const answer = codemelted.console.choose({choices: ["Jeep 1", "Jeep 2", "Jeep 3"]});
+const answer = codemelted.console.choose(["Jeep 1", "Jeep 2", "Jeep 3"]);
 
 // To get someone's password
-const password = codemelted.console.password({message: "System Password"});
+const password = codemelted.console.password("System Password");
 // With no message specified, you get a generic PASSWORD message.
 const password = codemelted.console.password();
 
 // To prompt for general user input returned as a string
-const answer = codemelted.console.prompt({message: "Who's on First?"});
+const answer = codemelted.console.prompt("Who's on First?");
 // With no message specified, you get a generic PROMPT: message.
-const answer = codemelted.console.prompt({message: "Who's on First?"});
+const answer = codemelted.console.prompt();
 
 // To write a general message to STDOUT with no pausing
-codemelted.console.writeln({message: "It Worked!"});
+codemelted.console.writeln("It Worked!");
 // With no message specified, you get a new line written to STDOUT.
+codemelted.console.writeln();
 ```
 
 ### Database
@@ -130,7 +133,35 @@ codemelted.console.writeln({message: "It Worked!"});
 
 ### Disk
 
-<mark>UNDER DEVELOPMENT</mark>
+*NOTE: Only readEntireFile() and writeEntireFile() will work in web runtime.*
+
+```javascript
+/// Query for disk properties (Deno only)
+const homePath = codemelted.disk.homePath;
+const pathSeparator = codemelted.disk.pathSeparator;
+const diskPath = codemelted.disk.tempPath;
+
+/// Now lets do some disk work
+let success = codemelted.disk.cp("src", "dest");
+let fileInfo = codemelted.disk.exists("filename");
+let files = codemelted.disk.ls("path");
+success = codemelted.disk.mkdir("path");
+success = codemelted.disk.mv("src", "dest");
+success = codemelted.disk.rm("filename");
+
+// Read and write entire files
+// See specific SDK documentation for
+// details of items related to web.
+await codemelted.disk.writeEntireFile({
+  filename: "filename",
+  data: "The data",
+  append: true,
+});
+const data = codemelted.disk.readEntireFile({
+  filename: "filename",
+  isTextFile: true,
+});
+```
 
 ### Firebase
 

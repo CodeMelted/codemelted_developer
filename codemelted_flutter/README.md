@@ -33,7 +33,7 @@ The following examples represent the implementation of the **CodeMelted - Develo
 
 *NOTE: Items marked UNDER DEVELOPMENT are considered unstable. They may have implementations simple not documented as they are being developed. Use at your own risk. Items documented have been through a level of testing and are considered stable enough for usage.*
 
-### Async
+### Async IO
 
 <mark>UNDER DEVELOPMENT</mark>
 
@@ -72,23 +72,6 @@ Use case not applicable to this module.
 ### Logger
 
 <mark>UNDER DEVELOPMENT</mark>
-
-<!-- ```dart
-// Import it.
-import 'package:codemelted_flutter/codemelted_logger.dart';
-
-// Set it up
-codemelted_logger.level = CLogLevel.warning;
-codemelted_logger.onLogEvent = (rec) async {
-  // Handle the CLogRecord object.
-};
-
-// Log stuff
-codemelted_logger.debug(data: 'debug', stackTrace: StackTrace.current);
-codemelted_logger.info(data: 'info', stackTrace: StackTrace.current);
-codemelted_logger.warning(data: 'warning', stackTrace: StackTrace.current);
-codemelted_logger.error(data: 'error', stackTrace: StackTrace.current);
-``` -->
 
 ### Math
 

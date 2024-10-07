@@ -73,7 +73,7 @@ can show all testing efforts with the module.
 </head><body>
   <!-- Sets up our title area offset from mocha's display area. -->
   <h2 class="codemelted-title">
-    <img src="https://codemelted.com/assets/images/icons/deno-js.png" />
+    <a href="index.html"><img src="https://codemelted.com/assets/images/icons/deno-js.png" /></a>
     CodeMelted - JS Module Test Results
     <div>
       <center><button onclick="btnMochaChaiClicked();">☕ Mocha / Chai</button></center>
@@ -99,13 +99,60 @@ can show all testing efforts with the module.
     // ------------------------------------------------------------------------
     const codemelted = (await import("./codemelted.js")).default;
     describe("codemelted.console Tests", () => {
-      it("codemelted.console.* Functions Throws", () => {
+      it("codemelted.console.* Functions Throw", () => {
         assert.throws(() => codemelted.console.alert(), SyntaxError);
         assert.throws(() => codemelted.console.confirm(), SyntaxError);
         assert.throws(() => codemelted.console.choose(), SyntaxError);
         assert.throws(() => codemelted.console.password(), SyntaxError);
         assert.throws(() => codemelted.console.prompt(), SyntaxError);
         assert.throws(() => codemelted.console.writeln(), SyntaxError);
+      });
+    });
+
+    describe("codemelted.disk Tests", () => {
+      it("codemelted.disk Properties Validation", () => {
+        assert.isNull(codemelted.disk.homePath);
+        assert.isNotEmpty(codemelted.disk.pathSeparator);
+        assert.isNull(codemelted.disk.tempPath);
+      });
+
+      it("codemelted.disk Methods Throw Validation", () => {
+        assert.throws(() => codemelted.disk.cp(), SyntaxError);
+        assert.throws(() => codemelted.disk.exists(), SyntaxError);
+        assert.throws(() => codemelted.disk.ls(), SyntaxError);
+        assert.throws(() => codemelted.disk.mkdir(), SyntaxError);
+        assert.throws(() => codemelted.disk.mv(), SyntaxError);
+        assert.throws(() => codemelted.disk.rm(), SyntaxError);
+      });
+
+      it("codemelted.disk File Validation", async () => {
+        // readEntireFile() will always expect to kick-off a download
+        // so it will never "fail".
+        try {
+          // File ignored as a file chooser is presented which will timeout
+          // with no user interaction.
+          await codemelted.disk.readEntireFile({accept: 42});
+          // Should fail.
+          assert.equal(true, false);
+        } catch (err) {
+          assert.equal(err instanceof SyntaxError, true);
+        }
+
+        try {
+          await codemelted.disk.writeEntireFile();
+          // Should fail.
+          assert.equal(true, false);
+        } catch (err) {
+          assert.equal(err instanceof SyntaxError, true);
+        }
+
+        try {
+          await codemelted.disk.writeEntireFile({filename: "test.txt"});
+          // Should fail.
+          assert.equal(true, false);
+        } catch (err) {
+          assert.equal(err instanceof SyntaxError, true);
+        }
       });
     });
 

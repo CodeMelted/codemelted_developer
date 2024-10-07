@@ -20,6 +20,7 @@
     "keepalive",
     "lerp",
     "messageerror",
+    "nocheck",
     "nodoc",
     "nread",
     "onmessageerror",
@@ -28,6 +29,7 @@
     "RUNTIMES",
     "scrollbars",
     "scroller",
+    "strerror",
     "webrtc"
   ],
   "deno.config": "codemelted_js/deno.json",

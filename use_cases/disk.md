@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted - DEV | Use Case: Audio
-PUBLISH_DATE: 2024-08-05
+PUBLISH_DATE: 2024-10-06
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMelted - DEV, Disk, Use Case, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: Applications have access to hard disk which houses directories, files, and other information. This use case will expose the ability to manage the disk along with interface with said files from the disk.
@@ -18,7 +18,14 @@ Applications have access to hard disk which houses directories, files, and other
   - [Manage Items on Disk](#manage-items-on-disk)
   - [Read / Write Files](#read--write-files)
 - [DESIGN NOTES](#design-notes)
+  - [Flutter / JavaScript Modules](#flutter--javascript-modules)
+  - [PowerShell Module](#powershell-module)
+  - [C Module](#c-module)
 - [TEST NOTES](#test-notes)
+  - [Flutter Module](#flutter-module)
+  - [JavaScript Module](#javascript-module)
+  - [PowerShell Module](#powershell-module-1)
+  - [C Module](#c-module-1)
 - [REFERENCES](#references)
 
 ## FUNCTIONAL DECOMPOSITION
@@ -31,10 +38,17 @@ Applications have access to hard disk which houses directories, files, and other
 
 **Acceptance Criteria:**
 
-1. The disk namespace will provide the ability to copy files and directories on disk.
-2. The disk namespace will provide the ability to delete files and directories on disk.
-3. The disk namespace will provide the ability to move files and directories on disk.
-4. The disk namespace will provide the ability to query for a system's temporary directory or a user's home directory.
+1. The disk namespace will provide the ability to manage the local disk by
+   - Copy files and directories
+   - Creating files and directories
+   - Delete files and directories
+   - List files and directories
+   - Move files and directories
+2. The disk namespace will provide the ability to query the local disk for
+   - Information about an item on disk to include if it is a file, a directory, a symbolic link, its size, and its permissions
+   - Path separator for directories
+   - Platform's temporary directory
+   - User's home directory
 
 ### Read / Write Files
 
@@ -42,19 +56,55 @@ Applications have access to hard disk which houses directories, files, and other
 
 **Acceptance Criteria:**
 
-1. The disk namespace will provide the ability to read an entire file as either bytes or a string.
-2. The disk namespace will provide the ability to write an entire file as either bytes or a string.
-3. The disk namespace will provide the ability to append to an existing file as either bytes or a string.
-4. The disk namespace will provide the ability to read / write a file in chunks vs. the entire file contents as reflected in acceptance criteria 2 and 3.
+1. The disk namespace will provide the ability to read / write (append / new) an entire file as
+   - As bytes
+   - As a string
+2. When possible the disk namespace will provide the ability to read / write file chunks as
+   - Seeking bytes within a file
+   - Line by line for string files
+3. When possible the disk namespace will provide a file chooser dialog to
+   - Specify a file / directory to open
+   - Specify a file to save
 
 ## DESIGN NOTES
 
+### Flutter / JavaScript Modules
+
+The call signature into the namespace will be as follows:
+
+```javascript
+codemelted.disk.functionName();
+```
+
+### PowerShell Module
+
 <mark>TBD</mark>
 
+### C Module
+
+<mark>TBD</mark>
+
+
 ## TEST NOTES
+
+### Flutter Module
+
+<mark>TBD</mark>
+
+### JavaScript Module
+
+- The `codemelted.disk.readEntireFile()` and `codemelted.disk.writeEntireFile()` was validated via browser functional testing.
+- The `codemelted_test.html` confirms that a `SyntaxError` is thrown with each attempt to utilize one of the `codemelted.disk.*` functions in an unsupported target runtime.
+- The `codemelted_test.ts` deno test environment exercises each of the `codemelted.disk.*` functions ensuring they work as expected.
+
+### PowerShell Module
+
+<mark>TBD</mark>
+
+### C Module
 
 <mark>TBD</mark>
 
 ## REFERENCES
 
-<mark>TBD</mark>
+Deno Docs contributors. (n.d.). Deno File System. In *Deno APIs*. Retrieved 22:52, Oct 06, 2024, from https://docs.deno.com/api/deno/file-system

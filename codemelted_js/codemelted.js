@@ -3,11 +3,46 @@
 /**
  * @file The JavaScript implementation CodeMelted - Developer use cases.
  * @author Mark Shaffer
- * @version 0.1.0
+ * @version 0.2.0 (Last Modified 2024-10-07) <br />
+ * - 0.2.0 (2024-10-07): Completed codemelted.disk <br />
+ * - 0.1.0 (2024-10-04): Completed codemelted.console <br />
  * @license MIT
  * @see https://developer.codemelted.com/codemelted_js
  */
 // ============================================================================
+
+// ----------------------------------------------------------------------------
+// [Common Data Definitions] --------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/**
+ * Identifies why a use case transaction failed.
+ * @private
+ * @type {string}
+ */
+let _strerror = "";
+
+/**
+ * Resets the failure reason for each use case transaction.
+ * @private
+ * @param {any} err The error to handle and set.
+ * @returns {void}
+ */
+function handleError(err = undefined) {
+  if (err) {
+    if (err instanceof Error) {
+      _strerror = err.message;
+    } else if ("toString" in err) {
+      _strerror = err.toString();
+    } else if (json.checkType("string", err)) {
+      _strerror = err;
+    } else {
+      _strerror = "unknown";
+    }
+  } else {
+    _strerror = "";
+  }
+}
 
 // ----------------------------------------------------------------------------
 // [Async IO Use Case] --------------------------------------------------------
@@ -50,42 +85,39 @@ const console = Object.freeze({
   /**
    * Alerts a message to STDOUT with a [Enter] to halt execution.
    * @memberof console
-   * @param {object} params The named parameters.
-   * @param {string} [params.message = ""] The message to display to STDOUT.
+   * @param {string} [message = ""] The message to display to STDOUT.
    * Not specifying will simple pause until [ENTER] is pressed.
    * @returns {void}
    */
-  alert: function({message = ""} = {}) {
+  alert: function(message = "") {
     runtime.tryDeno();
-    json.tryType({type: "string", data: message});
+    json.tryType("string", message);
     globalThis.alert(message);
   },
 
   /**
    * Prompts a [y/N] to STDOUT with the message as a question.
    * @memberof console
-   * @param {object} params The named parameters.
-   * @param {string} [params.message = "CONFIRM"] The message to display to STDOUT.
+   * @param {string} [message = "CONFIRM"] The message to display to STDOUT.
    * @returns {boolean} true if y selected, false otherwise.
    */
-  confirm: function({message = "CONFIRM"} = {}) {
+  confirm: function(message = "CONFIRM") {
     runtime.tryDeno();
-    json.tryType({type: "string", data: message});
+    json.tryType("string", message);
     return globalThis.confirm(message);
   },
 
   /**
    * Prompts a list of choices for the user to select from.
    * @memberof console
-   * @param {object} params The named parameters.
-   * @param {string} [params.message = "CHOOSE"] The message to display to STDOUT.
-   * @param {string[]} [params.choices = []] The choices to select from.
+   * @param {string} [message = "CHOOSE"] The message to display to STDOUT.
+   * @param {string[]} [choices = []] The choices to select from.
    * @returns {number} The index of the chosen item.
    */
-  choose: function({message = "CHOOSE", choices = []} = {}) {
+  choose: function(message = "CHOOSE", choices = []) {
     runtime.tryDeno();
-    json.tryType({type: "string", data: message});
-    json.tryType({type: Array, data: choices});
+    json.tryType("string", message);
+    json.tryType(Array, choices);
     if (message === "" || choices.length === 0) {
       throw new SyntaxError("Parameters were not set!");
     }
@@ -118,15 +150,14 @@ const console = Object.freeze({
   /**
    * Prompts for a password not showing the text typed via STDIN.
    * @memberof console
-   * @param {object} params The named parameters.
-   * @param {string} [params.message = "PASSWORD"] The message to display
+   * @param {string} [message = "PASSWORD"] The message to display
    * to STDOUT.
    * @returns {string} The typed password.
    */
-  password: function({message = "PASSWORD"} = {}) {
+  password: function(message = "PASSWORD") {
     // Setup our variables
     const deno = runtime.tryDeno();
-    json.tryType({type: "string", data: message});
+    json.tryType("string", message);
     const buf = new Uint8Array(1);
     const decoder = new TextDecoder();
     let answer = "";
@@ -156,27 +187,25 @@ const console = Object.freeze({
   /**
    * Prompts to STDOUT and returns the typed message via STDIN.
    * @memberof console
-   * @param {object} params The named parameters.
-   * @param {string} [params.message = "PROMPT"] The message to display to
+   * @param {string} [message = "PROMPT"] The message to display to
    * STDOUT.
    * @returns {string?} The result typed.
    */
-  prompt: function({message = "PROMPT:"} = {}) {
+  prompt: function(message = "PROMPT:") {
     runtime.tryDeno();
-    json.tryType({type: "string", data: message});
+    json.tryType("string", message);
     return globalThis.prompt(message);
   },
 
   /**
    * Write a message to STDOUT.
    * @memberof console
-   * @param {object} params The named parameters.
-   * @param {string} [params.message = ""] The message to display to STDOUT.
+   * @param {string} [message = ""] The message to display to STDOUT.
    * @returns {void}
    */
-  writeln: function({message = ""} = {}) {
+  writeln: function(message = "") {
     runtime.tryDeno();
-    json.tryType({type: "string", data: message});
+    json.tryType("string", message);
     globalThis.console.log(message);
   },
 });
@@ -199,12 +228,357 @@ const _db = Object.freeze({
 // ----------------------------------------------------------------------------
 
 /**
- * TBD
- * @private
+ * Provides the ability to manage items on disk. This includes file
+ * manipulation, reading / writing files, and opening files for additional
+ * work.
  * @namespace disk
+ * @see https://developer.codemelted.com/use_cases/disk.html
  */
-const _disk = Object.freeze({
+const disk = Object.freeze({
+  /**
+   * Copies a file / directory from its currently source location to the
+   * specified destination.
+   * @memberof disk
+   * @param {string} src The source item to copy.
+   * @param {string} dest The destination of where to copy the item.
+   * @returns {boolean} true if carried out, false otherwise. Check strerror
+   * for details of failure.
+   */
+  cp: function(src, dest) {
+    handleError();
+    try {
+      const deno = runtime.tryDeno();
+      json.tryType("string", src);
+      json.tryType("string", dest);
+      deno.copyFileSync(src, dest);
+      return true;
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        throw err;
+      }
+      handleError(err);
+      return false;
+    }
+  },
 
+  /**
+   * Determines if the specified item exists.
+   * @memberof disk
+   * @param {string} filename The path to a directory or filename.
+   * @returns {Deno.FileInfo?} The file information or null if it does not
+   * exist.
+   */
+  exists: function(filename) {
+    handleError();
+    try {
+      const deno = runtime.tryDeno();
+      json.tryType("string", filename);
+      return deno.statSync(filename);
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        throw err;
+      }
+      handleError(err);
+      return null;
+    }
+  },
+
+  /**
+   * Identifies the user's home directory on disk. Null is returned if it
+   * cannot be found or running on web environment. Check codemelted.strerror
+   * if you did not expect null.
+   * @memberof disk
+   * @readonly
+   * @type {string?}
+   */
+  get homePath() {
+    handleError();
+    try {
+      return runtime.tryDeno().env.get("HOME")
+        || runtime.tryDeno().env.get("USERPROFILE")
+        || null;
+    } catch (err) {
+      handleError(err);
+      return null;
+    }
+  },
+
+  /**
+   * List the files in the specified source location.
+   * @memberof codemelted.codemelted_disk
+   * @param {string} path The path to list.
+   * @returns {Deno.FileInfo[]?} Array of files found.
+   */
+  ls: function(path) {
+    try {
+      const deno = runtime.tryDeno();
+      json.tryType("string", path);
+      const dirList = deno.readDirSync(path);
+      const fileInfoList = [];
+      for (const dirEntry of dirList) {
+        const fileInfo = deno.lstatSync(
+          `${path}/${dirEntry.name}`
+        );
+        fileInfoList.push(fileInfo);
+      }
+      return fileInfoList;
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        throw err;
+      }
+      return null;
+    }
+  },
+
+  /**
+   * Makes a directory at the specified location.
+   * @memberof disk
+   * @param {string} path The source item to create.
+   * @returns {boolean}
+   */
+  mkdir: function(path) {
+    handleError();
+    try {
+      const deno = runtime.tryDeno();
+      json.tryType("string", path);
+      deno.mkdirSync(path);
+      return true;
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        throw err;
+      }
+      handleError(err);
+      return false;
+    }
+  },
+
+  /**
+   * Moves a file / directory from its currently source location to the
+   * specified destination.
+   * @memberof disk
+   * @param {string} src The source item to move.
+   * @param {string} dest The destination of where to move the item.
+   * @returns {boolean} true if carried out, false otherwise. Check strerror
+   * for details of failure.
+   */
+  mv: function(src, dest) {
+    handleError();
+    try {
+      const deno = runtime.tryDeno();
+      json.tryType("string", src);
+      json.tryType("string", dest);
+      deno.renameSync(src, dest);
+      return true;
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        throw err;
+      }
+      handleError(err);
+      return false;
+    }
+  },
+
+  /**
+   * Identifies the path separator for files on disk.
+   * @memberof disk
+   * @readonly
+   * @type {string}
+   */
+  get pathSeparator() {
+    return runtime.osName === "windows"
+      ? "\\"
+      : "/"
+  },
+
+  /**
+   * Reads an entire file from disk.
+   * @memberof disk
+   * @param {object} params
+   * @param {string} [params.filename] The file to open
+   * @param {boolean} [params.isTextFile = true] True if text file, false if
+   * a Uint8Array data.
+   * @param {string} [params.accept = ""] A comma separated list of accepted files
+   * on an open dialog. Specifying nothing will yield all files. NOTE: This
+   * is only available on web target.
+   * @returns {Promise<string | Uint8Array>} Expected data object or
+   * null. Check strerror for details of null.
+   */
+  readEntireFile: function({
+    filename,
+    isTextFile = true,
+    accept = "",
+  } = {}) {
+    return new Promise((resolve, reject) => {
+      handleError();
+      try {
+        if (runtime.isDeno) {
+          const deno = runtime.tryDeno();
+          json.tryType("string", filename);
+          json.tryType("boolean", isTextFile);
+          if (isTextFile) {
+            // @ts-ignore: checked via tryType call
+            resolve(deno.readTextFileSync(filename));
+          } else {
+            // @ts-ignore: checked via tryType call
+            resolve(deno.readFileSync(filename));
+          }
+        } else {
+          json.tryType("string", accept);
+          // @ts-ignore: globalThis will have a document object
+          const input = globalThis.document.createElement("input");
+          input.type = "file";
+          input.accept = accept;
+          input.onchange = async () => {
+            let file = undefined;
+            if (input.files != null) {
+              file = input.files[0];
+              if (isTextFile) {
+                const buffer = await file.arrayBuffer();
+                const decoder = new TextDecoder();
+                resolve(decoder.decode(buffer));
+              } else {
+                const bytes = await file.bytes();
+                resolve(bytes);
+              }
+            }
+          };
+          input.click();
+        }
+      } catch (err) {
+        if (err instanceof SyntaxError) {
+          throw err;
+        }
+        handleError(err);
+        reject(err);
+      }
+    });
+  },
+
+  /**
+   * Removes a file or directory at the specified location.
+   * @memberof disk
+   * @param {string} filename The source item to remove.
+   * @returns {boolean} true if carried out, false otherwise. Check strerror
+   * for details of failure.
+   */
+  rm: function(filename) {
+    handleError();
+    try {
+      const deno = runtime.tryDeno();
+      json.tryType("string", filename);
+      deno.removeSync(filename, {recursive: true});
+      return true;
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        throw err;
+      }
+      handleError(err);
+      return false;
+    }
+  },
+
+  /**
+   * Identifies the temp directory on disk. Null is returned if it cannot be
+   * found or running on web environment. Check codemelted.strerror if you
+   * did not expect null.
+   * @memberof disk
+   * @readonly
+   * @type {string?}
+   */
+  get tempPath() {
+    handleError();
+    try {
+      return runtime.tryDeno().env.get("TMPDIR")
+        || runtime.tryDeno().env.get("TMP")
+        || runtime.tryDeno().env.get("TEMP")
+        || "/tmp";
+    } catch (err) {
+      handleError(err);
+      return null;
+    }
+  },
+
+  /**
+   * Writes an entire file to disk.
+   * @memberof disk
+   * @param {object} params
+   * @param {string} [params.filename] What / where to save the file.
+   * For the web target this will default to the download directory.
+   * @param {string | Uint8Array} [params.data] The data to save to the file.
+   * @param {boolean} [params.append = false] Whether to append the data or
+   * create a new file. Only valid on deno runtime.
+   * @returns {Promise<void>} true if successful, false otherwise. Check
+   * codemelted.strerror if false is returned to know why.
+   */
+  writeEntireFile({
+    filename,
+    data,
+    append = false,
+  } = {}) {
+    return new Promise((resolve, reject) => {
+      handleError();
+      try {
+        json.tryType("string", filename);
+
+        if (runtime.isDeno) {
+          const deno = runtime.tryDeno();
+          json.tryType("boolean", append);
+
+          if (json.checkType("string", data)) {
+            // @ts-ignore: checked via tryType call
+            deno.writeTextFileSync(filename, data, append);
+          } else if (json.checkType(Uint8Array, data)) {
+            // @ts-ignore: checked via tryType call
+            deno.writeFileSync(filename, data, append);
+          } else {
+            throw new SyntaxError("data is not of an expected type");
+          }
+
+          resolve();
+        } else {
+          let blobURL = undefined;
+          if (json.checkType("string", data)) {
+            // @ts-ignore: checked via checkType above
+            const buffer = new TextEncoder().encode(data);
+            const blob = new Blob([buffer]);
+            blobURL = URL.createObjectURL(blob);
+          } else if (json.checkType(Uint8Array, data)) {
+            // @ts-ignore: checked via checkType above
+            const blob = new Blob([data]);
+            blobURL = URL.createObjectURL(blob);
+          } else {
+            throw new SyntaxError("data is not of an expected type");
+          }
+
+          // Create the `<a download>` element and append it invisibly.
+          // @ts-ignore: globalThis will have a document object
+          const a = globalThis.document.createElement('a');
+          a.href = blobURL;
+          // @ts-ignore: checked via tryType call
+          a.download = filename;
+          a.style.display = 'none';
+          // @ts-ignore: globalThis will have a document object
+          globalThis.document.body.append(a);
+
+          // Programmatically click the element.
+          a.click();
+
+          // Revoke the blob URL and remove the element.
+          setTimeout(() => {
+            URL.revokeObjectURL(blobURL);
+            a.remove();
+            resolve();
+          }, 500);
+        }
+      } catch (err) {
+        if (err instanceof SyntaxError) {
+          throw err;
+        }
+        handleError(err);
+        reject(err);
+      }
+    });
+  },
 });
 
 // ----------------------------------------------------------------------------
@@ -260,12 +634,11 @@ const json = Object.freeze({
   /**
    * Determines if the specified object has the specified property.
    * @memberof json
-   * @param {object} params The named parameters.
-   * @param {object} params.obj The object to check for the key.
-   * @param {string} params.key The property to check for.
+   * @param {object} obj The object to check for the key.
+   * @param {string} key The property to check for.
    * @returns {boolean} true if property was found, false otherwise.
    */
-  checkHasProperty: function({ obj, key }) {
+  checkHasProperty: function(obj, key) {
     return Object.hasOwn(obj, key);
   },
 
@@ -273,16 +646,15 @@ const json = Object.freeze({
    * Utility to check parameters of a function to ensure they are of an
    * expected type.
    * @memberof json
-   * @param {object} params The named parameters.
-   * @param {string | any} params.type The specified type to check the data
+   * @param {string | any} type The specified type to check the data
    * against.
-   * @param {any} params.data The parameter to be checked.
-   * @param {number} [params.count] Checks the data parameter function
+   * @param {any} data The parameter to be checked.
+   * @param {number} [count] Checks the data parameter function
    * signature to ensure the appropriate number of parameters are
    * specified.
    * @returns {boolean} true if it meets the expectations, false otherwise.
    */
-  checkType: function({ type, data, count = undefined }) {
+  checkType: function(type, data, count = undefined) {
     const isExpectedType = typeof type !== "string"
       ? (data instanceof type)
       // deno-lint-ignore valid-typeof
@@ -295,33 +667,35 @@ const json = Object.freeze({
   /**
    * Checks for a valid URL.
    * @memberof json
-   * @param {object} params The named parameters.
-   * @param {string} params.data String to parse to see if it is a valid URL.
+   * @param {string} data String to parse to see if it is a valid URL.
    * @returns {boolean} true if valid, false otherwise.
    */
-  checkValidUrl: function({ data }) {
+  checkValidUrl: function(data) {
+    handleError();
     let url = undefined;
     try {
       url = new URL(data);
     }
-    catch (_ex) {
+    catch (err) {
       url = undefined;
+      handleError(err);
     }
-    return this.checkType({ type: URL, data: url });
+    return this.checkType(URL, url);
   },
 
   /**
    * Converts a string to a JavaScript object.
    * @memberof json
-   * @param {object} params The named parameters.
-   * @param {string} params.data The data to parse.
+   * @param {string} data The data to parse.
    * @returns {object | null} Object or null if the parse failed.
    */
-  parse: function({ data }) {
+  parse: function(data) {
+    handleError();
     try {
       return JSON.parse(data);
     }
-    catch (_ex) {
+    catch (err) {
+      handleError(err);
       return null;
     }
   },
@@ -329,16 +703,17 @@ const json = Object.freeze({
   /**
    * Converts a JavaScript object into a string.
    * @memberof json
-   * @param {object} params The named parameters.
-   * @param {object} params.data An object with valid JSON attributes.
+   * @param {object} data An object with valid JSON attributes.
    * @returns {string | null} The string representation or null if the
    * stringify failed.
    */
-  stringify: function({ data }) {
+  stringify: function(data) {
+    handleError();
     try {
       return JSON.stringify(data);
     }
-    catch (_ex) {
+    catch (err) {
+      handleError(err);
       return null;
     }
   },
@@ -346,15 +721,14 @@ const json = Object.freeze({
   /**
    * Determines if the specified object has the specified property.
    * @memberof json
-   * @param {object} params The named parameters.
-   * @param {object} params.obj The object to check for the key.
-   * @param {string} params.key The property to check for.
+   * @param {object} obj The object to check for the key.
+   * @param {string} key The property to check for.
    * @returns {void}
    * @throws {SyntaxError} if the property is not found.
    */
-  tryHasProperty: function({ obj, key }) {
-    if (!this.checkHasProperty({ obj: obj, key: key })) {
-      throw new SyntaxError(`${obj} does not have property ${key}`);
+  tryHasProperty: function(obj, key) {
+    if (!this.checkHasProperty(obj, key)) {
+      throw new SyntaxError("obj does not have the specified property");
     }
   },
 
@@ -362,35 +736,31 @@ const json = Object.freeze({
    * Utility to check parameters of a function to ensure they are of an
    * expected type.
    * @memberof json
-   * @param {object} params The named parameters.
-   * @param {string | any} params.type he specified type to check the data
+   * @param {string | any} type he specified type to check the data
    * against.
-   * @param {any} params.data The parameter to be checked.
-   * @param {number} [params.count] Checks the data parameter function
+   * @param {any} data The parameter to be checked.
+   * @param {number} [count] Checks the data parameter function
    * signature to ensure the appropriate number of parameters are
    * specified.
    * @returns {void}
    * @throws {SyntaxError} if the type was not as expected
    */
-  tryType: function({ type, data, count = undefined }) {
-    if (!this.checkType({ type: type, data: data, count: count })) {
-      throw new SyntaxError(`${data} parameter is not of type ${type} ` +
-        `or does not contain expected ${count} for function`
-      );
+  tryType: function(type, data, count = undefined) {
+    if (!this.checkType(type, data, count)) {
+      throw new SyntaxError("data is not of expected type.");
     }
   },
 
   /**
    * Checks for a valid URL.
    * @memberof json
-   * @param {object} params The named parameters.
-   * @param {string} params.data String to parse to see if it is a valid URL.
+   * @param {string} data String to parse to see if it is a valid URL.
    * @returns {void}
    * @throws {SyntaxError} If v is not a valid url.
    */
-  tryValidUrl: function({ data }) {
-    if (!this.checkValidUrl({ data: data })) {
-      throw new SyntaxError(`'${data}' is not a valid url`);
+  tryValidUrl: function(data) {
+    if (!this.checkValidUrl(data)) {
+      throw new SyntaxError("data is not a valid url");
     }
   },
 });
@@ -479,6 +849,33 @@ const runtime = Object.freeze({
   },
 
   /**
+   * Gets the name of the operating system your page is running.
+   * @memberof runtime
+   * @readonly
+   * @type {string}
+   */
+  get osName() {
+    const osName = this.isDeno
+      ? this.tryDeno().build.os
+      : this.tryWeb().navigator.userAgent.toLowerCase();
+
+    if (osName.includes("android")) {
+      return "android";
+    } else if (osName.includes("ios") || osName.includes("iphone")
+        || osName.includes("ipad")) {
+      return "ios";
+    } else if (osName.includes("linux")) {
+      return "linux";
+    } else if (osName.includes("mac")) {
+      return "macos";
+    } else if (osName.includes("windows")) {
+      return "windows";
+    }
+
+    return "unknown";
+  },
+
+  /**
    * Determines if we are running in a Deno Runtime or not.
    * @memberof runtime
    * @returns {Deno} namespace reference.
@@ -498,7 +895,7 @@ const runtime = Object.freeze({
    * @throws {SyntaxError} If not running in a browser environment.
    */
   tryWeb: function() {
-    if (!this.isDeno) {
+    if (!this.isWeb) {
       throw new SyntaxError("Not Running in a Web Runtime.");
     }
     return globalThis.window;
@@ -529,6 +926,26 @@ const _storage = Object.freeze({
  */
 const _ui = Object.freeze({
 
+  /**
+   * Determines if the UI is under an iFrame or not.
+   * @memberof ui
+   * @readonly
+   * @type {boolean}
+   */
+  get inIframe() {
+    handleError();
+    try {
+      const w = runtime.tryWeb();
+      // @ts-ignore: globalThis will have a Window object
+      return w.self !== w.top;
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        handleError(err);
+        return false;
+      }
+      return true;
+    }
+  }
 });
 
 // ----------------------------------------------------------------------------
@@ -545,6 +962,14 @@ const _ui = Object.freeze({
  * @module codemelted
  */
 export default Object.freeze({
+  /**
+   * A reason for a failure of a transaction that has an indicator for
+   * either success / failure. NOTE: Module violations will result in
+   * SyntaxError meaning they will not be reported via this mechanism.
+   * @type {string}
+   */
+  strerror: _strerror,
+
   // /** @type {async} */
   // async: async,
 
@@ -557,8 +982,8 @@ export default Object.freeze({
   // /** @type {db} */
   // db: db,
 
-  // /** @type {disk} */
-  // disk: disk,
+  /** @type {disk} */
+  disk: disk,
 
   // /** @type {game} */
   // game: game,
