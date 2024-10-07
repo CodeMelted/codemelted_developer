@@ -24,14 +24,13 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
-/// Collection of flutter widgets utilized within a Single Page Application
-/// paradigm.
-library codemelted_ui;
+/// The Flutter web implementation of the CodeMelted - Developer use cases.
+library codemelted;
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:ui_web';
 
-import 'package:codemelted_flutter/codemelted_json.dart';
-import 'package:codemelted_flutter/codemelted_runtime.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -39,15 +38,561 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import "package:web/web.dart" as web;
 
 // ----------------------------------------------------------------------------
-// [App View Definitions] -----------------------------------------------------
+// [Data Definition] ----------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+// [Async Use Case] -----------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// The task to run as part of the different module async functions.
+typedef CAsyncTask = Future<dynamic> Function([dynamic]);
+
+/// Something Something Star Wars.
+/// SEE https://developer.codemelted.com/use_cases/async.html
+/// @nodoc
+class CAsyncAPI {
+  /// Holds the mapping of timer objects of repeating tasks.
+  final _data = <int, dynamic>{};
+
+  /// The currently held timer id.
+  int _timerId = 0;
+
+  /// @nodoc - need to hook up to codemelted_js
+  int get cpuLoad => throw UnimplementedError(
+        "Future Implementation",
+      );
+
+  /// @nodoc - need to hook up to codemelted_js
+  int get hardwareConcurrency => throw UnimplementedError(
+        "Future Implementation",
+      );
+
+  /// Starts a repeating [CAsyncTask] on the specified interval.
+  int startTimer(CAsyncTask task, int interval) {
+    assert(interval > 0, "interval specified must be greater than 0.");
+    var timer = Timer.periodic(
+      Duration(milliseconds: interval),
+      (timer) {
+        task();
+      },
+    );
+    _timerId += 1;
+    _data[_timerId] = timer;
+    return _timerId;
+  }
+
+  /// Stops the currently running timer.
+  void stopTimer(timerId) {
+    assert(_data.containsKey(timerId), "timerId was not found.");
+    (_data[timerId] as Timer).cancel();
+    _data.remove(timerId);
+  }
+
+  /// Will allow for a delay in an asynchronous function.
+  Future<void> sleep(delay) async {
+    return Future.delayed(Duration(milliseconds: delay));
+  }
+
+  /// Runs a task and returns any calculated results. Can be scheduled into
+  /// the future if necessary.
+  Future<dynamic> runTask({
+    required CAsyncTask task,
+    dynamic data,
+    int delay = 0,
+  }) async {
+    return (
+      await Future.delayed(
+        Duration(milliseconds: delay),
+        () => task(data),
+      ),
+    );
+  }
+
+  /// TODO: Thread pool stuff.
+
+  /// Gets the single instance of the API.
+  static CAsyncAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CAsyncAPI() => _instance ?? CAsyncAPI._();
+
+  /// Sets up the namespace for the [CAsyncAPI] object.
+  CAsyncAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Audio Use Case] -----------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Something Something Star Wars.
+/// @nodoc
+class CAudioAPI {
+  /// Gets the single instance of the API.
+  static CAudioAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CAudioAPI() => _instance ?? CAudioAPI._();
+
+  /// Sets up the namespace for the [CAudioAPI] object.
+  CAudioAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Console Use Case] ---------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+// NOT APPLICABLE TO FLUTTER MODULE.
+
+// ----------------------------------------------------------------------------
+// [Database Use Case] --------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Something Something Star Wars.
+/// @nodoc
+class CDatabaseAPI {
+  /// Gets the single instance of the API.
+  static CDatabaseAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CDatabaseAPI() => _instance ?? CDatabaseAPI._();
+
+  /// Sets up the namespace for the [CDatabaseAPI] object.
+  CDatabaseAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Firebase Use Case] --------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Something Something Star Wars.
+/// @nodoc
+class CFirebaseAPI {
+  /// Gets the single instance of the API.
+  static CFirebaseAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CFirebaseAPI() => _instance ?? CFirebaseAPI._();
+
+  /// Sets up the namespace for the [CFirebaseAPI] object.
+  CFirebaseAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Game Use Case] ------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Something Something Star Wars.
+/// @nodoc
+class CGameAPI {
+  /// Gets the single instance of the API.
+  static CGameAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CGameAPI() => _instance ?? CGameAPI._();
+
+  /// Sets up the namespace for the [CGameAPI] object.
+  CGameAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Hardware Use Case] --------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Something Something Star Wars.
+/// @nodoc
+class CHardwareAPI {
+  /// Gets the single instance of the API.
+  static CHardwareAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CHardwareAPI() => _instance ?? CHardwareAPI._();
+
+  /// Sets up the namespace for the [CHardwareAPI] object.
+  CHardwareAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [JSON Use Case] ------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Defines an array definition to match JSON Array construct.
+typedef CArray = List<dynamic>;
+
+/// Provides helper methods for the CArray.
+extension CArrayExtension on CArray {
+  /// Builds a map of ChangeNotifier objects to support notification via the
+  /// [CArray] definition.
+  static final _map = <dynamic, ChangeNotifier?>{};
+
+  /// Adds an event listener so when changes are made via the
+  /// [CObjectExtension.set] method.
+  void addListener(void Function() listener) {
+    if (_map[this] == null) {
+      _map[this] = ChangeNotifier();
+    }
+    _map[this]!.addListener(listener);
+  }
+
+  /// Removes an event listener from the [CArray].
+  void removeListener(void Function() listener) {
+    _map[this]?.removeListener(listener);
+  }
+
+  /// Provides a method to set data elements on the [CArray].
+  void set<T>(int index, T value, {bool notify = false}) {
+    insert(index, value);
+    if (notify) {
+      // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
+      _map[this]?.notifyListeners();
+    }
+  }
+
+  /// Provides the ability to extract a data element from the represented
+  /// [CArray] at the given index.
+  T get<T>(int index) => elementAt(index) as T;
+
+  /// Creates a copy of the array.
+  CArray copy() {
+    var copy = <dynamic>[];
+    copy.addAll(this);
+    return copy;
+  }
+
+  /// Attempts to parse the serialized string data and turn it into a
+  /// [CArray]. Any data previously held by this object is cleared. False is
+  /// returned if it could not parse the data.
+  bool parse(String data) {
+    try {
+      clear();
+      addAll(jsonDecode(data));
+      return true;
+    } catch (ex) {
+      return false;
+    }
+  }
+
+  /// Converts the JSON object to a string returning null if it cannot
+  String? stringify() => jsonEncode(this);
+}
+
+/// Defines an object definition to match a valid JSON Object construct.
+typedef CObject = Map<String, dynamic>;
+
+/// Provides helper methods for the [CObject] for set / get data, implementing
+/// a [ChangeNotifier], and being able to serialize / deserialize between
+/// JSON and string data.
+extension CObjectExtension on CObject {
+  /// Builds a map of ChangeNotifier objects to support notification via the
+  /// [CObject] definition.
+  static final _map = <dynamic, ChangeNotifier?>{};
+
+  /// Adds an event listener so when changes are made via the
+  /// [CObjectExtension.set] method.
+  void addListener(void Function() listener) {
+    if (_map[this] == null) {
+      _map[this] = ChangeNotifier();
+    }
+    _map[this]!.addListener(listener);
+  }
+
+  /// Removes an event listener from the [CObject].
+  void removeListener(void Function() listener) {
+    _map[this]?.removeListener(listener);
+  }
+
+  /// Attempts to parse the serialized string data and turn it into a
+  /// [CObject]. Any data previously held by this object is cleared. False is
+  /// returned if it could not parse the data.
+  bool parse(String data) {
+    try {
+      clear();
+      addAll(jsonDecode(data));
+      return true;
+    } catch (ex) {
+      return false;
+    }
+  }
+
+  /// Converts the JSON object to a string returning null if it cannot.
+  String? stringify() {
+    try {
+      return jsonEncode(this);
+    } catch (ex) {
+      return null;
+    }
+  }
+
+  /// Provides a method to set data elements on the [CObject].
+  void set<T>(String key, T value, {bool notify = false}) {
+    this[key] = value;
+    if (notify) {
+      // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
+      _map[this]?.notifyListeners();
+    }
+  }
+
+  /// Provides the ability to extract a data element from the represented
+  /// [CObject].
+  T get<T>(String key) {
+    return this[key];
+  }
+}
+
+/// Provides a series of asXXX() conversion from a string data type and do non
+/// case sensitive compares.
+extension CStringExtension on String {
+  /// Will attempt to return an array object ir null if it cannot.
+  CArray? asArray() {
+    try {
+      return jsonDecode(this) as CArray?;
+    } catch (ex) {
+      return null;
+    }
+  }
+
+  /// Will attempt to convert to a bool from a series of strings that can
+  /// represent a true value.
+  bool asBool() {
+    List<String> trueStrings = [
+      "true",
+      "1",
+      "t",
+      "y",
+      "yes",
+      "yeah",
+      "yup",
+      "certainly",
+      "uh-huh"
+    ];
+    return trueStrings.contains(toLowerCase());
+  }
+
+  /// Will attempt to return a double from the string value or null if it
+  /// cannot.
+  num? asDouble() => double.tryParse(this);
+
+  /// Will attempt to return a int from the string value or null if it cannot.
+  num? asInt() => int.tryParse(this);
+
+  /// Will attempt to return Map<String, dynamic> object or null if it cannot.
+  CObject? asObject() {
+    try {
+      return jsonDecode(this) as CObject?;
+    } catch (ex) {
+      return null;
+    }
+  }
+
+  /// Determines if a string is contained within this string.
+  bool containsIgnoreCase(String v) => toLowerCase().contains(v.toLowerCase());
+
+  /// Determines if a string is equal to another ignoring case.
+  bool equalsIgnoreCase(String v) => toLowerCase() == v.toLowerCase();
+}
+
+/// Defines a set of utility methods for performing data conversions for JSON
+/// along with data validation.
+class CJsonAPI {
+  /// Determines if a [CObject] has a given property contained within.
+  bool checkHasProperty(CObject obj, String key) {
+    return obj.containsKey(key);
+  }
+
+  /// Determines if the variable is of the expected type.
+  bool checkType<T>(dynamic data) {
+    return data is T;
+  }
+
+  /// Determines if the data type is a valid URL.
+  bool checkValidUrl(String data) {
+    return Uri.tryParse(data) != null;
+  }
+
+  /// Will convert data into a JSON [CObject] or return null if the decode
+  /// could not be achieved.
+  CObject? parse(data) {
+    return data.asObject();
+  }
+
+  /// Will encode the JSON [CObject] into a string or null if the encode
+  /// could not be achieved.
+  String? stringify(CObject data) {
+    return data.stringify();
+  }
+
+  /// Same as [checkHasProperty] but throws an exception if the key
+  /// is not found.
+  void tryHasProperty(CObject obj, String key) {
+    if (!checkHasProperty(obj, key)) {
+      throw "obj does not contain specified key";
+    }
+  }
+
+  /// Same as [checkType] but throws an exception if not of the
+  /// expected type.
+  void tryType<T>(dynamic data) {
+    if (!checkType<T>(data)) {
+      throw "variable was not of of an expected type.'";
+    }
+  }
+
+  /// Same as [checkValidUrl] but throws an exception if not a valid
+  /// URL type.
+  void tryValidUrl(String data) {
+    if (!checkValidUrl(data)) {
+      throw "data was not a valid URL string";
+    }
+  }
+
+  /// Gets the single instance of the API.
+  static CJsonAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CJsonAPI() => _instance ?? CJsonAPI._();
+
+  /// Sets up the namespace for the [CJsonAPI] object.
+  CJsonAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Logger Use Case] ----------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Something Something Star Wars.
+/// @nodoc
+class CLoggerAPI {
+  /// Gets the single instance of the API.
+  static CLoggerAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CLoggerAPI() => _instance ?? CLoggerAPI._();
+
+  /// Sets up the namespace for the [CLoggerAPI] object.
+  CLoggerAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Math Use Case] ------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Something Something Star Wars.
+/// @nodoc
+class CMathAPI {
+  /// Gets the single instance of the API.
+  static CMathAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CMathAPI() => _instance ?? CMathAPI._();
+
+  /// Sets up the namespace for the [CUserAPI] object.
+  CMathAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Memory Use Case] ----------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Something Something Star Wars.
+/// @nodoc
+class CMemoryAPI {
+  /// Gets the single instance of the API.
+  static CMemoryAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CMemoryAPI() => _instance ?? CMemoryAPI._();
+
+  /// Sets up the namespace for the [CMemoryAPI] object.
+  CMemoryAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Network Use Case] ---------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Something Something Star Wars.
+/// @nodoc
+class CNetworkAPI {
+  /// Gets the single instance of the API.
+  static CNetworkAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CNetworkAPI() => _instance ?? CNetworkAPI._();
+
+  /// Sets up the namespace for the [CNetworkAPI] object.
+  CNetworkAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Runtime Use Case] ---------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Something Something Star Wars.
+/// @nodoc
+class CRuntimeAPI {
+  /// Gets the single instance of the API.
+  static CRuntimeAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CRuntimeAPI() => _instance ?? CRuntimeAPI._();
+
+  /// Sets up the namespace for the [CRuntimeAPI] object.
+  CRuntimeAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Storage Use Case] ---------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Something Something Star Wars.
+/// @nodoc
+class CStorageAPI {
+  /// Gets the single instance of the API.
+  static CStorageAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CStorageAPI() => _instance ?? CStorageAPI._();
+
+  /// Sets up the namespace for the [CStorageAPI] object.
+  CStorageAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [User Interface Use Case] --------------------------------------------------
 // ----------------------------------------------------------------------------
 
 /// Sets up a global navigator key for usage with dialogs rendered with the
-/// [CodeMeltedUI] dlg functions.
+/// [CUserInterfaceAPI] dlg functions.
 final cNavigatorKey = GlobalKey<NavigatorState>();
 
 /// Sets up a global scaffold key for opening drawers and such on the
-/// [CodeMeltedUI] app functions.
+/// [CUserInterfaceAPI] app functions.
 final cScaffoldKey = GlobalKey<ScaffoldState>();
 
 /// Will allow for hooking up to get resize events update to determine if a
@@ -56,10 +601,10 @@ final cScaffoldKey = GlobalKey<ScaffoldState>();
 /// tree.
 typedef OnResizeEventHandler = bool Function(Size);
 
-/// Provides the Single Page Application for the [CodeMeltedUI.app] property
-/// that returns the main view.
+/// Provides the Single Page Application for the [CUserInterfaceAPI.app]
+/// property that returns the main view.
 class CAppView extends StatefulWidget {
-  /// Tracks if the [CodeMeltedUI.app] has already been called.
+  /// Tracks if the [CUserInterfaceAPI.app] has already been called.
   static bool _isInitialized = false;
 
   /// Sets up the dictionary for usage with the SPA.
@@ -70,32 +615,32 @@ class CAppView extends StatefulWidget {
   };
 
   /// Sets / gets the ability to detect resize events with the
-  /// [CodeMeltedUI.app] to update the main body if necessary.
+  /// [CUserInterfaceAPI.app] to update the main body if necessary.
   static OnResizeEventHandler? get onResizeEvent =>
       uiState.get<OnResizeEventHandler?>("onResizeEvent");
   static set onResizeEvent(OnResizeEventHandler? v) =>
       uiState.set<OnResizeEventHandler?>("onResizeEvent", v);
 
-  /// Sets / gets the dark theme for the [CodeMeltedUI.app].
+  /// Sets / gets the dark theme for the [CUserInterfaceAPI.app].
   static ThemeData get darkTheme => uiState.get<ThemeData>("darkTheme");
   static set darkTheme(ThemeData? v) =>
       uiState.set<ThemeData?>("darkTheme", v, notify: true);
 
-  /// Sets / gets the light theme for the [CodeMeltedUI.app].
+  /// Sets / gets the light theme for the [CUserInterfaceAPI.app].
   static ThemeData get theme => uiState.get<ThemeData>("theme");
   static set theme(ThemeData? v) =>
       uiState.set<ThemeData?>("theme", v, notify: true);
 
-  /// Sets / gets the theme mode for the [CodeMeltedUI.app].
+  /// Sets / gets the theme mode for the [CUserInterfaceAPI.app].
   static ThemeMode get themeMode => uiState.get<ThemeMode>("themeMode");
   static set themeMode(ThemeMode v) =>
       uiState.set<ThemeMode?>("themeMode", v, notify: true);
 
-  /// Sets / gets the app title for the [CodeMeltedUI.app].
+  /// Sets / gets the app title for the [CUserInterfaceAPI.app].
   static String? get title => uiState.get<String?>("title");
   static set title(String? v) => uiState.set<String?>("title", v, notify: true);
 
-  /// Sets / removes the header area of the [CodeMeltedUI.app].
+  /// Sets / removes the header area of the [CUserInterfaceAPI.app].
   static void header({
     List<Widget>? actions,
     bool automaticallyImplyLeading = true,
@@ -136,7 +681,7 @@ class CAppView extends StatefulWidget {
     }
   }
 
-  /// Sets / removes the content area of the [CodeMeltedUI.app].
+  /// Sets / removes the content area of the [CUserInterfaceAPI.app].
   static void content({
     required Widget? body,
     bool extendBody = false,
@@ -153,7 +698,7 @@ class CAppView extends StatefulWidget {
     );
   }
 
-  /// Sets / removes the footer area of the [CodeMeltedUI.app].
+  /// Sets / removes the footer area of the [CUserInterfaceAPI.app].
   static void footer({
     List<Widget>? actions,
     bool automaticallyImplyLeading = true,
@@ -201,7 +746,7 @@ class CAppView extends StatefulWidget {
     }
   }
 
-  /// Sets / removes a floating action button for the [CodeMeltedUI.app].
+  /// Sets / removes a floating action button for the [CUserInterfaceAPI.app].
   static void floatingActionButton({
     Widget? button,
     FloatingActionButtonLocation? location,
@@ -222,7 +767,7 @@ class CAppView extends StatefulWidget {
     );
   }
 
-  /// Sets / removes a left sided drawer for the [CodeMeltedUI.app].
+  /// Sets / removes a left sided drawer for the [CUserInterfaceAPI.app].
   static void drawer({Widget? header, List<Widget>? items}) {
     if (header == null && items == null) {
       uiState.set<Widget?>("drawer", null);
@@ -245,7 +790,7 @@ class CAppView extends StatefulWidget {
     }
   }
 
-  /// Sets / removes a right sided drawer from the [CodeMeltedUI.app].
+  /// Sets / removes a right sided drawer from the [CUserInterfaceAPI.app].
   static void endDrawer({Widget? header, List<Widget>? items}) {
     if (header == null && items == null) {
       uiState.set<Widget?>("endDrawer", null);
@@ -268,7 +813,7 @@ class CAppView extends StatefulWidget {
     }
   }
 
-  /// Will programmatically close an open drawer on the [CodeMeltedUI.app].
+  /// Will programmatically close an open drawer on the [CUserInterfaceAPI.app].
   static void closeDrawer() {
     if (cScaffoldKey.currentState!.isDrawerOpen) {
       cScaffoldKey.currentState!.closeDrawer();
@@ -278,7 +823,7 @@ class CAppView extends StatefulWidget {
     }
   }
 
-  /// Will programmatically open a drawer on the [CodeMeltedUI.app].
+  /// Will programmatically open a drawer on the [CUserInterfaceAPI.app].
   static void openDrawer({bool isEndDrawer = false}) {
     if (!isEndDrawer && cScaffoldKey.currentState!.hasDrawer) {
       cScaffoldKey.currentState!.openDrawer();
@@ -348,10 +893,6 @@ class _CAppViewState extends State<CAppView> {
     );
   }
 }
-
-// ----------------------------------------------------------------------------
-// [Theme Definitions] --------------------------------------------------------
-// ----------------------------------------------------------------------------
 
 /// Provides some modifications to the [DialogTheme] to properly configure
 /// overall dialog theme.
@@ -600,7 +1141,7 @@ class CInputDecorationTheme extends InputDecorationTheme {
 /// Provides a wrapper around the Flutter ThemeData object that isolates
 /// the application theming to the material3 constructs of Flutter. Extended
 /// existing ThemeData objects utilized to provide a similar theming experience.
-/// The theme is created via the [CodeMeltedUI.themeCreate] method.
+/// The theme is created via the [CUserInterfaceAPI.themeCreate] method.
 extension ThemeDataExtension on ThemeData {
   /// Extracts the [DialogTheme] as an [CDialogTheme] object.
   CDialogTheme get cDialogTheme => dialogTheme as CDialogTheme;
@@ -610,10 +1151,6 @@ extension ThemeDataExtension on ThemeData {
   CInputDecorationTheme get cInputDecorationTheme =>
       inputDecorationTheme as CInputDecorationTheme;
 }
-
-// ----------------------------------------------------------------------------
-// [Widgets Definition] -------------------------------------------------------
-// ----------------------------------------------------------------------------
 
 /// Supports identifying the module uiButton widget constructed.
 enum CButtonType { elevated, filled, icon, outlined, text }
@@ -668,7 +1205,7 @@ enum CSandboxAllow {
   const CSandboxAllow(this.sandbox);
 }
 
-/// The web view controller to support the [CodeMeltedUI.uiWebView] widget
+/// The web view controller to support the [CUserInterfaceAPI.uiWebView] widget
 /// creation.
 class CWebViewController {
   /// Handles the changing of the URL within the web view.
@@ -706,17 +1243,13 @@ class CWebViewController {
   }
 }
 
-// ----------------------------------------------------------------------------
-// [Main API] -----------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
 /// Provides a set of utility methods to build a Graphical User Interface (GUI)
 /// for a Single Page Application (SPA). This design paradigm does not preclude
 /// you from utilize Flutter's vast array of widgets. It simple provides the
 /// SPA construct, dialog utility, and a wrapper for the most common of
 /// widgets. Theming is also provides to allow for creating different themes
 /// for your SPA.
-class CodeMeltedUI {
+class CUserInterfaceAPI {
   /// Accesses a Single Page Application (SPA) for the overall module. This
   /// is called after being configured via the appXXX functions in the runApp
   /// of the main().
@@ -724,22 +1257,22 @@ class CodeMeltedUI {
     return CAppView();
   }
 
-  /// Sets the [CodeMeltedUI.app] dark theme.
+  /// Sets the [CUserInterfaceAPI.app] dark theme.
   set appDarkTheme(ThemeData? v) {
     CAppView.darkTheme = v;
   }
 
-  /// Sets the [CodeMeltedUI.app] light theme.
+  /// Sets the [CUserInterfaceAPI.app] light theme.
   set appTheme(ThemeData? v) {
     CAppView.theme = v;
   }
 
-  /// Sets the [CodeMeltedUI.app] theme mode.
+  /// Sets the [CUserInterfaceAPI.app] theme mode.
   set appThemeMode(ThemeMode v) {
     CAppView.themeMode = v;
   }
 
-  /// Sets / removes the [CodeMeltedUI.app] title.
+  /// Sets / removes the [CUserInterfaceAPI.app] title.
   set appTitle(String? v) {
     CAppView.title = v;
   }
@@ -753,7 +1286,7 @@ class CodeMeltedUI {
     CAppView.onResizeEvent = v;
   }
 
-  /// Sets / removes the [CodeMeltedUI.app] header area.
+  /// Sets / removes the [CUserInterfaceAPI.app] header area.
   void appHeader({
     List<Widget>? actions,
     bool automaticallyImplyLeading = true,
@@ -772,7 +1305,7 @@ class CodeMeltedUI {
     );
   }
 
-  /// Sets / removes the [CodeMeltedUI.app] content area.
+  /// Sets / removes the [CUserInterfaceAPI.app] content area.
   void appContent({
     required Widget? body,
     bool extendBody = false,
@@ -785,7 +1318,7 @@ class CodeMeltedUI {
     );
   }
 
-  /// Sets / removes the [CodeMeltedUI.app] footer area.
+  /// Sets / removes the [CUserInterfaceAPI.app] footer area.
   void appFooter({
     List<Widget>? actions,
     bool automaticallyImplyLeading = true,
@@ -804,7 +1337,7 @@ class CodeMeltedUI {
     );
   }
 
-  /// Sets / removes the [CodeMeltedUI.app] floating action button.
+  /// Sets / removes the [CUserInterfaceAPI.app] floating action button.
   void appFloatingActionButton({
     Widget? button,
     FloatingActionButtonLocation? location,
@@ -812,22 +1345,22 @@ class CodeMeltedUI {
     CAppView.floatingActionButton(button: button, location: location);
   }
 
-  /// Sets / removes the [CodeMeltedUI.app] drawer.
+  /// Sets / removes the [CUserInterfaceAPI.app] drawer.
   void appDrawer({Widget? header, List<Widget>? items}) {
     CAppView.drawer(header: header, items: items);
   }
 
-  /// Sets / removes the [CodeMeltedUI.app] end drawer.
+  /// Sets / removes the [CUserInterfaceAPI.app] end drawer.
   void appEndDrawer({Widget? header, List<Widget>? items}) {
     CAppView.endDrawer(header: header, items: items);
   }
 
-  /// Closes the [CodeMeltedUI.app] drawer or end drawer.
+  /// Closes the [CUserInterfaceAPI.app] drawer or end drawer.
   void appCloseDrawer() {
     CAppView.closeDrawer();
   }
 
-  /// Opens the [CodeMeltedUI.app] drawer or end drawer.
+  /// Opens the [CUserInterfaceAPI.app] drawer or end drawer.
   void appOpenDrawer({bool isEndDrawer = false}) {
     CAppView.openDrawer(isEndDrawer: isEndDrawer);
   }
@@ -902,38 +1435,39 @@ class CodeMeltedUI {
     );
   }
 
-  /// Shows a browser popup window when running within a mobile or web target
-  /// environment.
-  Future<void> dlgBrowser({
-    required String url,
-    double? height,
-    String? title,
-    bool useNativeBrowser = false,
-    double? width,
-  }) async {
-    // Now figure what browser window action we are taking
-    if (useNativeBrowser) {
-      codemelted_runtime.open(
-        scheme: CSchemeType.https,
-        popupWindow: true,
-        url: url,
-        height: height,
-        width: width,
-      );
-      return;
-    }
+  // TODO: Fix when we have codemelted.js hookup for backend module support.
+  // /// Shows a browser popup window when running within a mobile or web target
+  // /// environment.
+  // Future<void> dlgBrowser({
+  //   required String url,
+  //   double? height,
+  //   String? title,
+  //   bool useNativeBrowser = false,
+  //   double? width,
+  // }) async {
+  //   // Now figure what browser window action we are taking
+  //   if (useNativeBrowser) {
+  //     codemelted_runtime.open(
+  //       scheme: CSchemeType.https,
+  //       popupWindow: true,
+  //       url: url,
+  //       height: height,
+  //       width: width,
+  //     );
+  //     return;
+  //   }
 
-    // We are rendering an inline web view.
-    return dlgCustom(
-      actions: [
-        _buildButton<void>("OK"),
-      ],
-      content: uiWebView(controller: CWebViewController(initialUrl: url)),
-      title: title ?? "Browser",
-      height: height,
-      width: width,
-    );
-  }
+  //   // We are rendering an inline web view.
+  //   return dlgCustom(
+  //     actions: [
+  //       _buildButton<void>("OK"),
+  //     ],
+  //     content: uiWebView(controller: CWebViewController(initialUrl: url)),
+  //     title: title ?? "Browser",
+  //     height: height,
+  //     width: width,
+  //   );
+  // }
 
   /// Shows a popup dialog with a list of options returning the index selected
   /// or -1 if canceled.
@@ -1025,7 +1559,7 @@ class CodeMeltedUI {
 
   /// Shows a custom dialog for a more complex form where at the end you can
   /// apply changes as a returned value if necessary. You will make use of
-  /// [CodeMeltedUI.dlgClose] for returning values via your actions array.
+  /// [CUserInterfaceAPI.dlgClose] for returning values via your actions array.
   Future<T?> dlgCustom<T>({
     required Widget content,
     required String title,
@@ -1069,7 +1603,7 @@ class CodeMeltedUI {
   }
 
   /// Provides the ability to run an async task and present a wait dialog. It
-  /// is important you call [CodeMeltedUI.dlgClose] to properly clear the
+  /// is important you call [CUserInterfaceAPI.dlgClose] to properly clear the
   /// dialog and return any value expected.
   Future<T?> dlgLoading<T>({
     required String message,
@@ -2016,16 +2550,45 @@ class CodeMeltedUI {
   }
 
   /// Gets the single instance of the API.
-  static CodeMeltedUI? _instance;
+  static CUserInterfaceAPI? _instance;
 
   /// Sets up the internal instance for this object.
-  factory CodeMeltedUI() => _instance ?? CodeMeltedUI._();
+  factory CUserInterfaceAPI() => _instance ?? CUserInterfaceAPI._();
 
-  /// Sets up the namespace for the [CodeMeltedUI] object.
-  CodeMeltedUI._() {
+  /// Sets up the namespace for the [CUserInterfaceAPI] object.
+  CUserInterfaceAPI._() {
     _instance = this;
   }
 }
 
-/// Sets up the namespace for the [CodeMeltedUI] object.
-final codemelted_ui = CodeMeltedUI();
+// ----------------------------------------------------------------------------
+// [Public API] ---------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// This module is the implementation of the CodeMelted - Developer use cases.
+/// It targets the web runtime to allow for building powerful Progressive Web
+/// Applications. This module is a mix of utilizing Flutter's powerful UI
+/// toolkit with support from the CodeMelted - JS Module project for the more
+/// JavaScript features. See that project for examples.
+class CodeMeltedAPI {
+  /// Accesses the json defined namespace.
+  CJsonAPI get json => CJsonAPI();
+
+  /// Accesses the ui defined namespace.
+  CUserInterfaceAPI get ui => CUserInterfaceAPI();
+
+  /// Gets the single instance of the API.
+  static CodeMeltedAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CodeMeltedAPI() => _instance ?? CodeMeltedAPI._();
+
+  /// Sets up the namespace for the [CodeMeltedAPI] object.
+  CodeMeltedAPI._() {
+    _instance = this;
+  }
+}
+
+/// Connects to the [CodeMeltedAPI] factory object to form the
+/// global [codemelted] namespace.
+final codemelted = CodeMeltedAPI();

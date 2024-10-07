@@ -24,7 +24,4 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
-/// UNDER DEVELOPMENT
-library codemelted_hardware;
-
-// All the hardware browser apis, ble, serial, device orientation,
+void main() {}

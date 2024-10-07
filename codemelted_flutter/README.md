@@ -10,8 +10,6 @@ DESCRIPTION: Welcome to the CodeMelted - Flutter Module project. This project ai
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/flutter.png" /> CodeMelted - Flutter Module</h1>
 
-<center>UNDER DEVELOPMENT - ONLY ALPHA MODULE AT THIS TIME AS DESIGN IS FLESHED OUT.</center>
-
 Welcome to the **CodeMelted - Flutter Module** project. This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the **CodeMelted - Developer** identified use cases, you can be assured to building a powerful native application.
 
 ## GETTING STARTED
@@ -33,7 +31,9 @@ dependencies:
 
 The following examples represent the implementation of the **CodeMelted - Developer Cross Platform Module** identified use cases.
 
-### Async
+*NOTE: Items marked UNDER DEVELOPMENT are considered unstable. They may have implementations simple not documented as they are being developed. Use at your own risk. Items documented have been through a level of testing and are considered stable enough for usage.*
+
+### Async IO
 
 <mark>UNDER DEVELOPMENT</mark>
 
@@ -71,24 +71,13 @@ Use case not applicable to this module.
 
 ### Logger
 
-```dart
-// Import it.
-import 'package:codemelted_flutter/codemelted_logger.dart';
-
-// Set it up
-codemelted_logger.level = CLogLevel.warning;
-codemelted_logger.onLogEvent = (rec) async {
-  // Handle the CLogRecord object.
-};
-
-// Log stuff
-codemelted_logger.debug(data: 'debug', stackTrace: StackTrace.current);
-codemelted_logger.info(data: 'info', stackTrace: StackTrace.current);
-codemelted_logger.warning(data: 'warning', stackTrace: StackTrace.current);
-codemelted_logger.error(data: 'error', stackTrace: StackTrace.current);
-```
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Math
+
+<mark>UNDER DEVELOPMENT</mark>
+
+### Memory
 
 <mark>UNDER DEVELOPMENT</mark>
 
@@ -110,7 +99,7 @@ codemelted_logger.error(data: 'error', stackTrace: StackTrace.current);
 
 ## CHANGE LOG
 
-<iframe style="border: none;" width="100%" height="400px;" src="CHANGELOG.md"></iframe>
+<iframe style="border: none; background-color: white;" width="100%" height="400px;" src="CHANGELOG.md"></iframe>
 
 ## LICENSE
 

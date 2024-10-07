@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted - DEV | Use Case: Console
-PUBLISH_DATE: 2024-10-04
+PUBLISH_DATE: 2024-10-06
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMelted - DEV, Console, Use Case, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: The Console of a system supports STDIN / STDOUT / STDERR. This use case will expose these descriptors to support a developer making simple command line interface tools.
@@ -18,7 +18,15 @@ The Console of a system supports STDIN / STDOUT / STDERR. This use case will exp
   - [STDIN](#stdin)
   - [STDOUT](#stdout)
 - [DESIGN NOTES](#design-notes)
+  - [Flutter Module](#flutter-module)
+  - [JavaScript Module](#javascript-module)
+  - [PowerShell Module](#powershell-module)
+  - [C Module](#c-module)
 - [TEST NOTES](#test-notes)
+  - [Flutter Module](#flutter-module-1)
+  - [JavaScript Module](#javascript-module-1)
+  - [PowerShell Module](#powershell-module-1)
+  - [C Module](#c-module-1)
 - [REFERENCES](#references)
 
 ## FUNCTIONAL DECOMPOSITION
@@ -49,9 +57,44 @@ The Console of a system supports STDIN / STDOUT / STDERR. This use case will exp
 
 - The processing of STDIN will occur with the SDK specific mechanisms for interacting with it.
 - The processing of STDOUT will occur with the SDK specific mechanism for interacting with it.
-- The **CodeMelted - Flutter Module** has no console mechanism within it.
+
+### Flutter Module
+
+This use case is not applicable to this module.
+
+### JavaScript Module
+
+The call signature into the namespace will be as follows:
+
+```javascript
+codemelted.console.functionName();
+```
+
+### PowerShell Module
+
+<mark>TBD</mark>
+
+### C Module
+
+<mark>TBD</mark>
 
 ## TEST NOTES
+
+### Flutter Module
+
+This use case is not applicable to this module.
+
+### JavaScript Module
+
+- This was validated via the deno interactive shell command exercising each of the `codemelted.console` options specified in the use case.
+- The `codemelted_test.html` confirms that a `SyntaxError` is thrown with each attempt to utilize one of the functions in an unsupported target runtime.
+- The `codemelted_test.ts` deno test environment exercises the access to the namespace ensuring it is not null or undefined in a deno environment.
+
+### PowerShell Module
+
+<mark>TBD</mark>
+
+### C Module
 
 <mark>TBD</mark>
 
