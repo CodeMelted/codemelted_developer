@@ -549,9 +549,162 @@ class CNetworkAPI {
 // [Runtime Use Case] ---------------------------------------------------------
 // ----------------------------------------------------------------------------
 
+/// Optional parameter for the mailto scheme to facilitate translating the more
+/// complicated URL.
+class CMailToParams {
+  /// The list of email addresses to send the email.
+  final List<String> mailto;
+
+  /// The carbon copies to send the email.
+  final List<String> cc;
+
+  /// The blind carbon copies to send the email.
+  final List<String> bcc;
+
+  /// The subject of the email.
+  final String subject;
+
+  /// The body of the email.
+  final String body;
+
+  @override
+  String toString() {
+    var url = "";
+
+    // Go format the mailto part of the url
+    url += "$mailto;";
+    url = url.substring(0, url.length - 1);
+
+    // Go format the cc part of the url
+    var delimiter = "?";
+    if (cc.isNotEmpty) {
+      url += "${delimiter}cc=";
+      delimiter = "&";
+      for (final e in cc) {
+        url += "$e;";
+      }
+      url = url.substring(0, url.length - 1);
+    }
+
+    // Go format the bcc part of the url
+    if (bcc.isNotEmpty) {
+      url += "${delimiter}bcc=";
+      delimiter = "&";
+      for (final e in bcc) {
+        url += "$e;";
+      }
+      url = url.substring(0, url.length - 1);
+    }
+
+    // Go format the subject part
+    if (subject.trim().isNotEmpty) {
+      url += "${delimiter}subject=${subject.trim()}";
+      delimiter = "&";
+    }
+
+    // Go format the body part
+    if (body.trim().isNotEmpty) {
+      url += "${delimiter}body=${body.trim()}";
+      delimiter = "&";
+    }
+
+    return url;
+  }
+
+  /// Constructs the object.
+  CMailToParams({
+    required this.mailto,
+    this.cc = const <String>[],
+    this.bcc = const <String>[],
+    this.subject = "",
+    this.body = "",
+  });
+}
+
+/// Identifies the scheme to utilize as part of the module open
+/// function.
+enum CSchemeType {
+  /// Will open the program associated with the file.
+  file("file:"),
+
+  /// Will open a web browser with http.
+  http("http://"),
+
+  /// Will open a web browser with https.
+  https("https://"),
+
+  /// Will open the default email program to send an email.
+  mailto("mailto:"),
+
+  /// Will open the default telephone program to make a call.
+  tel("tel:"),
+
+  /// Will open the default texting app to send a text.
+  sms("sms:");
+
+  /// Identifies the leading scheme to form a URL.
+  final String leading;
+
+  const CSchemeType(this.leading);
+
+  /// Will return the formatted URL based on the scheme and the
+  /// data provided.
+  String getUrl(String data) => "$leading$data";
+}
+
 /// Something Something Star Wars.
 /// @nodoc
 class CRuntimeAPI {
+  // TODO: Hook into codemelted.js
+  /// Loads a specified resource into a new or existing browsing context
+  /// (that is, a tab, a window, or an iframe) under a specified name. These
+  /// are based on the different [CSchemeType] supported protocol items.
+  Future<web.Window?> open({
+    required CSchemeType scheme,
+    bool popupWindow = false,
+    CMailToParams? mailtoParams,
+    String? url,
+    String target = "_blank",
+    double? width,
+    double? height,
+  }) async {
+    try {
+      var urlToLaunch = "";
+      if (scheme == CSchemeType.file ||
+          scheme == CSchemeType.http ||
+          scheme == CSchemeType.https ||
+          scheme == CSchemeType.sms ||
+          scheme == CSchemeType.tel) {
+        urlToLaunch = scheme.getUrl(url!);
+      } else {
+        urlToLaunch = mailtoParams != null
+            ? scheme.getUrl(mailtoParams.toString())
+            : scheme.getUrl(url!);
+      }
+
+      if (popupWindow) {
+        var w = width ?? 900.0;
+        var h = height ?? 600.0;
+        var top = (web.window.screen.height - h) / 2;
+        var left = (web.window.screen.width - w) / 2;
+        var settings = "toolbar=no, location=no, "
+            "directories=no, status=no, menubar=no, "
+            "scrollbars=no, resizable=yes, copyhistory=no, "
+            "width=$w, height=$h, top=$top, left=$left";
+        return web.window.open(
+          urlToLaunch,
+          "_blank",
+          settings,
+        );
+      }
+
+      return web.window.open(urlToLaunch, target);
+    } catch (ex) {
+      // codemelted_logger.error(data: ex, stackTrace: st);
+      return null;
+    }
+  }
+
   /// Gets the single instance of the API.
   static CRuntimeAPI? _instance;
 
@@ -1250,6 +1403,21 @@ class CWebViewController {
 /// widgets. Theming is also provides to allow for creating different themes
 /// for your SPA.
 class CUserInterfaceAPI {
+  // TODO: Eventually hook this up to codemelted.js.
+  /// Determines if the web app is an installed PWA or not.
+  bool get isPWA {
+    var queries = [
+      '(display-mode: fullscreen)',
+      '(display-mode: standalone)',
+      '(display-mode: minimal-ui),'
+    ];
+    var pwaDetected = false;
+    for (var query in queries) {
+      pwaDetected = pwaDetected || web.window.matchMedia(query).matches;
+    }
+    return pwaDetected;
+  }
+
   /// Accesses a Single Page Application (SPA) for the overall module. This
   /// is called after being configured via the appXXX functions in the runApp
   /// of the main().
@@ -2573,6 +2741,8 @@ class CUserInterfaceAPI {
 class CodeMeltedAPI {
   /// Accesses the json defined namespace.
   CJsonAPI get json => CJsonAPI();
+
+  CRuntimeAPI get runtime => CRuntimeAPI();
 
   /// Accesses the ui defined namespace.
   CUserInterfaceAPI get ui => CUserInterfaceAPI();

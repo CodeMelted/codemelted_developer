@@ -50,7 +50,7 @@
   <meta name="keywords" content="[KEYWORDS]">
   <meta name="author" content="Mark Shaffer">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://codemelted.com/assets/css/developer-theme.css">
+  <link rel="stylesheet" href="https://codemelted.com/assets/codemelted_navigation/developer-theme.css">
   <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png">
 </head><body><div class="content-main">
   [CONTENT]
