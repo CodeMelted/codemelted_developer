@@ -26,6 +26,7 @@
 [string]$GEN_HTML_PERL_SCRIPT = "/ProgramData/chocolatey/lib/lcov/tools/bin/genhtml"
 
 [string]$htmlNavTemplate = @"
+<link rel="stylesheet" href="https://codemelted.com/assets/css/developer-nav.css">
 <div class="codemelted-dev-nav">
   <a title="C Module" href="https://developer.codemelted.com/codemelted_c" ><img src="https://codemelted.com/assets/images/icons/c.png" /></a>
   <a title="Flutter Module" href="https://developer.codemelted.com/codemelted_flutter"><img src="https://codemelted.com/assets/images/icons/flutter.png" /></a>
@@ -38,7 +39,18 @@
 [string]$footerTemplate = @"
 <!-- Links to main domain assets for embedding this widget code into different configurations -->
 <codemelted-navigation></codemelted-navigation>
-<script src="https://codemelted.com/assets/codemelted_navigation/codemelted_navigation.js" defer></script>
+<script src="https://codemelted.com/assets/js/codemelted_navigation.js" defer></script>
+<style>
+div.contents {
+  margin-bottom: 65px;
+}
+.content-main {
+  margin-bottom: 65px;
+}
+footer {
+  margin-bottom: 85px;
+}
+</style>
 "@
 
 [string]$htmlTemplate = @"
@@ -50,8 +62,17 @@
   <meta name="keywords" content="[KEYWORDS]">
   <meta name="author" content="Mark Shaffer">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://codemelted.com/assets/codemelted_navigation/developer-theme.css">
+  <link rel="stylesheet" href="https://codemelted.com/assets/css/developer-nav.css">
+  <link rel="stylesheet" href="https://codemelted.com/assets/css/developer-theme.css">
   <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png">
+  <style>
+    .main-content {
+      margin-bottom: 65px;
+    }
+    footer {
+      margin-bottom: 85px;
+    }
+  </style>
 </head><body><div class="content-main">
   [CONTENT]
   [FOOTER_TEMPLATE]
@@ -224,7 +245,7 @@ function build([string[]]$params) {
     $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
     $htmlData | Out-File docs/index.html -Force
 
-    $files = Get-ChildItem -Path docs/codemelted_*/*.html, docs/codemelted_*/*/*.html -Exclude "*sidebar*"
+    $files = Get-ChildItem -Path docs/codemelted/*.html, docs/codemelted/*/*.html -Exclude "*sidebar*"
     foreach ($file in $files) {
       [string]$htmlData = Get-Content -Path $file.FullName -Raw
       $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
