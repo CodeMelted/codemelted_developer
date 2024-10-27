@@ -1,7 +1,7 @@
-name: codemelted_flutter
+name: codemelted_web
 description: "Welcome to the CodeMelted - Flutter Module project. This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the CodeMelted - Developer identified use cases, you can be assured to building a powerful native application."
 version: 0.0.2
-homepage: https://developer.codemelted.com
+homepage: https://developer.codemelted.com/codemelted_web
 
 platforms:
   web:
@@ -15,10 +15,10 @@ dependencies:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
-  pointer_interceptor: 0.10.1+2
-  web: ^1.0.0
+  pointer_interceptor: any
+  web: any
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: any
