@@ -6,7 +6,7 @@ KEYWORDS: CodeMelted - DEV, Disk, Use Case, raspberry-pi, modules, cross-platfor
 DESCRIPTION: Applications have access to hard disk which houses directories, files, and other information. This use case will expose the ability to manage the disk along with interface with said files from the disk.
 -->
 <center>
-  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
+  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> Use Case: Disk</h1>
 

@@ -6,7 +6,7 @@ KEYWORDS: CodeMelted - DEV, Network, Use Case, raspberry-pi, modules, cross-plat
 DESCRIPTION: The Open Systems Interconnection (OSI) model describes seven layers that computer systems use to communicate over a network. It was the first standard model for network communications, adopted by all major computer and telecommunication companies in the early 1980s. Sockets and network protocols provide the means to communicate between client / server applications. This use case will expose these different network protocols to allow for application inter-communication over a network.
 -->
 <center>
-  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
+  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> Use Case: Network</h1>
 

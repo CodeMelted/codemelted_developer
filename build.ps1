@@ -26,12 +26,34 @@
 [string]$GEN_HTML_PERL_SCRIPT = "/ProgramData/chocolatey/lib/lcov/tools/bin/genhtml"
 
 [string]$htmlNavTemplate = @"
-<link rel="stylesheet" href="https://codemelted.com/assets/css/developer-nav.css">
+<style>
+  .codemelted-dev-nav {
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+    width: 100%;
+    max-width: 375px;
+    border: none;
+    border-top: 5px solid black;
+    border-bottom: 5px solid black;
+    margin: 0;
+    padding: 0;
+  }
+  .codemelted-dev-nav a {
+    padding: 5px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .codemelted-dev-nav a:hover {
+    background-color: maroon;
+  }
+  .codemelted-dev-nav img {
+    height: 50px;
+  }
+</style>
 <div class="codemelted-dev-nav">
-  <a title="C Module" href="https://developer.codemelted.com/codemelted_c" ><img src="https://codemelted.com/assets/images/icons/c.png" /></a>
-  <a title="Flutter Module" href="https://developer.codemelted.com/codemelted_flutter"><img src="https://codemelted.com/assets/images/icons/flutter.png" /></a>
-  <a title="JavaScript Module" href="https://developer.codemelted.com/codemelted_js"><img src="https://codemelted.com/assets/images/icons/deno-js.png" /></a>
-  <a title="pwsh Module" href="https://developer.codemelted.com/codemelted_pwsh"><img src="https://codemelted.com/assets/images/icons/powershell.png" /></a>
+  <a title="C Module" href="https://developer.codemelted.com/codemelted_c" ><img src="https://codemelted.com/assets/images/icons/codemelted-iot-icon.png" /></a>
+  <a title="JavaScript Module" href="https://developer.codemelted.com/codemelted_js"><img src="https://codemelted.com/assets/images/icons/codemelted-web-icon.png" /></a>
+  <a title="pwsh Module" href="https://developer.codemelted.com/codemelted_pwsh"><img src="https://codemelted.com/assets/images/icons/codemelted-terminal-icon.png" /></a>
   <a title="CodeMelted Pi Project" href="https://developer.codemelted.com/codemelted_pi"><img src="https://codemelted.com/assets/images/icons/raspberry-pi.png" /></a>
 </div>
 "@
@@ -62,7 +84,6 @@ footer {
   <meta name="keywords" content="[KEYWORDS]">
   <meta name="author" content="Mark Shaffer">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://codemelted.com/assets/css/developer-nav.css">
   <link rel="stylesheet" href="https://codemelted.com/assets/css/developer-theme.css">
   <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png">
   <style>

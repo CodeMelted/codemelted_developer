@@ -6,7 +6,7 @@ KEYWORDS: CodeMelted - DEV, Math, Use Case, raspberry-pi, modules, cross-platfor
 DESCRIPTION: All applications will have to exercise mathematical computations. This use case will setup a collection of of these mathematical formulas easily accessible for usage within an application.
 -->
 <center>
-  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
+  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> Use Case: Math</h1>
 

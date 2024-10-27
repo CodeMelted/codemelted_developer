@@ -6,7 +6,7 @@ KEYWORDS: CodeMelted - DEV, Game, Use Case, raspberry-pi, modules, cross-platfor
 DESCRIPTION: Game engines provide the logic for running simple side scroller, RPGs, and others. This use case will build a common game engine to apply across different type of apps / game genres. This will facilitate being able to quickly build new games within an application.
 -->
 <center>
-  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
+  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> Use Case: Game</h1>
 

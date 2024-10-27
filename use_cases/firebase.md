@@ -6,7 +6,7 @@ KEYWORDS: CodeMelted - DEV, Firebase, Use Case, raspberry-pi, modules, cross-pla
 DESCRIPTION: Firebase is Googles Platform as a Service (PaaS) that exposes a subset of the Google Cloud infrastructure. This use case will wrap the common libraries from auth, writing to the database, calling cloud functions, and other features from the client apps point of view.
 -->
 <center>
-  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
+  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> Use Case: Firebase</h1>
 

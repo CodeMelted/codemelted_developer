@@ -6,7 +6,7 @@ KEYWORDS: CodeMelted - DEV, Hardware, Use Case, raspberry-pi, modules, cross-pla
 DESCRIPTION: Systems have the ability to interface with external hardware that connect via different protocols. This use case will expose these different protocols for exchanging information with these connected devices.
 -->
 <center>
-  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/logo-developer-smaller.png" /></a><br />
+  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> Use Case: Hardware</h1>
 
