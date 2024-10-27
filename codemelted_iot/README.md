@@ -1,18 +1,16 @@
 <!--
-TITLE: CodeMelted - C/C++ Module
-PUBLISH_DATE: 2024-09-12
+TITLE: CodeMelted | IoT Module
+PUBLISH_DATE: 2024-10-27
 AUTHOR: Mark Shaffer
 KEYWORDS: raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
-DESCRIPTION: Welcome to the CodeMelted - C/C++ Module project. This project aims to implement the use cases from the CodeMelted - Developer project allowing for a need of speed for in application. It will be developed with a C header interface and a C++ implementation. This allows for the easiest integration into other modules via a Foreign Function Interface (FFI). It will also support web assembly for usage in the web browser. Last but not least, you can use it as part of your compiled application.
+DESCRIPTION: UNDER DEVELOPMENT
 -->
 <center>
   <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/codemelted-iot-icon.png" /> CodeMelted - C Module</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/codemelted-iot-icon.png" /> CodeMelted | IoT Module</h1>
 
-<center>UNDER DEVELOPMENT - ONLY ALPHA MODULE AT THIS TIME AS DESIGN IS FLESHED OUT.</center>
-
-Welcome to the **CodeMelted - C/C++ Module** project. This project aims to implement the use cases from the **CodeMelted - Developer** project allowing for a need of speed for in application. It will be developed with a C header interface and a C++ implementation. This allows for the easiest integration into other modules via a Foreign Function Interface (FFI). It will also support web assembly for usage in the web browser. Last but not least, you can use it as part of your compiled application.
+TBD
 
 **Table of Contents**
 

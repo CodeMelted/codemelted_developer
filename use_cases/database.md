@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted - DEV | Use Case: Database
-PUBLISH_DATE: 2024-08-05
+PUBLISH_DATE: 2024-10-27
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMelted - DEV, Database, Use Case, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: Databases provide the ability of storing complex data structures. The two main concepts for this is either relational database structures (SQL) or no-SQL indexed databases. These are available depending on the SDK environment. This use case will expose the ability to access these services for the given SDK.

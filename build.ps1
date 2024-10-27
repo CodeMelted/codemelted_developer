@@ -51,9 +51,9 @@
   }
 </style>
 <div class="codemelted-dev-nav">
-  <a title="C Module" href="https://developer.codemelted.com/codemelted_c" ><img src="https://codemelted.com/assets/images/icons/codemelted-iot-icon.png" /></a>
-  <a title="JavaScript Module" href="https://developer.codemelted.com/codemelted_js"><img src="https://codemelted.com/assets/images/icons/codemelted-web-icon.png" /></a>
-  <a title="pwsh Module" href="https://developer.codemelted.com/codemelted_pwsh"><img src="https://codemelted.com/assets/images/icons/codemelted-terminal-icon.png" /></a>
+  <a title="Web Module" href="https://developer.codemelted.com/codemelted_web"><img src="https://codemelted.com/assets/images/icons/codemelted-web-icon.png" /></a>
+  <a title="Terminal Module" href="https://developer.codemelted.com/codemelted_terminal"><img src="https://codemelted.com/assets/images/icons/codemelted-terminal-icon.png" /></a>
+  <a title="IoT Module" href="https://developer.codemelted.com/codemelted_iot" ><img src="https://codemelted.com/assets/images/icons/codemelted-iot-icon.png" /></a>
   <a title="CodeMelted Pi Project" href="https://developer.codemelted.com/codemelted_pi"><img src="https://codemelted.com/assets/images/icons/raspberry-pi.png" /></a>
 </div>
 "@
@@ -120,35 +120,34 @@ function build([string[]]$params) {
   # deployment.
   function build_all {
     # Build all the project static sdk sites.
-    codemelted_c
+    codemelted_iot
     codemelted_developer
-    codemelted_flutter
-    codemelted_js
-    codemelted_pwsh
+    codemelted_web
+    codemelted_terminal
     codemelted_pi
 
     # Now go copy those static sdk sites.
     Remove-Item -Path developer -Recurse -Force -ErrorAction Ignore
     New-Item -Path developer -ItemType Directory -ErrorAction Ignore
-    New-Item -Path developer/codemelted_c -ItemType Directory -ErrorAction Ignore
-    New-Item -Path developer/codemelted_flutter -ItemType Directory -ErrorAction Ignore
-    New-Item -Path developer/codemelted_js -ItemType Directory -ErrorAction Ignore
-    New-Item -Path developer/codemelted_pwsh -ItemType Directory -ErrorAction Ignore
+    New-Item -Path developer/codemelted_iot -ItemType Directory -ErrorAction Ignore
+    New-Item -Path developer/codemelted_web -ItemType Directory -ErrorAction Ignore
+    New-Item -Path developer/codemelted_web/js -ItemType Directory -ErrorAction Ignore
+    New-Item -Path developer/codemelted_terminal -ItemType Directory -ErrorAction Ignore
     New-Item -Path developer/codemelted_pi -ItemType Directory -ErrorAction Ignore
 
     Copy-Item -Path docs/* -Destination developer/ -Recurse
-    Copy-Item -Path codemelted_c/docs/* -Destination developer/codemelted_c/ -Recurse
-    Copy-Item -Path codemelted_flutter/docs/* -Destination developer/codemelted_flutter/ -Recurse
-    Copy-Item -Path codemelted_js/docs/* -Destination developer/codemelted_js/ -Recurse
-    Copy-Item -Path codemelted_pwsh/docs/* -Destination developer/codemelted_pwsh/ -Recurse
+    Copy-Item -Path codemelted_iot/docs/* -Destination developer/codemelted_iot/ -Recurse
+    Copy-Item -Path codemelted_web/docs/* -Destination developer/codemelted_web/ -Recurse
+    Copy-Item -Path codemelted_web/js/docs/* -Destination developer/codemelted_web/js/ -Recurse
+    Copy-Item -Path codemelted_terminal/docs/* -Destination developer/codemelted_terminal/ -Recurse
     Copy-Item -Path codemelted_pi/docs/* -Destination developer/codemelted_pi/ -Recurse
   }
 
 
-  # Builds the codemelted_c module.
-  function codemelted_c {
-    message "Now building codemelted_c module."
-    Set-Location $PSScriptRoot/codemelted_c
+  # Builds the codemelted_iot module.
+  function codemelted_iot {
+    message "Now building codemelted_iot module."
+    Set-Location $PSScriptRoot/codemelted_iot
     Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
 
     message "Generating doxygen"
@@ -174,7 +173,7 @@ function build([string[]]$params) {
     $htmlData | Out-File docs/navtree.css -Force
 
     Set-Location $PSScriptRoot
-    message "codemelted_c module build completed."
+    message "codemelted_iot module build completed."
   }
 
   # Transforms the README.md of this repo along with all the use_cases into
@@ -224,30 +223,14 @@ function build([string[]]$params) {
     $html = $html.Replace(".md", ".html")
     $html | Out-File docs/index.html -Force
 
-    # Don't forget the getting_started.md
-    $readme = ConvertFrom-Markdown -Path getting_started.md
-    $title = extract "TITLE:" $readme.Html
-    $keywords = extract "KEYWORDS:" $readme.Html
-    $description = extract "DESCRIPTION:" $readme.Html
-    $html = $htmlTemplate
-    $html = $html.Replace("[TITLE]", $title)
-    $html = $html.Replace("[DESCRIPTION]", $description)
-    $html = $html.Replace("[KEYWORDS]", $keywords)
-    $html = $html.Replace("[CONTENT]", $readme.Html)
-    $html = $html.Replace("/></a><br />", "/></a><br />`n$htmlNavTemplate")
-    $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
-    $html = $html.Replace("README.md", "index.html")
-    $html = $html.Replace(".md", ".html")
-    $html | Out-File docs/getting_started.html -Force
-
     Set-Location $PSScriptRoot
     message "codemelted_develoepr build completed."
   }
 
-  # Builds the codemelted_flutter module docs directory.
-  function codemelted_flutter {
-    message "Now building codemelted_flutter module"
-    Set-Location $PSScriptRoot/codemelted_flutter
+  # Builds the codemelted_web module docs directory.
+  function codemelted_web {
+    message "Now building codemelted_web module"
+    Set-Location $PSScriptRoot/codemelted_web
     Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
 
     message "Running flutter test framework"
@@ -259,7 +242,7 @@ function build([string[]]$params) {
 
     # Fix the title
     [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
-    $htmlData = $htmlData.Replace("codemelted_flutter - Dart API docs", "CodeMelted - Flutter Module")
+    $htmlData = $htmlData.Replace("codemelted_web - Dart API docs", "CodeMelted - Flutter Module")
     $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
     $htmlData = $htmlData.Replace("></a><br>", "></a><br>`n$htmlNavTemplate")
     $htmlData = $htmlData.Replace("README.md", "index.html")
@@ -277,13 +260,15 @@ function build([string[]]$params) {
     }
 
     Set-Location $PSScriptRoot
-    message "codemelted_flutter module build completed."
+    message "codemelted_web module build completed."
+
+    codemelted_web_js
   }
 
-  # Builds the codemelted_js module.
-  function codemelted_js {
-    message "Now building codemelted_js module"
-    Set-Location $PSScriptRoot/codemelted_js
+  # Builds the codemelted_web_js module.
+  function codemelted_web_js {
+    message "Now building codemelted_web_js module"
+    Set-Location $PSScriptRoot/codemelted_web/js
     Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
 
     message "Now Running Deno tests"
@@ -324,14 +309,14 @@ function build([string[]]$params) {
     Copy-Item codemelted_test.html -Destination docs
 
     Set-Location $PSScriptRoot
-    message "codemelted_js module build completed."
+    message "codemelted_web_js module build completed."
   }
 
-  # Builds the codemelted_pwsh module.
-  function codemelted_pwsh {
-    message "Now building codemelted_pwsh module"
+  # Builds the codemelted_terminal module.
+  function codemelted_terminal {
+    message "Now building codemelted_terminal module"
 
-    Set-Location $PSScriptRoot/codemelted_pwsh
+    Set-Location $PSScriptRoot/codemelted_terminal
     Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
     New-Item -Path docs -ItemType Directory -ErrorAction Ignore
     Copy-Item -Path assets -Destination docs -Recurse -ErrorAction Ignore
@@ -351,7 +336,7 @@ function build([string[]]$params) {
     $html | Out-File docs/index.html -Force
 
     Set-Location $PSScriptRoot
-    message "codemelted_pwsh module build completed."
+    message "codemelted_terminal module build completed."
   }
 
   # Builds the codemelted_pi module.
@@ -396,11 +381,10 @@ function build([string[]]$params) {
   # Main Exection
   switch ($params[0]) {
     "--build_all" { build_all }
-    "--codemelted_c" { codemelted_c }
+    "--codemelted_iot" { codemelted_iot }
     "--codemelted_developer" { codemelted_developer }
-    "--codemelted_flutter" { codemelted_flutter }
-    "--codemelted_js" { codemelted_js }
-    "--codemelted_pwsh" { codemelted_pwsh }
+    "--codemelted_web" { codemelted_web }
+    "--codemelted_terminal" { codemelted_terminal }
     "--codemelted_pi" { codemelted_pi }
     "--deploy" { deploy }
     default { Write-Host "ERROR: Invalid parameter specified." }

@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted - DEV | Use Case: Logger
-PUBLISH_DATE: 2024-08-05
+PUBLISH_DATE: 2024-10-27
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMelted - DEV, Logger, Use Case, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: Logging is the most basic way of either debugging your application or relaying information to your user base. This use case will provide a logging service for this purpose.

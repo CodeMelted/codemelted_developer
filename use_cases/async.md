@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted - DEV | Use Case: Async IO
-PUBLISH_DATE: 2024-09-12
+PUBLISH_DATE: 2024-10-27
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMelted - DEV, Async IO, Use Case, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: All programming happens synchronously (i.e. one instruction to the next). This occurs within the event loop of the main SDK execution thread. This use case will provide the ability to chunk work within this main event loop along with scheduling work within a background event loop thread.

@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted - DEV | Use Case: Firebase
-PUBLISH_DATE: 2024-08-05
+PUBLISH_DATE: 2024-10-27
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMelted - DEV, Firebase, Use Case, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: Firebase is Googles Platform as a Service (PaaS) that exposes a subset of the Google Cloud infrastructure. This use case will wrap the common libraries from auth, writing to the database, calling cloud functions, and other features from the client apps point of view.

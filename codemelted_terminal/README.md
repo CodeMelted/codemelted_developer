@@ -1,18 +1,16 @@
 <!--
-TITLE: CodeMelted - pwsh Module
-PUBLISH_DATE: 2024-06-25
+TITLE: CodeMelted | Terminal Modules
+PUBLISH_DATE: 2024-10-27
 AUTHOR: Mark Shaffer
 KEYWORDS:raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
-DESCRIPTION: Welcome to the CodeMelted - pwsh Module project. This project aims to implement CodeMelted - Developer use cases with the terminal in mind. The terminal serves as the place developers string together Dev OPS or automated solutions to users. With this in mind, PowerShell Core was chosen as the target platform. The reason for this is it has full support for Linux, Mac, and Windows allowing for a common scripting language regardless of the operating system. PowerShell Core has a rich set of features thanks to .NET Core. First is object streams, making it easier to connect several tasks into one cohesive set of instructions. A developer will also be able to utilize Text User Interface (TUI) to easily guide users through processes. Lastly is its built in help system providing you the ability to draft together useful help system for using your terminal commands.
+DESCRIPTION: UNDER DEVELOPMENT
 -->
 <center>
   <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/codemelted-terminal-icon.png" /> CodeMelted - pwsh Module</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/codemelted-terminal-icon.png" /> CodeMelted | Terminal Modules</h1>
 
-<center>UNDER DEVELOPMENT - ONLY ALPHA MODULE AT THIS TIME AS DESIGN IS FLESHED OUT.</center>
-
-Welcome to the **CodeMelted - pwsh Module** project. This project aims to implement **CodeMelted - Developer** use cases with the terminal in mind. The terminal serves as the place developers string together Dev OPS or automated solutions to users. With this in mind, **PowerShell Core** was chosen as the target platform. The reason for this is it has full support for Linux, Mac, and Windows allowing for a common scripting language regardless of the operating system. PowerShell Core has a rich set of features thanks to .NET Core. First is object streams, making it easier to connect several tasks into one cohesive set of instructions. A developer will also be able to utilize Text User Interface (TUI) to easily guide users through processes. Lastly is its built in help system providing you the ability to draft together useful help system for using your terminal commands.
+<mark>UNDER DEVELOPMENT</mark>
 
 **Table of Contents**
 

@@ -1,6 +1,6 @@
 <!--
-TITLE: CodeMelted - Developer
-PUBLISH_DATE: 2024-10-04
+TITLE: CodeMelted | Developer
+PUBLISH_DATE: 2024-10-27
 AUTHOR: Mark Shaffer
 KEYWORDS: raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify by developing a set of cross platform modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. This allows a developer to maximize their productivity because regardless of the technology, they are learning a similar module API for their solution.
@@ -8,11 +8,11 @@ DESCRIPTION: Software engineers are now required to learn multiple languages, te
 <center>
   <img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> CodeMelted - Developer</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> CodeMelted | Developer</h1>
 
 "Write once, run anywhere (WORA)" was the famous slogan made by Sun Microsystems in 1995.  At the time, this technology allowed for easy full stack engineering allowing you to target dedicated workstations and on premise servers. So long as a Java Runtime Environment existed, you could run your code. Java was unable to keep to their slogan as web browsers became more advanced, mobile devices became ubiquitous, and companies no longer required dedicated servers.
 
-Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify by developing a set of cross platform modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. This allows a developer to maximize their productivity because regardless of the technology, they are learning a similar module API for their solution.
+Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify this by developing a set of cross platform modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. This allows a developer to maximize their productivity because regardless of the technology, they are learning a similar module API for their solution.
 
 **Table of Contents**
 
@@ -53,7 +53,7 @@ Software engineers are now required to learn multiple languages, technologies, a
 
 ## GETTING STARTED
 
-The [Getting Started](getting_started.md) documents setup and utilize this repo once clone.
+The [Getting Started](use_cases/getting_started.md) documents setup and utilize this repo once clone.
 
 ## USAGE
 
@@ -62,14 +62,13 @@ The [Getting Started](getting_started.md) documents setup and utilize this repo 
 The following are the cross platform modules implementing the identified use cases of this project. It provides several choices for your development needs. The following links take you to the specific module implementations for your given domain.
 
 
-- <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/c.png" /> [C Module](codemelted_c/README.md): This project aims to provide a developer with the ability to squeeze every ounce of power from their application / service. It will also provide the Foreign Function Interface (FFI) / WASM interface for the other modules as a compiled library.
-- <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/flutter.png" /> [Flutter Module](codemelted_flutter/README.md): This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the **CodeMelted - Developer** identified use cases, you can be assured to building a powerful native application.
-- <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/deno-js.png" /> [JS Module](codemelted_js/README.md): This project aims to give a common fullstack solution for Progressive Web Applications (PWA) utilizing the **CodeMelted - Developer** use cases. It utilizes the **Deno Runtime** to run as your backend service. This was chosen as it has a full range of services for your backend if you choose to utilize it. You can also take your backend and host it on a different platform. This allows you to not be locked into a vendor for your backend. It was also chosen because it implements the **Browser Web APIs**. This allows the module to implement backend and web frontend common code developing a more complete solution. Lastly, Deno provides the use of TypeScript natively out of the box. So you are able to utilize both JavaScript / TypeScript for your solution and roll with any build system.
-- <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/powershell.png" /> [pwsh Module](codemelted_pwsh/README.md): This project aims to implement **CodeMelted - Developer** use cases with the terminal in mind. The terminal serves as the place developers string together Dev OPS or automated solutions to users. With this in mind, **PowerShell Core** was chosen as the target platform. The reason for this is it has full support for Linux, Mac, and Windows allowing for a common scripting language regardless of the operating system.
+- <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/codemelted-web-icon.png" /> [Web Modules](codemelted_web/README.md): UNDER DEVELOPMENT.
+- <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/codemelted-terminal-icon.png" /> [Terminal Modules](codemelted_terminal/README.md): UNDER DEVELOPMENT
+- <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/codemelted-iot-icon.png" /> [IoT Module](codemelted_iot/README.md): UNDER DEVELOPMENT.
 
 ### CodeMelted Pi Project
 
-- <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/raspberry-pi.png" /> [CodeMelted Pi Project](codemelted_pi/README.md): This project aims to utilize the different **CodeMelted - Developer** modules as services on a Raspberry Pi. These services aim to allow a user to yield different configurations to utilize the Raspberry Pi. The identified services will include getting GPS coordinates, taking still frame pictures tagged with the GPS information, taking video to serve as a dash cam or web camera, provide infotainment within a vehicle, the ability to interface with the raspberry pi via the Internet, and finally, as a sky watching camera for nighttime astronomy.
+- <img style="width: 25px;" src="https://codemelted.com/assets/images/icons/raspberry-pi.png" /> [CodeMelted Pi Project](codemelted_pi/README.md): UNDER DEVELOPMENT.
 
 ## LICENSE
 

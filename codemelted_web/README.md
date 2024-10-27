@@ -1,20 +1,22 @@
 <!--
-TITLE: CodeMelted - Flutter Module
-PUBLISH_DATE: 2024-08-05
+TITLE: CodeMelted | Web Modules (Flutter)
+PUBLISH_DATE: 2024-10-27
 AUTHOR: Mark Shaffer
 KEYWORDS: raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
-DESCRIPTION: Welcome to the CodeMelted - Flutter Module project. This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the CodeMelted - Developer identified use cases, you can be assured to building a powerful native application.
+DESCRIPTION: UNDER DEVELOPMENT
 -->
 <center>
   <a title="Back To Developer Main"  href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/codemelted-web-icon.png" /> CodeMelted - Flutter Module</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/codemelted-web-icon.png" /> CodeMelted | Web Modules (Flutter)</h1>
 
-Welcome to the **CodeMelted - Flutter Module** project. This project aims to provide a developer with the ability to build client applications regardless of deployment target. Those deployment targets include desktop, mobile, and web. By leveraging the **CodeMelted - Developer** identified use cases, you can be assured to building a powerful native application.
+<center><a href="js/index.html">codemelted.js Module</a></center>
+
+<mark>UNDER DEVELOPMENT</mark>
 
 ## GETTING STARTED
 
-Perform the following to pull the `codemelted_flutter` module into your project.
+Perform the following to pull the `codemelted_web` module into your project.
 
 ```yaml
 dependencies:
@@ -24,7 +26,7 @@ dependencies:
       ref: main
       # Or by tagged version
       # ref: codemelted_flutter_X.Y.Z
-      path: codemelted_flutter
+      path: codemelted_web
 ```
 
 ## USAGE
