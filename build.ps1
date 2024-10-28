@@ -131,14 +131,12 @@ function build([string[]]$params) {
     New-Item -Path developer -ItemType Directory -ErrorAction Ignore
     New-Item -Path developer/codemelted_iot -ItemType Directory -ErrorAction Ignore
     New-Item -Path developer/codemelted_web -ItemType Directory -ErrorAction Ignore
-    New-Item -Path developer/codemelted_web/js -ItemType Directory -ErrorAction Ignore
     New-Item -Path developer/codemelted_terminal -ItemType Directory -ErrorAction Ignore
     New-Item -Path developer/codemelted_pi -ItemType Directory -ErrorAction Ignore
 
     Copy-Item -Path docs/* -Destination developer/ -Recurse
     Copy-Item -Path codemelted_iot/docs/* -Destination developer/codemelted_iot/ -Recurse
     Copy-Item -Path codemelted_web/docs/* -Destination developer/codemelted_web/ -Recurse
-    Copy-Item -Path codemelted_web/js/docs/* -Destination developer/codemelted_web/js/ -Recurse
     Copy-Item -Path codemelted_terminal/docs/* -Destination developer/codemelted_terminal/ -Recurse
     Copy-Item -Path codemelted_pi/docs/* -Destination developer/codemelted_pi/ -Recurse
   }
