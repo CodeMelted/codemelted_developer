@@ -259,6 +259,7 @@ function build([string[]]$params) {
       $htmlData | Out-File $file.FullName -Force
     }
 
+    Copy-Item ./web-module-architecture.drawio.png -Destination docs
     Set-Location $PSScriptRoot
     message "codemelted_web module build completed."
 
@@ -291,7 +292,9 @@ function build([string[]]$params) {
 
     # Generate and cleanup the documentation
     message "Now generating the jsdoc"
-    jsdoc ./codemelted.js --readme ./README.md --destination docs
+    # jsdoc ./codemelted.js --readme ./README.md --destination docs
+    jsdoc ./codemelted.js --destination docs
+
     $files = Get-ChildItem -Path docs/*.html
     foreach ($file in $files) {
       [string]$htmlData = Get-Content -Path $file.FullName -Raw
@@ -308,7 +311,10 @@ function build([string[]]$params) {
     Copy-Item codemelted.js -Destination docs
     Copy-Item codemelted_test.html -Destination docs
 
+    Set-Location $PSScriptRoot/codemelted_web
+    Move-Item -Path js/docs -Destination docs/js -Force
     Set-Location $PSScriptRoot
+
     message "codemelted_web_js module build completed."
   }
 

@@ -1,5 +1,5 @@
 <!--
-TITLE: CodeMelted | Web Modules (Flutter)
+TITLE: CodeMelted | Web Modules
 PUBLISH_DATE: 2024-10-27
 AUTHOR: Mark Shaffer
 KEYWORDS: raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
@@ -8,13 +8,22 @@ DESCRIPTION: UNDER DEVELOPMENT
 <center>
   <a title="Back To Developer Main"  href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/codemelted-web-icon.png" /> CodeMelted | Web Modules (Flutter)</h1>
-
-<center><a href="js/index.html">codemelted.js Module</a></center>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/codemelted-web-icon.png" /> CodeMelted | Web Modules</h1>
 
 <mark>UNDER DEVELOPMENT</mark>
 
+<center>
+  <img style="width: 100%; max-width: 560px;" src="web-module-architecture.drawio.png" />
+</center>
+
+**Supporting Information:**
+
+- [codemelted.js](js/index.html): The JavaScript SDK documenting the implementation of the *CodeMelted | Developer* use cases for the Deno and Web Browser runtimes in support of the *CodeMelted | Web Modules*.
+- [Test Results](js/codemelted_test.html): The testing infrastructure and results for the *CodeMelted | Web Modules*.
+
 ## GETTING STARTED
+
+### Flutter
 
 Perform the following to pull the `codemelted_web` module into your project.
 
@@ -28,6 +37,10 @@ dependencies:
       # ref: codemelted_flutter_X.Y.Z
       path: codemelted_web
 ```
+
+### JavaScript
+
+<mark>UNDER DEVELOPMENT</mark>
 
 ## USAGE
 
@@ -45,7 +58,7 @@ The following examples represent the implementation of the **CodeMelted - Develo
 
 ### Console
 
-Use case not applicable to this module.
+<mark>UNDER DEVELOPMENT</mark>
 
 ### Database
 
