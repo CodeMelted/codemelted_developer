@@ -96,7 +96,7 @@ const _audio = Object.freeze({
  * terminal. The actions correspond to the type of input / output
  * that will be interacted with via STDIN and STDOUT.
  * @namespace console
- * @see https://developer.codemelted.com/use_cases/console.html
+ * @see https://codemelted.com/developer/use_cases/console.html
  */
 const console = Object.freeze({
   /**
@@ -249,7 +249,7 @@ const _db = Object.freeze({
  * manipulation, reading / writing files, and opening files for additional
  * work.
  * @namespace disk
- * @see https://developer.codemelted.com/use_cases/disk.html
+ * @see https://codemelted.com/developer/use_cases/disk.html
  */
 const disk = Object.freeze({
   /**

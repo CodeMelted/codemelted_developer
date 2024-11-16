@@ -51,10 +51,10 @@
   }
 </style>
 <div class="codemelted-dev-nav">
-  <a title="Web Module" href="https://developer.codemelted.com/codemelted_web"><img src="https://codemelted.com/assets/images/icons/codemelted-web-icon.png" /></a>
-  <a title="Terminal Module" href="https://developer.codemelted.com/codemelted_terminal"><img src="https://codemelted.com/assets/images/icons/codemelted-terminal-icon.png" /></a>
-  <a title="IoT Module" href="https://developer.codemelted.com/codemelted_iot" ><img src="https://codemelted.com/assets/images/icons/codemelted-iot-icon.png" /></a>
-  <a title="CodeMelted Pi Project" href="https://developer.codemelted.com/codemelted_pi"><img src="https://codemelted.com/assets/images/icons/raspberry-pi.png" /></a>
+  <a title="Web Module" href="https://codemelted.com/developer/codemelted_web"><img src="https://codemelted.com/assets/images/icons/codemelted-web-icon.png" /></a>
+  <a title="Terminal Module" href="https://codemelted.com/developer/codemelted_terminal"><img src="https://codemelted.com/assets/images/icons/codemelted-terminal-icon.png" /></a>
+  <a title="IoT Module" href="https://codemelted.com/developer/codemelted_iot" ><img src="https://codemelted.com/assets/images/icons/codemelted-iot-icon.png" /></a>
+  <a title="CodeMelted Pi Project" href="https://codemelted.com/developer/codemelted_pi"><img src="https://codemelted.com/assets/images/icons/raspberry-pi.png" /></a>
 </div>
 "@
 
@@ -73,6 +73,19 @@ footer {
   margin-bottom: 85px;
 }
 </style>
+<!-- Buy Me a Coffee Support -->
+<script
+  data-name="BMC-Widget"
+  data-cfasync="false"
+  src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js"
+  data-id="CodeMelted"
+  data-description="Support me on Buy me a coffee!"
+  data-message=""
+  data-color="#5F7FFF"
+  data-position="Right"
+  data-x_margin="1"
+  data-y_margin="85"
+></script>
 "@
 
 [string]$htmlTemplate = @"
@@ -318,6 +331,8 @@ function build([string[]]$params) {
 
   # Builds the codemelted_terminal module.
   function codemelted_terminal {
+    # python -m pdoc --docformat markdown --output-directory ./docs --favicon https://codemelted.com/favicon.png  --footer-text "CodeMelted | Terminal Module" --no-show-source --mermaid ./codemelted.py
+
     message "Now building codemelted_terminal module"
 
     Set-Location $PSScriptRoot/codemelted_terminal
@@ -370,9 +385,9 @@ function build([string[]]$params) {
     message "codemelted_pi project build completed."
   }
 
-  # Handles the deployment to developer.codemelted.com
+  # Handles the deployment to codemelted.com/developer
   function deploy {
-    Write-Host "MESSAGE: Now uploading developer.codemelted.com content.";
+    Write-Host "MESSAGE: Now uploading codemelted.com/developer content.";
     Compress-Archive -Path developer -DestinationPath developer.zip -Force
     $hostService = $env:CODEMELTED_USER_AND_IP + $env:CODEMELTED_HOME
     scp developer.zip $hostService

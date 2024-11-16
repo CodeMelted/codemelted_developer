@@ -49,7 +49,7 @@ import "package:web/web.dart" as web;
 typedef CAsyncTask = Future<dynamic> Function([dynamic]);
 
 /// Something Something Star Wars.
-/// SEE https://developer.codemelted.com/use_cases/async.html
+/// SEE https://codemelted.com/developer/use_cases/async.html
 /// @nodoc
 class CAsyncAPI {
   /// Holds the mapping of timer objects of repeating tasks.
@@ -1311,33 +1311,6 @@ enum CButtonType { elevated, filled, icon, outlined, text }
 /// Supports identifying what module uiImage is constructed when utilized.
 enum CImageType { asset, file, memory, network }
 
-/// Defines a tab item to utilize with the module uiTabView method.
-class CTabItem {
-  /// The content displayed with the tab.
-  final Widget content;
-
-  /// An icon for the tab within the tab view.
-  final dynamic icon;
-
-  /// A title with the tab within the tab view.
-  final String? title;
-
-  CTabItem({
-    required this.content,
-    this.icon,
-    this.title,
-  }) {
-    assert(
-      icon != null || title != null,
-      "At least icon or title must have a valid value",
-    );
-    assert(
-      icon is IconData || icon is Image || icon == null,
-      "icon can only be an Image / IconData / null type",
-    );
-  }
-}
-
 /// Enumerations set specifying the allowed actions within the embedded web
 /// view when the compile target is web.
 enum CSandboxAllow {
@@ -1356,6 +1329,156 @@ enum CSandboxAllow {
   final String sandbox;
 
   const CSandboxAllow(this.sandbox);
+}
+
+/// Defines a tab item to utilize with the module uiTabView method.
+class CTabItem {
+  /// The content displayed with the tab.
+  final Widget? content;
+
+  /// An icon for the tab within the tab view.
+  final dynamic icon;
+
+  /// A title with the tab within the tab view.
+  final String? title;
+
+  CTabItem({
+    this.content,
+    this.icon,
+    this.title,
+  }) {
+    assert(
+      icon != null || title != null,
+      "At least icon or title must have a valid value",
+    );
+    assert(
+      icon is IconData || icon is Image || icon == null,
+      "icon can only be an Image / IconData / null type",
+    );
+  }
+}
+
+/// TODO: Add comments
+class CTabbedView extends StatefulWidget {
+  final List<CTabItem> tabItems;
+  final bool automaticIndicatorColorAdjustment;
+  final Color? backgroundColor;
+  final Clip clipBehavior;
+  final double? height;
+  final EdgeInsetsGeometry? iconMargin;
+  final double indicatorWeight;
+  final bool isScrollable;
+  final void Function(int)? onTap;
+  final TabBarTheme? style;
+  final double viewportFraction;
+  final void Function(TabController)? onTabControllerCreated;
+
+  const CTabbedView({
+    super.key,
+    required this.tabItems,
+    this.automaticIndicatorColorAdjustment = true,
+    this.backgroundColor,
+    this.clipBehavior = Clip.hardEdge,
+    this.height,
+    this.iconMargin,
+    this.indicatorWeight = 2.0,
+    this.isScrollable = false,
+    this.onTap,
+    this.style,
+    this.viewportFraction = 1.0,
+    this.onTabControllerCreated,
+  });
+
+  @override
+  State<StatefulWidget> createState() => _CTabViewState();
+}
+
+class _CTabViewState extends State<CTabbedView> with TickerProviderStateMixin {
+  // Member Fields:
+  late TabController _controller;
+
+  @override
+  void initState() {
+    _controller = TabController(length: widget.tabItems.length, vsync: this);
+    _controller.addListener(() {
+      if (_controller.indexIsChanging) {
+        var index = _controller.index;
+        if (widget.tabItems[index].content == null) {
+          widget.onTap?.call(_controller.index);
+          _controller.index = _controller.previousIndex;
+        }
+      }
+    });
+    widget.onTabControllerCreated?.call(_controller);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Parse the tabItems to construct the tab data.
+    var tabs = <Widget>[];
+    var contentList = <Widget>[];
+    for (var w in widget.tabItems) {
+      tabs.add(
+        Tab(
+          key: widget.key,
+          icon: w.icon is IconData ? Icon(w.icon) : w.icon,
+          iconMargin: widget.iconMargin,
+          height: widget.height,
+          text: w.title,
+        ),
+      );
+      contentList.add(w.content ?? const SizedBox.shrink());
+    }
+
+    // Go build the tabbed view based on that data and other configuration
+    // items
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: widget.backgroundColor,
+        toolbarHeight: widget.height ?? 50.0,
+        bottom: PreferredSize(
+          preferredSize: Size.zero,
+          child: SizedBox(
+            height: widget.height ?? 50.0,
+            child: TabBar(
+              controller: _controller,
+              automaticIndicatorColorAdjustment:
+                  widget.automaticIndicatorColorAdjustment,
+              dividerColor: widget.style?.dividerColor,
+              dividerHeight: widget.style?.dividerHeight,
+              indicator: widget.style?.indicator,
+              indicatorColor: widget.style?.indicatorColor,
+              indicatorSize: widget.style?.indicatorSize,
+              indicatorWeight: widget.indicatorWeight,
+              labelColor: widget.style?.labelColor,
+              labelPadding: widget.style?.labelPadding,
+              labelStyle: widget.style?.labelStyle,
+              isScrollable: widget.isScrollable,
+              overlayColor: widget.style?.overlayColor,
+              padding: EdgeInsets.zero,
+              tabAlignment: widget.style?.tabAlignment,
+              unselectedLabelColor: widget.style?.unselectedLabelColor,
+              unselectedLabelStyle: widget.style?.unselectedLabelStyle,
+              tabs: tabs,
+            ),
+          ),
+        ),
+      ),
+      body: TabBarView(
+        controller: _controller,
+        clipBehavior: widget.clipBehavior,
+        viewportFraction: widget.viewportFraction,
+        children: contentList,
+      ),
+    );
+  }
 }
 
 /// The web view controller to support the [CUserInterfaceAPI.uiWebView] widget
@@ -2489,7 +2612,7 @@ class CUserInterfaceAPI {
 
   /// Constructs a tab view of content to allow for users to switch between
   /// widgets of data.
-  Widget uiTabView({
+  Widget uiTabbedView({
     required List<CTabItem> tabItems,
     Key? key,
     bool automaticIndicatorColorAdjustment = true,
@@ -2502,65 +2625,22 @@ class CUserInterfaceAPI {
     void Function(int)? onTap,
     TabBarTheme? style,
     double viewportFraction = 1.0,
+    void Function(TabController)? onTabControllerCreated,
   }) {
-    // Parse the tabItems to construct the tab data.
-    var tabs = <Widget>[];
-    var contentList = <Widget>[];
-    for (var w in tabItems) {
-      tabs.add(
-        Tab(
-          key: key,
-          icon: w.icon is IconData ? Icon(w.icon) : w.icon,
-          iconMargin: iconMargin,
-          height: height,
-          text: w.title,
-        ),
-      );
-      contentList.add(w.content);
-    }
-
-    // Go build the tabbed view based on that data and other configuration
-    // items
-    return DefaultTabController(
-      length: tabItems.length,
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: backgroundColor,
-          toolbarHeight: height ?? 50.0,
-          bottom: PreferredSize(
-            preferredSize: Size.zero,
-            child: SizedBox(
-              height: height ?? 50.0,
-              child: TabBar(
-                automaticIndicatorColorAdjustment:
-                    automaticIndicatorColorAdjustment,
-                dividerColor: style?.dividerColor,
-                dividerHeight: style?.dividerHeight,
-                indicator: style?.indicator,
-                indicatorColor: style?.indicatorColor,
-                indicatorSize: style?.indicatorSize,
-                indicatorWeight: indicatorWeight,
-                labelColor: style?.labelColor,
-                labelPadding: style?.labelPadding,
-                labelStyle: style?.labelStyle,
-                isScrollable: isScrollable,
-                onTap: onTap,
-                overlayColor: style?.overlayColor,
-                padding: EdgeInsets.zero,
-                tabAlignment: style?.tabAlignment,
-                unselectedLabelColor: style?.unselectedLabelColor,
-                unselectedLabelStyle: style?.unselectedLabelStyle,
-                tabs: tabs,
-              ),
-            ),
-          ),
-        ),
-        body: TabBarView(
-          clipBehavior: clipBehavior,
-          viewportFraction: viewportFraction,
-          children: contentList,
-        ),
-      ),
+    return CTabbedView(
+      tabItems: tabItems,
+      key: key,
+      automaticIndicatorColorAdjustment: automaticIndicatorColorAdjustment,
+      backgroundColor: backgroundColor,
+      clipBehavior: clipBehavior,
+      height: height,
+      iconMargin: iconMargin,
+      indicatorWeight: indicatorWeight,
+      isScrollable: isScrollable,
+      onTabControllerCreated: onTabControllerCreated,
+      onTap: onTap,
+      style: style,
+      viewportFraction: viewportFraction,
     );
   }
 
