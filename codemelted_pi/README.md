@@ -1,16 +1,18 @@
 <!--
-TITLE: CodeMelted | Raspberry Pi Project
-PUBLISH_DATE: 2024-10-27
+TITLE: CodeMelted Developer | Raspberry Pi Project
+PUBLISH_DATE: 2024-11-29
 AUTHOR: Mark Shaffer
-KEYWORDS: raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
-DESCRIPTION:
+KEYWORDS: CodeMeltedDeveloper, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
+DESCRIPTION: Raspberry Pis are single board computers that can provide all sorts of interesting solutions. This project will utilize the modules above to explore different solutions. These range from a car infotainment solution, sky watching 360 photography, and any other solutions that serve as a fun idea for the cross platform modules.
 -->
 <center>
   <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="assets/logo.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/raspberry-pi.png" /> CodeMelted | Raspberry Pi</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/raspberry-pi.png" /> CodeMelted Developer | Raspberry Pi</h1>
 
-<mark>UNDER DEVELOPMENT</mark>
+**LAST UPDATED:** 2024-11-29
+
+Raspberry Pis are single board computers that can provide all sorts of interesting solutions. This project will utilize the modules above to explore different solutions. These range from a car infotainment solution, sky watching 360 photography, and any other solutions that serve as a fun idea for the cross platform modules.
 
 **Table of Contents**
 

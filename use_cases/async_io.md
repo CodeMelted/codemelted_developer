@@ -1,17 +1,17 @@
 <!--
-TITLE: CodeMelted Developer | Runtime Use Case
+TITLE: CodeMelted Developer | Async IO Use Case
 PUBLISH_DATE: 2024-11-28
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDeveloper, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
-DESCRIPTION: A chosen SDK technology provides access to items specific to the runtime. This use case will expose those elements to the developer. This includes accessing data via hardware peripherals attached / available to a device and network services for communicating via the Internet. Also available will be logging / monitoring facilities to gage the health of an application. Finally will be a collection of mathematical formulas because you may need to calculate something.
+DESCRIPTION: All programming happens synchronously (i.e. one instruction to the next). This occurs within the event loop of the main SDK execution thread. This use case will provide the ability for chunking up this work. The developer will be able to schedule one off tasks awaiting the result via a promise. They will have the ability to schedule repeating tasks. They will have the ability to communicate with other services via a process. Lastly they will have the ability to queue tasks for processing via a worker pool.
 -->
 
 <center>
   <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> Runtime Use Case</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> Async IO Use Case</h1>
 
-A chosen SDK technology provides access to items specific to the runtime. This use case will expose those elements to the developer. This includes accessing data via hardware peripherals attached / available to a device and network services for communicating via the Internet. Also available will be logging / monitoring facilities to gage the health of an application. Finally will be a collection of mathematical formulas because you may need to calculate something.
+All programming happens synchronously (i.e. one instruction to the next). This occurs within the event loop of the main SDK execution thread. This use case will provide the ability for chunking up this work. The developer will be able to schedule one off tasks awaiting the result via a promise. They will have the ability to schedule repeating tasks. They will have the ability to communicate with other services via a process. Lastly they will have the ability to queue tasks for processing via a worker pool.
 
 **LAST UPDATED:** 2024-11-28
 

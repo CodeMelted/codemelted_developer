@@ -1,16 +1,20 @@
 <!--
-TITLE: CodeMelted | Terminal Modules
+TITLE: CodeMelted Developer | Terminal Module
 PUBLISH_DATE: 2024-10-27
 AUTHOR: Mark Shaffer
-KEYWORDS:raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
-DESCRIPTION: UNDER DEVELOPMENT
+KEYWORDS: CodeMeltedDeveloper, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
+DESCRIPTION: The terminal provides access to all things requiring automation via DevOps whether on a server or a desktop PC. This project will consist of two modules providing a Command Line Interface (CLI) to the identified use cases. The first module will be a PowerShell Core (pwsh) experience bringing the power of .NET core via the pwsh terminal shell. A developer can utilize object streaming and has access to a Terminal User Interface (TUI) for more complex user interactive tasks. The second module will be a Python module integrated into the native shell for the given operating system.
 -->
 <center>
   <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/codemelted-terminal-icon.png" /> CodeMelted | Terminal Modules</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/codemelted-terminal-icon.png" /> CodeMelted Developer | Terminal Modules</h1>
 
-<mark>UNDER DEVELOPMENT</mark>
+**LAST UPDATED:** 2024-11-29
+
+The terminal provides access to all things requiring automation via DevOps whether on a server or a desktop PC. This project will consist of two modules providing a Command Line Interface (CLI) to the identified use cases. The first module will be a PowerShell Core (pwsh) experience bringing the power of .NET core via the pwsh terminal shell. A developer can utilize object streaming and has access to a Terminal User Interface (TUI) for more complex user interactive tasks. The second module will be a Python module integrated into the native shell for the given operating system.
+
+This will be more limited since the data type outputs will be strings but won't require the installation of another terminal shell. The Python module itself will expose the use cases to allow for building multiple Python scripts for a more complex terminal solution.
 
 **Table of Contents**
 

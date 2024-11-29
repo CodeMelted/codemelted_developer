@@ -1,16 +1,18 @@
 <!--
-TITLE: CodeMelted | Web Modules
-PUBLISH_DATE: 2024-10-27
+TITLE: CodeMelted Developer | Web Modules
+PUBLISH_DATE: 2024-11-29
 AUTHOR: Mark Shaffer
-KEYWORDS: raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
-DESCRIPTION: UNDER DEVELOPMENT
+KEYWORDS: CodeMeltedDeveloper, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
+DESCRIPTION: The web represents the best cross platform target for allowing your users to access your application via a Progressive Web App (PWA). This project will consist of two modules. The `codemelted.js` module will implement the use cases that wrap the Web APIs to allow for building Single Page Apps (SPAs) web pages. It will also wrap the Deno Runtime APIs to support backend support for your PWA. The secondary `codemelted.dart` module is a Flutter web targeted module that links to the `codemelted.js` for most Web API access but gives developers the power of the Flutter widget toolkit.
 -->
 <center>
   <a title="Back To Developer Main"  href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/codemelted-web-icon.png" /> CodeMelted | Web Modules</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/codemelted-web-icon.png" /> CodeMelted Developer | Web Modules</h1>
 
-<mark>UNDER DEVELOPMENT</mark>
+**LAST UPDATED:** 2024-11-29
+
+The web represents the best cross platform target for allowing your users to access your application via a Progressive Web App (PWA). This project will consist of two modules. The `codemelted.js` module will implement the use cases that wrap the Web APIs to allow for building Single Page Apps (SPAs) web pages. It will also wrap the Deno Runtime APIs to support backend support for your PWA. The secondary `codemelted.dart` module is a Flutter web targeted module that links to the `codemelted.js` for most Web API access but gives developers the power of the Flutter widget toolkit.
 
 <center>
   <img style="width: 100%; max-width: 560px;" src="web-module-architecture.drawio.png" />

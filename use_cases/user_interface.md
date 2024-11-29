@@ -1,17 +1,17 @@
 <!--
-TITLE: CodeMelted Developer | Runtime Use Case
+TITLE: CodeMelted Developer | User Interface Use Case
 PUBLISH_DATE: 2024-11-28
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDeveloper, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
-DESCRIPTION: A chosen SDK technology provides access to items specific to the runtime. This use case will expose those elements to the developer. This includes accessing data via hardware peripherals attached / available to a device and network services for communicating via the Internet. Also available will be logging / monitoring facilities to gage the health of an application. Finally will be a collection of mathematical formulas because you may need to calculate something.
+DESCRIPTION: The biggest thing all applications have is a way of interacting with a user. This use case will expose a common way for either building a Command Line Interface (CLI) prompting the user for input or building a complex Single Page App (SPA) interface. This will allow for a consistent experience of communicating with an application user.
 -->
 
 <center>
   <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> Runtime Use Case</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> User Interface Use Case</h1>
 
-A chosen SDK technology provides access to items specific to the runtime. This use case will expose those elements to the developer. This includes accessing data via hardware peripherals attached / available to a device and network services for communicating via the Internet. Also available will be logging / monitoring facilities to gage the health of an application. Finally will be a collection of mathematical formulas because you may need to calculate something.
+The biggest thing all applications have is a way of interacting with a user. This use case will expose a common way for either building a Command Line Interface (CLI) prompting the user for input or building a complex Single Page App (SPA) interface. This will allow for a consistent experience of communicating with an application user.
 
 **LAST UPDATED:** 2024-11-28
 
