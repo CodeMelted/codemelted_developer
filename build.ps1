@@ -72,19 +72,6 @@ footer {
   margin-bottom: 85px;
 }
 </style>
-<!-- Buy Me a Coffee Support -->
-<script
-  data-name="BMC-Widget"
-  data-cfasync="false"
-  src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js"
-  data-id="CodeMelted"
-  data-description="Support me on Buy me a coffee!"
-  data-message=""
-  data-color="#5F7FFF"
-  data-position="Right"
-  data-x_margin="1"
-  data-y_margin="85"
-></script>
 "@
 
 [string]$htmlTemplate = @"
