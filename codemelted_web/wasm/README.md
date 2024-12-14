@@ -1,18 +1,18 @@
 <!--
-TITLE: CodeMelted Developer | IoT Module
+TITLE: CodeMeltedDEV (WASM Module)
 PUBLISH_DATE: 2024-11-29
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDeveloper, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
-DESCRIPTION: IoT provides low level device implementation of app / services where the need for speed is critical. This project will implement C-style C++. This means the header will be purely C allowing for easy integration into other project while implementing a C++ implementation that utilizes the minimum set of the C++ Standard Template Library (STL). This gives the developer several options with this. They can build their own app / service, compile a library for integration into another language, or as Web Assembly for supporting Progressive Web Apps (PWAs).
+DESCRIPTION: TBD
 -->
 <center>
   <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/codemelted-iot-icon.png" /> CodeMelted Developer | IoT Module</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/codemelted-iot-icon.png" /> CodeMelted Developer (WASM Module)</h1>
 
 **LAST UPDATED:** 2024-11-29
 
-IoT provides low level device implementation of app / services where the need for speed is critical. This project will implement C-style C++. This means the header will be purely C allowing for easy integration into other project while implementing a C++ implementation that utilizes the minimum set of the C++ Standard Template Library (STL). This gives the developer several options with this. They can build their own app / service, compile a library for integration into another language, or as Web Assembly for supporting Progressive Web Apps (PWAs).
+TBD
 
 **Table of Contents**
 

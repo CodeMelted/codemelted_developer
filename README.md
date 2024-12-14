@@ -6,7 +6,7 @@ KEYWORDS: CodeMeltedDeveloper, raspberry-pi, modules, cross-platform, gps, html-
 DESCRIPTION: Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify this by developing a set of cross platform modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project.
 -->
 <center>
-  <img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
+  <img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> CodeMelted Developer</h1>
 

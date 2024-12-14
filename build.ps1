@@ -53,7 +53,7 @@
 <div class="codemelted-dev-nav">
   <a title="Web Module" href="https://codemelted.com/developer/codemelted_web"><img src="https://codemelted.com/assets/images/icons/codemelted-web-icon.png" /></a>
   <a title="Terminal Module" href="https://codemelted.com/developer/codemelted_terminal"><img src="https://codemelted.com/assets/images/icons/codemelted-terminal-icon.png" /></a>
-  <a title="IoT Module" href="https://codemelted.com/developer/codemelted_iot" ><img src="https://codemelted.com/assets/images/icons/codemelted-iot-icon.png" /></a>
+  <a title="IoT Module" href="https://codemelted.com/developer/codemelted_wasm" ><img src="https://codemelted.com/assets/images/icons/codemelted-iot-icon.png" /></a>
   <a title="CodeMelted Pi Project" href="https://codemelted.com/developer/codemelted_pi"><img src="https://codemelted.com/assets/images/icons/raspberry-pi.png" /></a>
 </div>
 "@
@@ -133,7 +133,7 @@ function build([string[]]$params) {
   # deployment.
   function build_all {
     # Build all the project static sdk sites.
-    codemelted_iot
+    codemelted_wasm
     codemelted_developer
     codemelted_web
     codemelted_terminal
@@ -142,23 +142,23 @@ function build([string[]]$params) {
     # Now go copy those static sdk sites.
     Remove-Item -Path developer -Recurse -Force -ErrorAction Ignore
     New-Item -Path developer -ItemType Directory -ErrorAction Ignore
-    New-Item -Path developer/codemelted_iot -ItemType Directory -ErrorAction Ignore
+    New-Item -Path developer/codemelted_wasm -ItemType Directory -ErrorAction Ignore
     New-Item -Path developer/codemelted_web -ItemType Directory -ErrorAction Ignore
     New-Item -Path developer/codemelted_terminal -ItemType Directory -ErrorAction Ignore
     New-Item -Path developer/codemelted_pi -ItemType Directory -ErrorAction Ignore
 
     Copy-Item -Path docs/* -Destination developer/ -Recurse
-    Copy-Item -Path codemelted_iot/docs/* -Destination developer/codemelted_iot/ -Recurse
+    Copy-Item -Path codemelted_wasm/docs/* -Destination developer/codemelted_wasm/ -Recurse
     Copy-Item -Path codemelted_web/docs/* -Destination developer/codemelted_web/ -Recurse
     Copy-Item -Path codemelted_terminal/docs/* -Destination developer/codemelted_terminal/ -Recurse
     Copy-Item -Path codemelted_pi/docs/* -Destination developer/codemelted_pi/ -Recurse
   }
 
 
-  # Builds the codemelted_iot module.
-  function codemelted_iot {
-    message "Now building codemelted_iot module."
-    Set-Location $PSScriptRoot/codemelted_iot
+  # Builds the codemelted_wasm module.
+  function codemelted_wasm {
+    message "Now building codemelted_wasm module."
+    Set-Location $PSScriptRoot/codemelted_wasm
     Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
 
     message "Generating doxygen"
@@ -184,7 +184,7 @@ function build([string[]]$params) {
     $htmlData | Out-File docs/navtree.css -Force
 
     Set-Location $PSScriptRoot
-    message "codemelted_iot module build completed."
+    message "codemelted_wasm module build completed."
   }
 
   # Transforms the README.md of this repo along with all the use_cases into
@@ -400,7 +400,7 @@ function build([string[]]$params) {
   # Main Exection
   switch ($params[0]) {
     "--build_all" { build_all }
-    "--codemelted_iot" { codemelted_iot }
+    "--codemelted_wasm" { codemelted_wasm }
     "--codemelted_developer" { codemelted_developer }
     "--codemelted_web" { codemelted_web }
     "--codemelted_terminal" { codemelted_terminal }
