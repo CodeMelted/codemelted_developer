@@ -8,7 +8,7 @@ DESCRIPTION: Software engineers are now required to learn multiple languages, te
 <center>
   <img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/design.png" /> CodeMelted DEV | Cross Platform Modules</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-design.png" /> CodeMelted DEV | Cross Platform Modules</h1>
 
 Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify this by developing a set of cross platform modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. It gives the ability to achieve maximum application reach by supporting the development of Progressive Web Applications (PWAs). The modules are specifically designed to target each area of the technology stack to deliver PWAs.
 
@@ -58,9 +58,9 @@ The use case model featured above identifies 19 common developer use cases divid
 
 ## Cross Platform Modules
 
-- [PWA Module]():
-- [Terminal Module]():
-- [Web Assembly Module]():
+- [PWA Module](./pwa/README.md): TBD
+- [Terminal Module](./terminal/README.md): TBD
+- [Web Assembly Module](./wasm/README.md): TBD
 
 ## Async I/O Use Cases
 

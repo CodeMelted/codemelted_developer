@@ -1,16 +1,16 @@
 <!--
-TITLE: CodeMeltedDEV (WASM Module)
-PUBLISH_DATE: 2024-11-29
+TITLE: CodeMelted DEV | WASM Module
+PUBLISH_DATE: 2024-12-14
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMeltedDeveloper, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
+KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: TBD
 -->
 <center>
-  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logos/codemelted-developer-logo.png" /></a><br />
+  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icons/codemelted-iot-icon.png" /> CodeMelted Developer (WASM Module)</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-codemelted-wasm.png" /> CodeMelted DEV | WASM Module</h1>
 
-**LAST UPDATED:** 2024-11-29
+**LAST UPDATED:** 2024-12-14
 
 TBD
 

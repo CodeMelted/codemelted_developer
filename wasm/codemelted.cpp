@@ -9,7 +9,7 @@
  * tasks from those modules as more is learned about what WASM can do. For now
  * all math will be handled by this module and the other modules will hook into
  * it.
- * @see <i>CodeMelted Developer (Module Design):</i> https://codemelted.com/developer/
+ * @see <i>CodeMelted Developer:</i> https://codemelted.com/developer/
  * @see <i>WASM Use Cases:</i> https://webassembly.org/docs/use-cases/
  *
  * @copyright 2024 Mark Shaffer. All Rights Reserved.
