@@ -1,0 +1,24 @@
+name: codemelted_developer
+description: ""
+version: 0.0.0
+homepage: https://codemelted.com/developer
+
+platforms:
+  web:
+
+environment:
+  sdk: '>=3.4.1 <4.0.0'
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
+  pointer_interceptor: any
+  web: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: any
