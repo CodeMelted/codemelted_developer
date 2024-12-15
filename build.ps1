@@ -88,7 +88,7 @@ footer {
   <meta property="og:title" content="[TITLE]">
   <meta property="og:description" content="[DESCRIPTION]">
   <meta property="og:site_name" content="CodeMelted PWA">
-  <meta property="og:image" content="[HEADER_IMAGE]">
+  <meta property="og:image" content="https://codemelted.com/assets/images/logo-codemelted-developer.png">
   <meta property="og:image:height" content="100px">
   <meta property="og:image:width" content="100px">
   <link rel="stylesheet" href="https://codemelted.com/assets/css/developer-theme.css">
