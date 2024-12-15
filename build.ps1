@@ -25,6 +25,16 @@
 
 [string]$GEN_HTML_PERL_SCRIPT = "/ProgramData/chocolatey/lib/lcov/tools/bin/genhtml"
 
+[string]$ogTemplate = @"
+ <!-- Open Graph Settings -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="[TITLE]">
+<meta property="og:site_name" content="CodeMelted PWA">
+<meta property="og:image" content="https://codemelted.com/assets/images/logo-codemelted-developer.png">
+<meta property="og:image:height" content="100px">
+<meta property="og:image:width" content="100px">
+"@
+
 [string]$htmlNavTemplate = @"
 <style>
   .codemelted-dev-nav {
@@ -136,7 +146,9 @@ function build([string[]]$params) {
     Copy-Item -Path CHANGELOG.md -Destination docs -Force
 
     # Fix the title
+    [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | Cross Platform Modules")
     [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
+    $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
     $htmlData = $htmlData.Replace("codemelted_developer - Dart API docs", "CodeMelted DEV | Cross Platform Modules")
     $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
     $htmlData = $htmlData.Replace(".png`"><br>", ".png`"><br>`n$htmlNavTemplate")
@@ -186,6 +198,7 @@ function build([string[]]$params) {
     message "Now generating the jsdoc"
     jsdoc ./codemelted.js --readme ./README.md --destination docs
 
+    [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | PWA Modules")
     $files = Get-ChildItem -Path docs/*.html
     foreach ($file in $files) {
       [string]$htmlData = Get-Content -Path $file.FullName -Raw
@@ -193,6 +206,7 @@ function build([string[]]$params) {
       $htmlData = $htmlData.Replace("/></a><br />", "/></a><br />`n$htmlNavTemplate")
       $htmlData = $htmlData.Replace("</body>", "`n$footerTemplate</body>")
       $htmlData = $htmlData.Replace("</head>", '<meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="https://codemelted.com/favicon.png"></head>')
+      $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
       $htmlData | Out-File $file.FullName -Force
     }
 
@@ -215,10 +229,12 @@ function build([string[]]$params) {
 
     message "Generating doxygen"
     doxygen doxygen.cfg
+    [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | WASM Module")
     [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
     $htmlData = $htmlData.Replace("/></a><br  />", "/></a><br  />`n$htmlNavTemplate")
     $htmlData = $htmlData.Replace("README.md", "index.html")
     $htmlData = $htmlData.Replace("</head>", '    <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png"></head>')
+    $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
     $htmlData = $htmlData.Replace("</body>", "<p><br /><br /><br /><br /><br /></p><p><br /><br /><br /><br /><br /></p>`n$footerTemplate`n</body>")
     $htmlData | Out-File docs/index.html -Force
 
