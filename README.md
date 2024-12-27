@@ -1,5 +1,5 @@
 <!--
-TITLE: CodeMelted DEV | Cross Platform Modules
+TITLE: CodeMelted DEV | Modules
 PUBLISH_DATE: 2024-11-28
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, wasm
@@ -8,16 +8,15 @@ DESCRIPTION: Software engineers are now required to learn multiple languages, te
 <center>
   <img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-design.png" /> CodeMelted DEV | Cross Platform Modules</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-design.png" /> CodeMelted DEV | Modules</h1>
 
 Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify this by developing a set of cross platform modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. It gives the ability to achieve maximum application reach by supporting the development of Progressive Web Applications (PWAs). The modules are specifically designed to target each area of the technology stack to deliver PWAs.
 
-**LAST UPDATED:** 2024-12-14
+**LAST UPDATED:** 2024-12-27
 
 **Table of Contents**
 
 - [FEATURES](#features)
-  - [Cross Platform Modules](#cross-platform-modules)
   - [Async I/O Use Cases](#async-io-use-cases)
     - [Process](#process)
     - [Task](#task)
@@ -28,19 +27,28 @@ Software engineers are now required to learn multiple languages, technologies, a
     - [File](#file)
     - [JSON](#json)
     - [Storage](#storage)
-  - [Runtime Use Cases](#runtime-use-cases)
+  - [NPU Use Cases](#npu-use-cases)
+    - [Execute](#execute)
+    - [Math](#math)
+    - [Memory](#memory)
+  - [SDK Use Cases](#sdk-use-cases)
     - [Logger](#logger)
     - [Hardware](#hardware)
-    - [Math](#math)
     - [Network](#network)
-    - [Monitor](#monitor)
+    - [Runtime](#runtime)
   - [User Interface Use Cases](#user-interface-use-cases)
     - [Audio](#audio)
     - [Console](#console)
     - [Dialog](#dialog)
     - [SPA](#spa)
-    - [Theme](#theme)
+    - [Theming](#theming)
     - [Widget](#widget)
+  - [Module Design](#module-design)
+    - [PWA Modules](#pwa-modules)
+      - [Flutter](#flutter)
+      - [JavaScript](#javascript)
+    - [Terminal Module](#terminal-module)
+    - [NPU Module](#npu-module)
 - [GETTING STARTED](#getting-started)
   - [Environment Setup](#environment-setup)
     - [GitHub](#github)
@@ -54,13 +62,7 @@ Software engineers are now required to learn multiple languages, technologies, a
 
 <center><img style="width: 100%; max-width: 560px;" src="./design-notes/use-case-model.drawio.png" /></center>
 
-The use case model featured above identifies 19 common developer use cases divided into four major areas of how to architect a PWA. Each of these use cases will be implemented with a similar API across the different across module technology stacks. This will allow developers to easily create solutions to support their PWA.
-
-## Cross Platform Modules
-
-- [PWA Module](./pwa/README.md): TBD
-- [Terminal Module](./terminal/README.md): TBD
-- [Web Assembly Module](./wasm/README.md): TBD
+The use case model featured above identifies 21 developer use cases divided into five major areas of how to architect a PWA. Each of these use cases will be implemented with a similar API across the different across module technology stacks. This will allow developers to easily create solutions to support their PWA.
 
 ## Async I/O Use Cases
 
@@ -106,9 +108,25 @@ Given the dynamic nature of data, a series of type checks will be provided to th
 
 <mark>TBD</mark>
 
-## Runtime Use Cases
+## NPU Use Cases
 
-A chosen SDK technology provides access to items specific to the runtime. This use case will expose those elements to the developer. This includes accessing data via hardware peripherals attached / available to a device and network services for communicating via the Internet. Also available will be logging / monitoring facilities to gage the health of an application. Finally will be a collection of mathematical formulas because you may need to calculate something.
+This is a specialized set of use cases representing a software Numerical Processing Unit (NPU). These will be designed in accordance with the [WASM Use Cases](https://webassembly.org/docs/use-cases/) in terms of interface definition and memory management.
+
+### Execute
+
+<mark>TBD</mark>
+
+### Math
+
+<mark>TBD</mark>
+
+### Memory
+
+<mark>TBD</mark>
+
+## SDK Use Cases
+
+A chosen SDK technology provides access to items specific to the runtime. This use case will expose those elements to the developer. This includes accessing data via hardware peripherals attached / available to a device and network services for communicating via the Internet. Also available will be logging facilities to gage the health of an application. Finally a collection of Runtime services specific to the SDK will also be exposed.
 
 ### Logger
 
@@ -118,15 +136,11 @@ A chosen SDK technology provides access to items specific to the runtime. This u
 
 <mark>TBD</mark>
 
-### Math
-
-<mark>TBD</mark>
-
 ### Network
 
 <mark>TBD</mark>
 
-### Monitor
+### Runtime
 
 <mark>TBD</mark>
 
@@ -150,13 +164,59 @@ The biggest thing all applications have is a way of interacting with a user. Thi
 
 <mark>TBD</mark>
 
-### Theme
+### Theming
 
 <mark>TBD</mark>
 
 ### Widget
 
 <mark>TBD</mark>
+
+## Module Design
+
+<center><img style="width: 100%; max-width: 560px;" src="./design-notes/module-architecture.drawio.png" /></center>
+
+**Module Links**
+
+- [PWA Modules](./pwa/README.md)
+- [Terminal Module](./terminal/README.md)
+- [NPU Module](./npu/README.md)
+
+### PWA Modules
+
+The call signature for these modules will be via a namespace signature of `codemelted.[useCase].[function]()` with named parameters for the given function. Queryable items will be attached to the appropriate `useCase` as properties.
+
+#### Flutter
+
+The `codemelted.dart` which is the main root of this repo provides a Flutter specific implementations of the identified use cases delivering the full power of Flutter to construct PWAs. Use cases with no direct Flutter binding will utilize the `codemelted.js` and `codemelted.wasm` modules further detailed below.
+
+#### JavaScript
+
+The `codemelted.js` is a ES6 module that can operate in both a Web Browser and Deno runtime environments. It implements all the identified use cases for the different environments to provide the ability to deliver SPA/PWA solutions or support Dev Ops facilities using Deno. This is the heart of the *PWA Modules* as the `codemelted.dart` is not necessary to code a full web solution.
+
+### Terminal Module
+
+The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate DevOps on Mac, Linux, or Windows desktop/server systems. The CLI when installed will provide the `codemelted` command that can be accessed in a terminal or in `ps1` scripts that facilitate a set of automated tasks. You may also develop a Terminal User Interface (TUI) for a text based user interface.
+
+The call signature for the CLI will be as follows
+
+```
+codemelted [Action] [Command] [Params]
+```
+
+*WHERE*
+
+- `[Action]`: A flag `--use-case` that corresponds to one of the identified use cases.
+- `[Command]`: A flag that corresponds to a given function of th identified use case.
+- `[Params]`: A PowerShell hash table `@{}` that will setup named parameters and values associated with the selected `[Command]`.
+
+*NOTE: This module will also provide a CLI interface for Raspberry Pi built services. See the module SDK documentation for details.*
+
+### NPU Module
+
+A `codemelted.cpp` C++ 20 module that will support the *WASM Module* use cases for its interface definition. It will be compiled as a `*.wasm` module to support the [PWA Modules](#pwa-modules) and as a static library to support the [Terminal Module](#terminal-module) on the different operating systems.
+
+*NOTE: A developer can also just utilize this module within a C++ application if they so choose utilizing the C++ 20 module standard.*
 
 # GETTING STARTED
 
@@ -202,13 +262,13 @@ The following are the items recommended for installation to properly make use of
 
 The versioning of the module will be captured via GitHub or the modules documentation method. It will utilize semantic versioning `X.Y.Z` with the following rules for the numbering scheme this project.
 
-- **X:** Completion of a given set of use case (i.e. Async IO, Data, Runtime, or User Interface).
+- **X:** Completion of a given set of use case (i.e. Async IO, Data, NPU, SDK, or User Interface).
 - **Y:** Use case implemented, documented, tested, and ready for usage by a developer.
 - **Z:** Bug fix or expansion of a use case.
 
 ## Build Script
 
-The `build.ps1 --build-all` script provides the ability to build, test, and document the `codemelted_developer` cross platform modules. The `build.ps1 --deploy` deploys the [CodeMelted DEV](https://codemelted.com/developer) website.
+The `build.ps1 --build` script provides the ability to build, test, and document the `codemelted_developer` repo modules. The `build.ps1 --deploy` deploys the [CodeMelted DEV](https://developer.codemelted.com) website.
 
 # LICENSE
 

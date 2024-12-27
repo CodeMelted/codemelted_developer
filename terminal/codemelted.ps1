@@ -1,4 +1,6 @@
-
+# =============================================================================
+# [TERMINAL MODULE DEFINITION] ================================================
+# =============================================================================
 <#PSScriptInfo
 
 .VERSION 0.0.0
@@ -11,15 +13,15 @@
 
 .AUTHOR Mark Shaffer
 
-.COPYRIGHT © 2024 Mark Shaffer. All Rights Reseved.
+.COPYRIGHT © 2024 Mark Shaffer. All Rights Reserved. MIT License
 
-.TAGS pwsh pwsh-scripts pwsh-modules codemelted_developer codemelted-developer codemelted
+.TAGS pwsh pwsh-scripts pwsh-modules CodeMeltedDEV codemelted
 
-.LICENSEURI https://github.com/codemelted/codemelted_developer/LICENSE
+.LICENSEURI https://github.com/CodeMelted/codemelted_developer/blob/main/LICENSE
 
 .PROJECTURI https://github.com/codemelted/codemelted_developer
 
-.ICONURI https://codemelted.com/assets/images/icons/codemelted-developer.png
+.ICONURI https://codemelted.com/favicon.png
 
 .EXTERNALMODULEDEPENDENCIES Microsoft.PowerShell.ConsoleGuiTools
 
@@ -30,127 +32,141 @@
 .EXTERNALSCRIPTDEPENDENCIES N/A
 
 .PRIVATEDATA N/A
-
 #>
 
 <#
-
 .DESCRIPTION
-Description of the script.
-
+EXEC: codemelted --help
 #>
 param(
-    [Parameter(
-        Mandatory = $true,
-        ValueFromPipeline = $false,
-        Position = 0
-    )]
-    [ValidateSet(
-        "--help"
-    )]
-    [string] $useCase
+  [Parameter(
+    Mandatory = $true,
+    ValueFromPipeline = $false,
+    Position = 0
+  )]
+  [ValidateSet(
+    "--about",
+    "--runtime",
+    "--help"
+  )]
+  [string] $Action,
+
+  [Parameter(
+    Mandatory = $false,
+    ValueFromPipeline = $false,
+    Position = 1
+  )]
+  [AllowEmptyString()]
+  [string] $Command,
+
+  [Parameter(
+    Mandatory = $false,
+    ValueFromPipeline = $false,
+    Position = 2
+  )]
+  [hashtable]$Params
 )
 
-function about {
-    <#
-    .SYNOPSIS
+function help {
+  <#
+  .SYNOPSIS
+    The codemelted Command Line Interface (CLI) Terminal Module. It allows
+    a developer to execute the CodeMelted DEV | Cross Platform Module use
+    cases within a pwsh terminal shell. This allows for building CLI tools,
+    Terminal User Interface (TUI) tools, or building DevOps toolchain
+    automations.
 
-    .DESCRIPTION
+  .DESCRIPTION
+    SYNTAX:
+      codemelted [Action] [Command] [Params]
 
-    .LINK
+    PARAMETERS:
+      [Action]
+        --about : Displays the current PSScriptInfo about this module CLI.
+        --help  : Displays this help system to facilitate navigating the CLI.
 
-    #>
-    Get-Help about
+      [Command]
+        Commands attached to each [Action] parameter. Execute the following
+        to get the specific [Command] parameters associated with the [Action]
+        parameter and the [Args] associated with the [Command] parameters.
+
+        codemelted [Action] help
+
+      [Params]
+        The optional set of named arguments wrapped within a [hashtable]
+
+  .LINK
+    https://developer.codemelted.com (CodeMelted DEV)
+    https://codemelted.com (CodeMelted | PWA)
+
+  #>
+  Get-Help help
 }
 
 # -----------------------------------------------------------------------------
-# [App View Definition] -------------------------------------------------------
+# [Disk Use Case] -------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# [Async IO Definition] -------------------------------------------------------
+# [Runtime Use Case] ----------------------------------------------------------
 # -----------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
-# [Audio Player Definition] ---------------------------------------------------
-# -----------------------------------------------------------------------------
+function runtime {
+  <#
+  .SYNOPSIS
+    runtime something something
+  .DESCRIPTION
+    runtime something something.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [ValidateSet(
+      "help",
+      "setup"
+    )]
+    [string] $Command,
 
-# -----------------------------------------------------------------------------
-# [Console Definition] --------------------------------------------------------
-# -----------------------------------------------------------------------------
+    [Parameter(
+      Mandatory = $false,
+      ValueFromPipeline = $false,
+      Position = 1
+    )]
+    [hashtable]$Params
+  )
 
-# -----------------------------------------------------------------------------
-# [Database Definition] -------------------------------------------------------
-# -----------------------------------------------------------------------------
+  Write-Host $Params
 
-# -----------------------------------------------------------------------------
-# [Data Broker Definition] ----------------------------------------------------
-# -----------------------------------------------------------------------------
+  switch ($Command) {
+    "help" { Get-Help runtime }
+    "setup" {
+      Write-Host $Params["2"]
+      #
+    }
+  }
 
-# -----------------------------------------------------------------------------
-# [Device Orientation Definition] ---------------------------------------------
-# -----------------------------------------------------------------------------
+  # # Install
+  # $repoPath = "C:\MyLocalRepository"
+  # New-Item -Path $repoPath -ItemType Directory -Force
+  # Register-PSRepository -Name LocalRepo -SourceLocation $repoPath
+  # Publish-Script -Path "C:\Path\To\MyScript.ps1" -Repository LocalRepo
+  # Find-Script -Repository LocalRepo -Name MyScript
+  # Install-Script
 
-# -----------------------------------------------------------------------------
-# [Dialog Definition] ---------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
-# [Disk Manager Definition] ---------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
-# [Fetch Definition] ----------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
-# [Hardware Device Definition] ------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
-# [Link Opener Definition] ----------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
-# [Logger Definition] ---------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
-# [Math Definition] -----------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
-# [Network Socket Definition] -------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
-# [Runtime Definition] --------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
-# [Share Definition] ----------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
-# [Storage Definition] --------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
-# [Themes Definition] ---------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
-# [Web RTC Definition] --------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
-# [Widgets Definition] --------------------------------------------------------
-# -----------------------------------------------------------------------------
+  # # Uninstall
+  # Uninstall-Script
+  # Unregister-PSRepository -Name "RepositoryName"
+}
 
 # =============================================================================
 # [Main API Implementation] ===================================================
 # =============================================================================
 
-switch ($useCase) {
-    "--about" { about }
+switch ($Action) {
+  "--about" { Get-PSScriptFileInfo -Path $PSScriptRoot/codemelted.ps1 }
+  # "--runtime" { runtime $Command $Params }
+  "--help" { help }
 }

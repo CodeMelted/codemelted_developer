@@ -3,8 +3,8 @@
  * @author Mark Shaffer
  * @date 2024-12-16
  * @version 0.0.1 <br />
- * - [0.0.1 / 2024-12-16]: Sets up the initial file construct to support
- * tooling and integrating with the other modules.
+ * - [0.0.1 / 2024-12-27]: Sets up the initial file construct to support
+ * tooling and integrating with PWA modules.
  * @brief Serves as a software Numerical Processing Unit (NPU) to the
  * other codemelted modules. This module will contain all mathematical
  * calculations to leverage the power of C++ but will also provide
