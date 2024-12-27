@@ -24,4 +24,34 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
-void main() {}
+import 'package:codemelted_developer/codemelted.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  // This is called once after ALL tests
+  setUpAll(() async {
+    var success = await codemelted.init(npuModuleUrl: "codemelted.wasm");
+    expect(success, isTrue);
+  });
+
+  // This is called once before EVERY test
+  setUp(() {});
+
+  // This is called once after ALL tests
+  tearDownAll(() {});
+
+  // This is called once after EVERY test
+  tearDown(() {});
+
+  group("codemelted.math Tests", () {
+    test("Temperature Conversion Validation", () {
+      var answer = codemelted.math.calculate(
+        formula: Formula_t.temperature_celsius_to_fahrenheit,
+        arg1: 0.0,
+      );
+      expect(answer, moreOrLessEquals(32.0));
+    });
+  });
+}

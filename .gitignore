@@ -37,3 +37,4 @@ README.html
 developer.zip
 codemelted_flutter/.flutter-plugins-dependencies
 codemelted_flutter/.flutter-plugins
+test/codemelted.wasm

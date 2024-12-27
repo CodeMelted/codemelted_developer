@@ -254,6 +254,7 @@ function build([string[]]$params) {
     message "Compiling WASM Module"
     emcc codemelted.cpp -o codemelted.wasm --no-entry
     Copy-Item -Path codemelted.wasm -Destination docs/codemelted.wasm -Force
+    Copy-Item -Path codemelted.wasm -Destination ../test/codemelted.wasm -Force
 
     Set-Location $PSScriptRoot
     message "npu module build completed."

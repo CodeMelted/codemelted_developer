@@ -51,6 +51,9 @@ import "package:web/web.dart" as web;
 /// Common Module Data Definition to support different functional aspects of
 /// the [CodeMeltedAPI].
 class _ModuleDataDefinition {
+  /// Will hold the last error encountered by the module.
+  static String? error;
+
   /// Sets up a global navigator key for usage with dialogs rendered with the
   /// [CDialogAPI] functions.
   static final navigatorKey = GlobalKey<NavigatorState>();
@@ -62,6 +65,14 @@ class _ModuleDataDefinition {
   /// Holds the reference to the codemelted.wasm module initialized via the
   /// loading and initialization of this codemelted Flutter module.
   static web.WebAssemblyInstantiatedSource? npu;
+
+  /// Handles errors within the module to expose it via the [CodeMeltedAPI]
+  /// namespace.
+  static void handleError(dynamic ex, StackTrace? st) {
+    error = st is String
+        ? "$ex\n${st?.toString()}"
+        : "${ex.toString()}\n${st?.toString()}";
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -107,22 +118,22 @@ class CDialogAPI {
   //   return Theme.of(cScaffoldKey.currentContext!).cDialogTheme;
   // }
 
-  // /// Will display information about your flutter app.
-  // Future<void> dlgAbout({
-  //   Widget? appIcon,
-  //   String? appName,
-  //   String? appVersion,
-  //   String? appLegalese,
-  // }) async {
-  //   showLicensePage(
-  //     context: cNavigatorKey.currentContext!,
-  //     applicationIcon: appIcon,
-  //     applicationName: appName,
-  //     applicationVersion: appVersion,
-  //     applicationLegalese: appLegalese,
-  //     useRootNavigator: true,
-  //   );
-  // }
+  /// Will display information about your flutter app.
+  Future<void> about({
+    Widget? appIcon,
+    String? appName,
+    String? appVersion,
+    String? appLegalese,
+  }) async {
+    showLicensePage(
+      context: _ModuleDataDefinition.navigatorKey.currentContext!,
+      applicationIcon: appIcon,
+      applicationName: appName,
+      applicationVersion: appVersion,
+      applicationLegalese: appLegalese,
+      useRootNavigator: true,
+    );
+  }
 
   // /// Provides a simple way to display a message to the user that must
   // /// be dismissed.
@@ -596,10 +607,10 @@ extension CStringExtension on String {
 
   /// Will attempt to return a double from the string value or null if it
   /// cannot.
-  num? asDouble() => double.tryParse(this);
+  double? asDouble() => double.tryParse(this);
 
   /// Will attempt to return a int from the string value or null if it cannot.
-  num? asInt() => int.tryParse(this);
+  int? asInt() => int.tryParse(this);
 
   /// Will attempt to return CObject object or null if it cannot.
   CObject? asObject() {
@@ -703,38 +714,37 @@ class CJsonAPI {
 // [Math Use Case] ------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Enumeration mapping to support the [CMathAPI.convertUnit] function for unit
-/// conversion.
-enum Conversion_t {
+/// The mathematical formulas held by the NPM loaded within this module.
+enum Formula_t {
   /// Celsius to fahrenheit.
-  temperature_celsius_to_fahrenheit,
+  temperature_celsius_to_fahrenheit;
 }
 
-/// Provides access to the codemelted.wasm module that provides the software
-/// Numeric Processor Unit (NPU).
+/// API binding to the codemelted.wasm NPU module to provide access to
+/// executing mathematical formulas.
 class CMathAPI {
-  /// Gets the single instance of the API.
-  static CMathAPI? _instance;
-
-  /// Will convert from one unit to the other. Will return [double.nan] if
-  /// either the codemelted.wasm file could not be initialized or a calculation
-  /// error occurred.
-  double convertUnit(Conversion_t conversion, double unit) {
+  /// Handles executing the [Formula_t] enumeration and passing the necessary
+  /// parameters.
+  double calculate({required Formula_t formula, required double arg1}) {
     assert(
       _ModuleDataDefinition.npu != null,
       "codemelted.wasm NPU module not loaded",
     );
     try {
-      return _ModuleDataDefinition.npu!.instance.exports.callMethod(
-        "codemelted_math_convert_unit".toJS,
-        conversion.index.toJS,
-        unit.toJS,
+      var answer = _ModuleDataDefinition.npu!.instance.exports.callMethod(
+        "cm_math".toJS,
+        formula.index.toJS,
+        arg1.toJS,
       );
+      return answer?.toString().asDouble() ?? double.nan;
     } catch (err, st) {
-      // TODO: Signal error.
+      _ModuleDataDefinition.handleError(err, st);
       return double.nan;
     }
   }
+
+  /// Gets the single instance of the API.
+  static CMathAPI? _instance;
 
   /// Sets up the internal instance for this object.
   factory CMathAPI() => _instance ?? CMathAPI._();
@@ -782,7 +792,7 @@ class CRuntimeAPI {
   /// Sets up the internal instance for this object.
   factory CRuntimeAPI() => _instance ?? CRuntimeAPI._();
 
-  /// Sets up the namespace for the [CMathAPI] object.
+  /// Sets up the namespace for the [CRuntimeAPI] object.
   CRuntimeAPI._() {
     _instance = this;
   }
@@ -1098,6 +1108,110 @@ class _CSpaViewState extends State<CSpaView> {
   }
 }
 
+/// Optional parameter for the mailto scheme to facilitate translating the more
+/// complicated URL.
+/// TODO: This is going to get removed....
+class CMailToParams {
+  /// The list of email addresses to send the email.
+  final List<String> mailto;
+
+  /// The carbon copies to send the email.
+  final List<String> cc;
+
+  /// The blind carbon copies to send the email.
+  final List<String> bcc;
+
+  /// The subject of the email.
+  final String subject;
+
+  /// The body of the email.
+  final String body;
+
+  @override
+  String toString() {
+    var url = "";
+
+    // Go format the mailto part of the url
+    url += "$mailto;";
+    url = url.substring(0, url.length - 1);
+
+    // Go format the cc part of the url
+    var delimiter = "?";
+    if (cc.isNotEmpty) {
+      url += "${delimiter}cc=";
+      delimiter = "&";
+      for (final e in cc) {
+        url += "$e;";
+      }
+      url = url.substring(0, url.length - 1);
+    }
+
+    // Go format the bcc part of the url
+    if (bcc.isNotEmpty) {
+      url += "${delimiter}bcc=";
+      delimiter = "&";
+      for (final e in bcc) {
+        url += "$e;";
+      }
+      url = url.substring(0, url.length - 1);
+    }
+
+    // Go format the subject part
+    if (subject.trim().isNotEmpty) {
+      url += "${delimiter}subject=${subject.trim()}";
+      delimiter = "&";
+    }
+
+    // Go format the body part
+    if (body.trim().isNotEmpty) {
+      url += "${delimiter}body=${body.trim()}";
+      delimiter = "&";
+    }
+
+    return url;
+  }
+
+  /// Constructs the object.
+  CMailToParams({
+    required this.mailto,
+    this.cc = const <String>[],
+    this.bcc = const <String>[],
+    this.subject = "",
+    this.body = "",
+  });
+}
+
+/// Identifies the scheme to utilize as part of the module open
+/// function.
+enum CSchemeType {
+  /// Will open the program associated with the file.
+  file("file:"),
+
+  /// Will open a web browser with http.
+  http("http://"),
+
+  /// Will open a web browser with https.
+  https("https://"),
+
+  /// Will open the default email program to send an email.
+  mailto("mailto:"),
+
+  /// Will open the default telephone program to make a call.
+  tel("tel:"),
+
+  /// Will open the default texting app to send a text.
+  sms("sms:");
+
+  /// Identifies the leading scheme to form a URL.
+  final String leading;
+
+  const CSchemeType(this.leading);
+
+  /// Will return the formatted URL based on the scheme and the
+  /// data provided.
+  String getUrl(String data) => "$leading$data";
+}
+
 /// @nodoc
 class CSpaAPI {
   // TODO: Eventually hook this up to codemelted.js.
@@ -1113,6 +1227,56 @@ class CSpaAPI {
       pwaDetected = pwaDetected || web.window.matchMedia(query).matches;
     }
     return pwaDetected;
+  }
+
+  // TODO: Hook into codemelted.js
+  /// Loads a specified resource into a new or existing browsing context
+  /// (that is, a tab, a window, or an iframe) under a specified name. These
+  /// are based on the different [CSchemeType] supported protocol items.
+  Future<web.Window?> open({
+    required CSchemeType scheme,
+    bool popupWindow = false,
+    CMailToParams? mailtoParams,
+    String? url,
+    String target = "_blank",
+    double? width,
+    double? height,
+  }) async {
+    try {
+      var urlToLaunch = "";
+      if (scheme == CSchemeType.file ||
+          scheme == CSchemeType.http ||
+          scheme == CSchemeType.https ||
+          scheme == CSchemeType.sms ||
+          scheme == CSchemeType.tel) {
+        urlToLaunch = scheme.getUrl(url!);
+      } else {
+        urlToLaunch = mailtoParams != null
+            ? scheme.getUrl(mailtoParams.toString())
+            : scheme.getUrl(url!);
+      }
+
+      if (popupWindow) {
+        var w = width ?? 900.0;
+        var h = height ?? 600.0;
+        var top = (web.window.screen.height - h) / 2;
+        var left = (web.window.screen.width - w) / 2;
+        var settings = "toolbar=no, location=no, "
+            "directories=no, status=no, menubar=no, "
+            "scrollbars=no, resizable=yes, copyhistory=no, "
+            "width=$w, height=$h, top=$top, left=$left";
+        return web.window.open(
+          urlToLaunch,
+          "_blank",
+          settings,
+        );
+      }
+
+      return web.window.open(urlToLaunch, target);
+    } catch (ex) {
+      // codemelted_logger.error(data: ex, stackTrace: st);
+      return null;
+    }
   }
 
   /// Accesses a Single Page Application (SPA) for the overall module. This
@@ -2663,8 +2827,24 @@ class CWidgetAPI {
 /// toolkit with support from the CodeMelted - JS Module project for the more
 /// JavaScript features. See that project for examples.
 class CodeMeltedAPI {
+  /// The NPU module location when compiling a codemelted_developer flutter
+  /// module with the WASM / PWA resources that support utilizing those assets
+  /// within this module.
+  static const npuModuleSpaUrl =
+      "assets/packages/codemelted_developer/npu/codemelted.wasm";
+
+  /// Holds the last error encountered for a transaction failure that may
+  /// include a stack trace.
+  String? get error => _ModuleDataDefinition.error;
+
+  /// Accesses the [CDialogAPI] defined namespace.
+  CDialogAPI get dialog => CDialogAPI();
+
   /// Accesses the [CJsonAPI] defined namespace.
   CJsonAPI get json => CJsonAPI();
+
+  /// Accesses the different NPU formulas via the [CMathAPI] enumeration.
+  CMathAPI get math => CMathAPI();
 
   /// Accesses the [CSpaAPI] defined namespace.
   CSpaAPI get spa => CSpaAPI();
@@ -2672,8 +2852,25 @@ class CodeMeltedAPI {
   /// Accesses the [CSpaAPI] defined namespace.
   CThemeAPI get theme => CThemeAPI();
 
+  /// Accesses the [CRuntimeAPI] defined namespace.
+  CRuntimeAPI get runtime => CRuntimeAPI();
+
   /// Accesses the [CWidgetAPI] defined namespace.
   CWidgetAPI get widget => CWidgetAPI();
+
+  /// Initializes module assets that support the flutter codemelted.dart
+  /// for flutter web PwA development.
+  Future<bool> init({
+    String npuModuleUrl = npuModuleSpaUrl,
+  }) async {
+    try {
+      _ModuleDataDefinition.npu = await runtime.importWASM(npuModuleUrl);
+      return _ModuleDataDefinition.npu != null;
+    } catch (ex, st) {
+      _ModuleDataDefinition.handleError(ex, st);
+      return false;
+    }
+  }
 
   /// Gets the single instance of the API.
   static CodeMeltedAPI? _instance;

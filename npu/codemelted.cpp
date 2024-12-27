@@ -8,8 +8,8 @@
  * @brief Serves as a software Numerical Processing Unit (NPU) to the
  * other codemelted modules. This module will contain all mathematical
  * calculations to leverage the power of C++ but will also provide
- * other mechanisms for running complicated tasks suited for WASM from
- * the other codemelted modules.
+ * other mechanisms for running complicated tasks suited for C++ processing
+ * via DLL or WASM compilation target.
  * @note Testing of this module will be handled by the other codemelted
  * modules which will provide the interfaces to consume this module.
  * @see <i>CodeMelted Developer:</i> https://codemelted.com/developer/
@@ -44,12 +44,12 @@
 // ----------------------------------------------------------------------------
 
 /**
- * @brief MACRO that provides a fast integer lookup for the different formula
- * conversions of the codemelted_math_convert_unit function.
+ * @brief MACRO that provides a fast integer lookup for the different
+ * mathematical formulas to support the cm_math function.
  */
-#define _EXEC_CONVERSION(conversion, formula) \
-  case conversion:                            \
-    return formula;
+#define _EXEC_FORMULA(formula, calculate) \
+  case formula:                            \
+    return calculate;
 
 // ----------------------------------------------------------------------------
 // [DATA DEFINITION] ----------------------------------------------------------
@@ -60,7 +60,7 @@
  */
 typedef enum {
   temperature_celsius_to_fahrenheit, /**< Converts celsius to fahrenheit. */
-} Conversion_t;
+} Formula_t;
 
 // ----------------------------------------------------------------------------
 // [MODULE DEFINITION] --------------------------------------------------------
@@ -71,18 +71,18 @@ extern "C" {
 #endif
 
 /**
- * @brief A collection of Conversion_t calculations quickly convert different
- * units.
- * @param conversion The identified Conversion_t to execute.
- * @param unit - The unit value to convert
+ * @brief A collection of Formula_t mathematical formula quickly execute
+ * those formulas to arrive at the given calculated answer.
+ * @param formula The identified Formula_t to execute.
+ * @param arg1 - The first parameter of the equation.
  * @returns The double of the converted value or NAN if the Conversion_t was
  * not found.
  */
-EMSCRIPTEN_KEEPALIVE double codemelted_math_convert_unit(
-    Conversion_t conversion, double unit
+EMSCRIPTEN_KEEPALIVE double cm_math(
+    Formula_t formula, double arg1
 ) {
-  switch (conversion) {
-    _EXEC_CONVERSION(temperature_celsius_to_fahrenheit, ((unit * (9/5)) + 32));
+  switch (formula) {
+    _EXEC_FORMULA(temperature_celsius_to_fahrenheit, ((arg1 * (9/5)) + 32));
   }
   return NAN;
 }
