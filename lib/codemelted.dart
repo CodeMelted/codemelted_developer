@@ -1,3 +1,5 @@
+// ignore_for_file: camel_case_types, constant_identifier_names
+
 /*
 ===============================================================================
 MIT License
@@ -24,11 +26,16 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
-/// The Flutter web implementation of the CodeMelted - Developer use cases.
-library codemelted;
+/// Represents the Flutter SDK bindings for the CodeMelted DEV | PWA Modules.
+/// Selecting this will give the construct of those SDK binding. To see
+/// examples of the Flutter SDK / JavaScript SDK (plus specifics), click on
+/// the CodeMelted | PWA SDK button at the top of the page.
+library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:ui_web';
 
 import 'package:flutter/foundation.dart';
@@ -38,191 +45,398 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import "package:web/web.dart" as web;
 
 // ----------------------------------------------------------------------------
-// [Data Definition] ----------------------------------------------------------
+// [MODULE DATA DEFINITION] ---------------------------------------------------
 // ----------------------------------------------------------------------------
 
-// ----------------------------------------------------------------------------
-// [Async Use Case] -----------------------------------------------------------
-// ----------------------------------------------------------------------------
+/// Common Module Data Definition to support different functional aspects of
+/// the [CodeMeltedAPI].
+class _ModuleDataDefinition {
+  /// Sets up a global navigator key for usage with dialogs rendered with the
+  /// [CDialogAPI] functions.
+  static final navigatorKey = GlobalKey<NavigatorState>();
 
-/// The task to run as part of the different module async functions.
-typedef CAsyncTask = Future<dynamic> Function([dynamic]);
+  /// Sets up a global scaffold key for opening drawers and such on the
+  /// [CSpaAPI] functions.
+  static final scaffoldKey = GlobalKey<ScaffoldState>();
 
-/// Something Something Star Wars.
-/// SEE https://codemelted.com/developer/use_cases/async.html
-/// @nodoc
-class CAsyncAPI {
-  /// Holds the mapping of timer objects of repeating tasks.
-  final _data = <int, dynamic>{};
-
-  /// The currently held timer id.
-  int _timerId = 0;
-
-  /// @nodoc - need to hook up to codemelted_js
-  int get cpuLoad => throw UnimplementedError(
-        "Future Implementation",
-      );
-
-  /// @nodoc - need to hook up to codemelted_js
-  int get hardwareConcurrency => throw UnimplementedError(
-        "Future Implementation",
-      );
-
-  /// Starts a repeating [CAsyncTask] on the specified interval.
-  int startTimer(CAsyncTask task, int interval) {
-    assert(interval > 0, "interval specified must be greater than 0.");
-    var timer = Timer.periodic(
-      Duration(milliseconds: interval),
-      (timer) {
-        task();
-      },
-    );
-    _timerId += 1;
-    _data[_timerId] = timer;
-    return _timerId;
-  }
-
-  /// Stops the currently running timer.
-  void stopTimer(timerId) {
-    assert(_data.containsKey(timerId), "timerId was not found.");
-    (_data[timerId] as Timer).cancel();
-    _data.remove(timerId);
-  }
-
-  /// Will allow for a delay in an asynchronous function.
-  Future<void> sleep(delay) async {
-    return Future.delayed(Duration(milliseconds: delay));
-  }
-
-  /// Runs a task and returns any calculated results. Can be scheduled into
-  /// the future if necessary.
-  Future<dynamic> runTask({
-    required CAsyncTask task,
-    dynamic data,
-    int delay = 0,
-  }) async {
-    return (
-      await Future.delayed(
-        Duration(milliseconds: delay),
-        () => task(data),
-      ),
-    );
-  }
-
-  /// TODO: Thread pool stuff.
-
-  /// Gets the single instance of the API.
-  static CAsyncAPI? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CAsyncAPI() => _instance ?? CAsyncAPI._();
-
-  /// Sets up the namespace for the [CAsyncAPI] object.
-  CAsyncAPI._() {
-    _instance = this;
-  }
+  /// Holds the reference to the codemelted.wasm module initialized via the
+  /// loading and initialization of this codemelted Flutter module.
+  static web.WebAssemblyInstantiatedSource? npu;
 }
 
 // ----------------------------------------------------------------------------
 // [Audio Use Case] -----------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Something Something Star Wars.
-/// @nodoc
-class CAudioAPI {
-  /// Gets the single instance of the API.
-  static CAudioAPI? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CAudioAPI() => _instance ?? CAudioAPI._();
-
-  /// Sets up the namespace for the [CAudioAPI] object.
-  CAudioAPI._() {
-    _instance = this;
-  }
-}
+// TODO: To be developed.
 
 // ----------------------------------------------------------------------------
 // [Console Use Case] ---------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-// NOT APPLICABLE TO FLUTTER MODULE.
+// NOT APPLICABLE TO MODULE.
 
 // ----------------------------------------------------------------------------
 // [Database Use Case] --------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Something Something Star Wars.
+// TODO: To be developed.
+
+// ----------------------------------------------------------------------------
+// [Dialog Use Case] ----------------------------------------------------------
+// ----------------------------------------------------------------------------
+
 /// @nodoc
-class CDatabaseAPI {
+class CDialogAPI {
+  // /// Helper action to build text buttons for our basic dialogs.
+  // Widget _buildButton<T>(String title, [T? answer]) {
+  //   return uiButton(
+  //     type: CButtonType.text,
+  //     title: title,
+  //     style: ButtonStyle(
+  //       foregroundColor: WidgetStatePropertyAll(
+  //         _getTheme().actionsColor,
+  //       ),
+  //     ),
+  //     onPressed: () => dlgClose<T>(answer),
+  //   );
+  // }
+
+  // /// Helper method to get the currently active dialog theme.
+  // CDialogTheme _getTheme() {
+  //   return Theme.of(cScaffoldKey.currentContext!).cDialogTheme;
+  // }
+
+  // /// Will display information about your flutter app.
+  // Future<void> dlgAbout({
+  //   Widget? appIcon,
+  //   String? appName,
+  //   String? appVersion,
+  //   String? appLegalese,
+  // }) async {
+  //   showLicensePage(
+  //     context: cNavigatorKey.currentContext!,
+  //     applicationIcon: appIcon,
+  //     applicationName: appName,
+  //     applicationVersion: appVersion,
+  //     applicationLegalese: appLegalese,
+  //     useRootNavigator: true,
+  //   );
+  // }
+
+  // /// Provides a simple way to display a message to the user that must
+  // /// be dismissed.
+  // Future<void> dlgAlert({
+  //   required String message,
+  //   double? height,
+  //   String? title,
+  //   double? width,
+  // }) async {
+  //   return dlgCustom(
+  //     actions: [
+  //       _buildButton<void>("OK"),
+  //     ],
+  //     content: Text(
+  //       message,
+  //       softWrap: true,
+  //       overflow: TextOverflow.ellipsis,
+  //       style: TextStyle(color: _getTheme().contentColor),
+  //     ),
+  //     height: height,
+  //     title: title ?? "Attention",
+  //     width: width,
+  //   );
+  // }
+
+  // // TODO: Fix when we have codemelted.js hookup for backend module support.
+  // // /// Shows a browser popup window when running within a mobile or web target
+  // // /// environment.
+  // // Future<void> dlgBrowser({
+  // //   required String url,
+  // //   double? height,
+  // //   String? title,
+  // //   bool useNativeBrowser = false,
+  // //   double? width,
+  // // }) async {
+  // //   // Now figure what browser window action we are taking
+  // //   if (useNativeBrowser) {
+  // //     codemelted_runtime.open(
+  // //       scheme: CSchemeType.https,
+  // //       popupWindow: true,
+  // //       url: url,
+  // //       height: height,
+  // //       width: width,
+  // //     );
+  // //     return;
+  // //   }
+
+  // //   // We are rendering an inline web view.
+  // //   return dlgCustom(
+  // //     actions: [
+  // //       _buildButton<void>("OK"),
+  // //     ],
+  // //     content: uiWebView(controller: CWebViewController(initialUrl: url)),
+  // //     title: title ?? "Browser",
+  // //     height: height,
+  // //     width: width,
+  // //   );
+  // // }
+
+  // /// Shows a popup dialog with a list of options returning the index selected
+  // /// or -1 if canceled.
+  // Future<int> dlgChoose({
+  //   required String title,
+  //   required List<String> options,
+  // }) async {
+  //   // Form up our dropdown options
+  //   final dropdownItems = <DropdownMenuEntry<int>>[];
+  //   for (final (index, option) in options.indexed) {
+  //     dropdownItems.add(DropdownMenuEntry(label: option, value: index));
+  //   }
+  //   int? answer = 0;
+  //   return (await dlgCustom<int?>(
+  //         actions: [
+  //           _buildButton<int>("OK", answer),
+  //         ],
+  //         content: uiComboBox(
+  //           dropdownMenuEntries: dropdownItems,
+  //           enableFilter: false,
+  //           enableSearch: false,
+  //           initialSelection: 0,
+  //           onSelected: (v) => answer = v,
+  //           style: DropdownMenuThemeData(
+  //             inputDecorationTheme: InputDecorationTheme(
+  //               isDense: true,
+  //               iconColor: _getTheme().contentColor,
+  //               suffixIconColor: _getTheme().contentColor,
+  //               focusedBorder: UnderlineInputBorder(
+  //                 borderSide: BorderSide(color: _getTheme().contentColor!),
+  //               ),
+  //               enabledBorder: UnderlineInputBorder(
+  //                 borderSide: BorderSide(color: _getTheme().contentColor!),
+  //               ),
+  //               border: UnderlineInputBorder(
+  //                 borderSide: BorderSide(color: _getTheme().contentColor!),
+  //               ),
+  //             ),
+  //             menuStyle: const MenuStyle(
+  //               padding: WidgetStatePropertyAll(EdgeInsets.zero),
+  //               visualDensity: VisualDensity.compact,
+  //             ),
+  //             textStyle: TextStyle(
+  //               color: _getTheme().contentColor,
+  //               decorationColor: _getTheme().contentColor,
+  //             ),
+  //           ),
+  //           width: 200,
+  //         ),
+  //         title: title,
+  //       )) ??
+  //       -1;
+  // }
+
+  // /// Closes an open dialog and returns an answer depending on the type of
+  // /// dialog shown.
+  // void dlgClose<T>([T? answer]) {
+  //   Navigator.of(
+  //     cNavigatorKey.currentContext!,
+  //     rootNavigator: true,
+  //   ).pop(answer);
+  // }
+
+  // /// Provides a Yes/No confirmation dialog with the displayed message as the
+  // /// question. True is returned for Yes and False for a No or cancel.
+  // Future<bool> dlgConfirm({
+  //   required String message,
+  //   double? height,
+  //   String? title,
+  //   double? width,
+  // }) async {
+  //   return (await dlgCustom<bool?>(
+  //         actions: [
+  //           _buildButton<bool>("Yes", true),
+  //           _buildButton<bool>("No", false),
+  //         ],
+  //         content: Text(
+  //           message,
+  //           softWrap: true,
+  //           overflow: TextOverflow.clip,
+  //           style: TextStyle(color: _getTheme().contentColor),
+  //         ),
+  //         height: height,
+  //         title: title ?? "Confirm",
+  //         width: width,
+  //       )) ??
+  //       false;
+  // }
+
+  // /// Shows a custom dialog for a more complex form where at the end you can
+  // /// apply changes as a returned value if necessary. You will make use of
+  // /// [CUserInterfaceAPI.dlgClose] for returning values via your actions array.
+  // Future<T?> dlgCustom<T>({
+  //   required Widget content,
+  //   required String title,
+  //   List<Widget>? actions,
+  //   double? height,
+  //   double? width,
+  // }) async {
+  //   return showDialog<T>(
+  //     barrierDismissible: false,
+  //     context: cNavigatorKey.currentContext!,
+  //     builder: (_) => AlertDialog(
+  //       backgroundColor: _getTheme().backgroundColor,
+  //       insetPadding: EdgeInsets.zero,
+  //       scrollable: true,
+  //       titlePadding: const EdgeInsets.all(5.0),
+  //       title: Center(child: Text(title)),
+  //       titleTextStyle: TextStyle(
+  //         color: _getTheme().titleColor,
+  //         fontSize: 20.0,
+  //         fontWeight: FontWeight.bold,
+  //       ),
+  //       contentPadding: const EdgeInsets.only(
+  //         left: 25.0,
+  //         right: 25.0,
+  //       ),
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           SizedBox(
+  //             height: height,
+  //             width: width,
+  //             child: content,
+  //           )
+  //         ],
+  //       ),
+  //       actionsPadding: const EdgeInsets.all(5.0),
+  //       actionsAlignment: MainAxisAlignment.center,
+  //       actions: actions,
+  //     ),
+  //   );
+  // }
+
+  // /// Provides the ability to run an async task and present a wait dialog. It
+  // /// is important you call [CUserInterfaceAPI.dlgClose] to properly clear the
+  // /// dialog and return any value expected.
+  // Future<T?> dlgLoading<T>({
+  //   required String message,
+  //   required Future<void> Function() task,
+  //   double? height,
+  //   String? title,
+  //   double? width,
+  // }) async {
+  //   Future.delayed(Duration.zero, task);
+  //   return dlgCustom<T>(
+  //     content: Row(
+  //       children: [
+  //         const SizedBox(width: 5.0),
+  //         SizedBox(
+  //           height: 25.0,
+  //           width: 25.0,
+  //           child: CircularProgressIndicator(
+  //             color: _getTheme().contentColor,
+  //           ),
+  //         ),
+  //         const SizedBox(width: 5.0),
+  //         Text(
+  //           message,
+  //           softWrap: true,
+  //           overflow: TextOverflow.ellipsis,
+  //           style: TextStyle(color: _getTheme().contentColor),
+  //         ),
+  //       ],
+  //     ),
+  //     height: height,
+  //     title: title ?? "Please Wait",
+  //     width: width,
+  //   );
+  // }
+
+  // /// Provides the ability to show an input prompt to retrieve an answer to a
+  // /// question. The value is returned back as a string. If a user cancels the
+  // /// action an empty string is returned.
+  // Future<String> dlgPrompt({
+  //   required String title,
+  // }) async {
+  //   var answer = '';
+  //   await dlgCustom<String?>(
+  //     actions: [
+  //       _buildButton<void>("OK"),
+  //     ],
+  //     content: SizedBox(
+  //       height: 30.0,
+  //       width: 200.0,
+  //       child: uiTextField(
+  //         onChanged: (v) => answer = v,
+  //         style: CInputDecorationTheme(
+  //           inputStyle: TextStyle(color: _getTheme().contentColor),
+  //           isDense: true,
+  //           border: UnderlineInputBorder(
+  //             borderSide: BorderSide(color: _getTheme().contentColor!),
+  //           ),
+  //           enabledBorder: UnderlineInputBorder(
+  //             borderSide: BorderSide(color: _getTheme().contentColor!),
+  //           ),
+  //           focusedBorder: UnderlineInputBorder(
+  //             borderSide: BorderSide(color: _getTheme().contentColor!),
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //     title: title,
+  //   );
+  //   return answer;
+  // }
+
+  // /// Shows a snackbar at the bottom of the content area to display
+  // /// information.
+  // void dlgSnackbar({
+  //   required Widget content,
+  //   SnackBarAction? action,
+  //   Clip clipBehavior = Clip.hardEdge,
+  //   int? seconds,
+  // }) {
+  //   ScaffoldMessenger.of(cNavigatorKey.currentContext!).showSnackBar(
+  //     SnackBar(
+  //       action: action,
+  //       clipBehavior: clipBehavior,
+  //       content: content,
+  //       duration: seconds != null
+  //           ? Duration(seconds: seconds)
+  //           : const Duration(seconds: 4),
+  //     ),
+  //   );
+  // }
+
   /// Gets the single instance of the API.
-  static CDatabaseAPI? _instance;
+  static CDialogAPI? _instance;
 
   /// Sets up the internal instance for this object.
-  factory CDatabaseAPI() => _instance ?? CDatabaseAPI._();
+  factory CDialogAPI() => _instance ?? CDialogAPI._();
 
-  /// Sets up the namespace for the [CDatabaseAPI] object.
-  CDatabaseAPI._() {
+  /// Sets up the namespace for the [CTaskAPI] object.
+  CDialogAPI._() {
     _instance = this;
   }
 }
 
 // ----------------------------------------------------------------------------
-// [Firebase Use Case] --------------------------------------------------------
+// [Disk Use Case] ------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Something Something Star Wars.
-/// @nodoc
-class CFirebaseAPI {
-  /// Gets the single instance of the API.
-  static CFirebaseAPI? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CFirebaseAPI() => _instance ?? CFirebaseAPI._();
-
-  /// Sets up the namespace for the [CFirebaseAPI] object.
-  CFirebaseAPI._() {
-    _instance = this;
-  }
-}
+// NOT APPLICABLE TO MODULE.
 
 // ----------------------------------------------------------------------------
-// [Game Use Case] ------------------------------------------------------------
+// [File Use Case] ------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Something Something Star Wars.
-/// @nodoc
-class CGameAPI {
-  /// Gets the single instance of the API.
-  static CGameAPI? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CGameAPI() => _instance ?? CGameAPI._();
-
-  /// Sets up the namespace for the [CGameAPI] object.
-  CGameAPI._() {
-    _instance = this;
-  }
-}
+// TODO: To be developed.
 
 // ----------------------------------------------------------------------------
 // [Hardware Use Case] --------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Something Something Star Wars.
-/// @nodoc
-class CHardwareAPI {
-  /// Gets the single instance of the API.
-  static CHardwareAPI? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CHardwareAPI() => _instance ?? CHardwareAPI._();
-
-  /// Sets up the namespace for the [CHardwareAPI] object.
-  CHardwareAPI._() {
-    _instance = this;
-  }
-}
+// TODO: To be developed.
 
 // ----------------------------------------------------------------------------
 // [JSON Use Case] ------------------------------------------------------------
@@ -387,7 +601,7 @@ extension CStringExtension on String {
   /// Will attempt to return a int from the string value or null if it cannot.
   num? asInt() => int.tryParse(this);
 
-  /// Will attempt to return Map<String, dynamic> object or null if it cannot.
+  /// Will attempt to return CObject object or null if it cannot.
   CObject? asObject() {
     try {
       return jsonDecode(this) as CObject?;
@@ -419,6 +633,16 @@ class CJsonAPI {
   /// Determines if the data type is a valid URL.
   bool checkValidUrl(String data) {
     return Uri.tryParse(data) != null;
+  }
+
+  /// Creates a new CArray object and initializes it if initData is specified.
+  CArray? createArray([CArray? initData]) {
+    return initData != null ? initData.copy() : <CArray>[];
+  }
+
+  /// Creates a new CObject object and initializes it if initData is specified.
+  CObject createObject([CObject? initData]) {
+    return initData != null ? CObject.from(initData) : CObject();
   }
 
   /// Will convert data into a JSON [CObject] or return null if the decode
@@ -473,55 +697,50 @@ class CJsonAPI {
 // [Logger Use Case] ----------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Something Something Star Wars.
-/// @nodoc
-class CLoggerAPI {
-  /// Gets the single instance of the API.
-  static CLoggerAPI? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CLoggerAPI() => _instance ?? CLoggerAPI._();
-
-  /// Sets up the namespace for the [CLoggerAPI] object.
-  CLoggerAPI._() {
-    _instance = this;
-  }
-}
+// TODO: To be developed.
 
 // ----------------------------------------------------------------------------
 // [Math Use Case] ------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Something Something Star Wars.
-/// @nodoc
+/// Enumeration mapping to support the [CMathAPI.convertUnit] function for unit
+/// conversion.
+enum Conversion_t {
+  /// Celsius to fahrenheit.
+  temperature_celsius_to_fahrenheit,
+}
+
+/// Provides access to the codemelted.wasm module that provides the software
+/// Numeric Processor Unit (NPU).
 class CMathAPI {
   /// Gets the single instance of the API.
   static CMathAPI? _instance;
 
+  /// Will convert from one unit to the other. Will return [double.nan] if
+  /// either the codemelted.wasm file could not be initialized or a calculation
+  /// error occurred.
+  double convertUnit(Conversion_t conversion, double unit) {
+    assert(
+      _ModuleDataDefinition.npu != null,
+      "codemelted.wasm NPU module not loaded",
+    );
+    try {
+      return _ModuleDataDefinition.npu!.instance.exports.callMethod(
+        "codemelted_math_convert_unit".toJS,
+        conversion.index.toJS,
+        unit.toJS,
+      );
+    } catch (err, st) {
+      // TODO: Signal error.
+      return double.nan;
+    }
+  }
+
   /// Sets up the internal instance for this object.
   factory CMathAPI() => _instance ?? CMathAPI._();
 
-  /// Sets up the namespace for the [CUserAPI] object.
+  /// Sets up the namespace for the [CMathAPI] object.
   CMathAPI._() {
-    _instance = this;
-  }
-}
-
-// ----------------------------------------------------------------------------
-// [Memory Use Case] ----------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// Something Something Star Wars.
-/// @nodoc
-class CMemoryAPI {
-  /// Gets the single instance of the API.
-  static CMemoryAPI? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CMemoryAPI() => _instance ?? CMemoryAPI._();
-
-  /// Sets up the namespace for the [CMemoryAPI] object.
-  CMemoryAPI._() {
     _instance = this;
   }
 }
@@ -530,177 +749,29 @@ class CMemoryAPI {
 // [Network Use Case] ---------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Something Something Star Wars.
-/// @nodoc
-class CNetworkAPI {
-  /// Gets the single instance of the API.
-  static CNetworkAPI? _instance;
+// TODO: To be developed.
 
-  /// Sets up the internal instance for this object.
-  factory CNetworkAPI() => _instance ?? CNetworkAPI._();
+// ----------------------------------------------------------------------------
+// [Process Use Case] ---------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-  /// Sets up the namespace for the [CNetworkAPI] object.
-  CNetworkAPI._() {
-    _instance = this;
-  }
-}
+// NOT APPLICABLE TO MODULE.
 
 // ----------------------------------------------------------------------------
 // [Runtime Use Case] ---------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Optional parameter for the mailto scheme to facilitate translating the more
-/// complicated URL.
-class CMailToParams {
-  /// The list of email addresses to send the email.
-  final List<String> mailto;
-
-  /// The carbon copies to send the email.
-  final List<String> cc;
-
-  /// The blind carbon copies to send the email.
-  final List<String> bcc;
-
-  /// The subject of the email.
-  final String subject;
-
-  /// The body of the email.
-  final String body;
-
-  @override
-  String toString() {
-    var url = "";
-
-    // Go format the mailto part of the url
-    url += "$mailto;";
-    url = url.substring(0, url.length - 1);
-
-    // Go format the cc part of the url
-    var delimiter = "?";
-    if (cc.isNotEmpty) {
-      url += "${delimiter}cc=";
-      delimiter = "&";
-      for (final e in cc) {
-        url += "$e;";
-      }
-      url = url.substring(0, url.length - 1);
-    }
-
-    // Go format the bcc part of the url
-    if (bcc.isNotEmpty) {
-      url += "${delimiter}bcc=";
-      delimiter = "&";
-      for (final e in bcc) {
-        url += "$e;";
-      }
-      url = url.substring(0, url.length - 1);
-    }
-
-    // Go format the subject part
-    if (subject.trim().isNotEmpty) {
-      url += "${delimiter}subject=${subject.trim()}";
-      delimiter = "&";
-    }
-
-    // Go format the body part
-    if (body.trim().isNotEmpty) {
-      url += "${delimiter}body=${body.trim()}";
-      delimiter = "&";
-    }
-
-    return url;
-  }
-
-  /// Constructs the object.
-  CMailToParams({
-    required this.mailto,
-    this.cc = const <String>[],
-    this.bcc = const <String>[],
-    this.subject = "",
-    this.body = "",
-  });
-}
-
-/// Identifies the scheme to utilize as part of the module open
-/// function.
-enum CSchemeType {
-  /// Will open the program associated with the file.
-  file("file:"),
-
-  /// Will open a web browser with http.
-  http("http://"),
-
-  /// Will open a web browser with https.
-  https("https://"),
-
-  /// Will open the default email program to send an email.
-  mailto("mailto:"),
-
-  /// Will open the default telephone program to make a call.
-  tel("tel:"),
-
-  /// Will open the default texting app to send a text.
-  sms("sms:");
-
-  /// Identifies the leading scheme to form a URL.
-  final String leading;
-
-  const CSchemeType(this.leading);
-
-  /// Will return the formatted URL based on the scheme and the
-  /// data provided.
-  String getUrl(String data) => "$leading$data";
-}
-
-/// Something Something Star Wars.
 /// @nodoc
 class CRuntimeAPI {
-  // TODO: Hook into codemelted.js
-  /// Loads a specified resource into a new or existing browsing context
-  /// (that is, a tab, a window, or an iframe) under a specified name. These
-  /// are based on the different [CSchemeType] supported protocol items.
-  Future<web.Window?> open({
-    required CSchemeType scheme,
-    bool popupWindow = false,
-    CMailToParams? mailtoParams,
-    String? url,
-    String target = "_blank",
-    double? width,
-    double? height,
-  }) async {
+  /// Will load a WASM module into the flutter web context. Returns null if
+  /// unable to be loaded.
+  Future<web.WebAssemblyInstantiatedSource?> importWASM(String url) async {
     try {
-      var urlToLaunch = "";
-      if (scheme == CSchemeType.file ||
-          scheme == CSchemeType.http ||
-          scheme == CSchemeType.https ||
-          scheme == CSchemeType.sms ||
-          scheme == CSchemeType.tel) {
-        urlToLaunch = scheme.getUrl(url!);
-      } else {
-        urlToLaunch = mailtoParams != null
-            ? scheme.getUrl(mailtoParams.toString())
-            : scheme.getUrl(url!);
-      }
-
-      if (popupWindow) {
-        var w = width ?? 900.0;
-        var h = height ?? 600.0;
-        var top = (web.window.screen.height - h) / 2;
-        var left = (web.window.screen.width - w) / 2;
-        var settings = "toolbar=no, location=no, "
-            "directories=no, status=no, menubar=no, "
-            "scrollbars=no, resizable=yes, copyhistory=no, "
-            "width=$w, height=$h, top=$top, left=$left";
-        return web.window.open(
-          urlToLaunch,
-          "_blank",
-          settings,
-        );
-      }
-
-      return web.window.open(urlToLaunch, target);
-    } catch (ex) {
-      // codemelted_logger.error(data: ex, stackTrace: st);
+      return (web.WebAssembly.instantiateStreaming(
+        web.window.fetch(url.toJS),
+      ).toDart);
+    } catch (err) {
+      // TODO: How to signal error.
       return null;
     }
   }
@@ -711,7 +782,7 @@ class CRuntimeAPI {
   /// Sets up the internal instance for this object.
   factory CRuntimeAPI() => _instance ?? CRuntimeAPI._();
 
-  /// Sets up the namespace for the [CRuntimeAPI] object.
+  /// Sets up the namespace for the [CMathAPI] object.
   CRuntimeAPI._() {
     _instance = this;
   }
@@ -721,32 +792,11 @@ class CRuntimeAPI {
 // [Storage Use Case] ---------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// Something Something Star Wars.
-/// @nodoc
-class CStorageAPI {
-  /// Gets the single instance of the API.
-  static CStorageAPI? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CStorageAPI() => _instance ?? CStorageAPI._();
-
-  /// Sets up the namespace for the [CStorageAPI] object.
-  CStorageAPI._() {
-    _instance = this;
-  }
-}
+// TODO: To be developed.
 
 // ----------------------------------------------------------------------------
-// [User Interface Use Case] --------------------------------------------------
+// [SPA Use Case] -------------------------------------------------------------
 // ----------------------------------------------------------------------------
-
-/// Sets up a global navigator key for usage with dialogs rendered with the
-/// [CUserInterfaceAPI] dlg functions.
-final cNavigatorKey = GlobalKey<NavigatorState>();
-
-/// Sets up a global scaffold key for opening drawers and such on the
-/// [CUserInterfaceAPI] app functions.
-final cScaffoldKey = GlobalKey<ScaffoldState>();
 
 /// Will allow for hooking up to get resize events update to determine if a
 /// change to the UI state is necessary for the SPA. Return true if you are
@@ -754,10 +804,10 @@ final cScaffoldKey = GlobalKey<ScaffoldState>();
 /// tree.
 typedef OnResizeEventHandler = bool Function(Size);
 
-/// Provides the Single Page Application for the [CUserInterfaceAPI.app]
+/// Provides the Single Page Application for the [CSpaAPI.spa]
 /// property that returns the main view.
-class CAppView extends StatefulWidget {
-  /// Tracks if the [CUserInterfaceAPI.app] has already been called.
+class CSpaView extends StatefulWidget {
+  /// Tracks if the [CSpaAPI.spa] has already been called.
   static bool _isInitialized = false;
 
   /// Sets up the dictionary for usage with the SPA.
@@ -768,32 +818,32 @@ class CAppView extends StatefulWidget {
   };
 
   /// Sets / gets the ability to detect resize events with the
-  /// [CUserInterfaceAPI.app] to update the main body if necessary.
+  /// [CSpaAPI.spa] to update the main body if necessary.
   static OnResizeEventHandler? get onResizeEvent =>
       uiState.get<OnResizeEventHandler?>("onResizeEvent");
   static set onResizeEvent(OnResizeEventHandler? v) =>
       uiState.set<OnResizeEventHandler?>("onResizeEvent", v);
 
-  /// Sets / gets the dark theme for the [CUserInterfaceAPI.app].
+  /// Sets / gets the dark theme for the [CSpaAPI.spa].
   static ThemeData get darkTheme => uiState.get<ThemeData>("darkTheme");
   static set darkTheme(ThemeData? v) =>
       uiState.set<ThemeData?>("darkTheme", v, notify: true);
 
-  /// Sets / gets the light theme for the [CUserInterfaceAPI.app].
+  /// Sets / gets the light theme for the [CSpaAPI.spa].
   static ThemeData get theme => uiState.get<ThemeData>("theme");
   static set theme(ThemeData? v) =>
       uiState.set<ThemeData?>("theme", v, notify: true);
 
-  /// Sets / gets the theme mode for the [CUserInterfaceAPI.app].
+  /// Sets / gets the theme mode for the [CSpaAPI.spa].
   static ThemeMode get themeMode => uiState.get<ThemeMode>("themeMode");
   static set themeMode(ThemeMode v) =>
       uiState.set<ThemeMode?>("themeMode", v, notify: true);
 
-  /// Sets / gets the app title for the [CUserInterfaceAPI.app].
+  /// Sets / gets the app title for the [CSpaAPI.spa].
   static String? get title => uiState.get<String?>("title");
   static set title(String? v) => uiState.set<String?>("title", v, notify: true);
 
-  /// Sets / removes the header area of the [CUserInterfaceAPI.app].
+  /// Sets / removes the header area of the [CSpaAPI.spa].
   static void header({
     List<Widget>? actions,
     bool automaticallyImplyLeading = true,
@@ -834,7 +884,7 @@ class CAppView extends StatefulWidget {
     }
   }
 
-  /// Sets / removes the content area of the [CUserInterfaceAPI.app].
+  /// Sets / removes the content area of the [CSpaAPI.spa].
   static void content({
     required Widget? body,
     bool extendBody = false,
@@ -851,7 +901,7 @@ class CAppView extends StatefulWidget {
     );
   }
 
-  /// Sets / removes the footer area of the [CUserInterfaceAPI.app].
+  /// Sets / removes the footer area of the [CSpaAPI.spa].
   static void footer({
     List<Widget>? actions,
     bool automaticallyImplyLeading = true,
@@ -899,7 +949,7 @@ class CAppView extends StatefulWidget {
     }
   }
 
-  /// Sets / removes a floating action button for the [CUserInterfaceAPI.app].
+  /// Sets / removes a floating action button for the [CSpaAPI.spa].
   static void floatingActionButton({
     Widget? button,
     FloatingActionButtonLocation? location,
@@ -920,7 +970,7 @@ class CAppView extends StatefulWidget {
     );
   }
 
-  /// Sets / removes a left sided drawer for the [CUserInterfaceAPI.app].
+  /// Sets / removes a left sided drawer for the [CSpaAPI.spa].
   static void drawer({Widget? header, List<Widget>? items}) {
     if (header == null && items == null) {
       uiState.set<Widget?>("drawer", null);
@@ -943,7 +993,7 @@ class CAppView extends StatefulWidget {
     }
   }
 
-  /// Sets / removes a right sided drawer from the [CUserInterfaceAPI.app].
+  /// Sets / removes a right sided drawer from the [CSpaAPI.spa].
   static void endDrawer({Widget? header, List<Widget>? items}) {
     if (header == null && items == null) {
       uiState.set<Widget?>("endDrawer", null);
@@ -966,41 +1016,42 @@ class CAppView extends StatefulWidget {
     }
   }
 
-  /// Will programmatically close an open drawer on the [CUserInterfaceAPI.app].
+  /// Will programmatically close an open drawer on the [CSpaAPI.spa].
   static void closeDrawer() {
-    if (cScaffoldKey.currentState!.isDrawerOpen) {
-      cScaffoldKey.currentState!.closeDrawer();
+    if (_ModuleDataDefinition.scaffoldKey.currentState!.isDrawerOpen) {
+      _ModuleDataDefinition.scaffoldKey.currentState!.closeDrawer();
     }
-    if (cScaffoldKey.currentState!.isEndDrawerOpen) {
-      cScaffoldKey.currentState!.closeEndDrawer();
+    if (_ModuleDataDefinition.scaffoldKey.currentState!.isEndDrawerOpen) {
+      _ModuleDataDefinition.scaffoldKey.currentState!.closeEndDrawer();
     }
   }
 
-  /// Will programmatically open a drawer on the [CUserInterfaceAPI.app].
+  /// Will programmatically open a drawer on the [CSpaAPI.spa].
   static void openDrawer({bool isEndDrawer = false}) {
-    if (!isEndDrawer && cScaffoldKey.currentState!.hasDrawer) {
-      cScaffoldKey.currentState!.openDrawer();
-    } else if (cScaffoldKey.currentState!.hasEndDrawer) {
-      cScaffoldKey.currentState!.openEndDrawer();
+    if (!isEndDrawer &&
+        _ModuleDataDefinition.scaffoldKey.currentState!.hasDrawer) {
+      _ModuleDataDefinition.scaffoldKey.currentState!.openDrawer();
+    } else if (_ModuleDataDefinition.scaffoldKey.currentState!.hasEndDrawer) {
+      _ModuleDataDefinition.scaffoldKey.currentState!.openEndDrawer();
     }
   }
 
   @override
-  State<StatefulWidget> createState() => _CAppViewState();
+  State<StatefulWidget> createState() => _CSpaViewState();
 
-  CAppView({super.key}) {
+  CSpaView({super.key}) {
     assert(
       !_isInitialized,
-      "Only one CAppView can be created. It sets up a SPA.",
+      "Only one CSpaView can be created. It sets up a SPA.",
     );
     _isInitialized = true;
   }
 }
 
-class _CAppViewState extends State<CAppView> {
+class _CSpaViewState extends State<CSpaView> {
   @override
   void initState() {
-    CAppView.uiState.addListener(() => setState(() {}));
+    CSpaView.uiState.addListener(() => setState(() {}));
     super.initState();
   }
 
@@ -1008,44 +1059,280 @@ class _CAppViewState extends State<CAppView> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      darkTheme: CAppView.darkTheme,
-      navigatorKey: cNavigatorKey,
-      theme: CAppView.theme,
-      themeMode: CAppView.themeMode,
-      title: CAppView.title ?? "",
+      darkTheme: CSpaView.darkTheme,
+      navigatorKey: _ModuleDataDefinition.navigatorKey,
+      theme: CSpaView.theme,
+      themeMode: CSpaView.themeMode,
+      title: CSpaView.title ?? "",
       home: NotificationListener<SizeChangedLayoutNotification>(
         onNotification: (notification) {
-          var handler = CAppView.onResizeEvent;
+          var handler = CSpaView.onResizeEvent;
           if (handler != null) {
             return handler(MediaQuery.of(context).size);
           }
           return false;
         },
         child: Scaffold(
-          appBar: CAppView.uiState.get<AppBar?>("appBar"),
+          appBar: CSpaView.uiState.get<AppBar?>("appBar"),
           body: SizeChangedLayoutNotifier(
-            child: CAppView.uiState.get<CObject?>("content")?['body'],
+            child: CSpaView.uiState.get<CObject?>("content")?['body'],
           ),
           extendBody:
-              CAppView.uiState.get<CObject?>("content")?['extendBody'] ?? false,
-          extendBodyBehindAppBar: CAppView.uiState
+              CSpaView.uiState.get<CObject?>("content")?['extendBody'] ?? false,
+          extendBodyBehindAppBar: CSpaView.uiState
                   .get<CObject?>("content")?["extendBodyBehindAppBar"] ??
               false,
           bottomNavigationBar:
-              CAppView.uiState.get<BottomAppBar?>("bottomAppBar"),
-          drawer: CAppView.uiState.get<Widget?>("drawer"),
-          endDrawer: CAppView.uiState.get<Widget?>("endDrawer"),
+              CSpaView.uiState.get<BottomAppBar?>("bottomAppBar"),
+          drawer: CSpaView.uiState.get<Widget?>("drawer"),
+          endDrawer: CSpaView.uiState.get<Widget?>("endDrawer"),
           floatingActionButton:
-              CAppView.uiState.get<Widget?>("floatingActionButton"),
-          floatingActionButtonLocation: CAppView.uiState
+              CSpaView.uiState.get<Widget?>("floatingActionButton"),
+          floatingActionButtonLocation: CSpaView.uiState
               .get<FloatingActionButtonLocation?>(
                   "floatingActionButtonLocation"),
-          key: cScaffoldKey,
+          key: _ModuleDataDefinition.scaffoldKey,
         ),
       ),
     );
   }
 }
+
+/// @nodoc
+class CSpaAPI {
+  // TODO: Eventually hook this up to codemelted.js.
+  /// Determines if the web app is an installed PWA or not.
+  bool get isPWA {
+    var queries = [
+      '(display-mode: fullscreen)',
+      '(display-mode: standalone)',
+      '(display-mode: minimal-ui),'
+    ];
+    var pwaDetected = false;
+    for (var query in queries) {
+      pwaDetected = pwaDetected || web.window.matchMedia(query).matches;
+    }
+    return pwaDetected;
+  }
+
+  /// Accesses a Single Page Application (SPA) for the overall module. This
+  /// is called after being configured via the appXXX functions in the runApp
+  /// of the main().
+  Widget get spa {
+    return CSpaView();
+  }
+
+  /// Sets the [CSpaAPI.spa] dark theme.
+  set darkTheme(ThemeData? v) {
+    CSpaView.darkTheme = v;
+  }
+
+  /// Sets the [CSpaAPI.spa] light theme.
+  set theme(ThemeData? v) {
+    CSpaView.theme = v;
+  }
+
+  /// Sets the [CSpaAPI.spa] theme mode.
+  set themeMode(ThemeMode v) {
+    CSpaView.themeMode = v;
+  }
+
+  /// Sets / removes the [CSpaAPI.spa] title.
+  set title(String? v) {
+    CSpaView.title = v;
+  }
+
+  String? get title {
+    return CSpaView.title;
+  }
+
+  /// Sets up the ability to detect resize events with the SPA.
+  set onResizeEvent(OnResizeEventHandler? v) {
+    CSpaView.onResizeEvent = v;
+  }
+
+  /// Sets / removes the [CSpaAPI.spa] header area.
+  void header({
+    List<Widget>? actions,
+    bool automaticallyImplyLeading = true,
+    bool forceMaterialTransparency = false,
+    Widget? leading,
+    AppBarTheme? style,
+    Widget? title,
+  }) {
+    CSpaView.header(
+      actions: actions,
+      automaticallyImplyLeading: automaticallyImplyLeading,
+      forceMaterialTransparency: forceMaterialTransparency,
+      leading: leading,
+      style: style,
+      title: title,
+    );
+  }
+
+  /// Sets / removes the [CSpaAPI.spa] content area.
+  void content({
+    required Widget? body,
+    bool extendBody = false,
+    bool extendBodyBehindAppBar = false,
+  }) {
+    CSpaView.content(
+      body: body,
+      extendBody: extendBody,
+      extendBodyBehindAppBar: extendBodyBehindAppBar,
+    );
+  }
+
+  /// Sets / removes the [CSpaAPI.spa] footer area.
+  void footer({
+    List<Widget>? actions,
+    bool automaticallyImplyLeading = true,
+    bool forceMaterialTransparency = false,
+    Widget? leading,
+    AppBarTheme? style,
+    Widget? title,
+  }) {
+    CSpaView.footer(
+      actions: actions,
+      automaticallyImplyLeading: automaticallyImplyLeading,
+      forceMaterialTransparency: forceMaterialTransparency,
+      leading: leading,
+      style: style,
+      title: title,
+    );
+  }
+
+  /// Sets / removes the [CSpaAPI.spa] floating action button.
+  void floatingActionButton({
+    Widget? button,
+    FloatingActionButtonLocation? location,
+  }) {
+    CSpaView.floatingActionButton(button: button, location: location);
+  }
+
+  /// Sets / removes the [CSpaAPI.spa] drawer.
+  void drawer({Widget? header, List<Widget>? items}) {
+    CSpaView.drawer(header: header, items: items);
+  }
+
+  /// Sets / removes the [CSpaAPI.spa] end drawer.
+  void endDrawer({Widget? header, List<Widget>? items}) {
+    CSpaView.endDrawer(header: header, items: items);
+  }
+
+  /// Closes the [CSpaAPI.spa] drawer or end drawer.
+  void closeDrawer() {
+    CSpaView.closeDrawer();
+  }
+
+  /// Opens the [CSpaAPI.spa] drawer or end drawer.
+  void openDrawer({bool isEndDrawer = false}) {
+    CSpaView.openDrawer(isEndDrawer: isEndDrawer);
+  }
+
+  /// Provides the ability to get items from the global app state.
+  T getAppState<T>({required String key}) {
+    return CSpaView.uiState.get<T>(key);
+  }
+
+  /// Provides the ability to set items on the global app state.
+  void setAppState<T>({required String key, required T value}) {
+    CSpaView.uiState.set<T>(key, value);
+  }
+
+  /// Retrieves the total height of the specified context.
+  double height(BuildContext context) {
+    return MediaQuery.of(context).size.height;
+  }
+
+  /// Retrieves the available width of the specified context.
+  double width(BuildContext context) {
+    return MediaQuery.of(context).size.width;
+  }
+
+  /// Gets the single instance of the API.
+  static CSpaAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CSpaAPI() => _instance ?? CSpaAPI._();
+
+  /// Sets up the namespace for the [CTaskAPI] object.
+  CSpaAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Tasks Use Case] -----------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// The task to run as part of the different module async functions.
+typedef CTask_t = Future<dynamic> Function([dynamic]);
+
+/// Provides the ability to run asynchronous one off / repeating tasks. Also
+/// provides the ability to delay asynchronous tasks/
+class CTasksAPI {
+  /// Holds the mapping of timer objects of repeating tasks.
+  final _data = <int, dynamic>{};
+
+  /// The currently held timer id.
+  int _timerId = 0;
+
+  /// Runs a task and returns any calculated results. Can be scheduled into
+  /// the future if necessary if delay is specified.
+  Future<dynamic> run({
+    required CTask_t task,
+    dynamic data,
+    int delay = 0,
+  }) async {
+    return Future.delayed(
+      Duration(milliseconds: delay),
+      () => task(data),
+    );
+  }
+
+  /// Starts a repeating [CTask_t] on the specified interval.
+  int startTimer(CTask_t task, int interval) {
+    assert(interval > 0, "interval specified must be greater than 0.");
+    var timer = Timer.periodic(
+      Duration(milliseconds: interval),
+      (timer) {
+        task();
+      },
+    );
+    _timerId += 1;
+    _data[_timerId] = timer;
+    return _timerId;
+  }
+
+  /// Stops the currently running timer.
+  void stopTimer(timerId) {
+    assert(_data.containsKey(timerId), "timerId was not found.");
+    (_data[timerId] as Timer).cancel();
+    _data.remove(timerId);
+  }
+
+  /// Will allow for a delay in an asynchronous function.
+  Future<void> sleep(delay) async {
+    assert(delay >= 0, "delay specified must be greater than 0.");
+    return Future.delayed(Duration(milliseconds: delay));
+  }
+
+  /// Gets the single instance of the API.
+  static CTasksAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CTasksAPI() => _instance ?? CTasksAPI._();
+
+  /// Sets up the namespace for the [CTaskAPI] object.
+  CTasksAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Theme Use Case] -----------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 /// Provides some modifications to the [DialogTheme] to properly configure
 /// overall dialog theme.
@@ -1066,6 +1353,7 @@ class CDialogTheme extends DialogTheme {
 
   /// Constructor to provide new colors for the [DialogTheme]
   const CDialogTheme({
+    super.key,
     super.backgroundColor = const Color.fromARGB(255, 2, 48, 32),
     this.titleColor = Colors.amber,
     this.contentColor = Colors.white,
@@ -1296,7 +1584,7 @@ class CInputDecorationTheme extends InputDecorationTheme {
 /// Provides a wrapper around the Flutter ThemeData object that isolates
 /// the application theming to the material3 constructs of Flutter. Extended
 /// existing ThemeData objects utilized to provide a similar theming experience.
-/// The theme is created via the [CUserInterfaceAPI.themeCreate] method.
+/// The theme is created via the [CSpaAPI.themeCreate] method.
 extension ThemeDataExtension on ThemeData {
   /// Extracts the [DialogTheme] as an [CDialogTheme] object.
   CDialogTheme get cDialogTheme => dialogTheme as CDialogTheme;
@@ -1306,6 +1594,149 @@ extension ThemeDataExtension on ThemeData {
   CInputDecorationTheme get cInputDecorationTheme =>
       inputDecorationTheme as CInputDecorationTheme;
 }
+
+/// Provides the ability to create a Flutter Material3 theme that can be
+/// applied to the overall [CSpaAPI] singular view.
+class CThemeAPI {
+  /// Creates a ThemeData object but it only exposes the material3 themes so
+  /// that any application theming is done with the future in mind.
+  ThemeData create({
+    ActionIconThemeData? actionIconTheme,
+    AppBarTheme? appBarTheme,
+    BadgeThemeData? badgeTheme,
+    MaterialBannerThemeData? bannerTheme,
+    BottomAppBarTheme? bottomAppBarTheme,
+    BottomNavigationBarThemeData? bottomNavigationBarTheme,
+    BottomSheetThemeData? bottomSheetTheme,
+    Brightness? brightness,
+    ButtonThemeData? buttonTheme,
+    CardTheme? cardTheme,
+    CheckboxThemeData? checkboxTheme,
+    ChipThemeData? chipTheme,
+    ColorScheme? colorScheme,
+    DataTableThemeData? dataTableTheme,
+    DatePickerThemeData? datePickerTheme,
+    DividerThemeData? dividerTheme,
+    DialogTheme? dialogTheme,
+    DrawerThemeData? drawerTheme,
+    DropdownMenuThemeData? dropdownMenuTheme,
+    ElevatedButtonThemeData? elevatedButtonTheme,
+    ExpansionTileThemeData? expansionTileTheme,
+    FilledButtonThemeData? filledButtonTheme,
+    FloatingActionButtonThemeData? floatingActionButtonTheme,
+    IconButtonThemeData? iconButtonTheme,
+    IconThemeData? iconTheme,
+    InputDecorationTheme? inputDecorationTheme,
+    ListTileThemeData? listTileTheme,
+    MaterialTapTargetSize? materialTapTargetSize,
+    MenuBarThemeData? menuBarTheme,
+    MenuButtonThemeData? menuButtonTheme,
+    MenuThemeData? menuTheme,
+    NavigationBarThemeData? navigationBarTheme,
+    NavigationDrawerThemeData? navigationDrawerTheme,
+    NavigationRailThemeData? navigationRailTheme,
+    OutlinedButtonThemeData? outlinedButtonTheme,
+    PageTransitionsTheme? pageTransitionsTheme,
+    PopupMenuThemeData? popupMenuTheme,
+    IconThemeData? primaryIconTheme,
+    ProgressIndicatorThemeData? progressIndicatorTheme,
+    TextTheme? primaryTextTheme,
+    RadioThemeData? radioTheme,
+    ScrollbarThemeData? scrollbarTheme,
+    SearchBarThemeData? searchBarTheme,
+    SearchViewThemeData? searchViewTheme,
+    SegmentedButtonThemeData? segmentedButtonTheme,
+    SnackBarThemeData? snackBarTheme,
+    SliderThemeData? sliderTheme,
+    InteractiveInkFeatureFactory? splashFactory,
+    SwitchThemeData? switchTheme,
+    TabBarTheme? tabBarTheme,
+    TextButtonThemeData? textButtonTheme,
+    TextSelectionThemeData? textSelectionTheme,
+    TextTheme? textTheme,
+    TimePickerThemeData? timePickerTheme,
+    ToggleButtonsThemeData? toggleButtonsTheme,
+    TooltipThemeData? tooltipTheme,
+    Typography? typography,
+    VisualDensity? visualDensity,
+  }) {
+    return ThemeData(
+      actionIconTheme: actionIconTheme,
+      appBarTheme: appBarTheme,
+      badgeTheme: badgeTheme,
+      bannerTheme: bannerTheme,
+      bottomAppBarTheme: bottomAppBarTheme,
+      bottomNavigationBarTheme: bottomNavigationBarTheme,
+      bottomSheetTheme: bottomSheetTheme,
+      brightness: brightness,
+      buttonTheme: buttonTheme,
+      cardTheme: cardTheme,
+      checkboxTheme: checkboxTheme,
+      chipTheme: chipTheme,
+      colorScheme: colorScheme,
+      dataTableTheme: dataTableTheme,
+      datePickerTheme: datePickerTheme,
+      dialogTheme: dialogTheme ?? const CDialogTheme(),
+      dividerTheme: dividerTheme,
+      drawerTheme: drawerTheme,
+      dropdownMenuTheme: dropdownMenuTheme,
+      elevatedButtonTheme: elevatedButtonTheme,
+      expansionTileTheme: expansionTileTheme,
+      filledButtonTheme: filledButtonTheme,
+      floatingActionButtonTheme: floatingActionButtonTheme,
+      iconButtonTheme: iconButtonTheme,
+      iconTheme: iconTheme,
+      inputDecorationTheme: inputDecorationTheme,
+      listTileTheme: listTileTheme,
+      materialTapTargetSize: materialTapTargetSize,
+      menuBarTheme: menuBarTheme,
+      menuButtonTheme: menuButtonTheme,
+      menuTheme: menuTheme,
+      navigationBarTheme: navigationBarTheme,
+      navigationDrawerTheme: navigationDrawerTheme,
+      navigationRailTheme: navigationRailTheme,
+      outlinedButtonTheme: outlinedButtonTheme,
+      pageTransitionsTheme: pageTransitionsTheme,
+      popupMenuTheme: popupMenuTheme,
+      primaryIconTheme: primaryIconTheme,
+      primaryTextTheme: primaryTextTheme,
+      progressIndicatorTheme: progressIndicatorTheme,
+      radioTheme: radioTheme,
+      scrollbarTheme: scrollbarTheme,
+      searchBarTheme: searchBarTheme,
+      searchViewTheme: searchViewTheme,
+      segmentedButtonTheme: segmentedButtonTheme,
+      sliderTheme: sliderTheme,
+      snackBarTheme: snackBarTheme,
+      splashFactory: splashFactory,
+      switchTheme: switchTheme,
+      tabBarTheme: tabBarTheme,
+      textButtonTheme: textButtonTheme,
+      textSelectionTheme: textSelectionTheme,
+      textTheme: textTheme,
+      timePickerTheme: timePickerTheme,
+      toggleButtonsTheme: toggleButtonsTheme,
+      tooltipTheme: tooltipTheme,
+      useMaterial3: true,
+      visualDensity: visualDensity,
+    );
+  }
+
+  /// Gets the single instance of the API.
+  static CThemeAPI? _instance;
+
+  /// Sets up the internal instance for this object.
+  factory CThemeAPI() => _instance ?? CThemeAPI._();
+
+  /// Sets up the namespace for the [CTaskAPI] object.
+  CThemeAPI._() {
+    _instance = this;
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Widget Use Case] ----------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 /// Supports identifying the module uiButton widget constructed.
 enum CButtonType { elevated, filled, icon, outlined, text }
@@ -1483,7 +1914,7 @@ class _CTabViewState extends State<CTabbedView> with TickerProviderStateMixin {
   }
 }
 
-/// The web view controller to support the [CUserInterfaceAPI.uiWebView] widget
+/// The web view controller to support the [CSpaAPI.uiWebView] widget
 /// creation.
 class CWebViewController {
   /// Handles the changing of the URL within the web view.
@@ -1527,599 +1958,14 @@ class CWebViewController {
 /// SPA construct, dialog utility, and a wrapper for the most common of
 /// widgets. Theming is also provides to allow for creating different themes
 /// for your SPA.
-class CUserInterfaceAPI {
-  // TODO: Eventually hook this up to codemelted.js.
-  /// Determines if the web app is an installed PWA or not.
-  bool get isPWA {
-    var queries = [
-      '(display-mode: fullscreen)',
-      '(display-mode: standalone)',
-      '(display-mode: minimal-ui),'
-    ];
-    var pwaDetected = false;
-    for (var query in queries) {
-      pwaDetected = pwaDetected || web.window.matchMedia(query).matches;
-    }
-    return pwaDetected;
-  }
-
-  /// Accesses a Single Page Application (SPA) for the overall module. This
-  /// is called after being configured via the appXXX functions in the runApp
-  /// of the main().
-  Widget get app {
-    return CAppView();
-  }
-
-  /// Sets the [CUserInterfaceAPI.app] dark theme.
-  set appDarkTheme(ThemeData? v) {
-    CAppView.darkTheme = v;
-  }
-
-  /// Sets the [CUserInterfaceAPI.app] light theme.
-  set appTheme(ThemeData? v) {
-    CAppView.theme = v;
-  }
-
-  /// Sets the [CUserInterfaceAPI.app] theme mode.
-  set appThemeMode(ThemeMode v) {
-    CAppView.themeMode = v;
-  }
-
-  /// Sets / removes the [CUserInterfaceAPI.app] title.
-  set appTitle(String? v) {
-    CAppView.title = v;
-  }
-
-  String? get appTitle {
-    return CAppView.title;
-  }
-
-  /// Sets up the ability to detect resize events with the SPA.
-  set appOnResizeEvent(OnResizeEventHandler? v) {
-    CAppView.onResizeEvent = v;
-  }
-
-  /// Sets / removes the [CUserInterfaceAPI.app] header area.
-  void appHeader({
-    List<Widget>? actions,
-    bool automaticallyImplyLeading = true,
-    bool forceMaterialTransparency = false,
-    Widget? leading,
-    AppBarTheme? style,
-    Widget? title,
-  }) {
-    CAppView.header(
-      actions: actions,
-      automaticallyImplyLeading: automaticallyImplyLeading,
-      forceMaterialTransparency: forceMaterialTransparency,
-      leading: leading,
-      style: style,
-      title: title,
-    );
-  }
-
-  /// Sets / removes the [CUserInterfaceAPI.app] content area.
-  void appContent({
-    required Widget? body,
-    bool extendBody = false,
-    bool extendBodyBehindAppBar = false,
-  }) {
-    CAppView.content(
-      body: body,
-      extendBody: extendBody,
-      extendBodyBehindAppBar: extendBodyBehindAppBar,
-    );
-  }
-
-  /// Sets / removes the [CUserInterfaceAPI.app] footer area.
-  void appFooter({
-    List<Widget>? actions,
-    bool automaticallyImplyLeading = true,
-    bool forceMaterialTransparency = false,
-    Widget? leading,
-    AppBarTheme? style,
-    Widget? title,
-  }) {
-    CAppView.footer(
-      actions: actions,
-      automaticallyImplyLeading: automaticallyImplyLeading,
-      forceMaterialTransparency: forceMaterialTransparency,
-      leading: leading,
-      style: style,
-      title: title,
-    );
-  }
-
-  /// Sets / removes the [CUserInterfaceAPI.app] floating action button.
-  void appFloatingActionButton({
-    Widget? button,
-    FloatingActionButtonLocation? location,
-  }) {
-    CAppView.floatingActionButton(button: button, location: location);
-  }
-
-  /// Sets / removes the [CUserInterfaceAPI.app] drawer.
-  void appDrawer({Widget? header, List<Widget>? items}) {
-    CAppView.drawer(header: header, items: items);
-  }
-
-  /// Sets / removes the [CUserInterfaceAPI.app] end drawer.
-  void appEndDrawer({Widget? header, List<Widget>? items}) {
-    CAppView.endDrawer(header: header, items: items);
-  }
-
-  /// Closes the [CUserInterfaceAPI.app] drawer or end drawer.
-  void appCloseDrawer() {
-    CAppView.closeDrawer();
-  }
-
-  /// Opens the [CUserInterfaceAPI.app] drawer or end drawer.
-  void appOpenDrawer({bool isEndDrawer = false}) {
-    CAppView.openDrawer(isEndDrawer: isEndDrawer);
-  }
-
-  /// Provides the ability to get items from the global app state.
-  T getAppState<T>({required String key}) {
-    return CAppView.uiState.get<T>(key);
-  }
-
-  /// Provides the ability to set items on the global app state.
-  void setAppState<T>({required String key, required T value}) {
-    CAppView.uiState.set<T>(key, value);
-  }
-
-  /// Helper action to build text buttons for our basic dialogs.
-  Widget _buildButton<T>(String title, [T? answer]) {
-    return uiButton(
-      type: CButtonType.text,
-      title: title,
-      style: ButtonStyle(
-        foregroundColor: WidgetStatePropertyAll(
-          _getTheme().actionsColor,
-        ),
-      ),
-      onPressed: () => dlgClose<T>(answer),
-    );
-  }
-
-  /// Helper method to get the currently active dialog theme.
-  CDialogTheme _getTheme() {
-    return Theme.of(cScaffoldKey.currentContext!).cDialogTheme;
-  }
-
-  /// Will display information about your flutter app.
-  Future<void> dlgAbout({
-    Widget? appIcon,
-    String? appName,
-    String? appVersion,
-    String? appLegalese,
-  }) async {
-    showLicensePage(
-      context: cNavigatorKey.currentContext!,
-      applicationIcon: appIcon,
-      applicationName: appName,
-      applicationVersion: appVersion,
-      applicationLegalese: appLegalese,
-      useRootNavigator: true,
-    );
-  }
-
-  /// Provides a simple way to display a message to the user that must
-  /// be dismissed.
-  Future<void> dlgAlert({
-    required String message,
-    double? height,
-    String? title,
-    double? width,
-  }) async {
-    return dlgCustom(
-      actions: [
-        _buildButton<void>("OK"),
-      ],
-      content: Text(
-        message,
-        softWrap: true,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(color: _getTheme().contentColor),
-      ),
-      height: height,
-      title: title ?? "Attention",
-      width: width,
-    );
-  }
-
-  // TODO: Fix when we have codemelted.js hookup for backend module support.
-  // /// Shows a browser popup window when running within a mobile or web target
-  // /// environment.
-  // Future<void> dlgBrowser({
-  //   required String url,
-  //   double? height,
-  //   String? title,
-  //   bool useNativeBrowser = false,
-  //   double? width,
-  // }) async {
-  //   // Now figure what browser window action we are taking
-  //   if (useNativeBrowser) {
-  //     codemelted_runtime.open(
-  //       scheme: CSchemeType.https,
-  //       popupWindow: true,
-  //       url: url,
-  //       height: height,
-  //       width: width,
-  //     );
-  //     return;
-  //   }
-
-  //   // We are rendering an inline web view.
-  //   return dlgCustom(
-  //     actions: [
-  //       _buildButton<void>("OK"),
-  //     ],
-  //     content: uiWebView(controller: CWebViewController(initialUrl: url)),
-  //     title: title ?? "Browser",
-  //     height: height,
-  //     width: width,
-  //   );
-  // }
-
-  /// Shows a popup dialog with a list of options returning the index selected
-  /// or -1 if canceled.
-  Future<int> dlgChoose({
-    required String title,
-    required List<String> options,
-  }) async {
-    // Form up our dropdown options
-    final dropdownItems = <DropdownMenuEntry<int>>[];
-    for (final (index, option) in options.indexed) {
-      dropdownItems.add(DropdownMenuEntry(label: option, value: index));
-    }
-    int? answer = 0;
-    return (await dlgCustom<int?>(
-          actions: [
-            _buildButton<int>("OK", answer),
-          ],
-          content: uiComboBox(
-            dropdownMenuEntries: dropdownItems,
-            enableFilter: false,
-            enableSearch: false,
-            initialSelection: 0,
-            onSelected: (v) => answer = v,
-            style: DropdownMenuThemeData(
-              inputDecorationTheme: InputDecorationTheme(
-                isDense: true,
-                iconColor: _getTheme().contentColor,
-                suffixIconColor: _getTheme().contentColor,
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: _getTheme().contentColor!),
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: _getTheme().contentColor!),
-                ),
-                border: UnderlineInputBorder(
-                  borderSide: BorderSide(color: _getTheme().contentColor!),
-                ),
-              ),
-              menuStyle: const MenuStyle(
-                padding: WidgetStatePropertyAll(EdgeInsets.zero),
-                visualDensity: VisualDensity.compact,
-              ),
-              textStyle: TextStyle(
-                color: _getTheme().contentColor,
-                decorationColor: _getTheme().contentColor,
-              ),
-            ),
-            width: 200,
-          ),
-          title: title,
-        )) ??
-        -1;
-  }
-
-  /// Closes an open dialog and returns an answer depending on the type of
-  /// dialog shown.
-  void dlgClose<T>([T? answer]) {
-    Navigator.of(
-      cNavigatorKey.currentContext!,
-      rootNavigator: true,
-    ).pop(answer);
-  }
-
-  /// Provides a Yes/No confirmation dialog with the displayed message as the
-  /// question. True is returned for Yes and False for a No or cancel.
-  Future<bool> dlgConfirm({
-    required String message,
-    double? height,
-    String? title,
-    double? width,
-  }) async {
-    return (await dlgCustom<bool?>(
-          actions: [
-            _buildButton<bool>("Yes", true),
-            _buildButton<bool>("No", false),
-          ],
-          content: Text(
-            message,
-            softWrap: true,
-            overflow: TextOverflow.clip,
-            style: TextStyle(color: _getTheme().contentColor),
-          ),
-          height: height,
-          title: title ?? "Confirm",
-          width: width,
-        )) ??
-        false;
-  }
-
-  /// Shows a custom dialog for a more complex form where at the end you can
-  /// apply changes as a returned value if necessary. You will make use of
-  /// [CUserInterfaceAPI.dlgClose] for returning values via your actions array.
-  Future<T?> dlgCustom<T>({
-    required Widget content,
-    required String title,
-    List<Widget>? actions,
-    double? height,
-    double? width,
-  }) async {
-    return showDialog<T>(
-      barrierDismissible: false,
-      context: cNavigatorKey.currentContext!,
-      builder: (_) => AlertDialog(
-        backgroundColor: _getTheme().backgroundColor,
-        insetPadding: EdgeInsets.zero,
-        scrollable: true,
-        titlePadding: const EdgeInsets.all(5.0),
-        title: Center(child: Text(title)),
-        titleTextStyle: TextStyle(
-          color: _getTheme().titleColor,
-          fontSize: 20.0,
-          fontWeight: FontWeight.bold,
-        ),
-        contentPadding: const EdgeInsets.only(
-          left: 25.0,
-          right: 25.0,
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              height: height,
-              width: width,
-              child: content,
-            )
-          ],
-        ),
-        actionsPadding: const EdgeInsets.all(5.0),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: actions,
-      ),
-    );
-  }
-
-  /// Provides the ability to run an async task and present a wait dialog. It
-  /// is important you call [CUserInterfaceAPI.dlgClose] to properly clear the
-  /// dialog and return any value expected.
-  Future<T?> dlgLoading<T>({
-    required String message,
-    required Future<void> Function() task,
-    double? height,
-    String? title,
-    double? width,
-  }) async {
-    Future.delayed(Duration.zero, task);
-    return dlgCustom<T>(
-      content: Row(
-        children: [
-          const SizedBox(width: 5.0),
-          SizedBox(
-            height: 25.0,
-            width: 25.0,
-            child: CircularProgressIndicator(
-              color: _getTheme().contentColor,
-            ),
-          ),
-          const SizedBox(width: 5.0),
-          Text(
-            message,
-            softWrap: true,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: _getTheme().contentColor),
-          ),
-        ],
-      ),
-      height: height,
-      title: title ?? "Please Wait",
-      width: width,
-    );
-  }
-
-  /// Provides the ability to show an input prompt to retrieve an answer to a
-  /// question. The value is returned back as a string. If a user cancels the
-  /// action an empty string is returned.
-  Future<String> dlgPrompt({
-    required String title,
-  }) async {
-    var answer = '';
-    await dlgCustom<String?>(
-      actions: [
-        _buildButton<void>("OK"),
-      ],
-      content: SizedBox(
-        height: 30.0,
-        width: 200.0,
-        child: uiTextField(
-          onChanged: (v) => answer = v,
-          style: CInputDecorationTheme(
-            inputStyle: TextStyle(color: _getTheme().contentColor),
-            isDense: true,
-            border: UnderlineInputBorder(
-              borderSide: BorderSide(color: _getTheme().contentColor!),
-            ),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: _getTheme().contentColor!),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: _getTheme().contentColor!),
-            ),
-          ),
-        ),
-      ),
-      title: title,
-    );
-    return answer;
-  }
-
-  /// Shows a snackbar at the bottom of the content area to display
-  /// information.
-  void dlgSnackbar({
-    required Widget content,
-    SnackBarAction? action,
-    Clip clipBehavior = Clip.hardEdge,
-    int? seconds,
-  }) {
-    ScaffoldMessenger.of(cNavigatorKey.currentContext!).showSnackBar(
-      SnackBar(
-        action: action,
-        clipBehavior: clipBehavior,
-        content: content,
-        duration: seconds != null
-            ? Duration(seconds: seconds)
-            : const Duration(seconds: 4),
-      ),
-    );
-  }
-
-  /// Utility method to create ThemeData objects but it only exposes the
-  /// material3 themes so that any application theming is done with the
-  /// future in mind.
-  ThemeData themeCreate({
-    ActionIconThemeData? actionIconTheme,
-    AppBarTheme? appBarTheme,
-    BadgeThemeData? badgeTheme,
-    MaterialBannerThemeData? bannerTheme,
-    BottomAppBarTheme? bottomAppBarTheme,
-    BottomNavigationBarThemeData? bottomNavigationBarTheme,
-    BottomSheetThemeData? bottomSheetTheme,
-    Brightness? brightness,
-    ButtonThemeData? buttonTheme,
-    CardTheme? cardTheme,
-    CheckboxThemeData? checkboxTheme,
-    ChipThemeData? chipTheme,
-    ColorScheme? colorScheme,
-    DataTableThemeData? dataTableTheme,
-    DatePickerThemeData? datePickerTheme,
-    DividerThemeData? dividerTheme,
-    DialogTheme? dialogTheme,
-    DrawerThemeData? drawerTheme,
-    DropdownMenuThemeData? dropdownMenuTheme,
-    ElevatedButtonThemeData? elevatedButtonTheme,
-    ExpansionTileThemeData? expansionTileTheme,
-    FilledButtonThemeData? filledButtonTheme,
-    FloatingActionButtonThemeData? floatingActionButtonTheme,
-    IconButtonThemeData? iconButtonTheme,
-    IconThemeData? iconTheme,
-    InputDecorationTheme? inputDecorationTheme,
-    ListTileThemeData? listTileTheme,
-    MaterialTapTargetSize? materialTapTargetSize,
-    MenuBarThemeData? menuBarTheme,
-    MenuButtonThemeData? menuButtonTheme,
-    MenuThemeData? menuTheme,
-    NavigationBarThemeData? navigationBarTheme,
-    NavigationDrawerThemeData? navigationDrawerTheme,
-    NavigationRailThemeData? navigationRailTheme,
-    OutlinedButtonThemeData? outlinedButtonTheme,
-    PageTransitionsTheme? pageTransitionsTheme,
-    PopupMenuThemeData? popupMenuTheme,
-    IconThemeData? primaryIconTheme,
-    ProgressIndicatorThemeData? progressIndicatorTheme,
-    TextTheme? primaryTextTheme,
-    RadioThemeData? radioTheme,
-    ScrollbarThemeData? scrollbarTheme,
-    SearchBarThemeData? searchBarTheme,
-    SearchViewThemeData? searchViewTheme,
-    SegmentedButtonThemeData? segmentedButtonTheme,
-    SnackBarThemeData? snackBarTheme,
-    SliderThemeData? sliderTheme,
-    InteractiveInkFeatureFactory? splashFactory,
-    SwitchThemeData? switchTheme,
-    TabBarTheme? tabBarTheme,
-    TextButtonThemeData? textButtonTheme,
-    TextSelectionThemeData? textSelectionTheme,
-    TextTheme? textTheme,
-    TimePickerThemeData? timePickerTheme,
-    ToggleButtonsThemeData? toggleButtonsTheme,
-    TooltipThemeData? tooltipTheme,
-    Typography? typography,
-    VisualDensity? visualDensity,
-  }) {
-    return ThemeData(
-      actionIconTheme: actionIconTheme,
-      appBarTheme: appBarTheme,
-      badgeTheme: badgeTheme,
-      bannerTheme: bannerTheme,
-      bottomAppBarTheme: bottomAppBarTheme,
-      bottomNavigationBarTheme: bottomNavigationBarTheme,
-      bottomSheetTheme: bottomSheetTheme,
-      brightness: brightness,
-      buttonTheme: buttonTheme,
-      cardTheme: cardTheme,
-      checkboxTheme: checkboxTheme,
-      chipTheme: chipTheme,
-      colorScheme: colorScheme,
-      dataTableTheme: dataTableTheme,
-      datePickerTheme: datePickerTheme,
-      dialogTheme: dialogTheme ?? const CDialogTheme(),
-      dividerTheme: dividerTheme,
-      drawerTheme: drawerTheme,
-      dropdownMenuTheme: dropdownMenuTheme,
-      elevatedButtonTheme: elevatedButtonTheme,
-      expansionTileTheme: expansionTileTheme,
-      filledButtonTheme: filledButtonTheme,
-      floatingActionButtonTheme: floatingActionButtonTheme,
-      iconButtonTheme: iconButtonTheme,
-      iconTheme: iconTheme,
-      inputDecorationTheme: inputDecorationTheme,
-      listTileTheme: listTileTheme,
-      materialTapTargetSize: materialTapTargetSize,
-      menuBarTheme: menuBarTheme,
-      menuButtonTheme: menuButtonTheme,
-      menuTheme: menuTheme,
-      navigationBarTheme: navigationBarTheme,
-      navigationDrawerTheme: navigationDrawerTheme,
-      navigationRailTheme: navigationRailTheme,
-      outlinedButtonTheme: outlinedButtonTheme,
-      pageTransitionsTheme: pageTransitionsTheme,
-      popupMenuTheme: popupMenuTheme,
-      primaryIconTheme: primaryIconTheme,
-      primaryTextTheme: primaryTextTheme,
-      progressIndicatorTheme: progressIndicatorTheme,
-      radioTheme: radioTheme,
-      scrollbarTheme: scrollbarTheme,
-      searchBarTheme: searchBarTheme,
-      searchViewTheme: searchViewTheme,
-      segmentedButtonTheme: segmentedButtonTheme,
-      sliderTheme: sliderTheme,
-      snackBarTheme: snackBarTheme,
-      splashFactory: splashFactory,
-      switchTheme: switchTheme,
-      tabBarTheme: tabBarTheme,
-      textButtonTheme: textButtonTheme,
-      textSelectionTheme: textSelectionTheme,
-      textTheme: textTheme,
-      timePickerTheme: timePickerTheme,
-      toggleButtonsTheme: toggleButtonsTheme,
-      tooltipTheme: tooltipTheme,
-      useMaterial3: true,
-      visualDensity: visualDensity,
-    );
-  }
-
+class CWidgetAPI {
   /// Will construct a stateless button to handle press events of said button.
   /// The button is determined via the [CButtonType] enumeration which will
   /// provide the look and feel of the button. The style is handled by that
   /// particular buttons theme data object but to set the button individually,
   /// utilize the style override. These are stateless buttons so any changing
   /// of them is up to the parent.
-  Widget uiButton({
+  Widget button({
     required void Function() onPressed,
     required String title,
     required CButtonType type,
@@ -2213,7 +2059,7 @@ class CUserInterfaceAPI {
 
   /// Provides the ability to center a widget with the ability to specify
   /// the visibility of the child tree of widgets wrapped by this.
-  Widget uiCenter({
+  Widget center({
     Key? key,
     Widget? child,
     double? heightFactor,
@@ -2228,7 +2074,7 @@ class CUserInterfaceAPI {
   }
 
   /// Layout to put widgets vertically.
-  Widget uiColumn({
+  Widget column({
     required List<Widget> children,
     Key? key,
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
@@ -2246,7 +2092,7 @@ class CUserInterfaceAPI {
 
   /// Creates a customizable combo box drop down with the ability to implement
   /// a search box to filter the combo box.
-  Widget uiComboBox<T>({
+  Widget comboBox<T>({
     required List<DropdownMenuEntry<T>> dropdownMenuEntries,
     Key? key,
     bool enabled = true,
@@ -2303,7 +2149,7 @@ class CUserInterfaceAPI {
   /// The most basic component for setting up a UI. This widget can be utilized
   /// to setup padding, margins, or build custom stylized widgets combining
   /// said widget or layouts to build a more complex widget.
-  Widget uiContainer({
+  Widget container({
     Key? key,
     AlignmentGeometry? alignment,
     EdgeInsetsGeometry? padding,
@@ -2339,7 +2185,7 @@ class CUserInterfaceAPI {
 
   /// Creates a vertical or horizontal spacer between widgets that can be
   /// hidden if necessary.
-  Widget uiDivider({
+  Widget divider({
     Key? key,
     double? height,
     double? width,
@@ -2354,7 +2200,7 @@ class CUserInterfaceAPI {
   }
 
   /// Provides the ability to have an expansion list of widgets.
-  Widget uiExpandedTile({
+  Widget expansionTile({
     required List<Widget> children,
     required Widget title,
     Key? key,
@@ -2391,7 +2237,7 @@ class CUserInterfaceAPI {
 
   /// Provides a wrapper for an asynchronous widget to load data and then
   /// present it when completed.
-  Widget uiFutureBuilder<T>({
+  Widget futureBuilder<T>({
     required Widget Function(BuildContext, AsyncSnapshot<T>) builder,
     required Future<T>? future,
     Key? key,
@@ -2407,7 +2253,7 @@ class CUserInterfaceAPI {
 
   /// Creates a scrollable grid layout of widgets that based on the
   /// crossAxisCount.
-  Widget uiGridView({
+  Widget gridView({
     required int crossAxisCount,
     required List<Widget> children,
     Key? key,
@@ -2437,16 +2283,11 @@ class CUserInterfaceAPI {
     );
   }
 
-  /// Retrieves the total height of the specified context.
-  double uiHeight(BuildContext context) {
-    return MediaQuery.of(context).size.height;
-  }
-
   /// Will create an image widget based on the specified [CImageType]
   /// enumerated value and display it when available based on the
   /// characteristics specified with the widget. No theme controls this widget
   /// type so the characteristics are unique to each widget created.
-  Image uiImage({
+  Image image({
     required CImageType type,
     required dynamic src,
     Alignment alignment = Alignment.center,
@@ -2495,7 +2336,7 @@ class CUserInterfaceAPI {
 
   /// Provides a basic text label with the ability to make it multi-line, clip
   /// it if to long, and if necessary, make it a hyperlink.
-  Widget uiLabel({
+  Widget label({
     required String data,
     Key? key,
     int? maxLines,
@@ -2512,7 +2353,7 @@ class CUserInterfaceAPI {
   }
 
   /// Creates a selectable widget to be part of a view of selectable items.
-  Widget uiListTile({
+  Widget listTile({
     required void Function() onTap,
     Key? key,
     bool enabled = true,
@@ -2553,7 +2394,7 @@ class CUserInterfaceAPI {
 
   /// Provides a list view of widgets with automatic scrolling that can be
   /// set for vertical (default) or horizontal.
-  Widget uiListView({
+  Widget listView({
     required List<Widget> children,
     Key? key,
     Clip clipBehavior = Clip.hardEdge,
@@ -2576,7 +2417,7 @@ class CUserInterfaceAPI {
   }
 
   /// Layout to put widgets horizontally.
-  Widget uiRow({
+  Widget row({
     required List<Widget> children,
     Key? key,
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
@@ -2594,7 +2435,7 @@ class CUserInterfaceAPI {
 
   /// Creates a stacked widget based on the children allowing for a custom
   /// look and feel for "special" widgets that stack bottom to top and overlap.
-  Widget uiStack({
+  Widget stack({
     required List<Widget> children,
     Key? key,
     AlignmentGeometry alignment = AlignmentDirectional.topStart,
@@ -2614,7 +2455,7 @@ class CUserInterfaceAPI {
 
   /// Constructs a tab view of content to allow for users to switch between
   /// widgets of data.
-  Widget uiTabbedView({
+  Widget tabbedView({
     required List<CTabItem> tabItems,
     Key? key,
     bool automaticIndicatorColorAdjustment = true,
@@ -2650,7 +2491,7 @@ class CUserInterfaceAPI {
   /// and providing feedback to a user. It exposes the most common text field
   /// options to allow for building custom text fields
   /// (i.e. spin controls, number only, etc.).
-  Widget uiTextField({
+  Widget textField({
     bool autocorrect = true,
     bool enableSuggestions = true,
     TextEditingController? controller,
@@ -2744,7 +2585,7 @@ class CUserInterfaceAPI {
 
   /// Provides the ability to show / hide a widget and setup how to treat
   /// other aspects of the widget.
-  Widget uiVisibility({
+  Widget visibility({
     required Widget child,
     Key? key,
     bool maintainState = false,
@@ -2767,7 +2608,7 @@ class CUserInterfaceAPI {
   }
 
   /// Provides an embedded web view via an iFrame to load other HTML documents.
-  Widget uiWebView({required CWebViewController controller}) {
+  Widget webView({required CWebViewController controller}) {
     // Create the IFrame.
     var iFrameElement = web.HTMLIFrameElement();
     iFrameElement.style.height = "100%";
@@ -2794,22 +2635,23 @@ class CUserInterfaceAPI {
     );
   }
 
-  /// Retrieves the available width of the specified context.
-  double uiWidth(BuildContext context) {
-    return MediaQuery.of(context).size.width;
-  }
-
   /// Gets the single instance of the API.
-  static CUserInterfaceAPI? _instance;
+  static CWidgetAPI? _instance;
 
   /// Sets up the internal instance for this object.
-  factory CUserInterfaceAPI() => _instance ?? CUserInterfaceAPI._();
+  factory CWidgetAPI() => _instance ?? CWidgetAPI._();
 
-  /// Sets up the namespace for the [CUserInterfaceAPI] object.
-  CUserInterfaceAPI._() {
+  /// Sets up the namespace for the [CTaskAPI] object.
+  CWidgetAPI._() {
     _instance = this;
   }
 }
+
+// ----------------------------------------------------------------------------
+// [Worker Use Case] ----------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+// TODO: To be developed.
 
 // ----------------------------------------------------------------------------
 // [Public API] ---------------------------------------------------------------
@@ -2821,13 +2663,17 @@ class CUserInterfaceAPI {
 /// toolkit with support from the CodeMelted - JS Module project for the more
 /// JavaScript features. See that project for examples.
 class CodeMeltedAPI {
-  /// Accesses the json defined namespace.
+  /// Accesses the [CJsonAPI] defined namespace.
   CJsonAPI get json => CJsonAPI();
 
-  CRuntimeAPI get runtime => CRuntimeAPI();
+  /// Accesses the [CSpaAPI] defined namespace.
+  CSpaAPI get spa => CSpaAPI();
 
-  /// Accesses the ui defined namespace.
-  CUserInterfaceAPI get ui => CUserInterfaceAPI();
+  /// Accesses the [CSpaAPI] defined namespace.
+  CThemeAPI get theme => CThemeAPI();
+
+  /// Accesses the [CWidgetAPI] defined namespace.
+  CWidgetAPI get widget => CWidgetAPI();
 
   /// Gets the single instance of the API.
   static CodeMeltedAPI? _instance;

@@ -22,3 +22,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: any
+
+flutter:
+  assets:
+  - npu/codemelted.wasm
+  - pwa/codemelted.js

@@ -1,17 +1,19 @@
 /**
  * @file codemelted.cpp
  * @author Mark Shaffer
- * @date dd mmm yyyy
- * @version X.Y.Z
- * @brief Is a WASM module to provide an embeddable speedy engine for the
- * codemelted modules. This will contain all math calculations to leverage
- * the power of C++ but will also provide mechanisms for running complicated
- * tasks from those modules as more is learned about what WASM can do. For now
- * all math will be handled by this module and the other modules will hook into
- * it.
+ * @date 2024-12-16
+ * @version 0.0.1 <br />
+ * - [0.0.1 / 2024-12-16]: Sets up the initial file construct to support
+ * tooling and integrating with the other modules.
+ * @brief Serves as a software Numerical Processing Unit (NPU) to the
+ * other codemelted modules. This module will contain all mathematical
+ * calculations to leverage the power of C++ but will also provide
+ * other mechanisms for running complicated tasks suited for WASM from
+ * the other codemelted modules.
+ * @note Testing of this module will be handled by the other codemelted
+ * modules which will provide the interfaces to consume this module.
  * @see <i>CodeMelted Developer:</i> https://codemelted.com/developer/
  * @see <i>WASM Use Cases:</i> https://webassembly.org/docs/use-cases/
- *
  * @copyright 2024 Mark Shaffer. All Rights Reserved.
  * MIT License
  *
@@ -42,25 +44,23 @@
 // ----------------------------------------------------------------------------
 
 /**
- * @brief MACRO that provides a fast integer lookup for the different formulas
- * of the codemelted_math() function. So repetitive but from the research the
- * fastest way to get quick mathematical executions from the module.
+ * @brief MACRO that provides a fast integer lookup for the different formula
+ * conversions of the codemelted_math_convert_unit function.
  */
-#define _EXEC_FORMULA(formula, calculate) \
-  case formula:                           \
-    return calculate;
+#define _EXEC_CONVERSION(conversion, formula) \
+  case conversion:                            \
+    return formula;
 
 // ----------------------------------------------------------------------------
 // [DATA DEFINITION] ----------------------------------------------------------
 // ----------------------------------------------------------------------------
 
 /**
- * @brief Enumeration of different formulas collected and accessible via the
- * codemelted_math function.
+ * @brief Enumeration of different conversions supported by this module.
  */
 typedef enum {
   temperature_celsius_to_fahrenheit, /**< Converts celsius to fahrenheit. */
-} MathFormula_t;
+} Conversion_t;
 
 // ----------------------------------------------------------------------------
 // [MODULE DEFINITION] --------------------------------------------------------
@@ -71,22 +71,18 @@ extern "C" {
 #endif
 
 /**
- * @brief A collection of MathFormula_t calculations quickly accessible for
- * the fastest execution time for performing the calculations and returning
- * the most accurate result.
- * @param formula The identified MathFormula_t to execute.
- * @param arg1 - A double required for the equation.
- * @param arg2 - A double for a second parameter in a equation if required.
- * @returns The calculated double answer based on the specified args and
- * chosen formula. NAN returned if an error encountered during the
- * calculation.
+ * @brief A collection of Conversion_t calculations quickly convert different
+ * units.
+ * @param conversion The identified Conversion_t to execute.
+ * @param unit - The unit value to convert
+ * @returns The double of the converted value or NAN if the Conversion_t was
+ * not found.
  */
-EMSCRIPTEN_KEEPALIVE double codemelted_math(
-    MathFormula_t formula, double arg1,
-    double arg2 = NAN
+EMSCRIPTEN_KEEPALIVE double codemelted_math_convert_unit(
+    Conversion_t conversion, double unit
 ) {
-  switch (formula) {
-    _EXEC_FORMULA(temperature_celsius_to_fahrenheit, (arg1));
+  switch (conversion) {
+    _EXEC_CONVERSION(temperature_celsius_to_fahrenheit, ((unit * (9/5)) + 32));
   }
   return NAN;
 }

@@ -13,6 +13,7 @@
     "Deno",
     "drawio",
     "Embeddable",
+    "emcc",
     "Fullscreen",
     "genhtml",
     "geolocator",

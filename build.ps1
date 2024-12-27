@@ -62,7 +62,7 @@
 </style>
 <div class="codemelted-dev-nav">
   <a title="PWA Module" href="https://codemelted.com/developer/pwa"><img src="https://codemelted.com/assets/images/icon-codemelted-web.png" /></a>
-  <a title="WASM Module" href="https://codemelted.com/developer/wasm" ><img src="https://codemelted.com/assets/images/icon-codemelted-wasm.png" /></a>
+  <a title="NPU Module" href="https://codemelted.com/developer/npu" ><img src="https://codemelted.com/assets/images/icon-codemelted-npu.png" /></a>
   <a title="Terminal Module" href="https://codemelted.com/developer/terminal"><img src="https://codemelted.com/assets/images/icon-codemelted-terminal.png" /></a>
 </div>
 "@
@@ -221,15 +221,15 @@ function build([string[]]$params) {
     message "pwa module build completed."
   }
 
-  # Builds the wasm module.
-  function codemelted_wasm {
-    message "Now building wasm module."
-    Set-Location $PSScriptRoot/wasm
+  # Builds the npu module.
+  function codemelted_npu {
+    message "Now building npu module."
+    Set-Location $PSScriptRoot/npu
     Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
 
     message "Generating doxygen"
     doxygen doxygen.cfg
-    [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | WASM Module")
+    [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | NPU Module")
     [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
     $htmlData = $htmlData.Replace("/></a><br  />", "/></a><br  />`n$htmlNavTemplate")
     $htmlData = $htmlData.Replace("README.md", "index.html")
@@ -251,8 +251,12 @@ function build([string[]]$params) {
     $htmlData = $htmlData.Replace("overflow:auto", "overflow:display")
     $htmlData | Out-File docs/navtree.css -Force
 
+    message "Compiling WASM Module"
+    emcc codemelted.cpp -o codemelted.wasm --no-entry
+    Copy-Item -Path codemelted.wasm -Destination docs/codemelted.wasm -Force
+
     Set-Location $PSScriptRoot
-    message "wasm module build completed."
+    message "npu module build completed."
   }
 
   # Builds the codemelted_terminal module.
@@ -286,7 +290,7 @@ function build([string[]]$params) {
   # # deployment.
   # function build_all {
   #   # Build all the project static sdk sites.
-  #   codemelted_wasm
+  #   codemelted_npu
   #   codemelted_developer
   #   codemelted_web
   #   codemelted_terminal
@@ -295,13 +299,13 @@ function build([string[]]$params) {
   #   # Now go copy those static sdk sites.
   #   Remove-Item -Path developer -Recurse -Force -ErrorAction Ignore
   #   New-Item -Path developer -ItemType Directory -ErrorAction Ignore
-  #   New-Item -Path developer/codemelted_wasm -ItemType Directory -ErrorAction Ignore
+  #   New-Item -Path developer/codemelted_npu -ItemType Directory -ErrorAction Ignore
   #   New-Item -Path developer/codemelted_web -ItemType Directory -ErrorAction Ignore
   #   New-Item -Path developer/codemelted_terminal -ItemType Directory -ErrorAction Ignore
   #   New-Item -Path developer/codemelted_pi -ItemType Directory -ErrorAction Ignore
 
   #   Copy-Item -Path docs/* -Destination developer/ -Recurse
-  #   Copy-Item -Path codemelted_wasm/docs/* -Destination developer/codemelted_wasm/ -Recurse
+  #   Copy-Item -Path codemelted_npu/docs/* -Destination developer/codemelted_npu/ -Recurse
   #   Copy-Item -Path codemelted_web/docs/* -Destination developer/codemelted_web/ -Recurse
   #   Copy-Item -Path codemelted_terminal/docs/* -Destination developer/codemelted_terminal/ -Recurse
   #   Copy-Item -Path codemelted_pi/docs/* -Destination developer/codemelted_pi/ -Recurse
@@ -311,7 +315,7 @@ function build([string[]]$params) {
   function build_all {
     # Build the supporting modules
     codemelted_pwa
-    codemelted_wasm
+    codemelted_npu
     codemelted_terminal
 
     # Build the main module documentation.
@@ -321,12 +325,12 @@ function build([string[]]$params) {
     Remove-Item -Path developer -Recurse -Force -ErrorAction Ignore
     New-Item -Path developer -ItemType Directory -ErrorAction Ignore
     New-Item -Path developer/pwa -ItemType Directory -ErrorAction Ignore
-    New-Item -Path developer/wasm -ItemType Directory -ErrorAction Ignore
+    New-Item -Path developer/npu -ItemType Directory -ErrorAction Ignore
     New-Item -Path developer/terminal -ItemType Directory -ErrorAction Ignore
 
     Copy-Item -Path docs/* -Destination developer/ -Recurse
     Copy-Item -Path pwa/docs/* -Destination developer/pwa/ -Recurse
-    Copy-Item -Path wasm/docs/* -Destination developer/wasm/ -Recurse
+    Copy-Item -Path npu/docs/* -Destination developer/npu/ -Recurse
     Copy-Item -Path terminal/docs/* -Destination developer/terminal/ -Recurse
   }
 
