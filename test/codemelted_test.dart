@@ -127,14 +127,6 @@ void main() {
     });
 
     test("asXXX() Validation", () {
-      // Array validation
-      expect(codemelted.json.asArray(data: "{}"), isNull);
-      var array = codemelted.json.createArray(
-        initData: [1, true, "awesome", null],
-      );
-      var stringified = array.stringify();
-      expect(codemelted.json.asArray(data: stringified!), isNotNull);
-
       // Bool validation
       expect(codemelted.json.asBool(data: "42"), isFalse);
       expect(codemelted.json.asBool(data: "1"), isTrue);
@@ -150,16 +142,6 @@ void main() {
       expect(codemelted.json.asInt(data: "a"), isNull);
       expect(codemelted.json.asInt(data: "42.2"), isNull);
       expect(codemelted.json.asInt(data: "42"), isNotNull);
-
-      // obj validation
-      expect(codemelted.json.asObject(data: "[]"), isNull);
-      var obj = codemelted.json.createObject(initData: {
-        "one": 1,
-        "two": "two",
-        "three": null,
-      });
-      stringified = obj.stringify();
-      expect(codemelted.json.asObject(data: stringified!), isNotNull);
     });
 
     test("checkXXX() / tryXXX() Validation", () {

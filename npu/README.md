@@ -1,5 +1,5 @@
 <!--
-TITLE: CodeMelted DEV | WASM Module
+TITLE: CodeMelted DEV | NPU Module
 PUBLISH_DATE: 2024-12-14
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
@@ -8,7 +8,7 @@ DESCRIPTION: TBD
 <center>
   <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-codemelted-wasm.png" /> CodeMelted DEV | WASM Module</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-codemelted-wasm.png" /> CodeMelted DEV | NPU Module</h1>
 
 **LAST UPDATED:** 2024-12-14
 
@@ -20,15 +20,15 @@ TBD
 - [USAGE](#usage)
 - [LICENSE](#license)
 
-## GETTING STARTED
+# GETTING STARTED
 
 TBD
 
-## USAGE
+# USAGE
 
 TBD
 
-## LICENSE
+# LICENSE
 
 MIT License
 

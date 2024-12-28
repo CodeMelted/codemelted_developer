@@ -635,10 +635,6 @@ extension CStringExtension on String {
 /// Defines a set of utility methods for performing data conversions for JSON
 /// along with data validation.
 class CJsonAPI {
-  /// Converts a given string to an [CArray] object or null if not of that
-  /// type.
-  CArray? asArray({required String data}) => data.asArray();
-
   /// Converts the given string data to a bool or null if not of that type.
   bool? asBool({required String data}) => data.asBool();
 
@@ -647,10 +643,6 @@ class CJsonAPI {
 
   /// Converts the given string data to a int or null if not of that type.
   int? asInt({required String data}) => data.asInt();
-
-  /// Converts the given string data to a [CObject] or null if not of that
-  /// type.
-  CObject? asObject({required String data}) => data.asObject();
 
   /// Determines if a [CObject] has a given property contained within.
   bool checkHasProperty({required CObject obj, required String key}) {
@@ -701,7 +693,7 @@ class CJsonAPI {
   /// expected type.
   void tryType<T>({required dynamic data}) {
     if (!checkType<T>(data: data)) {
-      throw "variable was not of of an expected type.'";
+      throw "variable was not of an expected type.'";
     }
   }
 
@@ -742,6 +734,7 @@ class CJsonAPI {
 // ----------------------------------------------------------------------------
 
 /// The mathematical formulas held by the [CNpuAPI] within this module.
+/// @nodoc
 enum CFormula_t {
   /// Celsius to fahrenheit.
   temperature_celsius_to_fahrenheit;
@@ -749,6 +742,7 @@ enum CFormula_t {
 
 /// API binding to the codemelted.wasm NPU module to provide access to
 /// executing mathematical formulas.
+/// @nodoc
 class CNpuAPI {
   /// Handles executing the [CFormula_t] enumeration and passing the necessary
   /// parameters.
@@ -833,10 +827,12 @@ class CRuntimeAPI {
 /// change to the UI state is necessary for the SPA. Return true if you are
 /// handling the resize event, false to propagate the event up the widget
 /// tree.
+/// @nodoc
 typedef OnResizeEventHandler = bool Function(Size);
 
 /// Provides the Single Page Application for the [CSpaAPI.spa]
 /// property that returns the main view.
+/// @nodoc
 class CSpaView extends StatefulWidget {
   /// Tracks if the [CSpaAPI.spa] has already been called.
   static bool _isInitialized = false;
@@ -1134,6 +1130,7 @@ class _CSpaViewState extends State<CSpaView> {
 /// Optional parameter for the mailto scheme to facilitate translating the more
 /// complicated URL.
 /// TODO: This is going to get removed....
+/// @nodoc
 class CMailToParams {
   /// The list of email addresses to send the email.
   final List<String> mailto;
@@ -1206,6 +1203,7 @@ class CMailToParams {
 
 /// Identifies the scheme to utilize as part of the module open
 /// function.
+/// @nodoc
 enum CSchemeType {
   /// Will open the program associated with the file.
   file("file:"),
@@ -1454,10 +1452,12 @@ class CSpaAPI {
 // ----------------------------------------------------------------------------
 
 /// The task to run as part of the different module async functions.
+/// @nodoc
 typedef CTask_t = Future<dynamic> Function([dynamic]);
 
 /// Provides the ability to run asynchronous one off / repeating tasks. Also
 /// provides the ability to delay asynchronous tasks/
+/// @nodoc
 class CTasksAPI {
   /// Holds the mapping of timer objects of repeating tasks.
   final _data = <int, dynamic>{};
@@ -1523,6 +1523,7 @@ class CTasksAPI {
 
 /// Provides some modifications to the [DialogTheme] to properly configure
 /// overall dialog theme.
+/// @nodoc
 class CDialogTheme extends DialogTheme {
   /// The title foreground color for the text and close icon.
   final Color? titleColor;
@@ -1552,6 +1553,7 @@ class CDialogTheme extends DialogTheme {
 /// Provides theming of the regular [InputDecorationTheme] but expands to
 /// the input style and other attributes of styling. Modeled off the
 /// [DropdownMenuTheme] to be consistent with that control.
+/// @nodoc
 class CInputDecorationTheme extends InputDecorationTheme {
   /// Adds the items associated with the input field so it is in line with
   /// other material3 widgets. See DropdownMenu as an example.
@@ -1771,7 +1773,8 @@ class CInputDecorationTheme extends InputDecorationTheme {
 /// Provides a wrapper around the Flutter ThemeData object that isolates
 /// the application theming to the material3 constructs of Flutter. Extended
 /// existing ThemeData objects utilized to provide a similar theming experience.
-/// The theme is created via the [CSpaAPI.themeCreate] method.
+/// The theme is created via the [CThemeAPI.create] method.
+/// @nodoc
 extension ThemeDataExtension on ThemeData {
   /// Extracts the [DialogTheme] as an [CDialogTheme] object.
   CDialogTheme get cDialogTheme => dialogTheme as CDialogTheme;
@@ -1784,6 +1787,7 @@ extension ThemeDataExtension on ThemeData {
 
 /// Provides the ability to create a Flutter Material3 theme that can be
 /// applied to the overall [CSpaAPI] singular view.
+/// @nodoc
 class CThemeAPI {
   /// Creates a ThemeData object but it only exposes the material3 themes so
   /// that any application theming is done with the future in mind.
@@ -1926,13 +1930,16 @@ class CThemeAPI {
 // ----------------------------------------------------------------------------
 
 /// Supports identifying the module uiButton widget constructed.
+/// @nodoc
 enum CButtonType { elevated, filled, icon, outlined, text }
 
 /// Supports identifying what module uiImage is constructed when utilized.
+/// @nodoc
 enum CImageType { asset, file, memory, network }
 
 /// Enumerations set specifying the allowed actions within the embedded web
 /// view when the compile target is web.
+/// @nodoc
 enum CSandboxAllow {
   forms("allow-forms"),
   modals("allow-modals"),
@@ -1952,6 +1959,7 @@ enum CSandboxAllow {
 }
 
 /// Defines a tab item to utilize with the module uiTabView method.
+/// @nodoc
 class CTabItem {
   /// The content displayed with the tab.
   final Widget? content;
@@ -1978,7 +1986,7 @@ class CTabItem {
   }
 }
 
-/// TODO: Add comments
+/// @nodoc
 class CTabbedView extends StatefulWidget {
   final List<CTabItem> tabItems;
   final bool automaticIndicatorColorAdjustment;
@@ -2103,6 +2111,7 @@ class _CTabViewState extends State<CTabbedView> with TickerProviderStateMixin {
 
 /// The web view controller to support the [CSpaAPI.uiWebView] widget
 /// creation.
+/// @nodoc
 class CWebViewController {
   /// Handles the changing of the URL within the web view.
   late web.HTMLIFrameElement _iFrameRef;
@@ -2145,6 +2154,7 @@ class CWebViewController {
 /// SPA construct, dialog utility, and a wrapper for the most common of
 /// widgets. Theming is also provides to allow for creating different themes
 /// for your SPA.
+/// @nodoc
 class CWidgetAPI {
   /// Will construct a stateless button to handle press events of said button.
   /// The button is determined via the [CButtonType] enumeration which will
@@ -2844,15 +2854,16 @@ class CWidgetAPI {
 // [Public API] ---------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// This module is the implementation of the CodeMelted - Developer use cases.
+/// This module is the implementation of the CodeMelted DEV module use cases.
 /// It targets the web runtime to allow for building powerful Progressive Web
 /// Applications. This module is a mix of utilizing Flutter's powerful UI
-/// toolkit with support from the CodeMelted - JS Module project for the more
-/// JavaScript features. See that project for examples.
+/// toolkit with support from the codemelted.js module for the more JavaScript
+/// Web Browser API features. See that module for more details.
 class CodeMeltedAPI {
   /// The NPU module location when compiling a codemelted_developer flutter
   /// module with the WASM / PWA resources that support utilizing those assets
   /// within this module.
+  /// @nodoc
   static const npuModuleSpaUrl =
       "assets/packages/codemelted_developer/npu/codemelted.wasm";
 
@@ -2861,24 +2872,30 @@ class CodeMeltedAPI {
   String? get error => _ModuleDataDefinition.error;
 
   /// Accesses the [CDialogAPI] defined namespace.
+  /// @nodoc
   CDialogAPI get dialog => CDialogAPI();
 
   /// Accesses the [CJsonAPI] defined namespace.
   CJsonAPI get json => CJsonAPI();
 
   /// Accesses the different [CNpuAPI] to access the numerical processing unit.
+  /// @nodoc
   CNpuAPI get npu => CNpuAPI();
 
   /// Accesses the [CSpaAPI] defined namespace.
+  /// @nodoc
   CSpaAPI get spa => CSpaAPI();
 
   /// Accesses the [CSpaAPI] defined namespace.
+  /// @nodoc
   CThemeAPI get theme => CThemeAPI();
 
   /// Accesses the [CRuntimeAPI] defined namespace.
+  /// @nodoc
   CRuntimeAPI get runtime => CRuntimeAPI();
 
   /// Accesses the [CWidgetAPI] defined namespace.
+  /// @nodoc
   CWidgetAPI get widget => CWidgetAPI();
 
   /// Initializes module assets that support the flutter codemelted.dart

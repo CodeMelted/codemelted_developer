@@ -1,12 +1,10 @@
 // @ts-check
 // ============================================================================
 /**
- * @file The JavaScript implementation of the CodeMelted | Web Module. <br />
- * <a href="../index.html">Back to Web Module</a>
+ * @file The JavaScript implementation of the CodeMelted DEV | PWA Modules.
  * @author Mark Shaffer
- * @version 0.2.0 (Last Modified 2024-10-07) <br />
- * - 0.2.0 (2024-10-07): Completed codemelted.disk <br />
- * - 0.1.0 (2024-10-04): Completed codemelted.console <br />
+ * @version 0.0.0 (Last Modified 2024-12-28) <br />
+ * - 0.0.0 (2024-12-28): Initial release hiding current items from view. <br />
  * @license MIT <br />
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -95,6 +93,7 @@ const _audio = Object.freeze({
  * Provides the console use case function to gather data via a
  * terminal. The actions correspond to the type of input / output
  * that will be interacted with via STDIN and STDOUT.
+ * @private
  * @namespace console
  * @see https://codemelted.com/developer/use_cases/console.html
  */
@@ -248,6 +247,7 @@ const _db = Object.freeze({
  * Provides the ability to manage items on disk. This includes file
  * manipulation, reading / writing files, and opening files for additional
  * work.
+ * @private
  * @namespace disk
  * @see https://codemelted.com/developer/use_cases/disk.html
  */
@@ -993,13 +993,19 @@ export default Object.freeze({
   // /** @type {audio} */
   // audio: audio,
 
-  /** @type {console} */
+  /**
+   * @private
+   * @type {console}
+   */
   console: console,
 
   // /** @type {db} */
   // db: db,
 
-  /** @type {disk} */
+  /**
+   * @private
+   * @type {disk}
+   */
   disk: disk,
 
   // /** @type {game} */

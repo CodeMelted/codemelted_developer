@@ -287,31 +287,6 @@ function build([string[]]$params) {
     message "terminal module build completed."
   }
 
-  # # Builds all project files for inclusion in the codemelted.com domain
-  # # deployment.
-  # function build_all {
-  #   # Build all the project static sdk sites.
-  #   codemelted_npu
-  #   codemelted_developer
-  #   codemelted_web
-  #   codemelted_terminal
-  #   codemelted_pi
-
-  #   # Now go copy those static sdk sites.
-  #   Remove-Item -Path developer -Recurse -Force -ErrorAction Ignore
-  #   New-Item -Path developer -ItemType Directory -ErrorAction Ignore
-  #   New-Item -Path developer/codemelted_npu -ItemType Directory -ErrorAction Ignore
-  #   New-Item -Path developer/codemelted_web -ItemType Directory -ErrorAction Ignore
-  #   New-Item -Path developer/codemelted_terminal -ItemType Directory -ErrorAction Ignore
-  #   New-Item -Path developer/codemelted_pi -ItemType Directory -ErrorAction Ignore
-
-  #   Copy-Item -Path docs/* -Destination developer/ -Recurse
-  #   Copy-Item -Path codemelted_npu/docs/* -Destination developer/codemelted_npu/ -Recurse
-  #   Copy-Item -Path codemelted_web/docs/* -Destination developer/codemelted_web/ -Recurse
-  #   Copy-Item -Path codemelted_terminal/docs/* -Destination developer/codemelted_terminal/ -Recurse
-  #   Copy-Item -Path codemelted_pi/docs/* -Destination developer/codemelted_pi/ -Recurse
-  # }
-
   # Responsible for building all the individual module components.
   function build_all {
     # Build the supporting modules
@@ -347,10 +322,22 @@ function build([string[]]$params) {
     Write-Host "MESSAGE: Upload completed.";
   }
 
+  # Handles the publishing of the codemelted.ps1 CLI module.
+  function publish_script {
+    Write-Host "MESSAGE: Now publishing the codemelted.ps1 CLI module"
+
+    Set-Location $PSScriptRoot/terminal
+    Publish-Script -Path ./codemelted.ps1 -NugetAPIKey $env:PWSH_PUBLISH_KEY -Verbose
+    Set-Location $PSScriptRoot
+
+    Write-Host "MESSAGE: Publishing completed."
+  }
+
   # Main Execution
   switch ($params[0]) {
     "--build" { build_all }
     "--deploy" { deploy }
+    "--publish-script" { publish_script }
     default { Write-Host "ERROR: Invalid parameter specified." }
   }
 }

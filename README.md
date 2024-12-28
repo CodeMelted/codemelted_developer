@@ -12,7 +12,7 @@ DESCRIPTION: Software engineers are now required to learn multiple languages, te
 
 Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify this by developing a set of modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. It gives the ability to achieve maximum application reach by supporting the development of Progressive Web Applications (PWAs). The modules are specifically designed to target each area of the technology stack to deliver PWAs.
 
-**LAST UPDATED:** 2024-12-27
+**LAST UPDATED:** 2024-12-28
 
 **Table of Contents**
 
@@ -110,7 +110,7 @@ Given the dynamic nature of data, a series of type checks will be provided to th
 1. The json namespace will support the conversion of string types to valid JSON constructs if they are of that type. These include array, boolean, number, and object types. Failure to convert will result in a `null` return.
 2. The json namespace will provide the ability to parse and stringify valid JSON constructs. Failure to parse or stringify the data will result in a `null` return.
 3. The json namespace will provide the ability to perform validity checks. These validity checks include determining if a JSON object has a given property, if a particular data type is of an expected type, and valid URLs. These checks can will return either a boolean of the check or throw exceptions.
-4. The json namespace will provide the ability to create JSON array / object types with change notifiers to signal when changes are made to the data types. These objects will also support aspects of Acceptance Criteria 1 - 3.
+4. The json namespace will provide the ability to create JSON array / object types that work within the given SDK JSON datatype.
 
 ### Storage
 
@@ -204,7 +204,7 @@ The `codemelted.js` is a ES6 module that can operate in both a Web Browser and D
 
 ### Terminal Module
 
-The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate DevOps on Mac, Linux, or Windows desktop/server systems. The CLI when installed will provide the `codemelted` command that can be accessed in a terminal or in `ps1` scripts that facilitate a set of automated tasks. You may also develop a Terminal User Interface (TUI) for a text based user interface.
+The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in `ps1` scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text based user interface.
 
 The call signature for the CLI will be as follows
 
