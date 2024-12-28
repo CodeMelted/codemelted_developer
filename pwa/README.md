@@ -18,17 +18,46 @@ DESCRIPTION: TBD
 
 - [GETTING STARTED](#getting-started)
 - [USAGE](#usage)
+  - [codemelted.json Namespace](#codemeltedjson-namespace)
+    - [Flutter](#flutter)
+    - [JavaScript](#javascript)
 - [LICENSE](#license)
 
-## GETTING STARTED
+# GETTING STARTED
 
 <mark>TBD</mark>
 
-## USAGE
+# USAGE
+
+Both the `codemelted.dart` and `codemelted.js` modules use named parameters for all namespaced functions. The following are the examples.
+
+**Flutter Named Parameters Example:**
+
+```dart
+var obj = {};
+var hasProperty = codemelted.json.checkHasProperty(obj: ogj, key: "fieldName");
+```
+
+**JavaScript Named Parameters Example:**
+
+```javascript
+// TBD
+```
+
+## codemelted.json Namespace
+
+### Flutter
+
+- The `typedef CArray` along with the `extension CArrayExtension` provides the different `CArray` methods along with a `ChangeNotifier` to alert when data changes occur via the `notifyAll()`.
+- The `typedef CObject` along with the `extension CObjectExtension` provides the different `CObject` methods for type checking along with a `ChangeNotifier` to alert when data changes occur via the `notifyAll()`.
+- The `CStringExtension` provides all the `asXXX()` methods for converting to other JSON data types or returning `null` during conversion failure. It also contains some comparison methods.
+- The `CJsonAPI` which provides the namespace has wrappers for the above along with the validity methods for validating `dynamic` data.
+
+### JavaScript
 
 <mark>TBD</mark>
 
-## LICENSE
+# LICENSE
 
 MIT License
 

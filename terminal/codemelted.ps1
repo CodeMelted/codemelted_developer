@@ -71,10 +71,9 @@ function help {
   <#
   .SYNOPSIS
     The codemelted Command Line Interface (CLI) Terminal Module. It allows
-    a developer to execute the CodeMelted DEV | Cross Platform Module use
-    cases within a pwsh terminal shell. This allows for building CLI tools,
-    Terminal User Interface (TUI) tools, or building DevOps toolchain
-    automations.
+    a developer to execute the CodeMelted DEV | Module use cases within a
+    pwsh terminal shell. This allows for building CLI tools, Terminal User
+    Interface (TUI) tools, or building DevOps toolchain automation.
 
   .DESCRIPTION
     SYNTAX:

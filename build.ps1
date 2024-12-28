@@ -146,10 +146,10 @@ function build([string[]]$params) {
     Copy-Item -Path CHANGELOG.md -Destination docs -Force
 
     # Fix the title
-    [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | Cross Platform Modules")
+    [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | Modules")
     [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
     $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
-    $htmlData = $htmlData.Replace("codemelted_developer - Dart API docs", "CodeMelted DEV | Cross Platform Modules")
+    $htmlData = $htmlData.Replace("codemelted_developer - Dart API docs", "CodeMelted DEV | Modules")
     $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
     $htmlData = $htmlData.Replace(".png`"><br>", ".png`"><br>`n$htmlNavTemplate")
     $htmlData = $htmlData.Replace("README.md", "index.html")

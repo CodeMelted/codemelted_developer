@@ -464,32 +464,25 @@ extension CArrayExtension on CArray {
 
   /// Adds an event listener so when changes are made via the
   /// [CObjectExtension.set] method.
-  void addListener(void Function() listener) {
+  void addListener({required void Function() listener}) {
     if (_map[this] == null) {
       _map[this] = ChangeNotifier();
     }
     _map[this]!.addListener(listener);
   }
 
+  /// Triggers the listener.
+  void notifyAll() {
+    // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
+    _map[this]?.notifyListeners();
+  }
+
   /// Removes an event listener from the [CArray].
-  void removeListener(void Function() listener) {
+  void removeListener({required void Function() listener}) {
     _map[this]?.removeListener(listener);
   }
 
-  /// Provides a method to set data elements on the [CArray].
-  void set<T>(int index, T value, {bool notify = false}) {
-    insert(index, value);
-    if (notify) {
-      // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
-      _map[this]?.notifyListeners();
-    }
-  }
-
-  /// Provides the ability to extract a data element from the represented
-  /// [CArray] at the given index.
-  T get<T>(int index) => elementAt(index) as T;
-
-  /// Creates a copy of the array.
+  /// Creates a copy of the array. This does not copy the listeners.
   CArray copy() {
     var copy = <dynamic>[];
     copy.addAll(this);
@@ -499,7 +492,7 @@ extension CArrayExtension on CArray {
   /// Attempts to parse the serialized string data and turn it into a
   /// [CArray]. Any data previously held by this object is cleared. False is
   /// returned if it could not parse the data.
-  bool parse(String data) {
+  bool parse({required String data}) {
     try {
       clear();
       addAll(jsonDecode(data));
@@ -526,25 +519,36 @@ extension CObjectExtension on CObject {
 
   /// Adds an event listener so when changes are made via the
   /// [CObjectExtension.set] method.
-  void addListener(void Function() listener) {
+  void addListener({required void Function() listener}) {
     if (_map[this] == null) {
       _map[this] = ChangeNotifier();
     }
     _map[this]!.addListener(listener);
   }
 
+  /// Triggers the listener to a data change.
+  void notifyAll() {
+    // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
+    _map[this]?.notifyListeners();
+  }
+
   /// Removes an event listener from the [CObject].
-  void removeListener(void Function() listener) {
+  void removeListener({required void Function() listener}) {
     _map[this]?.removeListener(listener);
+  }
+
+  /// Creates a copy of the object. This does not get the listeners.
+  CObject copy() {
+    return Map.from(this);
   }
 
   /// Attempts to parse the serialized string data and turn it into a
   /// [CObject]. Any data previously held by this object is cleared. False is
   /// returned if it could not parse the data.
-  bool parse(String data) {
+  bool parse({required String initData}) {
     try {
       clear();
-      addAll(jsonDecode(data));
+      addAll(jsonDecode(initData));
       return true;
     } catch (ex) {
       return false;
@@ -561,7 +565,7 @@ extension CObjectExtension on CObject {
   }
 
   /// Provides a method to set data elements on the [CObject].
-  void set<T>(String key, T value, {bool notify = false}) {
+  void set<T>({required String key, required T value, bool notify = false}) {
     this[key] = value;
     if (notify) {
       // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
@@ -571,8 +575,8 @@ extension CObjectExtension on CObject {
 
   /// Provides the ability to extract a data element from the represented
   /// [CObject].
-  T get<T>(String key) {
-    return this[key];
+  T get<T>({required String key}) {
+    return this[key] as T;
   }
 }
 
@@ -631,63 +635,80 @@ extension CStringExtension on String {
 /// Defines a set of utility methods for performing data conversions for JSON
 /// along with data validation.
 class CJsonAPI {
+  /// Converts a given string to an [CArray] object or null if not of that
+  /// type.
+  CArray? asArray({required String data}) => data.asArray();
+
+  /// Converts the given string data to a bool or null if not of that type.
+  bool? asBool({required String data}) => data.asBool();
+
+  /// Converts the given string data to a double or null if not of that type.
+  double? asDouble({required String data}) => data.asDouble();
+
+  /// Converts the given string data to a int or null if not of that type.
+  int? asInt({required String data}) => data.asInt();
+
+  /// Converts the given string data to a [CObject] or null if not of that
+  /// type.
+  CObject? asObject({required String data}) => data.asObject();
+
   /// Determines if a [CObject] has a given property contained within.
-  bool checkHasProperty(CObject obj, String key) {
+  bool checkHasProperty({required CObject obj, required String key}) {
     return obj.containsKey(key);
   }
 
   /// Determines if the variable is of the expected type.
-  bool checkType<T>(dynamic data) {
+  bool checkType<T>({required dynamic data}) {
     return data is T;
   }
 
   /// Determines if the data type is a valid URL.
-  bool checkValidUrl(String data) {
+  bool checkValidUrl({required String data}) {
     return Uri.tryParse(data) != null;
   }
 
   /// Creates a new CArray object and initializes it if initData is specified.
-  CArray? createArray([CArray? initData]) {
-    return initData != null ? initData.copy() : <CArray>[];
+  CArray createArray({CArray? initData}) {
+    return initData != null ? initData.copy() : [];
   }
 
   /// Creates a new CObject object and initializes it if initData is specified.
-  CObject createObject([CObject? initData]) {
+  CObject createObject({CObject? initData}) {
     return initData != null ? CObject.from(initData) : CObject();
   }
 
   /// Will convert data into a JSON [CObject] or return null if the decode
   /// could not be achieved.
-  CObject? parse(data) {
+  CObject? parse({required String data}) {
     return data.asObject();
   }
 
   /// Will encode the JSON [CObject] into a string or null if the encode
   /// could not be achieved.
-  String? stringify(CObject data) {
+  String? stringify({required CObject data}) {
     return data.stringify();
   }
 
   /// Same as [checkHasProperty] but throws an exception if the key
   /// is not found.
-  void tryHasProperty(CObject obj, String key) {
-    if (!checkHasProperty(obj, key)) {
+  void tryHasProperty({required CObject obj, required String key}) {
+    if (!checkHasProperty(obj: obj, key: key)) {
       throw "obj does not contain specified key";
     }
   }
 
   /// Same as [checkType] but throws an exception if not of the
   /// expected type.
-  void tryType<T>(dynamic data) {
-    if (!checkType<T>(data)) {
+  void tryType<T>({required dynamic data}) {
+    if (!checkType<T>(data: data)) {
       throw "variable was not of of an expected type.'";
     }
   }
 
   /// Same as [checkValidUrl] but throws an exception if not a valid
   /// URL type.
-  void tryValidUrl(String data) {
-    if (!checkValidUrl(data)) {
+  void tryValidUrl({required String data}) {
+    if (!checkValidUrl(data: data)) {
       throw "data was not a valid URL string";
     }
   }
@@ -711,21 +732,27 @@ class CJsonAPI {
 // TODO: To be developed.
 
 // ----------------------------------------------------------------------------
-// [Math Use Case] ------------------------------------------------------------
+// [Network Use Case] ---------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// The mathematical formulas held by the NPM loaded within this module.
-enum Formula_t {
+// TODO: To be developed.
+
+// ----------------------------------------------------------------------------
+// [NPU Use Cases] ------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// The mathematical formulas held by the [CNpuAPI] within this module.
+enum CFormula_t {
   /// Celsius to fahrenheit.
   temperature_celsius_to_fahrenheit;
 }
 
 /// API binding to the codemelted.wasm NPU module to provide access to
 /// executing mathematical formulas.
-class CMathAPI {
-  /// Handles executing the [Formula_t] enumeration and passing the necessary
+class CNpuAPI {
+  /// Handles executing the [CFormula_t] enumeration and passing the necessary
   /// parameters.
-  double calculate({required Formula_t formula, required double arg1}) {
+  double math({required CFormula_t formula, required double arg1}) {
     assert(
       _ModuleDataDefinition.npu != null,
       "codemelted.wasm NPU module not loaded",
@@ -744,22 +771,16 @@ class CMathAPI {
   }
 
   /// Gets the single instance of the API.
-  static CMathAPI? _instance;
+  static CNpuAPI? _instance;
 
   /// Sets up the internal instance for this object.
-  factory CMathAPI() => _instance ?? CMathAPI._();
+  factory CNpuAPI() => _instance ?? CNpuAPI._();
 
-  /// Sets up the namespace for the [CMathAPI] object.
-  CMathAPI._() {
+  /// Sets up the namespace for the [CNpuAPI] object.
+  CNpuAPI._() {
     _instance = this;
   }
 }
-
-// ----------------------------------------------------------------------------
-// [Network Use Case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// TODO: To be developed.
 
 // ----------------------------------------------------------------------------
 // [Process Use Case] ---------------------------------------------------------
@@ -830,28 +851,29 @@ class CSpaView extends StatefulWidget {
   /// Sets / gets the ability to detect resize events with the
   /// [CSpaAPI.spa] to update the main body if necessary.
   static OnResizeEventHandler? get onResizeEvent =>
-      uiState.get<OnResizeEventHandler?>("onResizeEvent");
+      uiState.get<OnResizeEventHandler?>(key: "onResizeEvent");
   static set onResizeEvent(OnResizeEventHandler? v) =>
-      uiState.set<OnResizeEventHandler?>("onResizeEvent", v);
+      uiState.set<OnResizeEventHandler?>(key: "onResizeEvent", value: v);
 
   /// Sets / gets the dark theme for the [CSpaAPI.spa].
-  static ThemeData get darkTheme => uiState.get<ThemeData>("darkTheme");
+  static ThemeData get darkTheme => uiState.get<ThemeData>(key: "darkTheme");
   static set darkTheme(ThemeData? v) =>
-      uiState.set<ThemeData?>("darkTheme", v, notify: true);
+      uiState.set<ThemeData?>(key: "darkTheme", value: v, notify: true);
 
   /// Sets / gets the light theme for the [CSpaAPI.spa].
-  static ThemeData get theme => uiState.get<ThemeData>("theme");
+  static ThemeData get theme => uiState.get<ThemeData>(key: "theme");
   static set theme(ThemeData? v) =>
-      uiState.set<ThemeData?>("theme", v, notify: true);
+      uiState.set<ThemeData?>(key: "theme", value: v, notify: true);
 
   /// Sets / gets the theme mode for the [CSpaAPI.spa].
-  static ThemeMode get themeMode => uiState.get<ThemeMode>("themeMode");
+  static ThemeMode get themeMode => uiState.get<ThemeMode>(key: "themeMode");
   static set themeMode(ThemeMode v) =>
-      uiState.set<ThemeMode?>("themeMode", v, notify: true);
+      uiState.set<ThemeMode?>(key: "themeMode", value: v, notify: true);
 
   /// Sets / gets the app title for the [CSpaAPI.spa].
-  static String? get title => uiState.get<String?>("title");
-  static set title(String? v) => uiState.set<String?>("title", v, notify: true);
+  static String? get title => uiState.get<String?>(key: "title");
+  static set title(String? v) =>
+      uiState.set<String?>(key: "title", value: v, notify: true);
 
   /// Sets / removes the header area of the [CSpaAPI.spa].
   static void header({
@@ -863,11 +885,11 @@ class CSpaView extends StatefulWidget {
     Widget? title,
   }) {
     if (actions == null && leading == null && title == null) {
-      uiState.set<AppBar?>("appBar", null);
+      uiState.set<AppBar?>(key: "appBar", value: null);
     } else {
       uiState.set<AppBar?>(
-        "appBar",
-        AppBar(
+        key: "appBar",
+        value: AppBar(
           actions: actions,
           actionsIconTheme: style?.actionsIconTheme,
           automaticallyImplyLeading: automaticallyImplyLeading,
@@ -901,8 +923,8 @@ class CSpaView extends StatefulWidget {
     bool extendBodyBehindAppBar = false,
   }) {
     uiState.set<CObject>(
-      "content",
-      {
+      key: "content",
+      value: {
         "body": body,
         "extendBody": extendBody,
         "extendBodyBehindAppBar": extendBodyBehindAppBar,
@@ -921,11 +943,11 @@ class CSpaView extends StatefulWidget {
     Widget? title,
   }) {
     if (actions == null && leading == null && title == null) {
-      uiState.set<BottomAppBar?>("bottomAppBar", null);
+      uiState.set<BottomAppBar?>(key: "bottomAppBar", value: null);
     } else {
       uiState.set<BottomAppBar?>(
-        "bottomAppBar",
-        BottomAppBar(
+        key: "bottomAppBar",
+        value: BottomAppBar(
           notchMargin: 0.0,
           padding: EdgeInsets.zero,
           height: style != null
@@ -965,8 +987,8 @@ class CSpaView extends StatefulWidget {
     FloatingActionButtonLocation? location,
   }) {
     uiState.set<Widget?>(
-      "floatingActionButton",
-      button != null
+      key: "floatingActionButton",
+      value: button != null
           ? PointerInterceptor(
               intercepting: kIsWeb,
               child: button,
@@ -974,8 +996,8 @@ class CSpaView extends StatefulWidget {
           : null,
     );
     uiState.set<FloatingActionButtonLocation?>(
-      "floatingActionButtonLocation",
-      location,
+      key: "floatingActionButtonLocation",
+      value: location,
       notify: true,
     );
   }
@@ -983,11 +1005,11 @@ class CSpaView extends StatefulWidget {
   /// Sets / removes a left sided drawer for the [CSpaAPI.spa].
   static void drawer({Widget? header, List<Widget>? items}) {
     if (header == null && items == null) {
-      uiState.set<Widget?>("drawer", null);
+      uiState.set<Widget?>(key: "drawer", value: null);
     } else {
       uiState.set<Widget?>(
-        "drawer",
-        PointerInterceptor(
+        key: "drawer",
+        value: PointerInterceptor(
           intercepting: kIsWeb,
           child: Drawer(
             child: ListView(
@@ -1006,11 +1028,11 @@ class CSpaView extends StatefulWidget {
   /// Sets / removes a right sided drawer from the [CSpaAPI.spa].
   static void endDrawer({Widget? header, List<Widget>? items}) {
     if (header == null && items == null) {
-      uiState.set<Widget?>("endDrawer", null);
+      uiState.set<Widget?>(key: "endDrawer", value: null);
     } else {
       uiState.set<Widget?>(
-        "endDrawer",
-        PointerInterceptor(
+        key: "endDrawer",
+        value: PointerInterceptor(
           intercepting: kIsWeb,
           child: Drawer(
             child: ListView(
@@ -1061,7 +1083,7 @@ class CSpaView extends StatefulWidget {
 class _CSpaViewState extends State<CSpaView> {
   @override
   void initState() {
-    CSpaView.uiState.addListener(() => setState(() {}));
+    CSpaView.uiState.addListener(listener: () => setState(() {}));
     super.initState();
   }
 
@@ -1083,24 +1105,25 @@ class _CSpaViewState extends State<CSpaView> {
           return false;
         },
         child: Scaffold(
-          appBar: CSpaView.uiState.get<AppBar?>("appBar"),
+          appBar: CSpaView.uiState.get<AppBar?>(key: "appBar"),
           body: SizeChangedLayoutNotifier(
-            child: CSpaView.uiState.get<CObject?>("content")?['body'],
+            child: CSpaView.uiState.get<CObject?>(key: "content")?['body'],
           ),
           extendBody:
-              CSpaView.uiState.get<CObject?>("content")?['extendBody'] ?? false,
+              CSpaView.uiState.get<CObject?>(key: "content")?['extendBody'] ??
+                  false,
           extendBodyBehindAppBar: CSpaView.uiState
-                  .get<CObject?>("content")?["extendBodyBehindAppBar"] ??
+                  .get<CObject?>(key: "content")?["extendBodyBehindAppBar"] ??
               false,
           bottomNavigationBar:
-              CSpaView.uiState.get<BottomAppBar?>("bottomAppBar"),
-          drawer: CSpaView.uiState.get<Widget?>("drawer"),
-          endDrawer: CSpaView.uiState.get<Widget?>("endDrawer"),
+              CSpaView.uiState.get<BottomAppBar?>(key: "bottomAppBar"),
+          drawer: CSpaView.uiState.get<Widget?>(key: "drawer"),
+          endDrawer: CSpaView.uiState.get<Widget?>(key: "endDrawer"),
           floatingActionButton:
-              CSpaView.uiState.get<Widget?>("floatingActionButton"),
+              CSpaView.uiState.get<Widget?>(key: "floatingActionButton"),
           floatingActionButtonLocation: CSpaView.uiState
               .get<FloatingActionButtonLocation?>(
-                  "floatingActionButtonLocation"),
+                  key: "floatingActionButtonLocation"),
           key: _ModuleDataDefinition.scaffoldKey,
         ),
       ),
@@ -1396,12 +1419,12 @@ class CSpaAPI {
 
   /// Provides the ability to get items from the global app state.
   T getAppState<T>({required String key}) {
-    return CSpaView.uiState.get<T>(key);
+    return CSpaView.uiState.get<T>(key: key);
   }
 
   /// Provides the ability to set items on the global app state.
   void setAppState<T>({required String key, required T value}) {
-    CSpaView.uiState.set<T>(key, value);
+    CSpaView.uiState.set<T>(key: key, value: value);
   }
 
   /// Retrieves the total height of the specified context.
@@ -2843,8 +2866,8 @@ class CodeMeltedAPI {
   /// Accesses the [CJsonAPI] defined namespace.
   CJsonAPI get json => CJsonAPI();
 
-  /// Accesses the different NPU formulas via the [CMathAPI] enumeration.
-  CMathAPI get math => CMathAPI();
+  /// Accesses the different [CNpuAPI] to access the numerical processing unit.
+  CNpuAPI get npu => CNpuAPI();
 
   /// Accesses the [CSpaAPI] defined namespace.
   CSpaAPI get spa => CSpaAPI();

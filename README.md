@@ -3,14 +3,14 @@ TITLE: CodeMelted DEV | Modules
 PUBLISH_DATE: 2024-11-28
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, wasm
-DESCRIPTION: Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify this by developing a set of cross platform modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. It gives the ability to achieve maximum application reach by supporting the development of Progressive Web Applications (PWAs). The modules are specifically designed to target each area of the technology stack to deliver PWAs.
+DESCRIPTION: Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify this by developing a set of modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. It gives the ability to achieve maximum application reach by supporting the development of Progressive Web Applications (PWAs). The modules are specifically designed to target each area of the technology stack to deliver PWAs.
 -->
 <center>
   <img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-design.png" /> CodeMelted DEV | Modules</h1>
 
-Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify this by developing a set of cross platform modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. It gives the ability to achieve maximum application reach by supporting the development of Progressive Web Applications (PWAs). The modules are specifically designed to target each area of the technology stack to deliver PWAs.
+Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify this by developing a set of modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. It gives the ability to achieve maximum application reach by supporting the development of Progressive Web Applications (PWAs). The modules are specifically designed to target each area of the technology stack to deliver PWAs.
 
 **LAST UPDATED:** 2024-12-27
 
@@ -56,6 +56,7 @@ Software engineers are now required to learn multiple languages, technologies, a
     - [VS Code](#vs-code)
   - [Module Versioning](#module-versioning)
   - [Build Script](#build-script)
+- [codemelted.dart Change Log](#codemelteddart-change-log)
 - [LICENSE](#license)
 
 # FEATURES
@@ -102,7 +103,14 @@ Given the dynamic nature of data, a series of type checks will be provided to th
 
 ### JSON
 
-<mark>TBD</mark>
+**Description:** JavaScript Object Notation (JSON) represents a way of building complex data types and providing a universal way of serializing / deserializing the data as a string or object. JSON has become the goto data type for REST APIs, NoSQL database, and key / value pair storage of data. This use case will expose a namespace and utility objects to fully take advantage of this data object notation.
+
+**Acceptance Criteria:**
+
+1. The json namespace will support the conversion of string types to valid JSON constructs if they are of that type. These include array, boolean, number, and object types. Failure to convert will result in a `null` return.
+2. The json namespace will provide the ability to parse and stringify valid JSON constructs. Failure to parse or stringify the data will result in a `null` return.
+3. The json namespace will provide the ability to perform validity checks. These validity checks include determining if a JSON object has a given property, if a particular data type is of an expected type, and valid URLs. These checks can will return either a boolean of the check or throw exceptions.
+4. The json namespace will provide the ability to create JSON array / object types with change notifiers to signal when changes are made to the data types. These objects will also support aspects of Acceptance Criteria 1 - 3.
 
 ### Storage
 
@@ -269,6 +277,10 @@ The versioning of the module will be captured via GitHub or the modules document
 ## Build Script
 
 The `build.ps1 --build` script provides the ability to build, test, and document the `codemelted_developer` repo modules. The `build.ps1 --deploy` deploys the [CodeMelted DEV](https://developer.codemelted.com) website.
+
+# codemelted.dart Change Log
+
+<iframe style="background-color: white" src="CHANGELOG.md" width="100%" height="350px"></iframe>
 
 # LICENSE
 
