@@ -21,15 +21,6 @@ import {
 import codemelted from "./codemelted.js";
 
 // ----------------------------------------------------------------------------
-// [async use case] -----------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-
-// ----------------------------------------------------------------------------
-// [audio use case] -----------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
 // [console use case] ---------------------------------------------------------
 // ----------------------------------------------------------------------------
 
@@ -43,10 +34,6 @@ Deno.test("codemelted.console Tests", () => {
 });
 
 // ----------------------------------------------------------------------------
-// [database use case] --------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
 // [disk use case] ------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
@@ -57,7 +44,7 @@ Deno.test("codemelted.disk Properties Test", () => {
 });
 
 Deno.test("codemelted.disk Error Check Tests", async () => {
-  assertThrows(() => codemelted.disk.cp(), SyntaxError);
+  assertThrows(() => codemelted.disk.cp({src: 1, dest: 2}), SyntaxError);
   assertThrows(() => codemelted.disk.cp("test.txt"), SyntaxError);
   assertThrows(() => codemelted.disk.exists(), SyntaxError);
   assertThrows(() => codemelted.disk.ls(), SyntaxError);
@@ -107,18 +94,26 @@ Deno.test("codemelted.disk Manipulation Tests", async () => {
   // Get the temporary directory and do some cleanup if necessary
   const tempPath = codemelted.disk.tempPath;
   assert(tempPath != null);
-  codemelted.disk.rm(`${tempPath}/results`);
+  codemelted.disk.rm({filename: `${tempPath}/results`});
 
   // First fail to copy and move stuff
-  let success = codemelted.disk.cp("duh.txt", tempPath);
+  let success = codemelted.disk.cp({
+    src: "duh.txt",
+    dest: tempPath}
+  );
   assert(!success);
-  success = codemelted.disk.mv("duh.txt", tempPath);
+  success = codemelted.disk.mv({
+    src: "duh.txt",
+    dest: tempPath
+  });
   assert(!success);
 
   // Now lets go create directories and files
-  success = codemelted.disk.exists(`${tempPath}/results/`);
+  success = codemelted.disk.exists({
+    filename: `${tempPath}/results/`
+  });
   assert(!success);
-  success = codemelted.disk.mkdir(`${tempPath}/results`);
+  success = codemelted.disk.mkdir({filename: `${tempPath}/results`});
   assert(success);
 
   // Go write some files
@@ -127,16 +122,16 @@ Deno.test("codemelted.disk Manipulation Tests", async () => {
     data: "Hello There",
     append: true,
   });
-  assert(codemelted.disk.exists(`${tempPath}/results/writeTextFile.txt`));
+  assert(codemelted.disk.exists({filename: `${tempPath}/results/writeTextFile.txt`}));
 
   await codemelted.disk.writeEntireFile({
     filename: `${tempPath}/results/writeFile.txt`,
     data: new Uint8Array([42]),
   });
-  assert(codemelted.disk.exists(`${tempPath}/results/writeFile.txt`));
+  assert(codemelted.disk.exists({filename: `${tempPath}/results/writeFile.txt`}));
 
   // Prove the files got written
-  let result = codemelted.disk.ls(`${tempPath}/results/`);
+  let result = codemelted.disk.ls({filename: `${tempPath}/results/`});
   assert(result.length === 2);
 
   // Prove we can read the files
@@ -151,46 +146,110 @@ Deno.test("codemelted.disk Manipulation Tests", async () => {
   assert(result[0] === 42);
 
   // Now some cleanup to remove items.
-  success = codemelted.disk.rm(`${tempPath}/results`);
+  success = codemelted.disk.rm({filename: `${tempPath}/results`});
   assert(success);
 });
-
-// ----------------------------------------------------------------------------
-// [firebase use case] --------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
-// [game use case] ------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
-// [hardware use case] --------------------------------------------------------
-// ----------------------------------------------------------------------------
 
 // ----------------------------------------------------------------------------
 // [json use case] ------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-// ----------------------------------------------------------------------------
-// [logger use case] ----------------------------------------------------------
-// ----------------------------------------------------------------------------
+Deno.test("codemelted.json API Violations", () => {
+  // Functions that throw if you completely ignore thigns.
+  assertThrows(() => codemelted.json.checkHasProperty(), SyntaxError);
+  assertThrows(() => codemelted.json.checkType(), SyntaxError);
+});
 
-// ----------------------------------------------------------------------------
-// [math use case] ------------------------------------------------------------
-// ----------------------------------------------------------------------------
+Deno.test("codemelted.json Conversion Tests", () => {
+  // Test data
+  const testObj = {
+    field1: "field1",
+    field2: 2,
+    field3: true,
+    field4: [ "1", 2, null, false ],
+    field5: null,
+  };
+  const testArray = ["1", 2, null, false ];
+  const testFunc = (a, b) => {};
 
-// ----------------------------------------------------------------------------
-// [network use case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // asXXX Validation
+  assert(codemelted.json.asBool({data: "yes"}) === true);
+  assert(codemelted.json.asBool({data: "no"}) === false);
+  assert(codemelted.json.asDouble({data: "6.85"}) === 6.85);
+  assert(codemelted.json.asDouble({data: "-6.85"}) === -6.85);
+  assert(codemelted.json.asDouble({data: "no"}) === null);
+  assert(codemelted.json.asInt({data: "6"}) === 6);
+  assert(codemelted.json.asInt({data: "-6"}) === -6);
+  assert(codemelted.json.asInt({data: "no"}) === null);
 
-// ----------------------------------------------------------------------------
-// [runtime use case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // checkHasProperty Validation
+  let success = codemelted.json.checkHasProperty({
+    obj: testObj,
+    key: "field6",
+  });
+  assert(success === false);
+  assertThrows(() => codemelted.json.tryHasProperty({
+    obj: testObj,
+    key: "field6",
+  }));
 
-// ----------------------------------------------------------------------------
-// [storage use case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
+  success = codemelted.json.checkHasProperty({
+    obj: testObj,
+    key: "field5",
+  });
+  assert(success === true);
 
-// ----------------------------------------------------------------------------
-// [ui use case] --------------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // checkXXXX / tryXXX Validation
+  success = codemelted.json.checkType({type: "object", data: testObj});
+  assert(success === true);
+  success = codemelted.json.checkType({type: "string", data: testObj});
+  assert(success === false);
+  assertThrows(() => codemelted.json.tryType({type: "string", data: testObj}));
+
+  success = codemelted.json.checkType({type: Array, data: testArray});
+  assert(success === true);
+  success = codemelted.json.checkType({type: "string", data: testArray});
+  assert(success === false);
+  assertThrows(() => codemelted.json.tryType({type: "string", data: testArray}));
+
+  success = codemelted.json.checkType({type: "function", data: testFunc, count: 2});
+  assert(success === true);
+  success = codemelted.json.checkType({type: "function", data: testFunc, count: 1});
+  assert(success === false);
+  assertThrows(() => codemelted.json.tryType({type: "function", data: testFunc, count: 1}));
+
+  success = codemelted.json.checkValidUrl({data: "https://codemelted.com"});
+  assert(success === true);
+  success = codemelted.json.checkValidUrl({data: ":::: garbage::::"});
+  assert(success === false);
+  assertThrows(() => codemelted.json.tryValidUrl({data: ":::: garbage::::"}));
+
+  // createXXXX validation
+  let newObj = codemelted.json.createObject({data: testObj});
+  assert(Object.keys(newObj).length > 0);
+  newObj = codemelted.json.createObject({data: 42});
+  assert(Object.keys(newObj).length === 0);
+
+  let newArray = codemelted.json.createArray({data: testArray});
+  assert(newArray.length > 0);
+  newArray = codemelted.json.createArray({data: "hello"});
+  assert(newArray.length === 0);
+
+  // stringify / parse validation
+  let url = new URL("https://codemelted.com");
+  let data = codemelted.json.parse({data: url});
+  assert(data === null);
+  data = codemelted.json.stringify({data: 9007199254740991n});
+  assert(data === null);
+
+  data = codemelted.json.stringify({data: testObj});
+  assert(data != null);
+  data = codemelted.json.parse({data: data});
+  assert(data != null);
+
+  data = null;
+  data = codemelted.json.stringify({data: testArray});
+  assert(data != null);
+  data = codemelted.json.parse({data: data});
+  assert(data != null);
+});

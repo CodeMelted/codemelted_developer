@@ -26,7 +26,7 @@ The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facil
     - [Find-Script](#find-script)
     - [Install-Script](#install-script)
     - [Update-Script](#update-script)
-      - [Uninstall-Script](#uninstall-script)
+    - [Uninstall-Script](#uninstall-script)
     - [Troubleshooting](#troubleshooting)
       - [Mac OS](#mac-os-1)
       - [Windows OS](#windows-os)
@@ -106,7 +106,7 @@ To update to the latest version of the codemelted CLI from the PS Gallery execut
 Update-Script -Name codemelted
 ```
 
-#### Uninstall-Script
+### Uninstall-Script
 
 To completely uninstall the codemelted CLI execute:
 

@@ -181,7 +181,7 @@ function build([string[]]$params) {
     deno coverage coverage --lcov > coverage/lcov.info
 
     if ($IsLinux -or $IsMacOS) {
-      genhtml -o coverage --ignore-errors unused --dark-mode coverage/lcov.info
+      genhtml -o coverage --ignore-errors unused,inconsistent --dark-mode coverage/lcov.info
     }
     else {
       $exists = Test-Path -Path $GEN_HTML_PERL_SCRIPT -PathType Leaf
@@ -333,11 +333,19 @@ function build([string[]]$params) {
     Write-Host "MESSAGE: Publishing completed."
   }
 
+  function test_codemelted_js {
+    Set-Location $PSScriptRoot/pwa
+    deno test --allow-env --allow-net --allow-read --allow-sys --allow-write `
+      --no-config codemelted_test.ts
+    Set-Location $PSScriptRoot
+  }
+
   # Main Execution
   switch ($params[0]) {
     "--build" { build_all }
     "--deploy" { deploy }
     "--publish-script" { publish_script }
+    "--test-codemelted-js" { test_codemelted_js }
     default { Write-Host "ERROR: Invalid parameter specified." }
   }
 }

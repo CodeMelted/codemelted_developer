@@ -1,3 +1,7 @@
+## 0.2.0 (Last Modified 2024-12-28)
+
+* Evaluated the console use case. Not applicable so bumping the version number.
+
 ## 0.1.0 (Last Modified 2024-12-27)
 
 * Cleanup of a lot of documentation

@@ -37,6 +37,7 @@
     "onmessageerror",
     "PRIVATEDATA",
     "PROJECTURI",
+    "pubspec",
     "pwsh",
     "RELEASENOTES",
     "REQUIREDSCRIPTS",

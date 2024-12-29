@@ -95,7 +95,20 @@ Given the dynamic nature of data, a series of type checks will be provided to th
 
 ### Disk
 
-<mark>TBD</mark>
+**Description:** When running a backend service or terminal task, you may need to manipulate items on disk. This includes files and directories. This use case will create a *disk* namespace that attaches these management items along with queryable properties such as a user's home directory as an example.
+
+**Acceptance Criteria:**
+
+1. The disk namespace will provide the ability to copy files / directories from one location to another.
+2. The disk namespace will determine if a given file / path exists on a disk.
+3. The disk namespace will provide the ability to determine the user's home directory.
+4. The disk namespace will provide the ability to get a listing of files from disk.
+5. The disk namespace will provide the ability to create a directory (including parent directories) on disk.
+6. The disk namespace will provide the ability to move a file / directory from one location to another on disk.
+7. The disk namespace will determine the path separator character for the given operating system. Backslash for windows, forward slash for all unix variants.
+8. The disk namespace will provide the ability to remove a filename / directory from disk.
+9. The disk namespace will provide the ability to determine the temporary directory path on disk.
+10. The disk namespace will provide the ability to read / write an entire file (text or blob) to / from disk.
 
 ### File
 
@@ -162,7 +175,16 @@ The biggest thing all applications have is a way of interacting with a user. Thi
 
 ### Console
 
-<mark>TBD</mark>
+**Description:** A STDIN / STDOUT interaction is the barest bone user interface that one can present to a user. Unlike a Command Line Interface (CLI) where a user must know the different flags to invoke the interface, a STDIN / STDOUT interaction provides a continuous set of prompts and messages guiding the user. This is commonly referred to as a System Console. This use case will provide a console interface to facilitate such actions.
+
+**Acceptance Criteria:**
+
+1. The console namespace will provide the ability to alert a user with a custom message that requires the *Enter* key press to continue processing.
+2. The console namespace will provide the ability for a Yes/No confirmation to a user where *Y* will return *true* and anything else will return *false*.
+3. The console namespace will provide the ability to choose from a set of options returning the index of the user selection. An invalid selection will result in attempting the choice again.
+4. The console namespace will provide the ability to enter a *password* concealing their entry via STDIN. The result returned will be a string.
+5. The console namespace will provide the ability to answer prompted questions. The result returned will be a string.
+6. The console namespace will provide the ability to write a line of text with newline to STDOUT.
 
 ### Dialog
 
