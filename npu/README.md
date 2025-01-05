@@ -10,9 +10,18 @@ DESCRIPTION: TBD
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-codemelted-wasm.png" /> CodeMelted DEV | NPU Module</h1>
 
-**LAST UPDATED:** 2024-12-14
-
 TBD
+
+**LAST UPDATED:** 2025-01-05
+
+<center>
+  <br />
+  <a href="https://www.buymeacoffee.com/codemelted" target="_blank">
+    <img height="50px" src="https://codemelted.com/assets/images/icon-bmc-button.png" />
+  </a>
+  <br /><br />
+  <p>Hope you enjoy the content. Any support is greatly appreciated. Thank you! 🙇</p>
+</center>
 
 **Table of Contents**
 
@@ -39,12 +48,3 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-<center>
-  <br />
-  <a href="https://www.buymeacoffee.com/codemelted" target="_blank">
-    <img height="50px" src="https://codemelted.com/assets/images/icon-bmc-button.png" />
-  </a>
-  <br /><br />
-  <p>Hope you enjoyed the content. Any support is greatly appreciated. Thank you! 🙇</p>
-</center>

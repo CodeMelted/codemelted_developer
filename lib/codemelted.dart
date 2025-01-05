@@ -425,7 +425,7 @@ class CDialogAPI {
   /// Sets up the internal instance for this object.
   factory CDialogAPI() => _instance ?? CDialogAPI._();
 
-  /// Sets up the namespace for the [CTaskAPI] object.
+  /// Sets up the namespace for the [CDialogAPI] object.
   CDialogAPI._() {
     _instance = this;
   }
@@ -435,7 +435,7 @@ class CDialogAPI {
 // [Disk Use Case] ------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-// NOT APPLICABLE TO MODULE.
+// TODO: Integrate with read / write Entire file from codemelte.js
 
 // ----------------------------------------------------------------------------
 // [File Use Case] ------------------------------------------------------------
@@ -660,13 +660,13 @@ class CJsonAPI {
   }
 
   /// Creates a new CArray object and initializes it if initData is specified.
-  CArray createArray({CArray? initData}) {
-    return initData != null ? initData.copy() : [];
+  CArray createArray({CArray? data}) {
+    return data != null ? data.copy() : [];
   }
 
   /// Creates a new CObject object and initializes it if initData is specified.
-  CObject createObject({CObject? initData}) {
-    return initData != null ? CObject.from(initData) : CObject();
+  CObject createObject({CObject? data}) {
+    return data != null ? CObject.from(data) : CObject();
   }
 
   /// Will convert data into a JSON [CObject] or return null if the decode
@@ -753,7 +753,7 @@ class CNpuAPI {
     );
     try {
       var answer = _ModuleDataDefinition.npu!.instance.exports.callMethod(
-        "cm_math".toJS,
+        "math".toJS,
         formula.index.toJS,
         arg1.toJS,
       );
@@ -1452,13 +1452,11 @@ class CSpaAPI {
 // ----------------------------------------------------------------------------
 
 /// The task to run as part of the different module async functions.
-/// @nodoc
 typedef CTask_t = Future<dynamic> Function([dynamic]);
 
 /// Provides the ability to run asynchronous one off / repeating tasks. Also
 /// provides the ability to delay asynchronous tasks/
-/// @nodoc
-class CTasksAPI {
+class CTaskAPI {
   /// Holds the mapping of timer objects of repeating tasks.
   final _data = <int, dynamic>{};
 
@@ -1472,14 +1470,15 @@ class CTasksAPI {
     dynamic data,
     int delay = 0,
   }) async {
+    assert(delay > 0, "delay specified must be greater than 0.");
     return Future.delayed(
-      Duration(milliseconds: delay),
+      Duration(milliseconds: (delay < 0 ? 0 : delay)),
       () => task(data),
     );
   }
 
   /// Starts a repeating [CTask_t] on the specified interval.
-  int startTimer(CTask_t task, int interval) {
+  int startTimer({required CTask_t task, required int interval}) {
     assert(interval > 0, "interval specified must be greater than 0.");
     var timer = Timer.periodic(
       Duration(milliseconds: interval),
@@ -1493,26 +1492,26 @@ class CTasksAPI {
   }
 
   /// Stops the currently running timer.
-  void stopTimer(timerId) {
+  void stopTimer({required int timerId}) {
     assert(_data.containsKey(timerId), "timerId was not found.");
     (_data[timerId] as Timer).cancel();
     _data.remove(timerId);
   }
 
   /// Will allow for a delay in an asynchronous function.
-  Future<void> sleep(delay) async {
+  Future<void> sleep({required int delay}) async {
     assert(delay >= 0, "delay specified must be greater than 0.");
     return Future.delayed(Duration(milliseconds: delay));
   }
 
   /// Gets the single instance of the API.
-  static CTasksAPI? _instance;
+  static CTaskAPI? _instance;
 
   /// Sets up the internal instance for this object.
-  factory CTasksAPI() => _instance ?? CTasksAPI._();
+  factory CTaskAPI() => _instance ?? CTaskAPI._();
 
   /// Sets up the namespace for the [CTaskAPI] object.
-  CTasksAPI._() {
+  CTaskAPI._() {
     _instance = this;
   }
 }
@@ -1919,7 +1918,7 @@ class CThemeAPI {
   /// Sets up the internal instance for this object.
   factory CThemeAPI() => _instance ?? CThemeAPI._();
 
-  /// Sets up the namespace for the [CTaskAPI] object.
+  /// Sets up the namespace for the [CThemeAPI] object.
   CThemeAPI._() {
     _instance = this;
   }
@@ -2885,6 +2884,9 @@ class CodeMeltedAPI {
   /// Accesses the [CSpaAPI] defined namespace.
   /// @nodoc
   CSpaAPI get spa => CSpaAPI();
+
+  /// Accesses the [CTaskAPI] defined namespace.
+  CTaskAPI get task => CTaskAPI();
 
   /// Accesses the [CSpaAPI] defined namespace.
   /// @nodoc

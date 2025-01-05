@@ -3,8 +3,10 @@
 /**
  * @file The JavaScript implementation of the CodeMelted DEV | PWA Modules.
  * @author Mark Shaffer
- * @version 0.3.0 (Last Modified 2024-12-28) <br />
- * - 0.3.0 (2024-12-28): <br />
+ * @version 0.3.1 (Last Modified 2025-01-05) <br />
+ * 0.3.1 (2025-01-05): <br />
+ * - Fleshed out the Async I/O use cases. Not tested. <br />
+ * 0.3.0 (2024-12-28): <br />
  * - Completed the testing / documenting of the console namespace. <br />
  * - Completed testing / documenting of the disk use case. <br />
  * - Completed testing / documenting of the json use case. <br />
@@ -26,39 +28,96 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
+ * @see https://developer.codemelted.com (For references)
  */
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// [Common Data Definitions] --------------------------------------------------
+// [Module Data Definitions] --------------------------------------------------
 // ----------------------------------------------------------------------------
 
 /**
- * Identifies why a use case transaction failed.
- * @private
- * @type {string}
+ * @typedef {object} CModuleEvent_t
+ * @property {"data" | "error" | "status"} type Identifies the type of event
+ * handled by the module.
+ * @property {any} data The data that corresponds to the module event along
+ * with the particular callback it is servicing.
  */
-let _strerror = "";
 
 /**
- * Resets the failure reason for each use case transaction.
- * @private
- * @param {any} err The error to handle and set.
+ * The task to run as part of the different module async functions.
+ * @callback CModuleEventListener_t
+ * @param {CModuleEvent_t} [data] The data to process on the backend.
  * @returns {void}
  */
-function handleError(err = undefined) {
-  if (err) {
-    if (err instanceof Error) {
-      _strerror = err.message;
-    } else if ("toString" in err) {
-      _strerror = err.toString();
-    } else if (json.checkType({type: "string", data: err})) {
-      _strerror = err;
-    } else {
-      _strerror = "unknown";
+
+/**
+ * Holds the common definitions to support the overall module implementation
+ * and runtimes.
+ * @private
+ */
+class ModuleDataDefinition {
+  /** @type {string} */
+  static error = ""
+
+  /**
+   * Tracks the module allocated objects for later cleanup.
+   * @type {object}
+   */
+  static objectTracker = {};
+
+  /**
+   * The current id of an allocated module resource.
+   * @type {number}
+   */
+  static #trackingId = 0;
+
+  /**
+   * Takes an object created by the module and adds it for tracking.
+   * @param {any} obj The object to be tracked
+   * @returns {number} The new tracking id to utilize with the module.
+   */
+  static allocateTrackingId(obj) {
+    ModuleDataDefinition.#trackingId += 1;
+    // @ts-ignore Deno can't handle a hash tracked with numbers but it is valid.
+    ModuleDataDefinition.objectTracker[ModuleDataDefinition.#trackingId] = obj;
+    return ModuleDataDefinition.#trackingId;
+  }
+
+  /**
+   * Removes the tracked object.
+   * @param {number} trackingId The tracking id to retrieve.
+   * @returns {any} The object tracked and removed from the module tracking.
+   */
+  static deallocateTrackingId(trackingId) {
+    // @ts-ignore Deno can't figure out object properties for valid javascript.
+    const obj = ModuleDataDefinition.objectTracker[trackingId];
+    if (obj) {
+    // @ts-ignore Deno can't figure out object properties for valid javascript.
+      delete ModuleDataDefinition.objectTracker[trackingId];
     }
-  } else {
-    _strerror = "";
+    return obj;
+  }
+
+  /**
+   * Resets the failure reason for each use case transaction.
+   * @param {any} err The error to handle and set.
+   * @returns {void}
+   */
+  static handleError(err = undefined) {
+    if (err) {
+      if (err instanceof Error) {
+        ModuleDataDefinition.error = err.message;
+      } else if ("toString" in err) {
+        ModuleDataDefinition.error = err.toString();
+      } else if (json.checkType({type: "string", data: err})) {
+        ModuleDataDefinition.error = err;
+      } else {
+        ModuleDataDefinition.error = "unknown";
+      }
+    } else {
+      ModuleDataDefinition.error = "";
+    }
   }
 }
 
@@ -230,7 +289,7 @@ const disk = Object.freeze({
    * for details of failure.
    */
   cp: function({src, dest} = {}) {
-    handleError();
+    ModuleDataDefinition.handleError();
     try {
       const deno = runtime.tryDeno();
       json.tryType({type: "string", data: src});
@@ -242,7 +301,7 @@ const disk = Object.freeze({
       if (err instanceof SyntaxError) {
         throw err;
       }
-      handleError(err);
+      ModuleDataDefinition.handleError(err);
       return false;
     }
   },
@@ -256,7 +315,7 @@ const disk = Object.freeze({
    * exist.
    */
   exists: function({filename} = {}) {
-    handleError();
+    ModuleDataDefinition.handleError();
     try {
       const deno = runtime.tryDeno();
       json.tryType({type: "string", data: filename});
@@ -266,7 +325,7 @@ const disk = Object.freeze({
       if (err instanceof SyntaxError) {
         throw err;
       }
-      handleError(err);
+      ModuleDataDefinition.handleError(err);
       return null;
     }
   },
@@ -280,13 +339,13 @@ const disk = Object.freeze({
    * @type {string?}
    */
   get homePath() {
-    handleError();
+    ModuleDataDefinition.handleError();
     try {
       return runtime.tryDeno().env.get("HOME")
         || runtime.tryDeno().env.get("USERPROFILE")
         || null;
     } catch (err) {
-      handleError(err);
+      ModuleDataDefinition.handleError(err);
       return null;
     }
   },
@@ -328,7 +387,7 @@ const disk = Object.freeze({
    * @returns {boolean}
    */
   mkdir: function({filename} = {}) {
-    handleError();
+    ModuleDataDefinition.handleError();
     try {
       const deno = runtime.tryDeno();
       json.tryType({type: "string", data: filename});
@@ -339,7 +398,7 @@ const disk = Object.freeze({
       if (err instanceof SyntaxError) {
         throw err;
       }
-      handleError(err);
+      ModuleDataDefinition.handleError(err);
       return false;
     }
   },
@@ -355,7 +414,7 @@ const disk = Object.freeze({
    * for details of failure.
    */
   mv: function({src, dest} = {}) {
-    handleError();
+    ModuleDataDefinition.handleError();
     try {
       const deno = runtime.tryDeno();
       json.tryType({type: "string", data: src});
@@ -367,7 +426,7 @@ const disk = Object.freeze({
       if (err instanceof SyntaxError) {
         throw err;
       }
-      handleError(err);
+      ModuleDataDefinition.handleError(err);
       return false;
     }
   },
@@ -385,8 +444,65 @@ const disk = Object.freeze({
   },
 
   /**
-   * Reads an entire file from disk.
+   * Removes a file or directory at the specified location.
    * @memberof disk
+   * @param {object} params
+   * @param {string} [params.filename] The source item to remove.
+   * @returns {boolean} true if carried out, false otherwise. Check strerror
+   * for details of failure.
+   */
+  rm: function({filename} = {}) {
+    ModuleDataDefinition.handleError();
+    try {
+      const deno = runtime.tryDeno();
+      json.tryType({type: "string", data: filename});
+      // @ts-ignore error checked above.
+      deno.removeSync(filename, {recursive: true});
+      return true;
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        throw err;
+      }
+      ModuleDataDefinition.handleError(err);
+      return false;
+    }
+  },
+
+  /**
+   * Identifies the temp directory on disk. Null is returned if it cannot be
+   * found or running on web environment. Check codemelted.strerror if you
+   * did not expect null.
+   * @memberof disk
+   * @readonly
+   * @type {string?}
+   */
+  get tempPath() {
+    ModuleDataDefinition.handleError();
+    try {
+      return runtime.tryDeno().env.get("TMPDIR")
+        || runtime.tryDeno().env.get("TMP")
+        || runtime.tryDeno().env.get("TEMP")
+        || "/tmp";
+    } catch (err) {
+      ModuleDataDefinition.handleError(err);
+      return null;
+    }
+  },
+});
+
+// ----------------------------------------------------------------------------
+// [File Use Case] ------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/**
+ * TBD
+ * @private
+ * @namespace file
+ */
+const file = Object.freeze({
+  /**
+   * Reads an entire file from disk.
+   * @memberof file
    * @param {object} params
    * @param {string} [params.filename] The file to open
    * @param {boolean} [params.isTextFile = true] True if text file, false if
@@ -403,7 +519,7 @@ const disk = Object.freeze({
     accept = "",
   } = {}) {
     return new Promise((resolve, reject) => {
-      handleError();
+      ModuleDataDefinition.handleError();
       try {
         if (runtime.isDeno) {
           const deno = runtime.tryDeno();
@@ -442,61 +558,15 @@ const disk = Object.freeze({
         if (err instanceof SyntaxError) {
           throw err;
         }
-        handleError(err);
+        ModuleDataDefinition.handleError(err);
         reject(err);
       }
     });
   },
 
   /**
-   * Removes a file or directory at the specified location.
-   * @memberof disk
-   * @param {object} params
-   * @param {string} [params.filename] The source item to remove.
-   * @returns {boolean} true if carried out, false otherwise. Check strerror
-   * for details of failure.
-   */
-  rm: function({filename} = {}) {
-    handleError();
-    try {
-      const deno = runtime.tryDeno();
-      json.tryType({type: "string", data: filename});
-      // @ts-ignore error checked above.
-      deno.removeSync(filename, {recursive: true});
-      return true;
-    } catch (err) {
-      if (err instanceof SyntaxError) {
-        throw err;
-      }
-      handleError(err);
-      return false;
-    }
-  },
-
-  /**
-   * Identifies the temp directory on disk. Null is returned if it cannot be
-   * found or running on web environment. Check codemelted.strerror if you
-   * did not expect null.
-   * @memberof disk
-   * @readonly
-   * @type {string?}
-   */
-  get tempPath() {
-    handleError();
-    try {
-      return runtime.tryDeno().env.get("TMPDIR")
-        || runtime.tryDeno().env.get("TMP")
-        || runtime.tryDeno().env.get("TEMP")
-        || "/tmp";
-    } catch (err) {
-      handleError(err);
-      return null;
-    }
-  },
-
-  /**
    * Writes an entire file to disk.
-   * @memberof disk
+   * @memberof file
    * @param {object} params
    * @param {string} [params.filename] What / where to save the file.
    * For the web target this will default to the download directory.
@@ -512,7 +582,7 @@ const disk = Object.freeze({
     append = false,
   } = {}) {
     return new Promise((resolve, reject) => {
-      handleError();
+      ModuleDataDefinition.handleError();
       try {
         json.tryType({type: "string", data: filename});
 
@@ -569,7 +639,7 @@ const disk = Object.freeze({
         if (err instanceof SyntaxError) {
           throw err;
         }
-        handleError(err);
+        ModuleDataDefinition.handleError(err);
         reject(err);
       }
     });
@@ -693,7 +763,7 @@ const json = Object.freeze({
    * @returns {boolean} true if valid, false otherwise.
    */
   checkValidUrl: function({data} = {}) {
-    handleError();
+    ModuleDataDefinition.handleError();
     let url = undefined;
     try {
       // @ts-ignore Weirdness when doing named parameters.
@@ -701,7 +771,7 @@ const json = Object.freeze({
     }
     catch (err) {
       url = undefined;
-      handleError(err);
+      ModuleDataDefinition.handleError(err);
     }
     // @ts-ignore Also ignore to allow the checkType to do its thing.
     return this.checkType({type: URL, data: url});
@@ -742,13 +812,13 @@ const json = Object.freeze({
    * @returns {object | null} Object or null if the parse failed.
    */
   parse: function({data} = {}) {
-    handleError();
+    ModuleDataDefinition.handleError();
     try {
       // @ts-ignore Named parameter weirdness.
       return JSON.parse(data);
     }
     catch (err) {
-      handleError(err);
+      ModuleDataDefinition.handleError(err);
       return null;
     }
   },
@@ -762,12 +832,12 @@ const json = Object.freeze({
    * stringify failed.
    */
   stringify: function({data} = {}) {
-    handleError();
+    ModuleDataDefinition.handleError();
     try {
       return JSON.stringify(data);
     }
     catch (err) {
-      handleError(err);
+      ModuleDataDefinition.handleError(err);
       return null;
     }
   },
@@ -821,6 +891,185 @@ const json = Object.freeze({
       throw new SyntaxError("data is not a valid url");
     }
   },
+});
+
+// ----------------------------------------------------------------------------
+// [Process Use Case] ---------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/**
+ * Class wrapper for a created process via the Deno runtime.
+ * @private
+ */
+class CDenoProcessHandler {
+  /**
+   * Writes a message to the attached process.
+   * @param {string} data The data to send to the attached process.
+   */
+  postMessage(data) {
+    const buffer = this.encoder.encode(data);
+    this.process.stdin.getWriter().write(buffer);
+  }
+
+  /**
+   * Kills the held process with the specified signal.
+   * @param {Deno.Signal} signo The signal to terminate the process with.
+   * @returns {void}
+   */
+  kill(signo) {
+    clearInterval(this.timerId);
+    this.process.kill(signo);
+  }
+
+  /**
+   * Constructor for the handler.
+   * @param {Deno.ChildProcess} process The process that was created.
+   * @param {CModuleEventListener_t} listener The listener for the process
+   * data.
+   */
+  constructor(process, listener) {
+    this.process = process;
+    this.encoder = new TextEncoder();
+    this.decoder = new TextDecoder();
+    this.timerId = setInterval(async () => {
+      const outDataChunk = await this.process.stdout.getReader().read();
+      const errDataChunk = await this.process.stderr.getReader().read();
+      let dataChunk = "";
+      if (outDataChunk.value) {
+        dataChunk += this.decoder.decode(outDataChunk.value);
+      }
+      if (errDataChunk) {
+        dataChunk += this.decoder.decode(errDataChunk.value);
+      }
+      if (dataChunk) {
+        listener({
+          type: "data",
+          data: dataChunk
+        });
+      }
+    }, 250);
+  }
+}
+
+/**
+ * Namespace that provides the ability to spawn a process of a external
+ * command with the ability to communicate via STDIN / STDOUT / STDERR with
+ * said process. Also provides the ability to kill operating system running
+ * processes not kicked off by this namespace.
+ * @private
+ * @namespace process
+ */
+const process = Object.freeze({
+  /**
+   * Will attempt to kill a running computer operating system process. This
+   * could be an application kicked off by your application or a general
+   * running service.
+   * @memberof process
+   * @param {object} params
+   * @param {number} [params.pid] The process id of a computer running
+   * process to terminate.
+   * @param {Deno.Signal} [params.signo] The type of signal to terminate with
+   * @returns {boolean} if process was found to kill. false otherwise.
+   */
+  kill: function({pid, signo = "SIGTERM"} = {}) {
+    ModuleDataDefinition.handleError();
+    try {
+      const deno = runtime.tryDeno();
+      json.tryType({type: "number", data: pid});
+      json.tryType({type: "string", data: signo});
+      // @ts-ignore tryType validates the type.
+      if (pid < 0) {
+        throw new SyntaxError("pid must be greater than 0");
+      }
+      // @ts-ignore tryType validates the type.
+      const p = ModuleDataDefinition.deallocateTrackingId(pid);
+      if (json.checkType({type: Deno.ChildProcess, data: p})) {
+        p.kill(signo);
+      } else {
+          // @ts-ignore tryType validates the type.
+        deno.kill(pid, signo);
+      }
+      return true;
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        throw err;
+      }
+      ModuleDataDefinition.handleError(err);
+      return false;
+    }
+  },
+
+  /**
+   * Sends a message to an attached process via stdin
+   * @memberof process
+   * @param {object} params
+   * @param {number} [params.pid] The pid to send a message.
+   * @param {string} [params.data] The data to send.
+   * @param {boolean} [params.appendReturn = false] Whether to append a
+   * return keystroke.
+   * @returns {boolean} if process was found and message was sent. False
+   * otherwise.
+   */
+  postMessage: function({pid, data, appendReturn = false} = {}) {
+    try {
+      runtime.tryDeno();
+      json.tryType({type: "number", data: pid});
+      json.tryType({type: "string", data: data});
+      json.tryType({type: "boolean", data: appendReturn});
+
+      // @ts-ignore tryType checks the type.
+      const p = ModuleDataDefinition.objectTracker[pid];
+      json.tryType({type: CDenoProcessHandler, data: p});
+      p.postMessage(data);
+      return true;
+
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        throw err;
+      }
+      ModuleDataDefinition.handleError(err);
+      return false;
+    }
+  },
+
+  /**
+   * Spawns an external command as an attached process allowing for
+   * bi-directional communication via stdin, stdout, and stderr.
+   * @memberof process
+   * @param {object} params
+   * @param {string} [params.command] The command to run as an attached
+   * process.
+   * @param {string[]} [params.args] Optional arguments to kickoff with the
+   * command.
+   * @param {CModuleEventListener_t} [params.listener] The module event
+   * listener for stdout / stderr output from the spawned process.
+   * @returns {number} The pid that was created via the module or -1 if an
+   * error occurred.
+   */
+  spawn: function({command, args, listener} = {}) {
+    try {
+      const deno = runtime.tryDeno();
+      json.tryType({type: "string", data: command});
+      json.tryType({type: Array, data: args});
+      json.tryType({type: "function", data: listener, count: 1})
+      // @ts-ignore typeCheck validates this.
+      const cmd = new deno.Command(command, {
+        args: args ?? [],
+        stdin: "piped",
+        stdout: "piped",
+      });
+      const p = cmd.spawn();
+      // @ts-ignore tryType validates the type.
+      const obj = new CDenoProcessHandler(p, listener);
+      return ModuleDataDefinition.allocateTrackingId(obj);
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        throw err;
+      }
+      ModuleDataDefinition.handleError(err);
+      return -1;
+    }
+  }
 });
 
 // ----------------------------------------------------------------------------
@@ -909,6 +1158,128 @@ const runtime = Object.freeze({
 });
 
 // ----------------------------------------------------------------------------
+// [Task Use Case] ------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/**
+ * The task to run as part of the different module async functions.
+ * @callback CTask_t
+ * @param {any} [data] The data to process on the backend.
+ * @returns {any} The calculated answer to the task if any.
+ */
+
+/**
+ * Provides the ability to kick-off one off tasks on the main thread allowing
+ * for work to be broken apart on the event queue.
+ * @private
+ * @namespace task
+ */
+const task = Object.freeze({
+  /**
+   * Will process a one off asynchronous task on the main thread.
+   * @memberof task
+   * @param {object} params
+   * @param {CTask_t} [params.task] The task callback to schedule.
+   * @param {any} [params.data] The optional data to if the task requires it
+   * for processing.
+   * @param {number} [params.delay] An optional delay to schedule the task in
+   * the future.
+   */
+  run: function({task, data, delay = 0} = {}) {
+    return new Promise((resolve, reject) => {
+      try {
+        json.tryType({type: "function", data: task, count: 1});
+        json.tryType({type: "number", data: delay});
+        // @ts-ignore delay checked with tryType.
+        if (delay < 0) {
+          throw new SyntaxError("delay must be greater than 0");
+        }
+        setTimeout(() => {
+          // @ts-ignore task checked with tryType.
+          const answer = task(data);
+          resolve(answer);
+        }, delay);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  },
+
+  /**
+   * Kicks off a timer to schedule tasks on the thread for which it is
+   * created calling the task on the interval specified in milliseconds.
+   * @memberof task
+   * @param {object} params
+   * @param {CTask_t} [params.task] The task to repeat on a timer.
+   * @param {number} [params.interval] How often in milliseconds to schedule
+   * the task.
+   * @returns {number} timerId of the scheduled timer.
+   */
+  startTimer: function({task, interval} = {}) {
+    json.tryType({type: "function", data: task, count: 1});
+    json.tryType({type: "number", data: interval});
+    // @ts-ignore Checked with tryType
+    if (interval < 0) {
+      throw new SyntaxError("interval must be greater than 0");
+    }
+    // @ts-ignore Checked with the tryType
+    const id = setInterval(() => task(), interval);
+    return ModuleDataDefinition.allocateTrackingId(id);
+  },
+
+  /**
+   * Stops a scheduled timer.
+   * @memberof task
+   * @param {object} params
+   * @param {number} [params.timerId] The id of the scheduled timer.
+   * @returns {void}
+   */
+  stopTimer: function({timerId} = {}) {
+    json.tryType({type: "number", data: timerId});
+    // @ts-ignore tryType validates the timerId.
+    const id = ModuleDataDefinition.deallocateTrackingId(timerId);
+    if (id) {
+      clearInterval(id);
+    }
+  },
+
+  /**
+   * Will sleep an asynchronous task for the specified delay in
+   * milliseconds.
+   * @memberof codemelted.codemelted_async
+   * @param {object} params The named parameters.
+   * @param {number} [params.delay] The specified delay in milliseconds.
+   * @returns {Promise<void>}
+   */
+  sleep: function({delay = 0} = {}) {
+    return new Promise((resolve, reject) => {
+      try {
+        json.tryType({type: "number", data: delay});
+        if (delay < 0) {
+          throw new SyntaxError("delay must be greater than 0");
+        }
+        setTimeout(() => resolve(), delay);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  },
+});
+
+// ----------------------------------------------------------------------------
+// [Worker Use Case] ----------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/**
+ * TBD
+ * @private
+ * @namespace worker
+ */
+const worker = Object.freeze({
+
+});
+
+// ----------------------------------------------------------------------------
 // [Public API] ---------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
@@ -929,21 +1300,35 @@ export default Object.freeze({
    * SyntaxError meaning they will not be reported via this mechanism.
    * @type {string}
    */
-  strerror: _strerror,
+  error: ModuleDataDefinition.error,
 
-  /**
-   * @type {console}
-   */
+  /** @type {console} */
   console: console,
 
-  /**
-   * @type {disk}
-   */
+  /** @type {disk} */
   disk: disk,
+
+  /**
+   * @private
+   * @type {file}
+   */
+  file: file,
 
   /** @type {json} */
   json: json,
 
+  /**
+   * @private
+   * @type {process}
+   */
+  process: process,
+
   // /** @type {runtime} */
   // runtime: runtime,
+
+  /** @type {task} */
+  task: task,
+
+  /** @type {worker} */
+  worker: worker,
 });

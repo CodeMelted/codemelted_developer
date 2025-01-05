@@ -145,7 +145,7 @@ void main() {
     });
 
     test("checkXXX() / tryXXX() Validation", () {
-      var obj = codemelted.json.createObject(initData: {
+      var obj = codemelted.json.createObject(data: {
         "one": 1,
         "two": "two",
         "three": null,

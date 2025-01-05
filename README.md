@@ -12,7 +12,16 @@ DESCRIPTION: Software engineers are now required to learn multiple languages, te
 
 Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify this by developing a set of modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. It gives the ability to achieve maximum application reach by supporting the development of Progressive Web Applications (PWAs). The modules are specifically designed to target each area of the technology stack to deliver PWAs.
 
-**LAST UPDATED:** 2024-12-28
+**LAST UPDATED:** 2025-01-05
+
+<center>
+  <br />
+  <a href="https://www.buymeacoffee.com/codemelted" target="_blank">
+    <img height="50px" src="https://codemelted.com/assets/images/icon-bmc-button.png" />
+  </a>
+  <br /><br />
+  <p>Hope you enjoy the content. Any support is greatly appreciated. Thank you! 🙇</p>
+</center>
 
 **Table of Contents**
 
@@ -28,14 +37,16 @@ Software engineers are now required to learn multiple languages, technologies, a
     - [JSON](#json)
     - [Storage](#storage)
   - [NPU Use Cases](#npu-use-cases)
-    - [Execute](#execute)
+    - [Compute](#compute)
     - [Math](#math)
     - [Memory](#memory)
   - [SDK Use Cases](#sdk-use-cases)
     - [Logger](#logger)
     - [Hardware](#hardware)
+    - [Monitor](#monitor)
     - [Network](#network)
     - [Runtime](#runtime)
+    - [Setup](#setup)
   - [User Interface Use Cases](#user-interface-use-cases)
     - [Audio](#audio)
     - [Console](#console)
@@ -54,16 +65,25 @@ Software engineers are now required to learn multiple languages, technologies, a
     - [GitHub](#github)
     - [Programming Languages](#programming-languages)
     - [VS Code](#vs-code)
-  - [Module Versioning](#module-versioning)
   - [Build Script](#build-script)
-- [codemelted.dart Change Log](#codemelteddart-change-log)
-- [LICENSE](#license)
+- [MODULE INFORMATION](#module-information)
+  - [License](#license)
+  - [Versioning](#versioning)
+  - [codemelted.dart Change Log](#codemelteddart-change-log)
+  - [codemelted.js Test Results](#codemeltedjs-test-results)
+    - [Deno Runtime Coverage](#deno-runtime-coverage)
+    - [Browser Mocha Test Runner](#browser-mocha-test-runner)
+- [SDK REFERENCES](#sdk-references)
+  - [codemelted.dart](#codemelteddart)
+  - [codemelted.js](#codemeltedjs)
+  - [codemelted.ps1](#codemeltedps1)
+  - [codemelted.cpp](#codemeltedcpp)
 
 # FEATURES
 
 <center><img style="width: 100%; max-width: 560px;" src="./design-notes/use-case-model.drawio.png" /></center>
 
-The use case model featured above identifies 21 developer use cases divided into five major areas of how to architect a PWA. Each of these use cases will be implemented with a similar API across the different across module technology stacks. This will allow developers to easily create solutions to support their PWA.
+The use case model featured above identifies common developer use cases divided into five major areas of how to architect a PWA. Each of these use cases will be implemented with a similar API across the different across module technology stacks. This will allow developers to easily create solutions to support their PWA.
 
 ## Async I/O Use Cases
 
@@ -73,15 +93,30 @@ The developer will be able to schedule one off tasks awaiting the result via a p
 
 ### Process
 
-<mark>TBD</mark>
+**Description:** A process is another running program or operating system service that your application can attach to or kick-off. Once running, your application can communicate with it via STDIN to send commands, or STDOUT / STDERR to process output. This is not the most efficient way to chunk up work but allows different applications to communicate. The process namespace will facilitate kicking off, communicating, and killing of suck processes.
+
+**Acceptance Criteria:**
+
+1. The process namespace will provide the ability to spawn a process and communicate with the process via STDIN, STDOUT, and STDERROR.
+2. The process namespace will provide the ability to kill any running process specifying a signo for the reason of the termination. *NOTE: While you can specify any running PID, your process may not have appropriate rights to terminate another running process. Only processes kicked off via the namespace.*
 
 ### Task
 
-<mark>TBD</mark>
+**Description:** Computer code executes synchronously requiring one instruction to complete before another can begin. However you may need a task to run or repeat interrupting this synchronous flow of execution. The task namespace will provide an ability to schedule tasks within the event loop of an application thereby breaking up work asynchronously allowing for other processing to occur.
+
+*NOTE: Depending on SDK, asynchronous tasks will be run in the main, background, or both event loop threads of the runtime.*
+
+**Acceptance Criteria:**
+
+1. The task namespace will provide the ability to run an asynchronous task and return an answer sometime in the future.
+2. The task namespace will provide the ability to start and stop a repeating interval task on a given millisecond boundary.
+3. The task namespace will provide the ability to sleep an asynchronous task in milliseconds.
 
 ### Worker
 
-<mark>TBD</mark>
+**Description:**
+
+**Acceptance Criteria:**
 
 ## Data Use Cases
 
@@ -108,7 +143,6 @@ Given the dynamic nature of data, a series of type checks will be provided to th
 7. The disk namespace will determine the path separator character for the given operating system. Backslash for windows, forward slash for all unix variants.
 8. The disk namespace will provide the ability to remove a filename / directory from disk.
 9. The disk namespace will provide the ability to determine the temporary directory path on disk.
-10. The disk namespace will provide the ability to read / write an entire file (text or blob) to / from disk.
 
 ### File
 
@@ -133,7 +167,7 @@ Given the dynamic nature of data, a series of type checks will be provided to th
 
 This is a specialized set of use cases representing a software Numerical Processing Unit (NPU). These will be designed in accordance with the [WASM Use Cases](https://webassembly.org/docs/use-cases/) in terms of interface definition and memory management.
 
-### Execute
+### Compute
 
 <mark>TBD</mark>
 
@@ -157,11 +191,19 @@ A chosen SDK technology provides access to items specific to the runtime. This u
 
 <mark>TBD</mark>
 
+### Monitor
+
+<mark>TBD</mark>
+
 ### Network
 
 <mark>TBD</mark>
 
 ### Runtime
+
+<mark>TBD</mark>
+
+### Setup
 
 <mark>TBD</mark>
 
@@ -288,23 +330,15 @@ The following are the items recommended for installation to properly make use of
 - [ ] [PowerShell](https://marketplace.visualstudio.com/items?itemName=ms-vscode.PowerShell)
 - [ ] [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
 
-## Module Versioning
-
-The versioning of the module will be captured via GitHub or the modules documentation method. It will utilize semantic versioning `X.Y.Z` with the following rules for the numbering scheme this project.
-
-- **X:** Completion of a given set of use case (i.e. Async IO, Data, NPU, SDK, or User Interface).
-- **Y:** Use case implemented, documented, tested, and ready for usage by a developer.
-- **Z:** Bug fix or expansion of a use case.
-
 ## Build Script
 
 The `build.ps1 --build` script provides the ability to build, test, and document the `codemelted_developer` repo modules. The `build.ps1 --deploy` deploys the [CodeMelted DEV](https://developer.codemelted.com) website.
 
-# codemelted.dart Change Log
+# MODULE INFORMATION
 
-<iframe style="background-color: white" src="CHANGELOG.md" width="100%" height="350px"></iframe>
+The following sub-sections cover various aspects of information for each of the module files. They are single file implementations of identified use cases. The module files are `codemelted.dart`, `codemelted.js`, `codemelted.ps1`, and `codemelted.cpp`
 
-# LICENSE
+## License
 
 MIT License
 
@@ -316,11 +350,44 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-<center>
-  <br />
-  <a href="https://www.buymeacoffee.com/codemelted" target="_blank">
-    <img height="50px" src="https://codemelted.com/assets/images/icon-bmc-button.png" />
-  </a>
-  <br /><br />
-  <p>Hope you enjoyed the content. Any support is greatly appreciated. Thank you! 🙇</p>
-</center>
+## Versioning
+
+The versioning of the module will be captured via GitHub or the modules documentation method. It will utilize semantic versioning `X.Y.Z` with the following rules for the numbering scheme this project.
+
+- **X:** Completion of a given set of use case (i.e. Async IO, Data, NPU, SDK, or User Interface).
+- **Y:** Use case implemented, documented, tested, and ready for usage by a developer.
+- **Z:** Bug fix or expansion of a use case.
+
+## codemelted.dart Change Log
+
+<iframe style="background-color: white" src="CHANGELOG.md" width="100%" height="350px"></iframe>
+
+## codemelted.js Test Results
+
+### Deno Runtime Coverage
+
+<iframe src="pwa/coverage/index.html" width="100%" height="350px"></iframe>
+
+### Browser Mocha Test Runner
+
+<mark>TBD</mark>
+
+# SDK REFERENCES
+
+The following sub-sections provide the links utilized to flesh out the code implementation of each of the modules.
+
+## codemelted.dart
+
+<mark>TBD</mark>
+
+## codemelted.js
+
+<mark>TBD</mark>
+
+## codemelted.ps1
+
+<mark>TBD</mark>
+
+## codemelted.cpp
+
+<mark>TBD</mark>

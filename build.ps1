@@ -252,7 +252,7 @@ function build([string[]]$params) {
     $htmlData | Out-File docs/navtree.css -Force
 
     message "Compiling WASM Module"
-    emcc codemelted.cpp -o codemelted.wasm --no-entry
+    emcc --std=c++20 codemelted.cpp -o codemelted.wasm --no-entry
     Copy-Item -Path codemelted.wasm -Destination docs/codemelted.wasm -Force
     Copy-Item -Path codemelted.wasm -Destination ../test/codemelted.wasm -Force
 

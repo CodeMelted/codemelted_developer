@@ -51,42 +51,6 @@ Deno.test("codemelted.disk Error Check Tests", async () => {
   assertThrows(() => codemelted.disk.mkdir(), SyntaxError);
   assertThrows(() => codemelted.disk.mv(), SyntaxError);
   assertThrows(() => codemelted.disk.mv("test.txt"), SyntaxError);
-
-  try {
-    await codemelted.disk.readEntireFile();
-    fail("Should throw");
-  } catch (err) {
-    assert(err instanceof SyntaxError);
-  }
-
-  try {
-    await codemelted.disk.readEntireFile({filename: "test", isTextFile: 42});
-    fail("Should throw");
-  } catch (err) {
-    assert(err instanceof SyntaxError);
-  }
-
-  try {
-    await codemelted.disk.writeEntireFile();
-    fail("Should throw");
-  } catch (err) {
-    assert(err instanceof SyntaxError);
-  }
-
-  try {
-    await codemelted.disk.writeEntireFile({filename: "temp.txt"});
-    fail("Should throw");
-  } catch (err) {
-    assert(err instanceof SyntaxError);
-  }
-
-  try {
-    await codemelted.disk.writeEntireFile({filename: "temp.txt", data: "data", append: 42});
-    fail("Should throw");
-  } catch (err) {
-    assert(err instanceof SyntaxError);
-  }
-
   assertThrows(() => codemelted.disk.rm(), SyntaxError);
 });
 
@@ -117,14 +81,14 @@ Deno.test("codemelted.disk Manipulation Tests", async () => {
   assert(success);
 
   // Go write some files
-  await codemelted.disk.writeEntireFile({
+  await codemelted.file.writeEntireFile({
     filename: `${tempPath}/results/writeTextFile.txt`,
     data: "Hello There",
     append: true,
   });
   assert(codemelted.disk.exists({filename: `${tempPath}/results/writeTextFile.txt`}));
 
-  await codemelted.disk.writeEntireFile({
+  await codemelted.file.writeEntireFile({
     filename: `${tempPath}/results/writeFile.txt`,
     data: new Uint8Array([42]),
   });
@@ -135,11 +99,11 @@ Deno.test("codemelted.disk Manipulation Tests", async () => {
   assert(result.length === 2);
 
   // Prove we can read the files
-  result = await codemelted.disk.readEntireFile({
+  result = await codemelted.file.readEntireFile({
     filename: `${tempPath}/results/writeTextFile.txt`
   });
   assert(result.includes("Hello There"));
-  result = await codemelted.disk.readEntireFile({
+  result = await codemelted.file.readEntireFile({
     filename: `${tempPath}/results/writeFile.txt`,
     isTextFile: false,
   });
@@ -148,6 +112,47 @@ Deno.test("codemelted.disk Manipulation Tests", async () => {
   // Now some cleanup to remove items.
   success = codemelted.disk.rm({filename: `${tempPath}/results`});
   assert(success);
+});
+
+// ----------------------------------------------------------------------------
+// [file use case] ------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+Deno.test("codemelted.file API Violations", async () => {
+  try {
+    await codemelted.file.readEntireFile();
+    fail("Should throw");
+  } catch (err) {
+    assert(err instanceof SyntaxError);
+  }
+
+  try {
+    await codemelted.file.readEntireFile({filename: "test", isTextFile: 42});
+    fail("Should throw");
+  } catch (err) {
+    assert(err instanceof SyntaxError);
+  }
+
+  try {
+    await codemelted.file.writeEntireFile();
+    fail("Should throw");
+  } catch (err) {
+    assert(err instanceof SyntaxError);
+  }
+
+  try {
+    await codemelted.file.writeEntireFile({filename: "temp.txt"});
+    fail("Should throw");
+  } catch (err) {
+    assert(err instanceof SyntaxError);
+  }
+
+  try {
+    await codemelted.file.writeEntireFile({filename: "temp.txt", data: "data", append: 42});
+    fail("Should throw");
+  } catch (err) {
+    assert(err instanceof SyntaxError);
+  }
 });
 
 // ----------------------------------------------------------------------------

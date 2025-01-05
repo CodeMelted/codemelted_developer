@@ -1,3 +1,8 @@
+## 0.2.1 (Last Modified 2025-01-05)
+
+* Fleshing out use case descriptions and acceptance criteria.
+* Updated design models as research into those items continues.
+
 ## 0.2.0 (Last Modified 2024-12-28)
 
 * Evaluated the console use case. Not applicable so bumping the version number.
