@@ -333,6 +333,12 @@ function build([string[]]$params) {
     Write-Host "MESSAGE: Publishing completed."
   }
 
+  # Quick access to testing the codemelted.dart module
+  function test_codemelted_dart {
+    flutter test --platform chrome
+  }
+
+  # Quick access to testing the codemelted.js module
   function test_codemelted_js {
     Set-Location $PSScriptRoot/pwa
     deno test --allow-env --allow-net --allow-read --allow-sys --allow-write `
@@ -345,6 +351,7 @@ function build([string[]]$params) {
     "--build" { build_all }
     "--deploy" { deploy }
     "--publish-script" { publish_script }
+    "--test-codemelted-dart" { test_codemelted_dart }
     "--test-codemelted-js" { test_codemelted_js }
     default { Write-Host "ERROR: Invalid parameter specified." }
   }
