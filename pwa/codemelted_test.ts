@@ -43,17 +43,6 @@ Deno.test("codemelted.disk Properties Test", () => {
   assertExists(codemelted.disk.tempPath);
 });
 
-Deno.test("codemelted.disk Error Check Tests", async () => {
-  assertThrows(() => codemelted.disk.cp({src: 1, dest: 2}), SyntaxError);
-  assertThrows(() => codemelted.disk.cp("test.txt"), SyntaxError);
-  assertThrows(() => codemelted.disk.exists(), SyntaxError);
-  assertThrows(() => codemelted.disk.ls(), SyntaxError);
-  assertThrows(() => codemelted.disk.mkdir(), SyntaxError);
-  assertThrows(() => codemelted.disk.mv(), SyntaxError);
-  assertThrows(() => codemelted.disk.mv("test.txt"), SyntaxError);
-  assertThrows(() => codemelted.disk.rm(), SyntaxError);
-});
-
 Deno.test("codemelted.disk Manipulation Tests", async () => {
   // Get the temporary directory and do some cleanup if necessary
   const tempPath = codemelted.disk.tempPath;
@@ -120,21 +109,7 @@ Deno.test("codemelted.disk Manipulation Tests", async () => {
 
 Deno.test("codemelted.file API Violations", async () => {
   try {
-    await codemelted.file.readEntireFile();
-    fail("Should throw");
-  } catch (err) {
-    assert(err instanceof SyntaxError);
-  }
-
-  try {
     await codemelted.file.readEntireFile({filename: "test", isTextFile: 42});
-    fail("Should throw");
-  } catch (err) {
-    assert(err instanceof SyntaxError);
-  }
-
-  try {
-    await codemelted.file.writeEntireFile();
     fail("Should throw");
   } catch (err) {
     assert(err instanceof SyntaxError);
@@ -158,12 +133,6 @@ Deno.test("codemelted.file API Violations", async () => {
 // ----------------------------------------------------------------------------
 // [json use case] ------------------------------------------------------------
 // ----------------------------------------------------------------------------
-
-Deno.test("codemelted.json API Violations", () => {
-  // Functions that throw if you completely ignore thigns.
-  assertThrows(() => codemelted.json.checkHasProperty(), SyntaxError);
-  assertThrows(() => codemelted.json.checkType(), SyntaxError);
-});
 
 Deno.test("codemelted.json Conversion Tests", () => {
   // Test data

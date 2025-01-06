@@ -114,9 +114,14 @@ The developer will be able to schedule one off tasks awaiting the result via a p
 
 ### Worker
 
-**Description:**
+**Description:** The worker namespace will be a dedicated set of background threaded First In First Out (FIFO) event looped threads executing the same processing logic. The processing logic will be a dedicated worker JavaScript module that will receive the task, run the logic for it, and return an answer. The number of workers is dependent on the number of processors available to the given computer platform.
 
 **Acceptance Criteria:**
+
+1. The worker namespace will provide for the ability to start a pool of workers based on a dedicated JavaScript worker module. The pool will be equal to the available processors to the module.
+2. The worker namespace will provide the ability to post tasks for work and receive the results of that processed work via a FIFO queuing mechanism. *NOTE: The developer will have the power to identify what that work is as the task queuing is an JSON object.*
+3. The worker namespace will provide the ability to terminate the pool of workers.
+4. The worker namespace will provide the ability to intercept any errors that occur with a started worker pool.
 
 ## Data Use Cases
 

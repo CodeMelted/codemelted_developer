@@ -180,18 +180,4 @@ void main() {
       }
     });
   });
-
-  // --------------------------------------------------------------------------
-  // [NPU Use Cases] ----------------------------------------------------------
-  // --------------------------------------------------------------------------
-
-  group("codemelted.npu Tests", () {
-    test("math - Temperature Conversion Validation", () {
-      var answer = codemelted.npu.math(
-        formula: CFormula_t.temperature_celsius_to_fahrenheit,
-        arg1: 0.0,
-      );
-      expect(answer, moreOrLessEquals(32.0));
-    });
-  });
 }

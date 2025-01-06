@@ -35,7 +35,6 @@ library;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
-import 'dart:js_interop_unsafe';
 import 'dart:ui_web';
 
 import 'package:flutter/foundation.dart';
@@ -724,6 +723,12 @@ class CJsonAPI {
 // TODO: To be developed.
 
 // ----------------------------------------------------------------------------
+// [Monitor Use Case] ---------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+// TODO: To be developed.
+
+// ----------------------------------------------------------------------------
 // [Network Use Case] ---------------------------------------------------------
 // ----------------------------------------------------------------------------
 
@@ -733,48 +738,63 @@ class CJsonAPI {
 // [NPU Use Cases] ------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-/// The mathematical formulas held by the [CNpuAPI] within this module.
-/// @nodoc
-enum CFormula_t {
-  /// Celsius to fahrenheit.
-  temperature_celsius_to_fahrenheit;
-}
+// TODO: Busted when calling with more than 4 arguments.
 
-/// API binding to the codemelted.wasm NPU module to provide access to
-/// executing mathematical formulas.
-/// @nodoc
-class CNpuAPI {
-  /// Handles executing the [CFormula_t] enumeration and passing the necessary
-  /// parameters.
-  double math({required CFormula_t formula, required double arg1}) {
-    assert(
-      _ModuleDataDefinition.npu != null,
-      "codemelted.wasm NPU module not loaded",
-    );
-    try {
-      var answer = _ModuleDataDefinition.npu!.instance.exports.callMethod(
-        "math".toJS,
-        formula.index.toJS,
-        arg1.toJS,
-      );
-      return answer?.toString().asDouble() ?? double.nan;
-    } catch (err, st) {
-      _ModuleDataDefinition.handleError(err, st);
-      return double.nan;
-    }
-  }
+// /// The mathematical formulas held by the [CNpuAPI] within this module.
+// /// @nodoc
+// enum CFormula_t {
+//   /// Celsius to fahrenheit.
+//   temperature_celsius_to_fahrenheit;
+// }
 
-  /// Gets the single instance of the API.
-  static CNpuAPI? _instance;
+// /// API binding to the codemelted.wasm NPU module to provide access to
+// /// executing mathematical formulas.
+// /// @nodoc
+// class CNpuAPI {
+//   /// Handles executing the [CFormula_t] enumeration and passing the necessary
+//   /// parameters.
+//   double math({
+//     required CFormula_t formula,
+//     required double arg1,
+//     double arg2 = double.nan,
+//     double arg3 = double.nan,
+//     double arg4 = double.nan,
+//     double arg5 = double.nan,
+//     double arg6 = double.nan,
+//   }) {
+//     assert(
+//       _ModuleDataDefinition.npu != null,
+//       "codemelted.wasm NPU module not loaded",
+//     );
+//     try {
+//       var answer = _ModuleDataDefinition.npu!.instance.exports
+//           .callMethodVarArgs("math".toJS, [
+//         formula.index.toJS,
+//         arg1.toJS,
+//         arg2.toJS,
+//         arg3.toJS,
+//         arg4.toJS,
+//         arg5.toJS,
+//         arg6.toJS
+//       ]);
+//       return answer?.toString().asDouble() ?? double.nan;
+//     } catch (err, st) {
+//       _ModuleDataDefinition.handleError(err, st);
+//       return double.nan;
+//     }
+//   }
 
-  /// Sets up the internal instance for this object.
-  factory CNpuAPI() => _instance ?? CNpuAPI._();
+//   /// Gets the single instance of the API.
+//   static CNpuAPI? _instance;
 
-  /// Sets up the namespace for the [CNpuAPI] object.
-  CNpuAPI._() {
-    _instance = this;
-  }
-}
+//   /// Sets up the internal instance for this object.
+//   factory CNpuAPI() => _instance ?? CNpuAPI._();
+
+//   /// Sets up the namespace for the [CNpuAPI] object.
+//   CNpuAPI._() {
+//     _instance = this;
+//   }
+// }
 
 // ----------------------------------------------------------------------------
 // [Process Use Case] ---------------------------------------------------------
@@ -814,10 +834,10 @@ class CRuntimeAPI {
 }
 
 // ----------------------------------------------------------------------------
-// [Storage Use Case] ---------------------------------------------------------
+// [Setup Use Case] -----------------------------------------------------------
 // ----------------------------------------------------------------------------
 
-// TODO: To be developed.
+// TODO: To Be Developed.
 
 // ----------------------------------------------------------------------------
 // [SPA Use Case] -------------------------------------------------------------
@@ -1448,7 +1468,13 @@ class CSpaAPI {
 }
 
 // ----------------------------------------------------------------------------
-// [Tasks Use Case] -----------------------------------------------------------
+// [Storage Use Case] ---------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+// TODO: To be developed.
+
+// ----------------------------------------------------------------------------
+// [Task Use Case] ------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
 /// The task to run as part of the different module async functions.
@@ -2877,9 +2903,9 @@ class CodeMeltedAPI {
   /// Accesses the [CJsonAPI] defined namespace.
   CJsonAPI get json => CJsonAPI();
 
-  /// Accesses the different [CNpuAPI] to access the numerical processing unit.
-  /// @nodoc
-  CNpuAPI get npu => CNpuAPI();
+  // /// Accesses the different [CNpuAPI] to access the numerical processing unit.
+  // /// @nodoc
+  // CNpuAPI get npu => CNpuAPI();
 
   /// Accesses the [CSpaAPI] defined namespace.
   /// @nodoc
