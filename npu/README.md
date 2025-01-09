@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted DEV | NPU Module
-PUBLISH_DATE: 2024-12-14
+PUBLISH_DATE: 2025-01-08
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: TBD
@@ -12,7 +12,7 @@ DESCRIPTION: TBD
 
 TBD
 
-**LAST UPDATED:** 2025-01-05
+**LAST UPDATED:** 2025-01-08
 
 <center>
   <br />

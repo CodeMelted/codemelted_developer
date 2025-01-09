@@ -1,7 +1,8 @@
-## 0.2.1 (Last Modified 2025-01-05)
+## 0.2.1 (Last Modified 2025-01-08)
 
 * Fleshing out use case descriptions and acceptance criteria.
 * Updated design models as research into those items continues.
+* Removed namespace annotation and collapsed to just the codemelted object.
 
 ## 0.2.0 (Last Modified 2024-12-28)
 

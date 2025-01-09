@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted DEV | Modules
-PUBLISH_DATE: 2024-11-28
+PUBLISH_DATE: 2025-01-08
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, wasm
 DESCRIPTION: Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify this by developing a set of modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. It gives the ability to achieve maximum application reach by supporting the development of Progressive Web Applications (PWAs). The modules are specifically designed to target each area of the technology stack to deliver PWAs.
@@ -12,7 +12,7 @@ DESCRIPTION: Software engineers are now required to learn multiple languages, te
 
 Software engineers are now required to learn multiple languages, technologies, and frameworks in order to fully support full stack engineering. This project aims to simplify this by developing a set of modules implementing a similar / identical Application Program Interface (API) regardless of the chosen technology covered by this project. It gives the ability to achieve maximum application reach by supporting the development of Progressive Web Applications (PWAs). The modules are specifically designed to target each area of the technology stack to deliver PWAs.
 
-**LAST UPDATED:** 2025-01-05
+**LAST UPDATED:** 2025-01-08
 
 <center>
   <br />
@@ -278,13 +278,12 @@ The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facil
 The call signature for the CLI will be as follows
 
 ```
-codemelted [Action] [Command] [Params]
+codemelted [Action] [Params]
 ```
 
 *WHERE*
 
-- `[Action]`: A flag `--use-case` that corresponds to one of the identified use cases.
-- `[Command]`: A flag that corresponds to a given function of th identified use case.
+- `[Action]`: A flag `--function-name` function that corresponds to one of the identified use cases.
 - `[Params]`: A PowerShell hash table `@{}` that will setup named parameters and values associated with the selected `[Command]`.
 
 *NOTE: This module will also provide a CLI interface for Raspberry Pi built services. See the module SDK documentation for details.*

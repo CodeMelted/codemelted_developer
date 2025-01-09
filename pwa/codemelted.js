@@ -3,11 +3,12 @@
 /**
  * @file The JavaScript implementation of the CodeMelted DEV | PWA Modules.
  * @author Mark Shaffer
- * @version 0.3.1 (Last Modified 2025-01-05) <br />
- * 0.3.1 (2025-01-05): <br />
+ * @version 0.3.1 (Last Modified 2025-01-08) <br />
  * - Fleshed out the Async I/O use cases. Not tested. <br />
  * - Brought in all previous prototype work into the finalized module <br />
  *   design. <br />
+ * - Removed namespace paradigm to allow just a collection of functions <br />
+ *   on the codemelted module. <br />
  * 0.3.0 (2024-12-28): <br />
  * - Completed the testing / documenting of the console namespace. <br />
  * - Completed testing / documenting of the disk use case. <br />
@@ -39,6 +40,85 @@
 // ----------------------------------------------------------------------------
 
 /**
+ * Class wrapper for a created process via the Deno this.
+ * @private
+ */
+class CDenoProcessHandler {
+  /**
+   * Writes a message to the attached process.
+   * @param {string} data The data to send to the attached process.
+   */
+  postMessage(data) {
+    const buffer = this.encoder.encode(data);
+    this.process.stdin.getWriter().write(buffer);
+  }
+
+  /**
+   * Kills the held process with the specified signal.
+   * @param {Deno.Signal} signo The signal to terminate the process with.
+   * @returns {void}
+   */
+  kill(signo) {
+    clearInterval(this.timerId);
+    this.process.kill(signo);
+  }
+
+  /**
+   * Constructor for the handler.
+   * @param {Deno.ChildProcess} process The process that was created.
+   * @param {CModuleEventListener_t} listener The listener for the process
+   * data.
+   */
+  constructor(process, listener) {
+    this.process = process;
+    this.encoder = new TextEncoder();
+    this.decoder = new TextDecoder();
+    this.timerId = setInterval(async () => {
+      const outDataChunk = await this.process.stdout.getReader().read();
+      const errDataChunk = await this.process.stderr.getReader().read();
+      let dataChunk = "";
+      if (outDataChunk.value) {
+        dataChunk += this.decoder.decode(outDataChunk.value);
+      }
+      if (errDataChunk) {
+        dataChunk += this.decoder.decode(errDataChunk.value);
+      }
+      if (dataChunk) {
+        listener({
+          type: "data",
+          data: dataChunk
+        });
+      }
+    }, 250);
+  }
+}
+
+/**
+ * The result of a network.fetch() call
+ * @typedef {object} CFetchResponse_t
+ * @property {any} data The data if any that is attached with the response
+ * @property {number} status The HTTP response code.
+ * @property {string} statusText A string associated with the response code.
+ * @property {Blob?} asBlob Treats the data as a Blob or null if it is not
+ * a blob.
+ * @property {FormData?} asFormData Treats the data as a FormData object or
+ * null if it is not a FormData object.
+ * @property {object?} asObject Treats the data as a parsed JSON object or
+ * null if it is not a JSON object type.
+ */
+
+/**
+ * The formatted log record when an item is logged.
+ * @typedef {object} CLogRecord_t
+ * @property {Date} time The time the event was encountered.
+ * @property {number} level The level of the event.
+ * @property {any} data The data associated with the event.
+ * @property {string?} stack Stack trace of where the error occurred.
+ * @property {function} toString Translates a string representation of the
+ * event.
+ */
+
+/**
  * @typedef {object} CModuleEvent_t
  * @property {"data" | "error" | "status"} type Identifies the type of event
  * handled by the module.
@@ -54,10 +134,31 @@
  */
 
 /**
+ * Handler to support post processing of a logged event.
+ * @callback COnLogEventListener_t
+ * @param {CLogRecord_t} record The recorded log event for post processing.
+ * @returns {void}
+ */
+
+/**
+ * The task to run as part of the different module async functions.
+ * @callback CTask_t
+ * @param {any} [data] The data to process on the backend.
+ * @returns {any} The calculated answer to the task if any.
+ */
+
+/**
  * Implements the Worker Pool of background processing worker objects.
  * @private
  */
 class CWorkerPool {
+  /**
+   * Identifies the available processors on the given platform.
+   */
+  static get hardwareConcurrency() {
+    return globalThis.navigator.hardwareConcurrency;
+  }
+
   /**
    * Posts dynamic data to the background worker.
    * @param {any} data The data to transmit.
@@ -76,7 +177,9 @@ class CWorkerPool {
    * @returns {void}
    */
   terminate() {
-    // this.#worker?.terminate();
+    for (let x = 0; x < this.workerPool.length; x++) {
+      this.workerPool[x].terminate();
+    }
   }
 
   /**
@@ -87,7 +190,7 @@ class CWorkerPool {
   constructor(onDataReceived, url) {
     this.currentIndex = 0;
     this.workerPool = [];
-    for (let x = 0; x < worker.hardwareConcurrency; x++) {
+    for (let x = 0; x < CWorkerPool.hardwareConcurrency; x++) {
       const worker = new Worker(url, {type: "module"});
       worker.onerror = (e) => {
         onDataReceived({type: "error", data: e.error});
@@ -129,8 +232,8 @@ class ModuleDataDefinition {
       time: new Date(),
       level: level,
       data: data,
-      stack: json.checkType({type: Error, data: data})
-        ? data.stack
+      stack: data instanceof Error
+        ? data.stack ?? null
         : null,
       toString: function() {
         const levelStr = this.level === 0
@@ -192,81 +295,84 @@ class ModuleDataDefinition {
    * @returns {void}
    */
   static handleError(err = undefined) {
-    if (err) {
-      if (err instanceof Error) {
-        ModuleDataDefinition.error = err.message;
-      } else if ("toString" in err) {
-        ModuleDataDefinition.error = err.toString();
-      } else if (json.checkType({type: "string", data: err})) {
-        ModuleDataDefinition.error = err;
-      } else {
-        ModuleDataDefinition.error = "unknown";
-      }
-    } else {
-      ModuleDataDefinition.error = "";
-    }
+    ModuleDataDefinition.error = err ? `${err}` : "";
   }
 
   /** @type {CWorkerPool | undefined} */
   static workerPool = undefined;
 }
 
-// ----------------------------------------------------------------------------
-// [Audio Use Case] -----------------------------------------------------------
-// ----------------------------------------------------------------------------
 
-// TODO: To Be Developed.
 
 // ----------------------------------------------------------------------------
-// [Console Use Case] ---------------------------------------------------------
+// [Public API] ---------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
 /**
- * Provides the console use case function to gather data via a
- * terminal. The actions correspond to the type of input / output
- * that will be interacted with via STDIN and STDOUT.
- * @namespace console
+ * This module is the implementation of the CodeMelted DEV module use cases.
+ * It will target the Deno and Web Browser runtimes with limited support for
+ * within a NodeJS environment. The use cases will be organized as exported
+ * default public functions. This will also serve as the backbone to
+ * codemelted.dart module where a direct the Flutter implementation for a
+ * use case does not make sense to duplicate compared to the codemelted.js
+ * module.
+ * @module codemelted
  */
-const console = Object.freeze({
+export default Object.freeze({
+  /**
+   * A reason for a failure of a transaction that has an indicator for
+   * either success / failure. NOTE: Module violations will result in
+   * SyntaxError meaning they will not be reported via this mechanism.
+   * @type {string}
+   */
+  error: ModuleDataDefinition.error,
+
+  // --------------------------------------------------------------------------
+  // [Audio Use Case] ---------------------------------------------------------
+  // --------------------------------------------------------------------------
+
+  // TODO: To Be Developed.
+
+  // --------------------------------------------------------------------------
+  // [Console Use Case] -------------------------------------------------------
+  // --------------------------------------------------------------------------
+
   /**
    * Alerts a message to STDOUT with a [Enter] to halt execution.
-   * @memberof console
    * @param {object} params
    * @param {string} [params.message = ""] The message to display to STDOUT.
    * Not specifying will simple pause until [ENTER] is pressed.
    * @returns {void}
    */
-  alert: function({message = ""} = {}) {
-    runtime.tryDeno();
-    json.tryType({type: "string", data: message});
+  alertConsole: function({message = ""} = {}) {
+    this.tryDeno();
+    this.tryType({type: "string", data: message});
     globalThis.alert(message);
   },
 
   /**
    * Prompts a [y/N] to STDOUT with the message as a question.
-   * @memberof console
    * @param {object} params
    * @param {string} [params.message = "CONFIRM"] The message to display to STDOUT.
    * @returns {boolean} true if y selected, false otherwise.
    */
-  confirm: function({message = "CONFIRM"} = {}) {
-    runtime.tryDeno();
-    json.tryType({type: "string", data: message});
+  confirmConsole: function({message = "CONFIRM"} = {}) {
+    this.tryDeno();
+    this.tryType({type: "string", data: message});
     return globalThis.confirm(message);
   },
 
   /**
    * Prompts a list of choices for the user to select from.
-   * @memberof console
    * @param {object} params
    * @param {string} [params.message = "CHOOSE"] The message to display to STDOUT.
    * @param {string[]} params.choices The choices to select from.
    * @returns {number} The index of the chosen item.
    */
-  choose: function({message = "CHOOSE", choices = []}) {
-    runtime.tryDeno();
-    json.tryType({type: "string", data: message});
-    json.tryType({type: Array, data: choices});
+  chooseConsole: function({message = "CHOOSE", choices = []}) {
+    this.tryDeno();
+    this.tryType({type: "string", data: message});
+    this.tryType({type: Array, data: choices});
     if (message === "" || choices.length === 0) {
       throw new SyntaxError("Parameters were not set!");
     }
@@ -298,16 +404,15 @@ const console = Object.freeze({
 
   /**
    * Prompts for a password not showing the text typed via STDIN.
-   * @memberof console
    * @param {object} params
    * @param {string} [params.message = "PASSWORD"] The message to display
    * to STDOUT.
    * @returns {string} The typed password.
    */
-  password: function({message = "PASSWORD"} = {}) {
+  passwordConsole: function({message = "PASSWORD"} = {}) {
     // Setup our variables
-    const deno = runtime.tryDeno();
-    json.tryType({type: "string", data: message});
+    const deno = this.tryDeno();
+    this.tryType({type: "string", data: message});
     const buf = new Uint8Array(1);
     const decoder = new TextDecoder();
     let answer = "";
@@ -336,60 +441,48 @@ const console = Object.freeze({
 
   /**
    * Prompts to STDOUT and returns the typed message via STDIN.
-   * @memberof console
    * @param {object} params
    * @param {string} [params.message = "PROMPT"] The message to display to
    * STDOUT.
    * @returns {string?} The result typed.
    */
-  prompt: function({message = "PROMPT:"} = {}) {
-    runtime.tryDeno();
-    json.tryType({type: "string", data: message});
+  promptConsole: function({message = "PROMPT:"} = {}) {
+    this.tryDeno();
+    this.tryType({type: "string", data: message});
     return globalThis.prompt(message);
   },
 
   /**
    * Write a message to STDOUT.
-   * @memberof console
    * @param {object} params
    * @param {string} [params.message = ""] The message to display to STDOUT.
    * @returns {void}
    */
-  writeln: function({message = ""} = {}) {
-    runtime.tryDeno();
-    json.tryType({type: "string", data: message});
+  writelnConsole: function({message = ""} = {}) {
+    this.tryDeno();
+    this.tryType({type: "string", data: message});
     globalThis.console.log(message);
   },
-});
 
-// ----------------------------------------------------------------------------
-// [Database Use Case] --------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // [Database Use Case] ------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-// TODO: To Be Developed.
+  // TODO: To Be Developed.
 
-// ----------------------------------------------------------------------------
-// [Dialog Use Case] ----------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // [Dialog Use Case] --------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-// TODO: To Be Developed.
+  // TODO: To Be Developed.
 
-// ----------------------------------------------------------------------------
-// [Disk Use Case] ------------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // [Disk Use Case] ----------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-/**
- * Provides the ability to manage items on disk. This includes file /
- * directory manipulation, queryable properties, and reading / writing entire
- * files.
- * @namespace disk
- * @see https://codemelted.com/developer/use_cases/disk.html
- */
-const disk = Object.freeze({
   /**
    * Copies a file / directory from its currently source location to the
    * specified destination.
-   * @memberof disk
    * @param {object} params
    * @param {string} params.src The source item to copy.
    * @param {string} params.dest The destination of where to copy the item.
@@ -399,9 +492,9 @@ const disk = Object.freeze({
   cp: function({src, dest}) {
     ModuleDataDefinition.handleError();
     try {
-      const deno = runtime.tryDeno();
-      json.tryType({type: "string", data: src});
-      json.tryType({type: "string", data: dest});
+      const deno = this.tryDeno();
+      this.tryType({type: "string", data: src});
+      this.tryType({type: "string", data: dest});
       deno.copyFileSync(src, dest);
       return true;
     } catch (err) {
@@ -415,7 +508,6 @@ const disk = Object.freeze({
 
   /**
    * Determines if the specified item exists.
-   * @memberof disk
    * @param {object} params
    * @param {string} params.filename The path to a directory or file.
    * @returns {Deno.FileInfo?} The file information or null if it does not
@@ -424,8 +516,8 @@ const disk = Object.freeze({
   exists: function({filename}) {
     ModuleDataDefinition.handleError();
     try {
-      const deno = runtime.tryDeno();
-      json.tryType({type: "string", data: filename});
+      const deno = this.tryDeno();
+      this.tryType({type: "string", data: filename});
       return deno.statSync(filename);
     } catch (err) {
       if (err instanceof SyntaxError) {
@@ -440,15 +532,14 @@ const disk = Object.freeze({
    * Identifies the user's home directory on disk. Null is returned if it
    * cannot be found or running on web environment. Check codemelted.strerror
    * if you did not expect null.
-   * @memberof disk
    * @readonly
    * @type {string?}
    */
   get homePath() {
     ModuleDataDefinition.handleError();
     try {
-      return runtime.tryDeno().env.get("HOME")
-        || runtime.tryDeno().env.get("USERPROFILE")
+      return this.tryDeno().env.get("HOME")
+        || this.tryDeno().env.get("USERPROFILE")
         || null;
     } catch (err) {
       ModuleDataDefinition.handleError(err);
@@ -458,15 +549,14 @@ const disk = Object.freeze({
 
   /**
    * List the files in the specified source location.
-   * @memberof disk
    * @param {object} params
    * @param {string} params.filename The directory to list.
    * @returns {Deno.FileInfo[]?} Array of files found.
    */
   ls: function({filename}) {
     try {
-      const deno = runtime.tryDeno();
-      json.tryType({type: "string", data: filename});
+      const deno = this.tryDeno();
+      this.tryType({type: "string", data: filename});
       const dirList = deno.readDirSync(filename);
       const fileInfoList = [];
       for (const dirEntry of dirList) {
@@ -486,7 +576,6 @@ const disk = Object.freeze({
 
   /**
    * Makes a directory at the specified location.
-   * @memberof disk
    * @param {object} params
    * @param {string} params.filename The source item to create.
    * @returns {boolean}
@@ -494,8 +583,8 @@ const disk = Object.freeze({
   mkdir: function({filename}) {
     ModuleDataDefinition.handleError();
     try {
-      const deno = runtime.tryDeno();
-      json.tryType({type: "string", data: filename});
+      const deno = this.tryDeno();
+      this.tryType({type: "string", data: filename});
       deno.mkdirSync(filename);
       return true;
     } catch (err) {
@@ -510,7 +599,6 @@ const disk = Object.freeze({
   /**
    * Moves a file / directory from its currently source location to the
    * specified destination.
-   * @memberof disk
    * @param {object} params
    * @param {string} params.src The source item to move.
    * @param {string} params.dest The destination of where to move the item.
@@ -520,9 +608,9 @@ const disk = Object.freeze({
   mv: function({src, dest}) {
     ModuleDataDefinition.handleError();
     try {
-      const deno = runtime.tryDeno();
-      json.tryType({type: "string", data: src});
-      json.tryType({type: "string", data: dest});
+      const deno = this.tryDeno();
+      this.tryType({type: "string", data: src});
+      this.tryType({type: "string", data: dest});
       deno.renameSync(src, dest);
       return true;
     } catch (err) {
@@ -536,19 +624,17 @@ const disk = Object.freeze({
 
   /**
    * Identifies the path separator for files on disk.
-   * @memberof disk
    * @readonly
    * @type {string}
    */
   get pathSeparator() {
-    return runtime.osName === "windows"
+    return this.osName === "windows"
       ? "\\"
       : "/"
   },
 
   /**
    * Removes a file or directory at the specified location.
-   * @memberof disk
    * @param {object} params
    * @param {string} params.filename The source item to remove.
    * @returns {boolean} true if carried out, false otherwise. Check strerror
@@ -557,8 +643,8 @@ const disk = Object.freeze({
   rm: function({filename}) {
     ModuleDataDefinition.handleError();
     try {
-      const deno = runtime.tryDeno();
-      json.tryType({type: "string", data: filename});
+      const deno = this.tryDeno();
+      this.tryType({type: "string", data: filename});
       deno.removeSync(filename, {recursive: true});
       return true;
     } catch (err) {
@@ -574,47 +660,39 @@ const disk = Object.freeze({
    * Identifies the temp directory on disk. Null is returned if it cannot be
    * found or running on web environment. Check codemelted.strerror if you
    * did not expect null.
-   * @memberof disk
    * @readonly
    * @type {string?}
    */
   get tempPath() {
     ModuleDataDefinition.handleError();
     try {
-      return runtime.tryDeno().env.get("TMPDIR")
-        || runtime.tryDeno().env.get("TMP")
-        || runtime.tryDeno().env.get("TEMP")
+      return this.tryDeno().env.get("TMPDIR")
+        || this.tryDeno().env.get("TMP")
+        || this.tryDeno().env.get("TEMP")
         || "/tmp";
     } catch (err) {
       ModuleDataDefinition.handleError(err);
       return null;
     }
   },
-});
 
-// ----------------------------------------------------------------------------
-// [File Use Case] ------------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // [File Use Case] ----------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-/**
- * TBD
- * @private
- * @namespace file
- */
-const file = Object.freeze({
   /**
    * Gets the newline character specific to the operating system.
-   * @memberof file
+   * @private
    * @readonly
    * @type {string}
    */
   get eol() {
-    return runtime.osName === "windows" ? "\r\n" : "\n";
+    return this.osName === "windows" ? "\r\n" : "\n";
   },
 
   /**
    * Reads an entire file from disk.
-   * @memberof file
+   * @private
    * @param {object} params
    * @param {string} params.filename The file to open
    * @param {boolean} [params.isTextFile = true] True if text file, false if
@@ -633,17 +711,17 @@ const file = Object.freeze({
     return new Promise((resolve, reject) => {
       ModuleDataDefinition.handleError();
       try {
-        if (runtime.isDeno) {
-          const deno = runtime.tryDeno();
-          json.tryType({type: "string", data: filename});
-          json.tryType({type: "boolean", data: isTextFile});
+        if (this.isDeno) {
+          const deno = this.tryDeno();
+          this.tryType({type: "string", data: filename});
+          this.tryType({type: "boolean", data: isTextFile});
           if (isTextFile) {
             resolve(deno.readTextFileSync(filename));
           } else {
             resolve(deno.readFileSync(filename));
           }
         } else {
-          json.tryType({type: "string", data: accept});
+          this.tryType({type: "string", data: accept});
           // @ts-ignore: globalThis will have a document object
           const input = globalThis.document.createElement("input");
           input.type = "file";
@@ -676,13 +754,13 @@ const file = Object.freeze({
 
   /**
    * Writes an entire file to disk.
-   * @memberof file
+   * @private
    * @param {object} params
    * @param {string} params.filename What / where to save the file.
    * For the web target this will default to the download directory.
    * @param {string | Uint8Array} params.data The data to save to the file.
    * @param {boolean} [params.append = false] Whether to append the data or
-   * create a new file. Only valid on deno runtime.
+   * create a new file. Only valid on deno this.
    * @returns {Promise<void>} true if successful, false otherwise. Check
    * codemelted.strerror if false is returned to know why.
    */
@@ -694,15 +772,15 @@ const file = Object.freeze({
     return new Promise((resolve, reject) => {
       ModuleDataDefinition.handleError();
       try {
-        json.tryType({type: "string", data: filename});
+        this.tryType({type: "string", data: filename});
 
-        if (runtime.isDeno) {
-          const deno = runtime.tryDeno();
-          json.tryType({type: "boolean", data: append});
-          if (json.checkType({type: "string", data: data})) {
+        if (this.isDeno) {
+          const deno = this.tryDeno();
+          this.tryType({type: "boolean", data: append});
+          if (this.checkType({type: "string", data: data})) {
             // @ts-ignore: checked via tryType call
             deno.writeTextFileSync(filename, data, append);
-          } else if (json.checkType({type: Uint8Array, data: data})) {
+          } else if (this.checkType({type: Uint8Array, data: data})) {
             // @ts-ignore: checked via tryType call
             deno.writeFileSync(filename, data, append);
           } else {
@@ -712,12 +790,12 @@ const file = Object.freeze({
           resolve();
         } else {
           let blobURL = undefined;
-          if (json.checkType({type: "string", data: data})) {
+          if (this.checkType({type: "string", data: data})) {
             // @ts-ignore: checked via checkType above
             const buffer = new TextEncoder().encode(data);
             const blob = new Blob([buffer]);
             blobURL = URL.createObjectURL(blob);
-          } else if (json.checkType({type: Uint8Array, data: data})) {
+          } else if (this.checkType({type: Uint8Array, data: data})) {
             // @ts-ignore: checked via checkType above
             const blob = new Blob([data]);
             blobURL = URL.createObjectURL(blob);
@@ -754,27 +832,19 @@ const file = Object.freeze({
       }
     });
   },
-});
 
-// ----------------------------------------------------------------------------
-// [Hardware Use Case] --------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // [Hardware Use Case] ------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-// TODO: To Be Developed.
+  // TODO: To Be Developed.
 
-// ----------------------------------------------------------------------------
-// [JSON Use Case] ------------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // [JSON Use Case] ----------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-/**
- * Defines a set of utility methods for performing data conversions for JSON
- * along with data validation.
- * @namespace json
- */
-const json = Object.freeze({
   /**
    * Converts a string to a boolean
-   * @memberof json
    * @param {object} params
    * @param {string} params.data The object to check for the key.
    * @returns {boolean} true if a truthy string, false otherwise.
@@ -802,7 +872,6 @@ const json = Object.freeze({
 
   /**
    * Converts a string to a integer number
-   * @memberof json
    * @param {object} params
    * @param {string} params.data The object to check for the key.
    * @returns {number?}
@@ -814,7 +883,6 @@ const json = Object.freeze({
 
   /**
    * Converts a string to a integer number
-   * @memberof json
    * @param {object} params
    * @param {string} params.data The object to check for the key.
    * @returns {number?}
@@ -826,7 +894,6 @@ const json = Object.freeze({
 
   /**
    * Determines if the specified object has the specified property.
-   * @memberof json
    * @param {object} params
    * @param {object} params.obj The object to check for the key.
    * @param {string} params.key The property to check for.
@@ -843,7 +910,6 @@ const json = Object.freeze({
   /**
    * Utility to check parameters of a function to ensure they are of an
    * expected type.
-   * @memberof json
    * @param {object} params
    * @param {string | any} params.type The specified type to check the data
    * against.
@@ -869,7 +935,6 @@ const json = Object.freeze({
 
   /**
    * Checks for a valid URL.
-   * @memberof json
    * @param {object} params
    * @param {string} params.data String to parse to see if it is a valid URL.
    * @returns {boolean} true if valid, false otherwise.
@@ -890,7 +955,6 @@ const json = Object.freeze({
 
   /**
    * Creates a new JSON compliant array with the ability to copy data.
-   * @memberof json
    * @param {object} params
    * @param {Array<any>} params.data An array to make a copy.
    * @returns {Array<any>}
@@ -903,7 +967,6 @@ const json = Object.freeze({
 
   /**
    * Creates a new JSON compliant object with the ability to copy data.
-   * @memberof json
    * @param {object} params
    * @param {object} params.data An array to make a copy.
    * @returns {object}
@@ -916,12 +979,11 @@ const json = Object.freeze({
 
   /**
    * Converts a string to a JavaScript object.
-   * @memberof json
    * @param {object} params
    * @param {string} params.data The data to parse.
    * @returns {object | null} Object or null if the parse failed.
    */
-  parse: function({data}) {
+  parseJson: function({data}) {
     ModuleDataDefinition.handleError();
     try {
       return JSON.parse(data);
@@ -934,13 +996,12 @@ const json = Object.freeze({
 
   /**
    * Converts a JavaScript object into a string.
-   * @memberof json
    * @param {object} params
    * @param {object} params.data An object with valid JSON attributes.
    * @returns {string | null} The string representation or null if the
    * stringify failed.
    */
-  stringify: function({data}) {
+  stringifyJson: function({data}) {
     ModuleDataDefinition.handleError();
     try {
       return JSON.stringify(data);
@@ -953,7 +1014,6 @@ const json = Object.freeze({
 
   /**
    * Determines if the specified object has the specified property.
-   * @memberof json
    * @param {object} params
    * @param {object} params.obj The object to check for the key.
    * @param {string} params.key The property to check for.
@@ -969,7 +1029,6 @@ const json = Object.freeze({
   /**
    * Utility to check parameters of a function to ensure they are of an
    * expected type.
-   * @memberof json
    * @param {object} params
    * @param {string | any} params.type The specified type to check the data
    * against.
@@ -988,7 +1047,6 @@ const json = Object.freeze({
 
   /**
    * Checks for a valid URL.
-   * @memberof json
    * @param {object} params
    * @param {string} params.data String to parse to see if it is a valid
    * URL.
@@ -1000,101 +1058,75 @@ const json = Object.freeze({
       throw new SyntaxError("data is not a valid url");
     }
   },
-});
 
-// ----------------------------------------------------------------------------
-// [Logger Use Case] ----------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // [Logger Use Case] --------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-/**
- * The formatted log record when an item is logged.
- * @typedef {object} CLogRecord_t
- * @property {Date} time The time the event was encountered.
- * @property {number} level The level of the event.
- * @property {any} data The data associated with the event.
- * @property {string?} stack Stack trace of where the error occurred.
- * @property {function} toString Translates a string representation of the
- * event.
- */
-
-/**
- * Handler to support post processing of a logged event.
- * @callback COnLogEventListener_t
- * @param {CLogRecord_t} record The recorded log event for post processing.
- * @returns {void}
- */
-
-/**
- * Defines a set of utility methods for performing data conversions for JSON
- * along with data validation.
- * @private
- * @namespace logger
- */
-const _logger = Object.freeze({
   /**
    * debug log level.
-   * @memberof logger
+   * @private
    * @readonly
    * @type {number}
    */
-  get debugLevel() { return 0; },
+  get debugLogLevel() { return 0; },
 
   /**
    * info log level.
-   * @memberof logger
+   * @private
    * @readonly
    * @type {number}
    */
-  get infoLevel() { return 1; },
+  get infoLogLevel() { return 1; },
 
   /**
    * warning log level.
-   * @memberof logger
+   * @private
    * @readonly
    * @type {number}
    */
-  get warningLevel() { return 2; },
+  get warningLogLevel() { return 2; },
 
   /**
    * error log level.
-   * @memberof logger
+   * @private
    * @readonly
    * @type {number}
    */
-  get errorLevel() { return 3; },
+  get errorLogLevel() { return 3; },
 
   /**
    * off log level.
-   * @memberof logger
+   * @private
    * @readonly
    * @type {number}
    */
-  get offLevel() { return 4; },
+  get offLogLevel() { return 4; },
 
   /**
    * The current log level for the module as set by the namespaced
    * constants.
-   * @memberof logger
+   * @private
    * @type {number}
    */
-  set level(v) {
-    json.checkType({type: "number", data: v});
-    if (v < this.debugLevel || v > this.offLevel) {
+  set logLevel(v) {
+    this.checkType({type: "number", data: v});
+    if (v < this.debugLogLevel || v > this.offLogLevel) {
       throw new SyntaxError("level not set in valid range");
     }
     ModuleDataDefinition.logLevel = v;
   },
-  get level() { return ModuleDataDefinition.logLevel; },
+  get logLevel() { return ModuleDataDefinition.logLevel; },
 
   /**
    * Sets / gets the listener for post processing of log events once they
    * are handled by the module.
-   * @memberof codemelted.codemelted_logger
-   * @type {COnLogEventListener?}
+   * @private
+   * @type {COnLogEventListener_t?}
    */
   set onLogEvent(v) {
     if (v) {
-      json.checkType({type: "function", data: v, count: 1});
+      this.checkType({type: "function", data: v, count: 1});
     }
     ModuleDataDefinition.onLogEvent = v == undefined ? null : v;
   },
@@ -1102,15 +1134,15 @@ const _logger = Object.freeze({
 
   /**
    * Will log debug level messages via the module.
-   * @memberof codemelted.codemelted_logger
+   * @private
    * @param {object} params The named parameters
    * @param {any} params.data The data to log.
    * @returns {void}
    */
-  debug: function({data}) {
-    if (this.level <= this.debugLevel && this.level != this.offLevel) {
+  logDebug: function({data}) {
+    if (this.logLevel <= this.debugLogLevel && this.logLevel != this.offLogLevel) {
       const record = ModuleDataDefinition.createLogRecord(
-        this.debugLevel, data
+        this.debugLogLevel, data
       );
       globalThis.console.log(data.toString());
       if (this.onLogEvent) {
@@ -1121,15 +1153,15 @@ const _logger = Object.freeze({
 
   /**
    * Will log info level messages via the module.
-   * @memberof logger
+   * @private
    * @param {object} params The named parameters
    * @param {any} params.data The data to log.
    * @returns {void}
    */
-  info: function({data}) {
-    if (this.level <= this.infoLevel && this.level != this.offLevel) {
+  logInfo: function({data}) {
+    if (this.logLevel <= this.infoLogLevel && this.logLevel != this.offLogLevel) {
       const record = ModuleDataDefinition.createLogRecord(
-        this.infoLevel, data
+        this.infoLogLevel, data
       );
       globalThis.console.info(data);
       if (this.onLogEvent) {
@@ -1140,15 +1172,15 @@ const _logger = Object.freeze({
 
   /**
    * Will log warning level messages via the module.
-   * @memberof logger
+   * @private
    * @param {object} params The named parameters
    * @param {any} params.data The data to log.
    * @returns {void}
    */
-  warning: function({data}) {
-    if (this.level <= this.warningLevel && this.level != this.offLevel) {
+  logWarning: function({data}) {
+    if (this.logLevel <= this.warningLogLevel && this.logLevel != this.offLogLevel) {
       const record = ModuleDataDefinition.createLogRecord(
-        this.warningLevel, data
+        this.warningLogLevel, data
       );
       globalThis.console.warn(data);
       if (this.onLogEvent) {
@@ -1159,15 +1191,15 @@ const _logger = Object.freeze({
 
   /**
    * Will log error level messages via the module.
-   * @memberof logger
+   * @private
    * @param {object} params The named parameters
    * @param {any} params.data The data to log.
    * @returns {void}
    */
-  error: function({data}) {
-    if (this.level <= this.errorLevel && this.level != this.offLevel) {
+  logError: function({data}) {
+    if (this.logLevel <= this.errorLogLevel && this.logLevel != this.offLogLevel) {
       const record = ModuleDataDefinition.createLogRecord(
-        this.errorLevel, data
+        this.errorLogLevel, data
       );
       globalThis.console.error(data.toString());
       if (this.onLogEvent) {
@@ -1175,54 +1207,32 @@ const _logger = Object.freeze({
       }
     }
   },
-});
 
-// ----------------------------------------------------------------------------
-// [Monitor Use Case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // [Monitor Use Case] -------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-// TODO: To Be Developed.
+  // TODO: To Be Developed.
 
+  // --------------------------------------------------------------------------
+  // [Network Use Case] -------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-// ----------------------------------------------------------------------------
-// [Network Use Case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/**
- * The result of a network.fetch() call
- * @typedef {object} CFetchResponse_t
- * @property {any} data The data if any that is attached with the response
- * @property {number} status The HTTP response code.
- * @property {string} statusText A string associated with the response code.
- * @property {Blob?} asBlob Treats the data as a Blob or null if it is not
- * a blob.
- * @property {FormData?} asFormData Treats the data as a FormData object or
- * null if it is not a FormData object.
- * @property {object?} asObject Treats the data as a parsed JSON object or
- * null if it is not a JSON object type.
- */
-
-/**
- * TBD
- * @private
- * @namespace network
- */
-const _network = Object.freeze({
   /**
    * Sends an HTTP POST request containing a small amount of data to a web
    * server. It's intended to be used for sending analytics data to a web
    * server, and avoids some of the problems with legacy techniques for
    * sending analytics, such as the use of XMLHttpRequest.
-   * @memberof network
+   * @private
    * @param {object} params The named parameters
    * @param {string} params.url The url hosting the POST
    * @param {BodyInit} [params.data] The data to send.
-   * @throws {SyntaxError} This is only available on Web Browser runtime.
+   * @throws {SyntaxError} This is only available on Web Browser this.
    */
   beacon: function({url, data}) {
-    json.tryType({type: "string", data: url});
+    this.tryType({type: "string", data: url});
     // @ts-ignore Window object does have document in WEB.
-    return runtime.tryWeb().navigator.sendBeacon(url, data);
+    return this.tryWeb().navigator.sendBeacon(url, data);
   },
 
   /**
@@ -1231,7 +1241,7 @@ const _network = Object.freeze({
    * specified action value with optional items to pass to the
    * endpoint. The result is a CFetchResponse wrapping the REST API endpoint
    * response to the request.
-   * @memberof network
+   * @private
    * @param {object} params The named parameters
    * @param {string} params.action "get", "post", "put", "delete".
    * @param {string} params.url The server's hosting API endpoint.
@@ -1381,13 +1391,13 @@ const _network = Object.freeze({
         data: data,
         status: status,
         statusText: statusText,
-        asBlob: json.checkType({type: Blob, data: data})
+        asBlob: this.checkType({type: Blob, data: data})
           ? data
           : null,
-        asFormData: json.checkType({type: FormData, data: data})
+        asFormData: this.checkType({type: FormData, data: data})
           ? data
           : null,
-        asObject: json.checkType({type: "object", data: data})
+        asObject: this.checkType({type: "object", data: data})
           ? data
           : null
       }
@@ -1405,138 +1415,68 @@ const _network = Object.freeze({
 
   /**
    * Gets the hostname your page is running
-   * @memberof network
+   * @private
    * @readonly
    * @type {string}
    */
   get hostname() {
-    return runtime.isDeno
-      ? runtime.tryDeno().hostname()
-      : runtime.tryWeb().location.hostname;
+    return this.isDeno
+      ? this.tryDeno().hostname()
+      : this.tryWeb().location.hostname;
   },
 
   /**
    * Gets the href of where your page is loaded.
-   * @memberof network
+   * @private
    * @readonly
    * @type {string}
    */
   get href() {
-    return runtime.isWeb
-      ? runtime.tryWeb().location.href
+    return this.isWeb
+      ? this.tryWeb().location.href
       : "";
   },
 
   /**
    * Determines if a connection to the Internet exists. Will return null
-   * on Deno runtime.
-   * @memberof network
+   * on Deno this.
+   * @private
    * @readonly
    * @type {boolean?}
    */
   get online() {
-    return runtime.isWeb
+    return this.isWeb
       // @ts-ignore Window object does have document in WEB.
       ? globalThis.navigator.onLine
       : null;
   },
-});
 
-// ----------------------------------------------------------------------------
-// [NPU Use Case] -------------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // [Process Use Case] -------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-// TODO: To Be Developed.
-
-// ----------------------------------------------------------------------------
-// [Process Use Case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/**
- * Class wrapper for a created process via the Deno runtime.
- * @private
- */
-class CDenoProcessHandler {
-  /**
-   * Writes a message to the attached process.
-   * @param {string} data The data to send to the attached process.
-   */
-  postMessage(data) {
-    const buffer = this.encoder.encode(data);
-    this.process.stdin.getWriter().write(buffer);
-  }
-
-  /**
-   * Kills the held process with the specified signal.
-   * @param {Deno.Signal} signo The signal to terminate the process with.
-   * @returns {void}
-   */
-  kill(signo) {
-    clearInterval(this.timerId);
-    this.process.kill(signo);
-  }
-
-  /**
-   * Constructor for the handler.
-   * @param {Deno.ChildProcess} process The process that was created.
-   * @param {CModuleEventListener_t} listener The listener for the process
-   * data.
-   */
-  constructor(process, listener) {
-    this.process = process;
-    this.encoder = new TextEncoder();
-    this.decoder = new TextDecoder();
-    this.timerId = setInterval(async () => {
-      const outDataChunk = await this.process.stdout.getReader().read();
-      const errDataChunk = await this.process.stderr.getReader().read();
-      let dataChunk = "";
-      if (outDataChunk.value) {
-        dataChunk += this.decoder.decode(outDataChunk.value);
-      }
-      if (errDataChunk) {
-        dataChunk += this.decoder.decode(errDataChunk.value);
-      }
-      if (dataChunk) {
-        listener({
-          type: "data",
-          data: dataChunk
-        });
-      }
-    }, 250);
-  }
-}
-
-/**
- * Namespace that provides the ability to spawn a process of a external
- * command with the ability to communicate via STDIN / STDOUT / STDERR with
- * said process. Also provides the ability to kill operating system running
- * processes not kicked off by this namespace.
- * @private
- * @namespace process
- */
-const process = Object.freeze({
   /**
    * Will attempt to kill a running computer operating system process. This
    * could be an application kicked off by your application or a general
    * running service.
-   * @memberof process
+   * @private
    * @param {object} params
    * @param {number} params.pid The process id of a computer running
    * process to terminate.
    * @param {Deno.Signal} [params.signo = "SIGTERM"] The type of signal to terminate with
    * @returns {boolean} if process was found to kill. false otherwise.
    */
-  kill: function({pid, signo = "SIGTERM"}) {
+  killProcess: function({pid, signo = "SIGTERM"}) {
     ModuleDataDefinition.handleError();
     try {
-      const deno = runtime.tryDeno();
-      json.tryType({type: "number", data: pid});
-      json.tryType({type: "string", data: signo});
+      const deno = this.tryDeno();
+      this.tryType({type: "number", data: pid});
+      this.tryType({type: "string", data: signo});
       if (pid < 0) {
         throw new SyntaxError("pid must be greater than 0");
       }
       const p = ModuleDataDefinition.deallocateTrackingId(pid);
-      if (json.checkType({type: Deno.ChildProcess, data: p})) {
+      if (this.checkType({type: Deno.ChildProcess, data: p})) {
         p.kill(signo);
       } else {
         deno.kill(pid, signo);
@@ -1553,7 +1493,7 @@ const process = Object.freeze({
 
   /**
    * Sends a message to an attached process via stdin
-   * @memberof process
+   * @private
    * @param {object} params
    * @param {number} params.pid The pid to send a message.
    * @param {string} params.data The data to send.
@@ -1562,16 +1502,16 @@ const process = Object.freeze({
    * @returns {boolean} if process was found and message was sent. False
    * otherwise.
    */
-  postMessage: function({pid, data, appendReturn = false}) {
+  postToProcess: function({pid, data, appendReturn = false}) {
     try {
-      runtime.tryDeno();
-      json.tryType({type: "number", data: pid});
-      json.tryType({type: "string", data: data});
-      json.tryType({type: "boolean", data: appendReturn});
+      this.tryDeno();
+      this.tryType({type: "number", data: pid});
+      this.tryType({type: "string", data: data});
+      this.tryType({type: "boolean", data: appendReturn});
 
       // @ts-ignore tryType checks the type.
       const p = ModuleDataDefinition.objectTracker[pid];
-      json.tryType({type: CDenoProcessHandler, data: p});
+      this.tryType({type: CDenoProcessHandler, data: p});
       p.postMessage(data);
       return true;
 
@@ -1587,7 +1527,7 @@ const process = Object.freeze({
   /**
    * Spawns an external command as an attached process allowing for
    * bi-directional communication via stdin, stdout, and stderr.
-   * @memberof process
+   * @private
    * @param {object} params
    * @param {string} params.command The command to run as an attached
    * process.
@@ -1598,12 +1538,12 @@ const process = Object.freeze({
    * @returns {number} The pid that was created via the module or -1 if an
    * error occurred.
    */
-  spawn: function({command, args = [], listener}) {
+  spawnProcess: function({command, args = [], listener}) {
     try {
-      const deno = runtime.tryDeno();
-      json.tryType({type: "string", data: command});
-      json.tryType({type: Array, data: args});
-      json.tryType({type: "function", data: listener, count: 1})
+      const deno = this.tryDeno();
+      this.tryType({type: "string", data: command});
+      this.tryType({type: Array, data: args});
+      this.tryType({type: "function", data: listener, count: 1})
       const cmd = new deno.Command(command, {
         args: args,
         stdin: "piped",
@@ -1619,24 +1559,16 @@ const process = Object.freeze({
       ModuleDataDefinition.handleError(err);
       return -1;
     }
-  }
-});
+  },
 
-// ----------------------------------------------------------------------------
-// [Runtime Use Case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // [Runtime Use Case] -------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-/**
- * Exposes a series of properties and utility methods that are specific to the
- * deno / web runtimes.
- * @private
- * @namespace runtime
- */
-const runtime = Object.freeze({
   /**
    * Adds an event listener either to the global object or to the specified
    * event target.
-   * @memberof runtime
+   * @private
    * @param {object} params The named parameters.
    * @param {string} params.type A case-sensitive string representing the
    * event type to listen for.
@@ -1647,8 +1579,8 @@ const runtime = Object.freeze({
    * @returns {void}
    */
   addEventListener: function({type, listener, obj}) {
-    json.tryType({type: "string", data: type});
-    json.tryType({type: "function", data: listener});
+    this.tryType({type: "string", data: type});
+    this.tryType({type: "function", data: listener});
     if (!obj) {
       globalThis.addEventListener(type, listener);
     }
@@ -1659,7 +1591,7 @@ const runtime = Object.freeze({
 
   /**
    * Gets the name of the browser your page is running.
-   * @memberof runtime
+   * @private
    * @readonly
    * @type {string}
    */
@@ -1686,7 +1618,7 @@ const runtime = Object.freeze({
 
   /**
    * Parses the environment for the given specified key.
-   * @memberof runtime
+   * @private
    * @param {object} params The named parameters.
    * @param {string} params.key The items to search for.
    * @returns {string?} The value associated with the key or null if not
@@ -1705,7 +1637,7 @@ const runtime = Object.freeze({
 
   /**
    * Determines if the runtime is Deno.
-   * @memberof runtime
+   * @private
    * @readonly
    * @type {boolean}
    */
@@ -1715,7 +1647,7 @@ const runtime = Object.freeze({
 
   /**
    * Identifies if you are on desktop or not.
-   * @memberof runtime
+   * @private
    * @readonly
    * @type {boolean}
    */
@@ -1725,7 +1657,7 @@ const runtime = Object.freeze({
 
   /**
    * Identifies if you are on mobile or not.
-   * @memberof runtime
+   * @private
    * @readonly
    * @type {boolean}
    */
@@ -1737,7 +1669,7 @@ const runtime = Object.freeze({
 
   /**
    * Determines if the runtime is Web Browser.
-   * @memberof runtime
+   * @private
    * @readonly
    * @type {boolean}
    */
@@ -1747,7 +1679,7 @@ const runtime = Object.freeze({
 
   /**
    * Gets the name of the operating system your page is running.
-   * @memberof runtime
+   * @private
    * @readonly
    * @type {string}
    */
@@ -1775,7 +1707,7 @@ const runtime = Object.freeze({
   /**
    * Removes an event listener either to the global object or to the
    * specified event target.
-   * @memberof runtime
+   * @private
    * @param {object} params The named parameters.
    * @param {string} params.type A case-sensitive string representing the
    * event type to listen for.
@@ -1786,8 +1718,8 @@ const runtime = Object.freeze({
    * @returns {void}
    */
   removeEventListener: function({type, listener, obj}) {
-    json.tryType({type: "string", data: type});
-    json.tryType({type: "function", data: listener});
+    this.tryType({type: "string", data: type});
+    this.tryType({type: "function", data: listener});
     if (!obj) {
       globalThis.removeEventListener(type, listener);
     }
@@ -1798,64 +1730,57 @@ const runtime = Object.freeze({
 
   /**
    * Determines if we are running in a Deno Runtime or not.
-   * @memberof runtime
+   * @private
    * @returns {Deno} namespace reference.
-   * @throws {SyntaxError} If not running in a Deno Runtime.
+   * @throws {SyntaxError} If not running in a Deno this.
    */
   tryDeno: function() {
     if (!this.isDeno) {
-      throw new SyntaxError("Not Running in a Deno Runtime.");
+      throw new SyntaxError("Not Running in a Deno this.");
     }
     return globalThis.Deno;
   },
 
   /**
    * Determines if we are running in a Web Browser environment or not.
-   * @memberof runtime
+   * @private
    * @returns {Window} Reference to the browser window.
    * @throws {SyntaxError} If not running in a browser environment.
    */
   tryWeb: function() {
     if (!this.isWeb) {
-      throw new SyntaxError("Not Running in a Web Runtime.");
+      throw new SyntaxError("Not Running in a Web this.");
     }
     return globalThis.window;
   },
-});
 
-// ----------------------------------------------------------------------------
-// [Setup Use Case] -----------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // [Setup Use Case] ---------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-// TODO: To Be Developed.
+  // TODO: To Be Developed.
 
-// ----------------------------------------------------------------------------
-// [SPA Use Case] -------------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // [SPA Use Case] -----------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-/**
- * TBD
- * @private
- * @namespace spa
- */
-const _spa = Object.freeze({
   /**
    * Copies data to the system clipboard. Only available on the
-   * Web Browser runtime.
-   * @memberof spa
+   * Web Browser this.
+   * @private
    * @param {object} params The named parameters.
    * @param {string} params.data The data to copy to the clipboard.
    * @returns {Promise<void>} Of the copy action.
-   * @throws {SyntaxError} If attempted on the Deno runtime.
+   * @throws {SyntaxError} If attempted on the Deno this.
    */
   copyToClipboard: function({data}) {
     // @ts-ignore Window object does have document in WEB.
-    return runtime.tryWeb().navigator.clipboard.writeText(data);
+    return this.tryWeb().navigator.clipboard.writeText(data);
   },
 
   /**
    * Supports the spa.open function for the mailto schema.
-   * @memberof spa
+   * @private
    * @param {object} params The named parameters
    * @param {string} params.mailto Where to email the message.
    * @param {string[]} [params.cc=[]] Who to CC on the email.
@@ -1871,11 +1796,11 @@ const _spa = Object.freeze({
     subject = "",
     body = ""
   }) {
-    json.tryType({type: "string", data: mailto});
-    json.tryType({type: "array", data: cc});
-    json.tryType({type: "array", data: bcc});
-    json.tryType({type: "string", data: subject});
-    json.tryType({type: "string", data: body});
+    this.tryType({type: "string", data: mailto});
+    this.tryType({type: "array", data: cc});
+    this.tryType({type: "array", data: bcc});
+    this.tryType({type: "string", data: subject});
+    this.tryType({type: "string", data: body});
 
     let url = "";
 
@@ -1921,14 +1846,13 @@ const _spa = Object.freeze({
 
   /**
    * Determines if the UI is under an iFrame or not.
-   * @memberof spa
    * @readonly
    * @type {boolean}
    */
   get inFrame() {
     ModuleDataDefinition.handleError();
     try {
-      const w = runtime.tryWeb();
+      const w = this.tryWeb();
       // @ts-ignore: globalThis will have a Window object
       return w.self !== w.top;
     } catch (err) {
@@ -1942,12 +1866,12 @@ const _spa = Object.freeze({
 
   /**
    * Determines if the running page is an installed Progressive Web App.
-   * @memberof spa
+   * @private
    * @readonly
    * @type {boolean}
    */
   get isPWA() {
-    if (runtime.isWeb) {
+    if (this.isWeb) {
       const queries = [
         '(display-mode: fullscreen)',
         '(display-mode: standalone)',
@@ -1967,7 +1891,7 @@ const _spa = Object.freeze({
    * Loads a specified resource into a new or existing browsing context
    * (that is, a tab, a window, or an iframe) under a specified name. These
    * are based on the different scheme supported protocol items.
-   * @memberof runtime
+   * @private
    * @param {object} params The named parameters.
    * @param {string} params.scheme Either "file:", "http://",
    * "https://", "mailto:", "tel:", or "sms:".
@@ -2007,15 +1931,15 @@ const _spa = Object.freeze({
           const w = width ?? 900.0;
           const h = height ?? 600.0;
           // @ts-ignore Window object does have document in WEB.
-          const top = (runtime.tryWeb().screen.height - h) / 2;
+          const top = (this.tryWeb().screen.height - h) / 2;
           // @ts-ignore Window object does have document in WEB.
-          const left = (runtime.tryWeb().screen.width - w) / 2;
+          const left = (this.tryWeb().screen.width - w) / 2;
           const settings = "toolbar=no, location=no, " +
               "directories=no, status=no, menubar=no, " +
               "scrollbars=no, resizable=yes, copyhistory=no, " +
               `width=${w}, height=${h}, top=${top}, left=${left}`;
           // @ts-ignore Window object does have document in WEB.
-          rtnval = runtime.tryWeb().open(
+          rtnval = this.tryWeb().open(
             urlToLaunch,
             "_blank",
             settings,
@@ -2023,7 +1947,7 @@ const _spa = Object.freeze({
         }
 
         // @ts-ignore Window object does have document in WEB.
-        rtnval = runtime.tryWeb().open(urlToLaunch, target);
+        rtnval = this.tryWeb().open(urlToLaunch, target);
         resolve(rtnval);
       } catch (err) {
         reject(err);
@@ -2033,20 +1957,19 @@ const _spa = Object.freeze({
 
   /**
    * Will open a print dialog when running in a Web Browser.
-   * @memberof spa
+   * @private
    * @returns {void}
-   * @throws {SyntaxError} if you attempt to call this in Deno runtime.
    */
   print: function() {
       // @ts-ignore Window object does have document in WEB.
-    runtime.tryWeb().print();
+    this.tryWeb().print();
   },
 
   /**
    * Provides the ability to share items via the share services. You specify
    * options via the data object parameters. Only available on the web
-   * browser runtime.
-   * @memberof spa
+   * browser this.
+   * @private
    * @param {object} params
    * @param {object} params.data The object specifying the data to share.
    * @returns {Promise<boolean>} The result of the call whether successful
@@ -2055,47 +1978,36 @@ const _spa = Object.freeze({
    */
   share: async function({data}) {
     try {
-      json.tryType({type: "object", data: data});
+      this.tryType({type: "object", data: data});
       // @ts-ignore Window object does have document in WEB.
-      await runtime.tryWeb().navigator.share(data);
+      await this.tryWeb().navigator.share(data);
       return true;
     } catch (err) {
       ModuleDataDefinition.handleError(err);
       return false;
     }
-  }
-});
+  },
 
-// ----------------------------------------------------------------------------
-// [Storage Use Case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // [Storage Use Case] -------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-/**
- * Provides the ability to manage a key / value pair within the targeted
- * runtime environment. The storage methods of "local" and "session" are
- * supported on both Deno and Web Browsers. "cookie" method is only supported
- * on Web Browser and will result in a SyntaxError if called in a Deno
- * runtime.
- * @private
- * @namespace storage
- */
-const _storage = Object.freeze({
   /**
    * Clears the specified storage method.
-   * @memberof storage
+   * @private
    * @param {object} params The named parameters.
    * @param {string} [params.method="local"] Values of cookie, local, or
    * session.
    * @returns {void}
    */
-  clear: function({method = "local"}) {
+  clearStorage: function({method = "local"}) {
     if (method === "local") {
       globalThis.localStorage.clear();
     } else if (method === "session") {
       globalThis.sessionStorage.clear();
     } else if (method === "cookie") {
       // @ts-ignore Window object does have document in WEB.
-      runtime.tryWeb().document.cookie = "";
+      this.tryWeb().document.cookie = "";
     }
 
     throw new SyntaxError("Invalid method specified");
@@ -2103,15 +2015,15 @@ const _storage = Object.freeze({
 
   /**
    * Gets data from the identified method via the specified key.
-   * @memberof storage
+   * @private
    * @param {object} params The named parameters.
    * @param {string} [params.method="local"] Values of cookie, local, or
    * session.
    * @param {string} params.key The key field to retrieve.
    * @returns {string?} The associated with the key or null if not found.
    */
-  getItem: function({method = "local", key}) {
-    json.tryType({type: "string", data: key});
+  getItemFromStorage: function({method = "local", key}) {
+    this.tryType({type: "string", data: key});
     if (method === "local") {
       return globalThis.localStorage.getItem(key);
     } else if (method === "session") {
@@ -2119,7 +2031,7 @@ const _storage = Object.freeze({
     } else if (method === "cookie") {
       const name = `${key}=`;
       // @ts-ignore Window object does have document in WEB.
-      const ca = runtime.tryWeb().document.cookie.split(';');
+      const ca = this.tryWeb().document.cookie.split(';');
       for (let i = 0; i < ca.length; i++) {
         let c = ca[i];
         while (c[0] == " ") {
@@ -2137,21 +2049,21 @@ const _storage = Object.freeze({
 
   /**
    * Total items stored in the identified method.
-   * @memberof storage
+   * @private
    * @param {object} params The named parameters.
    * @param {string} [params.method="local"] Values of cookie, local, or
    * session.
    * @returns {number} The number of key / value pairs stored within the
    * storage method.
    */
-  length: function({method = "local"}) {
+  lengthOfStorage: function({method = "local"}) {
     if (method === "local") {
       return globalThis.localStorage.length;
     } else if (method === "session") {
       return globalThis.localStorage.length;
     } else if (method === "cookie") {
       // @ts-ignore Window object does have document in WEB.
-      const ca = runtime.tryWeb().document.cookie.split(";");
+      const ca = this.tryWeb().document.cookie.split(";");
       return ca.length;
     }
 
@@ -2160,7 +2072,7 @@ const _storage = Object.freeze({
 
   /**
    * Gets the key from the index from the identified storage method.
-   * @memberof storage
+   * @private
    * @param {object} params The named parameters.
    * @param {string} [params.method="local"] Values of cookie, local, or
    * session.
@@ -2169,15 +2081,15 @@ const _storage = Object.freeze({
    * @returns {String?} The name of the key or null if the index goes
    * beyond the stored length.
    */
-  key: function({method = "local", index}) {
-    json.tryType({type: "number", data: index});
+  keyFromStorage: function({method = "local", index}) {
+    this.tryType({type: "number", data: index});
     if (method === "local") {
       return globalThis.localStorage.key(index);
     } else if (method === "session") {
       return globalThis.sessionStorage.key(index);
     } else if (method === "cookie") {
       // @ts-ignore Window object does have document in WEB.
-      const ca = runtime.tryWeb().document.cookie.split(";");
+      const ca = this.tryWeb().document.cookie.split(";");
       if (ca.length >= index) {
         return null;
       }
@@ -2190,22 +2102,22 @@ const _storage = Object.freeze({
 
   /**
    * Removes an item by key from the identified storage method.
-   * @memberof storage
+   * @private
    * @param {object} params The named parameters.
    * @param {string} [params.method="local"] Values of cookie, local, or
    * session.
    * @param {string} params.key The key field to remove.
    * @returns {void}
    */
-  removeItem: function({method = "local", key}) {
-    json.tryType({type: "string", data: key});
+  removeItemFromStorage: function({method = "local", key}) {
+    this.tryType({type: "string", data: key});
     if (method === "local") {
       globalThis.localStorage.removeItem(key);
     } else if (method === "session") {
       globalThis.sessionStorage.removeItem(key);
     } else if (method === "cookie") {
       // @ts-ignore Window object does have document in WEB.
-      runtime.tryWeb().document.cookie =
+      this.tryWeb().document.cookie =
         `${key}=; expires=01 Jan 1970 00:00:00; path=/;`;
     }
 
@@ -2215,7 +2127,7 @@ const _storage = Object.freeze({
   /**
    * Sets a value by the identified key within the identified storage
    * method.
-   * @memberof storage
+   * @private
    * @param {object} params The named parameters.
    * @param {string} [params.method="local"] Values of cookie, local, or
    * session.
@@ -2224,9 +2136,9 @@ const _storage = Object.freeze({
    * @param {string} params.value The value to set.
    * @returns {void}
    */
-  setItem: function({method = "local", key, value}) {
-    json.tryType({type: "string", data: key});
-    json.tryType({type: "string", data: value});
+  setItemInStorage: function({method = "local", key, value}) {
+    this.tryType({type: "string", data: key});
+    this.tryType({type: "string", data: value});
     if (method === "local") {
       globalThis.localStorage.setItem(key, value);
     } else if (method === "session") {
@@ -2236,35 +2148,20 @@ const _storage = Object.freeze({
       d.setTime(d.getTime() + (365 * 24 * 60 * 60 * 1000));
       const expires = "expires="+ d.toUTCString();
       // @ts-ignore Window object does have document in WEB.
-      runtime.tryWeb().document.cookie =
+      this.tryWeb().document.cookie =
         `${key}=${value}; ${expires}; path=/`;
     }
 
     throw new SyntaxError("Invalid method specified");
-  }
-});
+  },
 
-// ----------------------------------------------------------------------------
-// [Task Use Case] ------------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // [Task Use Case] ----------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-/**
- * The task to run as part of the different module async functions.
- * @callback CTask_t
- * @param {any} [data] The data to process on the backend.
- * @returns {any} The calculated answer to the task if any.
- */
-
-/**
- * Provides the ability to kick-off one off tasks on the main thread allowing
- * for work to be broken apart on the event queue.
- * @private
- * @namespace task
- */
-const task = Object.freeze({
   /**
    * Will process a one off asynchronous task on the main thread.
-   * @memberof task
+   * @private
    * @param {object} params
    * @param {CTask_t} params.task The task callback to schedule.
    * @param {any} params.data The optional data to if the task requires it
@@ -2272,11 +2169,11 @@ const task = Object.freeze({
    * @param {number} [params.delay] An optional delay to schedule the task in
    * the future.
    */
-  run: function({task, data, delay = 0}) {
+  runTask: function({task, data, delay = 0}) {
     return new Promise((resolve, reject) => {
       try {
-        json.tryType({type: "function", data: task, count: 1});
-        json.tryType({type: "number", data: delay});
+        this.tryType({type: "function", data: task, count: 1});
+        this.tryType({type: "number", data: delay});
         if (delay < 0) {
           throw new SyntaxError("delay must be greater than 0");
         }
@@ -2293,7 +2190,7 @@ const task = Object.freeze({
   /**
    * Kicks off a timer to schedule tasks on the thread for which it is
    * created calling the task on the interval specified in milliseconds.
-   * @memberof task
+   * @private
    * @param {object} params
    * @param {CTask_t} params.task The task to repeat on a timer.
    * @param {number} params.interval How often in milliseconds to schedule
@@ -2301,8 +2198,8 @@ const task = Object.freeze({
    * @returns {number} timerId of the scheduled timer.
    */
   startTimer: function({task, interval}) {
-    json.tryType({type: "function", data: task, count: 1});
-    json.tryType({type: "number", data: interval});
+    this.tryType({type: "function", data: task, count: 1});
+    this.tryType({type: "number", data: interval});
     if (interval < 0) {
       throw new SyntaxError("interval must be greater than 0");
     }
@@ -2312,13 +2209,13 @@ const task = Object.freeze({
 
   /**
    * Stops a scheduled timer.
-   * @memberof task
+   * @private
    * @param {object} params
    * @param {number} params.timerId The id of the scheduled timer.
    * @returns {void}
    */
   stopTimer: function({timerId}) {
-    json.tryType({type: "number", data: timerId});
+    this.tryType({type: "number", data: timerId});
     const id = ModuleDataDefinition.deallocateTrackingId(timerId);
     if (id) {
       clearInterval(id);
@@ -2328,15 +2225,15 @@ const task = Object.freeze({
   /**
    * Will sleep an asynchronous task for the specified delay in
    * milliseconds.
-   * @memberof codemelted.codemelted_async
+   * @private
    * @param {object} params The named parameters.
    * @param {number} [params.delay = 0] The specified delay in milliseconds.
    * @returns {Promise<void>}
    */
-  sleep: function({delay = 0} = {}) {
+  sleepTask: function({delay = 0} = {}) {
     return new Promise((resolve, reject) => {
       try {
-        json.tryType({type: "number", data: delay});
+        this.tryType({type: "number", data: delay});
         if (delay < 0) {
           throw new SyntaxError("delay must be greater than 0");
         }
@@ -2346,35 +2243,13 @@ const task = Object.freeze({
       }
     });
   },
-});
 
-// ----------------------------------------------------------------------------
-// [Theme Use Case] -----------------------------------------------------------
-// ----------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // [Worker Use Case] --------------------------------------------------------
+  // --------------------------------------------------------------------------
 
-// TODO: To Be Developed.
-
-// ----------------------------------------------------------------------------
-// [Widget Use Case] ----------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-// TODO: To Be Developed.
-
-// ----------------------------------------------------------------------------
-// [Worker Use Case] ----------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/**
- * Implements a worker pool in the background to process data chunks without
- * locking up the main thread. The workerUrl represents the background worker
- * that will process the data spread over the available hardwareConcurrency.
- * @private
- * @namespace worker
- */
-const worker = Object.freeze({
   /**
    * Identifies the number of processors to facilitate dedicated workers.
-   * @memberof worker
    * @readonly
    * @type {number}
    */
@@ -2386,12 +2261,12 @@ const worker = Object.freeze({
    * Will post a message to the worker pool to process. NOTE: You have full
    * control of what the message looks like to know when it is completed
    * processing via the onMessageReceived.
-   * @memberof worker
+   * @private
    * @param {object} params
    * @param {any} params.data The data to process in the background.
    * @returns {void}
    */
-  postMessage: function({data}) {
+  postWorkerPool: function({data}) {
     if (!ModuleDataDefinition.workerPool) {
       throw new SyntaxError("Worker pool was never started");
     }
@@ -2401,16 +2276,16 @@ const worker = Object.freeze({
   /**
    * Starts a background worker pool for processing events in the background
    * represented by the workerUrl.
-   * @memberof worker
+   * @private
    * @param {object} params The named parameters.
    * @param {CModuleEventListener_t} params.onDataReceived The listener
    * for received data from the worker pool
    * @param {string} params.workerUrl The url to the dedicated worker.
    * @returns {void}
    */
-  start: function({onDataReceived, workerUrl}) {
-    json.checkType({type: "function", data: onDataReceived, count: 1});
-    json.checkType({type: "string", data: workerUrl});
+  startWorkerPool: function({onDataReceived, workerUrl}) {
+    this.checkType({type: "function", data: onDataReceived, count: 1});
+    this.checkType({type: "string", data: workerUrl});
     if (ModuleDataDefinition.workerPool) {
       throw new SyntaxError(
         "You must terminate worker pool before starting a new one."
@@ -2423,68 +2298,14 @@ const worker = Object.freeze({
 
   /**
    * Terminates a started worker pool.
-   * @memberof worker
+   * @private
    * @returns {void}
    */
-  terminate: function() {
+  terminateWorkerPool: function() {
     if (!ModuleDataDefinition.workerPool) {
       throw new SyntaxError("Worker pool was never started");
     }
     ModuleDataDefinition.workerPool.terminate();
     ModuleDataDefinition.workerPool = undefined;
   },
-});
-
-// ----------------------------------------------------------------------------
-// [Public API] ---------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/**
- * This module is the implementation of the CodeMelted DEV module use cases.
- * It will target the Deno and Web Browser runtimes with limited support for
- * within a NodeJS environment. The use cases will be organized as exported
- * default public functions. This will also serve as the backbone to
- * codemelted.dart module where a direct the Flutter implementation for a
- * use case does not make sense to duplicate compared to the codemelted.js
- * module.
- * @module codemelted
- */
-export default Object.freeze({
-  /**
-   * A reason for a failure of a transaction that has an indicator for
-   * either success / failure. NOTE: Module violations will result in
-   * SyntaxError meaning they will not be reported via this mechanism.
-   * @type {string}
-   */
-  error: ModuleDataDefinition.error,
-
-  /** @type {console} */
-  console: console,
-
-  /** @type {disk} */
-  disk: disk,
-
-  /**
-   * @private
-   * @type {file}
-   */
-  file: file,
-
-  /** @type {json} */
-  json: json,
-
-  /**
-   * @private
-   * @type {process}
-   */
-  process: process,
-
-  // /** @type {runtime} */
-  // runtime: runtime,
-
-  /** @type {task} */
-  task: task,
-
-  /** @type {worker} */
-  worker: worker,
 });

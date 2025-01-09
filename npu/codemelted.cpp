@@ -2,9 +2,9 @@ module;
 /**
  * @file codemelted.cpp
  * @author Mark Shaffer
- * @date 2025-01-05
+ * @date 2025-01-08
  * @version 0.0.2 <br />
- * - [0.0.2 / 2025-01-05]: Implemented the macros to allow for cross compiling
+ * - [0.0.2 / 2025-01-08]: Implemented the macros to allow for cross compiling
  * between a WASM file, C++ 20 included source file, and as a static library
  * for mac, windows, and linux. Also stubbed some other functions as I ponder
  * the NPU design. Added additional mathematical formulas from JavaScript

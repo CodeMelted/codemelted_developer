@@ -31,10 +31,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   // This is called once after ALL tests
-  setUpAll(() async {
-    var success = await codemelted.init(npuModuleUrl: "codemelted.wasm");
-    expect(success, isTrue);
-  });
+  setUpAll(() async {});
 
   // This is called once before EVERY test
   setUp(() {});
@@ -54,7 +51,7 @@ void main() {
       var listenerCount = 0;
       onDataChanged() => listenerCount += 1;
 
-      var array = codemelted.json.createArray();
+      var array = codemelted.createArray();
       array.addListener(listener: onDataChanged);
       expect(array.isEmpty, isTrue);
 
@@ -97,7 +94,7 @@ void main() {
       var listenerCount = 0;
       onDataChanged() => listenerCount += 1;
 
-      var obj = codemelted.json.createObject();
+      var obj = codemelted.createObject();
       obj.addListener(listener: onDataChanged);
       expect(obj.isEmpty, isTrue);
 
@@ -128,52 +125,51 @@ void main() {
 
     test("asXXX() Validation", () {
       // Bool validation
-      expect(codemelted.json.asBool(data: "42"), isFalse);
-      expect(codemelted.json.asBool(data: "1"), isTrue);
-      expect(codemelted.json.asBool(data: "yes"), isTrue);
-      expect(codemelted.json.asBool(data: "no"), isFalse);
+      expect(codemelted.asBool(data: "42"), isFalse);
+      expect(codemelted.asBool(data: "1"), isTrue);
+      expect(codemelted.asBool(data: "yes"), isTrue);
+      expect(codemelted.asBool(data: "no"), isFalse);
 
       // double validation
-      expect(codemelted.json.asDouble(data: "a"), isNull);
-      expect(codemelted.json.asDouble(data: "42.2"), isNotNull);
-      expect(codemelted.json.asDouble(data: "42"), isNotNull);
+      expect(codemelted.asDouble(data: "a"), isNull);
+      expect(codemelted.asDouble(data: "42.2"), isNotNull);
+      expect(codemelted.asDouble(data: "42"), isNotNull);
 
       // int validation
-      expect(codemelted.json.asInt(data: "a"), isNull);
-      expect(codemelted.json.asInt(data: "42.2"), isNull);
-      expect(codemelted.json.asInt(data: "42"), isNotNull);
+      expect(codemelted.asInt(data: "a"), isNull);
+      expect(codemelted.asInt(data: "42.2"), isNull);
+      expect(codemelted.asInt(data: "42"), isNotNull);
     });
 
     test("checkXXX() / tryXXX() Validation", () {
-      var obj = codemelted.json.createObject(data: {
+      var obj = codemelted.createObject(data: {
         "one": 1,
         "two": "two",
         "three": null,
       });
 
-      expect(codemelted.json.checkHasProperty(obj: obj, key: "one"), isTrue);
-      expect(codemelted.json.checkHasProperty(obj: obj, key: "4"), isFalse);
+      expect(codemelted.checkHasProperty(obj: obj, key: "one"), isTrue);
+      expect(codemelted.checkHasProperty(obj: obj, key: "4"), isFalse);
       try {
-        codemelted.json.tryHasProperty(obj: obj, key: "4");
+        codemelted.tryHasProperty(obj: obj, key: "4");
         fail("should throw exception");
       } catch (ex) {
         expect(ex, isA<String>());
       }
 
-      expect(codemelted.json.checkType<String>(data: 42), isFalse);
-      expect(codemelted.json.checkType<String>(data: "42"), isTrue);
+      expect(codemelted.checkType<String>(data: 42), isFalse);
+      expect(codemelted.checkType<String>(data: "42"), isTrue);
       try {
-        codemelted.json.tryType<String>(data: 42);
+        codemelted.tryType<String>(data: 42);
         fail("should throw exception");
       } catch (ex) {
         expect(ex, isA<String>());
       }
 
-      expect(codemelted.json.checkValidUrl(data: "https://codemelted.com"),
-          isTrue);
-      expect(codemelted.json.checkValidUrl(data: "j;,ht:/b;l42"), isFalse);
+      expect(codemelted.checkValidUrl(data: "https://codemelted.com"), isTrue);
+      expect(codemelted.checkValidUrl(data: "j;,ht:/b;l42"), isFalse);
       try {
-        codemelted.json.tryValidUrl(data: "j;,ht:/b;l42");
+        codemelted.tryValidUrl(data: "j;,ht:/b;l42");
         fail("should throw exception");
       } catch (ex) {
         expect(ex, isA<String>());
