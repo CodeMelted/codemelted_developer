@@ -25,7 +25,7 @@ import codemelted from "./codemelted.js";
 
 Deno.test("codemelted.console Tests", () => {
   try {
-    codemelted.writeln();
+    codemelted.writelnConsole();
   } catch (err) {
     fail("Should not throw.")
   }

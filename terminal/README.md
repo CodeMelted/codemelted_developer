@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted DEV | Terminal Module
-PUBLISH_DATE: 2024-12-28
+PUBLISH_DATE: 2025-01-08
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in `ps1` scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text based user interface.
@@ -10,9 +10,9 @@ DESCRIPTION: The `codemelted.ps1` script will provide a Command Line Interface (
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-codemelted-terminal.png" /> CodeMelted DEV | Terminal Module</h1>
 
-The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in `ps1` scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text based user interface.
+The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed, the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in `ps1` scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text based user interface.
 
-**LAST UPDATED:** 2024-12-28
+**LAST UPDATED:** 2025-01-08
 
 <center>
   <br />
@@ -159,11 +159,7 @@ To check for the latest version of the script execute `Update-Script -Name codem
 
 ### Navigate Help
 
-`codemelted --help` will produce the following STDOUT from the PowerShell `Get-Help` system. From the help output, you can drill into the help system of each `[Action]`. You only care about the following fields from any command help:
-
-- SYNOPSIS
-- DESCRIPTION
-- RELATED LINKS
+`codemelted --help` will produce the following STDOUT from the PowerShell `Get-Help` system. From the help output, you can drill into the help system of each `[Action]` to learn about each of the supported use case actions.
 
 ```
 NAME
@@ -177,30 +173,40 @@ SYNOPSIS
 
     SYNTAX:
 
-      codemelted [Action] [Command] [Params]
+      codemelted [Action] [Params]
 
-
-SYNTAX
-    help [<CommonParameters>]
-
-
-DESCRIPTION
     PARAMETERS:
 
       [Action]
-        --about : Displays the current PSScriptInfo about this module CLI.
-        --json  : Provides the ability to work with JSON data.
-        --help  : Displays this help system to facilitate navigating the CLI.
+        # To Learn About the CLI use cases.
+        --about : Get current information about the codemelted CLI
+        --help  : Execute 'codemelted --help @{ "action" = [Use Case] }'
+                  to learn more about the CLI Actions.
 
-      [Command]
-        Commands attached to each [Action] parameter. Execute the following
-        to get the specific [Command] parameters associated with the [Action]
-        parameter and the [Args] associated with the [Command] parameters.
-
-        codemelted [Action] help
+        # JSON Use Cases
+        --as-bool
+        --as-int
+        --as-double
+        --check-has-property
+        --check-type
+        --check-valid-url
+        --create-array
+        --create-object
+        --parse-json
+        --stringify-json
+        --try-has-property"
+        --try-type
+        --try-valid-url
 
       [Params]
         The optional set of named arguments wrapped within a [hashtable]
+
+
+SYNTAX
+    help [[-Params] <Hashtable>] [<CommonParameters>]
+
+
+DESCRIPTION
 
 
 RELATED LINKS
@@ -209,12 +215,6 @@ RELATED LINKS
 
     GitHub Source:
     https://github.com/CodeMelted/codemelted_developer/tree/main/terminal
-
-REMARKS
-    To see the examples, type: "Get-Help help -Examples"
-    For more information, type: "Get-Help help -Detailed"
-    For technical information, type: "Get-Help help -Full"
-    For online help, type: "Get-Help help -Online"
 ```
 
 ## Raspberry Pi Services

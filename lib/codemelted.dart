@@ -108,6 +108,7 @@ enum CImageType { asset, file, memory, network }
 /// Provides theming of the regular [InputDecorationTheme] but expands to
 /// the input style and other attributes of styling. Modeled off the
 /// [DropdownMenuTheme] to be consistent with that control.
+/// @nodoc
 class CInputDecorationTheme extends InputDecorationTheme {
   /// Adds the items associated with the input field so it is in line with
   /// other material3 widgets. See DropdownMenu as an example.
@@ -400,6 +401,7 @@ extension CObjectExtension on CObject {
 
 /// Enumerations set specifying the allowed actions within
 /// [CodeMeltedAPI.webView] widget.
+/// @nodoc
 enum CSandboxAllow {
   forms("allow-forms"),
   modals("allow-modals"),
@@ -774,6 +776,7 @@ extension CStringExtension on String {
 }
 
 /// Defines a tab item to utilize with the [CTabbedView] object.
+/// @nodoc
 class CTabItem {
   /// The content displayed with the tab.
   final Widget? content;
@@ -801,6 +804,7 @@ class CTabItem {
 }
 
 /// TBD
+/// @nodoc
 class CTabbedView extends StatefulWidget {
   final List<CTabItem> tabItems;
   final bool automaticIndicatorColorAdjustment;
@@ -930,6 +934,7 @@ typedef CTask = Future<dynamic> Function([dynamic]);
 /// the application theming to the material3 constructs of Flutter. Extended
 /// existing ThemeData objects utilized to provide a similar theming experience.
 /// The theme is created via the [CodeMeltedAPI.createTheme] method.
+/// @nodoc
 extension ThemeDataExtension on ThemeData {
   /// Gets access to the specialized input decoration theme to pick up styles
   /// for all items that may utilize it.
@@ -939,6 +944,7 @@ extension ThemeDataExtension on ThemeData {
 
 /// The web view controller to support the [CodeMeltedAPI.webView] widget
 /// creation.
+/// @nodoc
 class CWebViewController {
   /// Handles the changing of the URL within the web view.
   late web.HTMLIFrameElement _iFrameRef;
@@ -990,6 +996,7 @@ class CodeMeltedAPI {
   // --------------------------------------------------------------------------
 
   /// Will display information about your flutter app.
+  /// @nodoc
   Future<void> about({
     Widget? appIcon,
     String? appName,
@@ -1107,26 +1114,31 @@ class CodeMeltedAPI {
   /// Accesses a Single Page Application (SPA) for the overall module. This
   /// is called after being configured via the appXXX functions in the runApp
   /// of the main().
+  /// @nodoc
   Widget get spa {
     return CSpaView();
   }
 
-  /// Sets the [CSpaAPI.spa] dark theme.
+  /// Sets the [CodeMeltedAPI.spa] dark theme.
+  /// @nodoc
   set darkTheme(ThemeData? v) {
     CSpaView.darkTheme = v;
   }
 
-  /// Sets the [CSpaAPI.spa] light theme.
+  /// Sets the [CodeMeltedAPI.spa] light theme.
+  /// @nodoc
   set theme(ThemeData? v) {
     CSpaView.theme = v;
   }
 
-  /// Sets the [CSpaAPI.spa] theme mode.
+  /// Sets the [CodeMeltedAPI.spa] theme mode.
+  /// @nodoc
   set themeMode(ThemeMode v) {
     CSpaView.themeMode = v;
   }
 
-  /// Sets / removes the [CSpaAPI.spa] title.
+  /// Sets / removes the [CodeMeltedAPI.spa] title.
+  /// @nodoc
   set title(String? v) {
     CSpaView.title = v;
   }
@@ -1136,11 +1148,13 @@ class CodeMeltedAPI {
   }
 
   /// Sets up the ability to detect resize events with the SPA.
+  /// @nodoc
   set onResizeEvent(OnResizeEventHandler? v) {
     CSpaView.onResizeEvent = v;
   }
 
-  /// Sets / removes the [CSpaAPI.spa] header area.
+  /// Sets / removes the [CodeMeltedAPI.spa] header area.
+  /// @nodoc
   void header({
     List<Widget>? actions,
     bool automaticallyImplyLeading = true,
@@ -1159,7 +1173,8 @@ class CodeMeltedAPI {
     );
   }
 
-  /// Sets / removes the [CSpaAPI.spa] content area.
+  /// Sets / removes the [CodeMeltedAPI.spa] content area.
+  /// @nodoc
   void content({
     required Widget? body,
     bool extendBody = false,
@@ -1172,7 +1187,8 @@ class CodeMeltedAPI {
     );
   }
 
-  /// Sets / removes the [CSpaAPI.spa] footer area.
+  /// Sets / removes the [CodeMeltedAPI.spa] footer area.
+  /// @nodoc
   void footer({
     List<Widget>? actions,
     bool automaticallyImplyLeading = true,
@@ -1191,7 +1207,8 @@ class CodeMeltedAPI {
     );
   }
 
-  /// Sets / removes the [CSpaAPI.spa] floating action button.
+  /// Sets / removes the [CodeMeltedAPI.spa] floating action button.
+  /// @nodoc
   void floatingActionButton({
     Widget? button,
     FloatingActionButtonLocation? location,
@@ -1199,42 +1216,50 @@ class CodeMeltedAPI {
     CSpaView.floatingActionButton(button: button, location: location);
   }
 
-  /// Sets / removes the [CSpaAPI.spa] drawer.
+  /// Sets / removes the [CodeMeltedAPI.spa] drawer.
+  /// @nodoc
   void drawer({Widget? header, List<Widget>? items}) {
     CSpaView.drawer(header: header, items: items);
   }
 
-  /// Sets / removes the [CSpaAPI.spa] end drawer.
+  /// Sets / removes the [CodeMeltedAPI.spa] end drawer.
+  /// @nodoc
   void endDrawer({Widget? header, List<Widget>? items}) {
     CSpaView.endDrawer(header: header, items: items);
   }
 
-  /// Closes the [CSpaAPI.spa] drawer or end drawer.
+  /// Closes the [CodeMeltedAPI.spa] drawer or end drawer.
+  /// @nodoc
   void closeDrawer() {
     CSpaView.closeDrawer();
   }
 
-  /// Opens the [CSpaAPI.spa] drawer or end drawer.
+  /// Opens the [CodeMeltedAPI.spa] drawer or end drawer.
+  /// @nodoc
   void openDrawer({bool isEndDrawer = false}) {
     CSpaView.openDrawer(isEndDrawer: isEndDrawer);
   }
 
   /// Provides the ability to get items from the global app state.
+  /// @nodoc
   T getAppState<T>({required String key}) {
     return CSpaView.uiState.get<T>(key: key);
   }
 
   /// Provides the ability to set items on the global app state.
+  /// @nodoc
   void setAppState<T>({required String key, required T value}) {
     CSpaView.uiState.set<T>(key: key, value: value);
   }
 
   /// Retrieves the total height of the specified context.
+  /// @nodoc
   double height(BuildContext context) {
     return MediaQuery.of(context).size.height;
   }
 
   /// Retrieves the available width of the specified context.
+  /// @nodoc
   double width(BuildContext context) {
     return MediaQuery.of(context).size.width;
   }
@@ -1251,6 +1276,7 @@ class CodeMeltedAPI {
 
   /// Runs a task and returns any calculated results. Can be scheduled into
   /// the future if necessary if delay is specified.
+  /// @nodoc
   Future<dynamic> runTask({
     required CTask task,
     dynamic data,
@@ -1264,6 +1290,7 @@ class CodeMeltedAPI {
   }
 
   /// Starts a repeating [CTask] on the specified interval.
+  /// @nodoc
   int startTimer({required CTask task, required int interval}) {
     assert(interval > 0, "interval specified must be greater than 0.");
     var timer = Timer.periodic(
@@ -1278,6 +1305,7 @@ class CodeMeltedAPI {
   }
 
   /// Stops the currently running timer.
+  /// @nodoc
   void stopTimer({required int timerId}) {
     assert(_data.containsKey(timerId), "timerId was not found.");
     (_data[timerId] as Timer).cancel();
@@ -1285,6 +1313,7 @@ class CodeMeltedAPI {
   }
 
   /// Will allow for a delay in an asynchronous function.
+  /// @nodoc
   Future<void> sleep({required int delay}) async {
     assert(delay >= 0, "delay specified must be greater than 0.");
     return Future.delayed(Duration(milliseconds: delay));
@@ -1296,6 +1325,7 @@ class CodeMeltedAPI {
 
   /// Creates a ThemeData object but it only exposes the material3 themes so
   /// that any application theming is done with the future in mind.
+  /// @nodoc
   ThemeData createTheme({
     ActionIconThemeData? actionIconTheme,
     AppBarTheme? appBarTheme,
@@ -1428,6 +1458,7 @@ class CodeMeltedAPI {
   /// particular buttons theme data object but to set the button individually,
   /// utilize the style override. These are stateless buttons so any changing
   /// of them is up to the parent.
+  /// @nodoc
   Widget button({
     required void Function() onPressed,
     required String title,
@@ -1522,6 +1553,7 @@ class CodeMeltedAPI {
 
   /// Provides the ability to center a widget with the ability to specify
   /// the visibility of the child tree of widgets wrapped by this.
+  /// @nodoc
   Widget center({
     Key? key,
     Widget? child,
@@ -1537,6 +1569,7 @@ class CodeMeltedAPI {
   }
 
   /// Layout to put widgets vertically.
+  /// @nodoc
   Widget column({
     required List<Widget> children,
     Key? key,
@@ -1555,6 +1588,7 @@ class CodeMeltedAPI {
 
   /// Creates a customizable combo box drop down with the ability to implement
   /// a search box to filter the combo box.
+  /// @nodoc
   Widget comboBox<T>({
     required List<DropdownMenuEntry<T>> dropdownMenuEntries,
     Key? key,
@@ -1612,6 +1646,7 @@ class CodeMeltedAPI {
   /// The most basic component for setting up a UI. This widget can be utilized
   /// to setup padding, margins, or build custom stylized widgets combining
   /// said widget or layouts to build a more complex widget.
+  /// @nodoc
   Widget container({
     Key? key,
     AlignmentGeometry? alignment,
@@ -1648,6 +1683,7 @@ class CodeMeltedAPI {
 
   /// Creates a vertical or horizontal spacer between widgets that can be
   /// hidden if necessary.
+  /// @nodoc
   Widget divider({
     Key? key,
     double? height,
@@ -1663,6 +1699,7 @@ class CodeMeltedAPI {
   }
 
   /// Provides the ability to have an expansion list of widgets.
+  /// @nodoc
   Widget expansionTile({
     required List<Widget> children,
     required Widget title,
@@ -1700,6 +1737,7 @@ class CodeMeltedAPI {
 
   /// Provides a wrapper for an asynchronous widget to load data and then
   /// present it when completed.
+  /// @nodoc
   Widget futureBuilder<T>({
     required Widget Function(BuildContext, AsyncSnapshot<T>) builder,
     required Future<T>? future,
@@ -1716,6 +1754,7 @@ class CodeMeltedAPI {
 
   /// Creates a scrollable grid layout of widgets that based on the
   /// crossAxisCount.
+  /// @nodoc
   Widget gridView({
     required int crossAxisCount,
     required List<Widget> children,
@@ -1750,6 +1789,7 @@ class CodeMeltedAPI {
   /// enumerated value and display it when available based on the
   /// characteristics specified with the widget. No theme controls this widget
   /// type so the characteristics are unique to each widget created.
+  /// @nodoc
   Image image({
     required CImageType type,
     required dynamic src,
@@ -1798,7 +1838,8 @@ class CodeMeltedAPI {
   }
 
   /// Provides a basic text label with the ability to make it multi-line, clip
-  /// it if to long, and if necessary, make it a hyperlink.
+  /// it if to long.
+  /// @nodoc
   Widget label({
     required String data,
     Key? key,
@@ -1816,6 +1857,7 @@ class CodeMeltedAPI {
   }
 
   /// Creates a selectable widget to be part of a view of selectable items.
+  /// @nodoc
   Widget listTile({
     required void Function() onTap,
     Key? key,
@@ -1857,6 +1899,7 @@ class CodeMeltedAPI {
 
   /// Provides a list view of widgets with automatic scrolling that can be
   /// set for vertical (default) or horizontal.
+  /// @nodoc
   Widget listView({
     required List<Widget> children,
     Key? key,
@@ -1880,6 +1923,7 @@ class CodeMeltedAPI {
   }
 
   /// Layout to put widgets horizontally.
+  /// @nodoc
   Widget row({
     required List<Widget> children,
     Key? key,
@@ -1898,6 +1942,7 @@ class CodeMeltedAPI {
 
   /// Creates a stacked widget based on the children allowing for a custom
   /// look and feel for "special" widgets that stack bottom to top and overlap.
+  /// @nodoc
   Widget stack({
     required List<Widget> children,
     Key? key,
@@ -1918,6 +1963,7 @@ class CodeMeltedAPI {
 
   /// Constructs a tab view of content to allow for users to switch between
   /// widgets of data.
+  /// @nodoc
   Widget tabbedView({
     required List<CTabItem> tabItems,
     Key? key,
@@ -1954,6 +2000,7 @@ class CodeMeltedAPI {
   /// and providing feedback to a user. It exposes the most common text field
   /// options to allow for building custom text fields
   /// (i.e. spin controls, number only, etc.).
+  /// @nodoc
   Widget textField({
     bool autocorrect = true,
     bool enableSuggestions = true,
@@ -2048,6 +2095,7 @@ class CodeMeltedAPI {
 
   /// Provides the ability to show / hide a widget and setup how to treat
   /// other aspects of the widget.
+  /// @nodoc
   Widget visibility({
     required Widget child,
     Key? key,
@@ -2071,6 +2119,7 @@ class CodeMeltedAPI {
   }
 
   /// Provides an embedded web view via an iFrame to load other HTML documents.
+  /// @nodoc
   Widget webView({required CWebViewController controller}) {
     // Create the IFrame.
     var iFrameElement = web.HTMLIFrameElement();

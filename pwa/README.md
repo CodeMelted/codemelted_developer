@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted DEV | PWA Modules
-PUBLISH_DATE: 2024-12-28
+PUBLISH_DATE: 2025-01-08
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: The CodeMelted DEV | PWA modules is comprised of three powerful modules for a developer to fully take advantage of what the web browser as a runtime has to offer. The `codemelted.js` module is the heart of these modules. It offers both backend processing via the Deno Runtime along with access to Web Browser APIs when constructing html SPAs. The `codemelted.dart` module brings the power of Flutter to the web with its rich widget toolset leveraging a professional polish and feel without needing HTML or CSS. Last is the `codemelted.wasm` module. This offers a Numeric Processing Unit (NPU) for number crunching large data sets.
@@ -12,7 +12,7 @@ DESCRIPTION: The CodeMelted DEV | PWA modules is comprised of three powerful mod
 
 The CodeMelted DEV | PWA modules is comprised of three powerful modules for a developer to fully take advantage of what the web browser as a runtime has to offer. The `codemelted.js` module is the heart of these modules. It offers both backend processing via the Deno Runtime along with access to Web Browser APIs when constructing html SPAs. The `codemelted.dart` module brings the power of Flutter to the web with its rich widget toolset leveraging a professional polish and feel without needing HTML or CSS. Last is the `codemelted.wasm` module. This offers a Numeric Processing Unit (NPU) for number crunching large data sets.
 
-**LAST UPDATED:** 2024-12-28
+**LAST UPDATED:** 2025-01-08
 
 <center>
   <br />
@@ -32,13 +32,14 @@ The CodeMelted DEV | PWA modules is comprised of three powerful modules for a de
     - [From Web](#from-web)
 - [USAGE](#usage)
   - [codemelted.dart Module](#codemelteddart-module-1)
-    - [console Namespace](#console-namespace)
-    - [disk Namespace](#disk-namespace)
-    - [json Namespace](#json-namespace)
+    - [console Use Case](#console-use-case)
+    - [disk Use Case](#disk-use-case)
+    - [json Use Case](#json-use-case)
   - [codemelted.js Module](#codemeltedjs-module-1)
-    - [console Namespace](#console-namespace-1)
-    - [disk Namespace](#disk-namespace-1)
-    - [json Namespace](#json-namespace-1)
+    - [console Use Case](#console-use-case-1)
+    - [disk Use Case](#disk-use-case-1)
+    - [file Use Case](#file-use-case)
+    - [json Use Case](#json-use-case-1)
 - [LICENSE](#license)
 
 # GETTING STARTED
@@ -52,7 +53,7 @@ dependencies:
   codemelted_developer:
     git:
       url: https://github.com/CodeMelted/codemelted_developer.git
-      ref: main # branch or tag as codemelted.dart_X.Y.Z
+      ref: main # branch or tagged as CodeMeltedDEV_rYYYY-MM-DD
 ```
 
 Once added, when you deploy, the `codemelted.js` and `codemelted.wasm` modules are available to your flutter web app via the `codemelted.dart` module but you can also directly access them in your own JavaScript files via:
@@ -74,7 +75,7 @@ You can clone the repo:
 git clone https://github.com/CodeMelted/codemelted_developer.git
 ```
 
-You can download the tagged version [codemelted.js_X.Y.Z](https://github.com/CodeMelted/codemelted_developer/releases) and place it into your project structure.
+You can download the tagged version [CodeMeltedDEV_rYYYY-MM-DD](https://github.com/CodeMelted/codemelted_developer/releases) and place it into your project structure.
 
 Then include the module as follows:
 
@@ -131,7 +132,7 @@ Both the `codemelted.dart` and `codemelted.js` modules use named parameters for 
 
 ```dart
 // No {} in the function call.
-codemelted.namespace.function(
+codemelted.function(
   param1: "something",
   param2: true
 );
@@ -139,7 +140,7 @@ codemelted.namespace.function(
 
 ```javascript
 // {} required as the "named" part is an object literal.
-codemelted.namespace.function({
+codemelted.function({
   param1: "something",
   param2: true
 });
@@ -148,15 +149,15 @@ codemelted.namespace.function({
 
 The following are examples when building a Flutter web app utilizing the `codemelted.dart` module.
 
-### console Namespace
+### console Use Case
 
 Not applicable to this module.
 
-### disk Namespace
+### disk Use Case
 
 - <mark>TODO: readEntireFile / writeEntireFile are applicable. Need to integrate into the module</mark>
 
-### json Namespace
+### json Use Case
 
 - The `typedef CArray` along with the `extension CArrayExtension` provides the different `CArray` methods along with a `ChangeNotifier` to alert when data changes occur via the `notifyAll()`.
 - The `typedef CObject` along with the `extension CObjectExtension` provides the different `CObject` methods for type checking along with a `ChangeNotifier` to alert when data changes occur via the `notifyAll()`.
@@ -167,18 +168,18 @@ Not applicable to this module.
 
 The following are examples when building browser / deno script files utilizing the `codemelted.dart` module.
 
-### console Namespace
+### console Use Case
 
 ```js
 // Provides just a [Enter] prompt
-codemelted.console.alert();
+codemelted.alertConsole();
 // With custom message
-codemelted.console.alert({message: "Thing Happened"});
+codemelted.alertConsole({message: "Thing Happened"});
 
 // Provides just a CONFIRM [y/N] prompt
-let continue = codemelted.console.confirm();
+let continue = codemelted.confirmConsole();
 // With custom message
-let continue = codemelted.console.confirm({message: "Are you sure"});
+let continue = codemelted.confirmConsole({message: "Are you sure"});
 
 // Provide a choice selection
 // ------
@@ -190,106 +191,112 @@ let continue = codemelted.console.confirm({message: "Are you sure"});
 // 2. Car
 //
 // Make a Selection [0 - 2]:
-let choice = codemelted.console.choose({
+let choice = codemelted.chooseConsole({
   choices: ["Jeep", "Dodge", "Car"]
 });
 // With custom message
-let choice = codemelted.console.choose({
+let choice = codemelted.chooseConsole({
   message: "The Best Car Is",
   choices: ["Jeep", "Dodge", "Car"]
 });
 
 // Prompt for a password
-let password = codemelted.console.password();
+let password = codemelted.passwordConsole();
 // With custom message
-let password = codemelted.console.password({message: "Enter Password"});
+let password = codemelted.passwordConsole({message: "Enter Password"});
 
 // Prompt for an answer
-let answer = codemelted.console.prompt();
+let answer = codemelted.promptConsole();
 // With custom message
-let answer = codemelted.console.prompt({message: "Answer to Life:"});
+let answer = codemelted.promptConsole({message: "Answer to Life:"});
 
 // Write a blank line
-codemelted.console.writeln();
+codemelted.writelnConsole();
 // Write a line of text
-codemelted.console.writeln({message: "Yo"});
+codemelted.writelnConsole({message: "Yo"});
 ```
 
-### disk Namespace
+### disk Use Case
 
 ```javascript
 // Queryable properties
-let homePath = codemelted.disk.homePath;
-let pathSeparator = codemelted.disk.pathSeparator;
-let tempPath = codemelted.disk.tempPath;
+let homePath = codemelted.homePath;
+let pathSeparator = codemelted.pathSeparator;
+let tempPath = codemelted.tempPath;
 
 // Management of the system disk.
-let success = codemelted.disk.cp({
+let success = codemelted.cp({
   src: "source path or file",
   dest: "dest path or file",
 });
 
-let success = codemelted.disk.exists({
+let success = codemelted.exists({
   filename: "file or directory",
 });
 
-let files = codemelted.disk.ls({
+let files = codemelted.ls({
   filename: "directory to list or singular file"
 });
 
-let success = codemelted.disk.mkdir({
+let success = codemelted.mkdir({
   filename: "directory to create"
 });
 
-let success = codemelted.disk.mv({
+let success = codemelted.mv({
   src: "source path or file",
   dest: "dest path or file",
 });
 
-let success = codemelted.disk.rm({
+let success = codemelted.rm({
   filename: "directory or file",
 });
 
+
+```
+
+### file Use Case
+
+```javascript
 // Read / Write Entire files
-let data = await codemelted.disk.readEntireFile({
+let data = await codemelted.readEntireFile({
   filename: `${tempPath}/results/writeTextFile.txt`
 });
-await codemelted.disk.writeEntireFile({
+await codemelted.writeEntireFile({
   filename: `${tempPath}/results/writeFile.txt`,
   data: new Uint8Array([42]),
 });
 ```
 
-### json Namespace
+### json Use Case
 
 ```javascript
 // Convert string to other types of data
-let isTrue = codemelted.json.asBool({data: "yes"});
-let aNumber = codemelted.json.asDouble({data: "42.2"});
+let isTrue = codemelted.asBool({data: "yes"});
+let aNumber = codemelted.asDouble({data: "42.2"});
 // Will truncate if a double
-let aNumber = codemelted.json.asInt({data: "42"});
+let aNumber = codemelted.asInt({data: "42"});
 
 // Validating JSON data types
 // Use the tryXXXX equivalents to throw exceptions on invalid data.
-let success = codemelted.json.checkHasProperty({
+let success = codemelted.checkHasProperty({
   obj: testObj,
   key: "field6",
 });
-let success = codemelted.json.checkType({
+let success = codemelted.checkType({
   type: "function",
   data: (a, b) => {},
   count: 2,
 });
-let success = codemelted.json.checkValidUrl({
+let success = codemelted.checkValidUrl({
   data: "https://codemelted.com"
 });
 
 // Create JSON appropriate arrays and objects
 // Exclude the data parameter to get an empty object.
-let data = codemelted.json.createArray({
+let data = codemelted.createArray({
   data: ["1", 2, true, null]
 });
-let data = codemelted.json.createObject({
+let data = codemelted.createObject({
   data: {
     field1: "field1",
     field2: 2,
@@ -301,12 +308,12 @@ let data = codemelted.json.createObject({
 });
 
 // Stringify and parse to transmit / receive JSON data
-let stringified = codemelted.json.stringify({
+let stringified = codemelted.stringify({
   data: {
     field1: "field1",
   }
 });
-let obj = codemelted.json.parse({data: stringified});
+let obj = codemelted.parse({data: stringified});
 ```
 
 <mark>TBD</mark>

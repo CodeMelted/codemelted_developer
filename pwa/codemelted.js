@@ -3,11 +3,12 @@
 /**
  * @file The JavaScript implementation of the CodeMelted DEV | PWA Modules.
  * @author Mark Shaffer
- * @version 0.3.1 (Last Modified 2025-01-05) <br />
- * 0.3.1 (2025-01-05): <br />
+ * @version 0.3.1 (Last Modified 2025-01-08) <br />
  * - Fleshed out the Async I/O use cases. Not tested. <br />
  * - Brought in all previous prototype work into the finalized module <br />
  *   design. <br />
+ * - Removed namespace paradigm to allow just a collection of functions <br />
+ *   on the codemelted module. <br />
  * 0.3.0 (2024-12-28): <br />
  * - Completed the testing / documenting of the console namespace. <br />
  * - Completed testing / documenting of the disk use case. <br />
@@ -457,7 +458,7 @@ export default Object.freeze({
    * @param {string} [params.message = ""] The message to display to STDOUT.
    * @returns {void}
    */
-  writeln: function({message = ""} = {}) {
+  writelnConsole: function({message = ""} = {}) {
     this.tryDeno();
     this.tryType({type: "string", data: message});
     globalThis.console.log(message);
