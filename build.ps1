@@ -133,97 +133,17 @@ function build([string[]]$params) {
     Write-Host
   }
 
-  # Runs the flutter build for the main page before doing all the support modules.
-  function codemelted_developer {
-    message "Now building codemelted_developer module"
-    Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
+  # ---------------------------------------------------------------------------
+  # [Testing Functions] -------------------------------------------------------
+  # ---------------------------------------------------------------------------
+  # The following functions support the --test option and serve as the
+  # options that kicks off with the --build option which runs the tests and
+  # then generates all the documentation for each of the modules.
 
-    message "Running flutter test framework"
-    flutter test --platform chrome
-
-    message "Now generating dart doc"
-    dart doc --output "docs"
-    Copy-Item -Path CHANGELOG.md -Destination docs -Force
-
-    # Fix the title
-    [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | Modules")
-    [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
-    $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
-    $htmlData = $htmlData.Replace("codemelted_developer - Dart API docs", "CodeMelted DEV | Modules")
-    $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
-    $htmlData = $htmlData.Replace(".png`"><br>", ".png`"><br>`n$htmlNavTemplate")
-    $htmlData = $htmlData.Replace("README.md", "index.html")
-    $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
-    $htmlData | Out-File docs/index.html -Force
-
-    $files = Get-ChildItem -Path docs/codemelted/*.html, docs/codemelted/*/*.html -Exclude "*sidebar*"
-    foreach ($file in $files) {
-      [string]$htmlData = Get-Content -Path $file.FullName -Raw
-      $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
-      $htmlData = $htmlData.Replace("</head>", '<link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css"><script src="https://codemelted.com/assets/js/footer.js" defer></script></head>')
-      $htmlData = $htmlData.Replace(".png`"><br>", ".png`"><br>`n$htmlNavTemplate")
-      $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
-      $htmlData | Out-File $file.FullName -Force
-    }
-
-    Copy-Item -Path design-notes -Destination docs -Recurse
-    message "codemelted_developer module build completed."
-  }
-
-  # Builds the codemelted_pwa module.
-  function codemelted_pwa {
-    message "Now building pwa module"
-    Set-Location $PSScriptRoot/pwa
-    Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
-
-    message "Now Running Deno tests"
-    deno test --allow-env --allow-net --allow-read --allow-sys --allow-write --coverage=coverage --no-config codemelted_test.ts
-    deno coverage coverage --lcov > coverage/lcov.info
-
-    if ($IsLinux -or $IsMacOS) {
-      genhtml -o coverage --ignore-errors unused,inconsistent --dark-mode coverage/lcov.info
-    }
-    else {
-      $exists = Test-Path -Path $GEN_HTML_PERL_SCRIPT -PathType Leaf
-      if ($exists) {
-        perl $GEN_HTML_PERL_SCRIPT -o coverage coverage/lcov.info
-      }
-      else {
-        Write-Host "WARNING: genhtml not installed for windows. Run " +
-        "'choco install lcov' for pwsh terminal as Admin to install it."
-      }
-    }
-
-    # Generate and cleanup the documentation
-    message "Now generating the jsdoc"
-    jsdoc ./codemelted.js --readme ./README.md --destination docs
-
-    [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | PWA Modules")
-    $files = Get-ChildItem -Path docs/*.html
-    foreach ($file in $files) {
-      [string]$htmlData = Get-Content -Path $file.FullName -Raw
-      $htmlData = $htmlData.Replace("README.md", "index.html")
-      $htmlData = $htmlData.Replace("/></a><br />", "/></a><br />`n$htmlNavTemplate")
-      $htmlData = $htmlData.Replace("</body>", "`n$footerTemplate</body>")
-      $htmlData = $htmlData.Replace("</head>", '<meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="https://codemelted.com/favicon.png"></head>')
-      $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
-      $htmlData | Out-File $file.FullName -Force
-    }
-
-    # Some final moves to complete the module documentation.
-    Move-Item -Path coverage -Destination docs -Force
-    Copy-Item jsdoc-default.css -Destination docs/styles
-    Copy-Item codemelted.js -Destination docs
-    Copy-Item codemelted_test.html -Destination docs
-
-    Set-Location $PSScriptRoot
-
-    message "pwa module build completed."
-  }
-
-  # Builds the npu module.
-  function codemelted_npu {
-    message "Now building npu module."
+  # Builds the npu module. This is the center of all the different modules
+  # so will always be the first step in any sequence of options.
+  function build_codemelted_npu {
+    message "Now building codemelted.cpp npu module."
     Set-Location $PSScriptRoot/npu
     Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
 
@@ -254,15 +174,116 @@ function build([string[]]$params) {
     message "Compiling WASM Module"
     emcc --std=c++20 codemelted.cpp -o codemelted.wasm --no-entry
     Copy-Item -Path codemelted.wasm -Destination docs/codemelted.wasm -Force
-    Copy-Item -Path codemelted.wasm -Destination ../test/codemelted.wasm -Force
+    Copy-Item -Path codemelted.wasm -Destination ../pwa/codemelted.wasm -Force
 
     Set-Location $PSScriptRoot
-    message "npu module build completed."
+    message "codemelted.cpp npu module build completed."
   }
 
-  # Builds the codemelted_terminal module.
-  function codemelted_terminal {
-    message "Now building terminal module"
+  # This is the next item in the testing sequence. It tests the codemelted.js module
+  # then moves it along with the WASM module (previous step) for the codemelted.dart
+  # testing.
+  function test_codemelted_js {
+    # Build our support WASM module
+    build_codemelted_npu
+
+    # Now test the codemelted.js module
+    message "Now testing codemelted.js module"
+
+    Set-Location $PSScriptRoot/pwa
+    Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
+
+    deno test --allow-env --allow-net --allow-read --allow-sys --allow-write --coverage=coverage --no-config codemelted_test.ts
+    deno coverage coverage --lcov > coverage/lcov.info
+
+    if ($IsLinux -or $IsMacOS) {
+      genhtml -o coverage --ignore-errors unused,inconsistent --dark-mode coverage/lcov.info
+    }
+    else {
+      $exists = Test-Path -Path $GEN_HTML_PERL_SCRIPT -PathType Leaf
+      if ($exists) {
+        perl $GEN_HTML_PERL_SCRIPT -o coverage coverage/lcov.info
+      }
+      else {
+        Write-Host "WARNING: genhtml not installed for windows. Run " +
+        "'choco install lcov' for pwsh terminal as Admin to install it."
+      }
+    }
+
+    # Move test elements to the docs
+    Move-Item -Path coverage -Destination docs -Force
+    Copy-Item codemelted.js -Destination docs
+    Copy-Item codemelted.js -Destination ../test/codemelted.js -Force
+    Copy-Item -Path codemelted.wasm -Destination ../test/codemelted.wasm -Force
+    Copy-Item codemelted_test.html -Destination docs
+
+    Set-Location $PSScriptRoot
+    message "codemelted.js module testing completed."
+  }
+
+  # The final step in testing all the modules is the codemelted.dart module.
+  # this will kick off the test_codemelted_js which kicks off the
+  # build_codemelted_npu. Once those are completed, we have all the support
+  # modules to support the codemelted.dart testing.
+  function test_codemelted_dart {
+    # First test our codemelted.js module
+    test_codemelted_js
+
+    Set-Location $PSScriptRoot
+    message "Now testing the codemelted.dart module"
+
+    Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
+    flutter test --platform chrome
+
+    message "codemelted.dart module testing completed."
+  }
+
+
+  # ---------------------------------------------------------------------------
+  # [Build Scripts] -----------------------------------------------------------
+  # ---------------------------------------------------------------------------
+  # These scripts are in the order for which the documentation needs building.
+  # The test_codemelted_dart will be kicked-off first setting the stage for
+  # all the documentation building for deployment.
+
+
+  # This is the start of the process for all the module builds
+  function build_codemelted_js {
+    # This cleans all of our doc directories in each of the modules and runs
+    # the tests. Then we can build all of our documentation.
+    test_codemelted_dart
+
+    # Now go build the module
+    message "Now generating the codemelted.js SDK documentation."
+    Set-Location $PSScriptRoot/pwa
+
+    message "Now generating the jsdoc"
+    jsdoc ./codemelted.js --readme ./README.md --destination docs
+
+    [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | PWA Modules")
+    $files = Get-ChildItem -Path docs/*.html
+    foreach ($file in $files) {
+      [string]$htmlData = Get-Content -Path $file.FullName -Raw
+      $htmlData = $htmlData.Replace("README.md", "index.html")
+      $htmlData = $htmlData.Replace("/></a><br />", "/></a><br />`n$htmlNavTemplate")
+      $htmlData = $htmlData.Replace("</body>", "`n$footerTemplate</body>")
+      $htmlData = $htmlData.Replace("</head>", '<meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="https://codemelted.com/favicon.png"></head>')
+      $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
+      $htmlData | Out-File $file.FullName -Force
+    }
+    Copy-Item jsdoc-default.css -Destination docs/styles
+
+    Set-Location $PSScriptRoot
+    message "codemelted.js module documentation generated."
+  }
+
+  # Builds the codemelted_ps1 module documentation.
+  function build_codemelted_ps1 {
+    # First build the codemelted.js documentation
+    build_codemelted_js
+
+    # Now go build the codemelted_ps1 documentation.
+    message "Now building the codemelted.ps1 module documentation."
 
     Set-Location $PSScriptRoot/terminal
     Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
@@ -284,18 +305,43 @@ function build([string[]]$params) {
     $html | Out-File docs/index.html -Force
 
     Set-Location $PSScriptRoot
-    message "terminal module build completed."
+    message "codemelted.ps1 module documentation completed."
   }
 
-  # Responsible for building all the individual module components.
-  function build_all {
-    # Build the supporting modules
-    codemelted_pwa
-    codemelted_npu
-    codemelted_terminal
+  # Runs the flutter build for the main page before doing all the support modules.
+  function build_codemelted_dart {
+    # First build codemelted.ps1 documentation
+    build_codemelted_ps1
 
-    # Build the main module documentation.
-    codemelted_developer
+    # Now build our module items.
+    message "Now building the codemelted.dart module documentation"
+    Set-Location $PSScriptRoot
+
+    message "Now generating dart doc"
+    dart doc --output "docs"
+    Copy-Item -Path CHANGELOG.md -Destination docs -Force
+
+    # Fix the title
+    [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | Modules")
+    [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
+    $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
+    $htmlData = $htmlData.Replace("codemelted_developer - Dart API docs", "CodeMelted DEV | Modules")
+    $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
+    $htmlData = $htmlData.Replace(".png`"><br>", ".png`"><br>`n$htmlNavTemplate")
+    $htmlData = $htmlData.Replace("README.md", "index.html")
+    $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
+    $htmlData | Out-File docs/index.html -Force
+
+    $files = Get-ChildItem -Path docs/codemelted/*.html, docs/codemelted/*/*.html -Exclude "*sidebar*"
+    foreach ($file in $files) {
+      [string]$htmlData = Get-Content -Path $file.FullName -Raw
+      $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
+      $htmlData = $htmlData.Replace("</head>", '<link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css"><script src="https://codemelted.com/assets/js/footer.js" defer></script></head>')
+      $htmlData = $htmlData.Replace(".png`"><br>", ".png`"><br>`n$htmlNavTemplate")
+      $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
+      $htmlData | Out-File $file.FullName -Force
+    }
+    Copy-Item -Path design-notes -Destination docs -Recurse
 
     # Now assemble the site.
     Remove-Item -Path developer -Recurse -Force -ErrorAction Ignore
@@ -308,7 +354,14 @@ function build([string[]]$params) {
     Copy-Item -Path pwa/docs/* -Destination developer/pwa/ -Recurse
     Copy-Item -Path npu/docs/* -Destination developer/npu/ -Recurse
     Copy-Item -Path terminal/docs/* -Destination developer/terminal/ -Recurse
+
+    Set-Location $PSScriptRoot
+    message "codemelted.dart module documentation completed."
   }
+
+  # ---------------------------------------------------------------------------
+  # [Deployment Scripts] ------------------------------------------------------
+  # ---------------------------------------------------------------------------
 
   # Handles the deployment to codemelted.com/developer
   function deploy {
@@ -333,26 +386,15 @@ function build([string[]]$params) {
     Write-Host "MESSAGE: Publishing completed."
   }
 
-  # Quick access to testing the codemelted.dart module
-  function test_codemelted_dart {
-    flutter test --platform chrome
-  }
+  # ---------------------------------------------------------------------------
+  # [Main Execution] ----------------------------------------------------------
+  # ---------------------------------------------------------------------------
 
-  # Quick access to testing the codemelted.js module
-  function test_codemelted_js {
-    Set-Location $PSScriptRoot/pwa
-    deno test --allow-env --allow-net --allow-read --allow-sys --allow-write `
-      --no-config codemelted_test.ts
-    Set-Location $PSScriptRoot
-  }
-
-  # Main Execution
   switch ($params[0]) {
-    "--build" { build_all }
+    "--test" { test_codemelted_dart }
+    "--build" { build_codemelted_dart }
     "--deploy" { deploy }
     "--publish-script" { publish_script }
-    "--test-codemelted-dart" { test_codemelted_dart }
-    "--test-codemelted-js" { test_codemelted_js }
     default { Write-Host "ERROR: Invalid parameter specified." }
   }
 }

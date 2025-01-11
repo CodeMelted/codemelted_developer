@@ -31,7 +31,12 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   // This is called once after ALL tests
-  setUpAll(() async {});
+  setUpAll(() async {
+    var success = await codemelted.init(
+      codemeltedJsModuleUrl: "./codemelted.js",
+    );
+    expect(success, isTrue);
+  });
 
   // This is called once before EVERY test
   setUp(() {});

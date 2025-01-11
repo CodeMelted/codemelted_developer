@@ -29,11 +29,13 @@ DEALINGS IN THE SOFTWARE.
 /// Represents the Flutter SDK bindings for the CodeMelted DEV | PWA Modules.
 /// Selecting this will give the construct of those SDK binding. To see
 /// examples of the Flutter SDK / JavaScript SDK (plus specifics), click on
-/// the CodeMelted | PWA SDK button at the top of the page.
+/// the CodeMelted DEV | PWA SDK button at the top of the page.
 library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:ui_web';
 
 import 'package:flutter/foundation.dart';
@@ -426,6 +428,34 @@ enum CSandboxAllow {
 /// tree.
 /// @nodoc
 typedef OnResizeEventHandler = bool Function(Size);
+
+/// Identifies the scheme to utilize as part of the module open
+/// function.
+/// @nodoc
+enum CSchemeType {
+  /// Will open the program associated with the file.
+  file("file:"),
+
+  /// Will open a web browser with http.
+  http("http://"),
+
+  /// Will open a web browser with https.
+  https("https://"),
+
+  /// Will open the default email program to send an email.
+  mailto("mailto:"),
+
+  /// Will open the default telephone program to make a call.
+  tel("tel:"),
+
+  /// Will open the default texting app to send a text.
+  sms("sms:");
+
+  /// Identifies the leading scheme to form a URL.
+  final String scheme;
+
+  const CSchemeType(this.scheme);
+}
 
 /// Provides the Single Page Application for the [CodeMeltedAPI.spa]
 /// property that returns the main view.
@@ -1108,8 +1138,66 @@ class CodeMeltedAPI {
   }
 
   // --------------------------------------------------------------------------
+  // [Runtime Use Case] -------------------------------------------------------
+  // --------------------------------------------------------------------------
+
+  /// Provides the ability to load either a JavaScript ES6 module or a WASM
+  /// into the codemelted.dart environment.
+  /// @nodoc
+  Future<JSObject?> importJSModule({
+    required String moduleUrl,
+  }) async {
+    try {
+      return importModule(moduleUrl.toJS).toDart;
+    } catch (err) {
+      // TODO: How to signal error.
+      return null;
+    }
+  }
+
+  /// Will load a WASM module into the flutter web context. Returns null if
+  /// unable to be loaded.
+  /// @nodoc
+  Future<web.WebAssemblyInstantiatedSource?> importWASM(String url) async {
+    try {
+      return (web.WebAssembly.instantiateStreaming(
+        web.window.fetch(url.toJS),
+      ).toDart);
+    } catch (err) {
+      // TODO: How to signal error.
+      return null;
+    }
+  }
+
+  // --------------------------------------------------------------------------
   // [SPA Use Case] -----------------------------------------------------------
   // --------------------------------------------------------------------------
+
+  /// Determines if the SPA is an installed PWA or not.
+  bool get isPWA {
+    assert(
+      _codemeltedJsModule != null,
+      "codemelted.js Module not initialized.",
+    );
+    return _codemeltedJsModule!
+        .getProperty<JSBoolean>(
+          "isPWA".toJS,
+        )
+        .toDart;
+  }
+
+  /// Determines if the flutter app is running in a touch enabled environment.
+  bool get isTouchEnabled {
+    assert(
+      _codemeltedJsModule != null,
+      "codemelted.js Module not initialized.",
+    );
+    return _codemeltedJsModule!
+        .getProperty<JSBoolean>(
+          "isTouchEnabled".toJS,
+        )
+        .toDart;
+  }
 
   /// Accesses a Single Page Application (SPA) for the overall module. This
   /// is called after being configured via the appXXX functions in the runApp
@@ -1151,6 +1239,33 @@ class CodeMeltedAPI {
   /// @nodoc
   set onResizeEvent(OnResizeEventHandler? v) {
     CSpaView.onResizeEvent = v;
+  }
+
+  // TBD
+  // @nodoc
+  void open({
+    required CSchemeType scheme,
+    bool popupWindow = false,
+    String? mailtoParams,
+    String? url,
+    String target = "_blank",
+    double? width,
+    double? height,
+  }) {
+    assert(
+      _codemeltedJsModule != null,
+      "codemelted.js Module not initialized.",
+    );
+    var params = <String, dynamic>{
+      "scheme": scheme.scheme,
+      "popupWindow": popupWindow,
+      "mailtoParams": mailtoParams,
+      "url": url,
+      "target": target,
+      "width": width,
+      "height": height,
+    }.jsify();
+    _codemeltedJsModule!.callMethod("open".toJS, params);
   }
 
   /// Sets / removes the [CodeMeltedAPI.spa] header area.
@@ -2152,7 +2267,7 @@ class CodeMeltedAPI {
   // --------------------------------------------------------------------------
 
   /// Will hold the last error encountered by the module.
-  static String? error;
+  String? error;
 
   /// Sets up a global navigator key for usage with dialogs rendered with the
   /// [CodeMeltedAPI] dialog functions.
@@ -2162,6 +2277,17 @@ class CodeMeltedAPI {
   /// [CodeMeltedAPI.spa] functions.
   static final scaffoldKey = GlobalKey<ScaffoldState>();
 
+  /// The NPU module location when compiling a codemelted_developer flutter
+  /// module with the WASM / PWA resources that support utilizing those assets
+  /// within this module.
+  /// @nodoc
+  static const codemeltedJsModuleUrl =
+      "/assets/packages/codemelted_developer/pwa/codemelted.js";
+
+  /// Holds the reference to the codemelted.js module for hooking up logic that
+  /// their is no direct dart / flutter implementation that is better.
+  JSObject? _codemeltedJsModule;
+
   /// Handles errors within the module to expose it via the [CodeMeltedAPI]
   /// namespace.
   // ignore: unused_element
@@ -2169,6 +2295,26 @@ class CodeMeltedAPI {
     error = st is String
         ? "$ex\n${st?.toString()}"
         : "${ex.toString()}\n${st?.toString()}";
+  }
+
+  /// Initializes module assets that support the flutter codemelted.dart
+  /// for flutter web PwA development.
+  Future<bool> init({
+    String codemeltedJsModuleUrl = CodeMeltedAPI.codemeltedJsModuleUrl,
+  }) async {
+    try {
+      _codemeltedJsModule = (await importJSModule(
+        moduleUrl: codemeltedJsModuleUrl,
+      ))
+          ?.getProperty("default".toJS);
+      // print(_codemeltedJsModule);
+      return _codemeltedJsModule != null;
+    } catch (ex, st) {
+      print(ex);
+      print(st);
+      _handleError(ex, st);
+      return false;
+    }
   }
 
   /// Gets the single instance of the API.

@@ -1888,6 +1888,21 @@ export default Object.freeze({
   },
 
   /**
+   * Determines if the SPA is running in a touch enabled environment.
+   * @private
+   * @readonly
+   * @type {boolean}
+   */
+  get isTouchEnabled() {
+    if (this.isWeb) {
+      // @ts-ignore maxTouchPoints will be available in browser context.
+      return this.tryWeb().window.navigator.maxTouchPoints > 0
+    }
+    return false;
+  },
+
+
+  /**
    * Loads a specified resource into a new or existing browsing context
    * (that is, a tab, a window, or an iframe) under a specified name. These
    * are based on the different scheme supported protocol items.
