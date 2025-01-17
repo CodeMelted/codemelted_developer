@@ -2303,15 +2303,13 @@ class CodeMeltedAPI {
     String codemeltedJsModuleUrl = CodeMeltedAPI.codemeltedJsModuleUrl,
   }) async {
     try {
+      var now = DateTime.now().millisecond;
       _codemeltedJsModule = (await importJSModule(
-        moduleUrl: codemeltedJsModuleUrl,
+        moduleUrl: "$codemeltedJsModuleUrl?t=$now",
       ))
           ?.getProperty("default".toJS);
-      // print(_codemeltedJsModule);
       return _codemeltedJsModule != null;
     } catch (ex, st) {
-      print(ex);
-      print(st);
       _handleError(ex, st);
       return false;
     }

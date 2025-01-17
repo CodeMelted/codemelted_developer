@@ -1872,17 +1872,8 @@ export default Object.freeze({
    */
   get isPWA() {
     if (this.isWeb) {
-      const queries = [
-        '(display-mode: fullscreen)',
-        '(display-mode: standalone)',
-        '(display-mode: minimal-ui),'
-      ];
-      let pwaDetected = false;
-      for (const query in queries) {
-        // @ts-ignore Window object does have document in WEB.
-        pwaDetected = pwaDetected || globalThis.matchMedia(query).matches;
-      }
-      return pwaDetected;
+      return globalThis.matchMedia('(display-mode: standalone)').matches
+        || ('standalone' in navigator && (navigator).standalone === true);
     }
     return false;
   },
@@ -1896,7 +1887,7 @@ export default Object.freeze({
   get isTouchEnabled() {
     if (this.isWeb) {
       // @ts-ignore maxTouchPoints will be available in browser context.
-      return this.tryWeb().window.navigator.maxTouchPoints > 0
+      return this.tryWeb().navigator.maxTouchPoints > 0
     }
     return false;
   },
