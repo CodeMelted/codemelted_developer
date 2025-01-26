@@ -104,6 +104,23 @@ extension CArrayExtension on CArray {
 /// Supports identifying the module [CodeMeltedAPI.button] widget constructed.
 enum CButtonType { elevated, filled, icon, outlined, text }
 
+/// Supports either using a custom type of bottom sheet for simple prompts
+/// or building a way to get information via [CodeMeltedAPI.showBottomSheet]
+/// before proceeding with the main [CodeMeltedAPI.spaContent] content.
+enum CDialogType {
+  alert("Attention"),
+  browser("Browser"),
+  choose("Make a Selection"),
+  confirm("Confirm?"),
+  custom(""),
+  loading("Please Wait..."),
+  prompt("Prompt");
+
+  /// The default title associated with the given type.
+  final String title;
+  const CDialogType(this.title);
+}
+
 /// Supports identifying what module [CodeMeltedAPI.image] is constructed.
 enum CImageType { asset, file, memory, network }
 
@@ -1025,9 +1042,19 @@ class CodeMeltedAPI {
   // [Dialog Use Case] --------------------------------------------------------
   // --------------------------------------------------------------------------
 
-  /// Will display information about your flutter app.
+  /// Will close any open dialog via the [CodeMeltedAPI.showAboutPage],
+  /// [CodeMeltedAPI.showSnackbar] or [CodeMeltedAPI.showBottomSheet] with
+  /// the option to return a value if those methods allow it.
   /// @nodoc
-  Future<void> about({
+  void closeDialog<T>([T? value]) => Navigator.of(
+        navigatorKey.currentContext!,
+        rootNavigator: true,
+      ).pop(value);
+
+  /// Will display the information about your flutter app to include all
+  /// license information of the 3rd party plugins you utilize.
+  /// @nodoc
+  Future<void> showAboutPage({
     Widget? appIcon,
     String? appName,
     String? appVersion,
@@ -1043,25 +1070,176 @@ class CodeMeltedAPI {
     );
   }
 
-  // /// Shows a snackbar at the bottom of the content area to display
-  // /// information.
-  // void snackbar({
-  //   required Widget content,
-  //   SnackBarAction? action,
-  //   Clip clipBehavior = Clip.hardEdge,
-  //   int? seconds,
-  // }) {
-  //   ScaffoldMessenger.of(cNavigatorKey.currentContext!).showSnackBar(
-  //     SnackBar(
-  //       action: action,
-  //       clipBehavior: clipBehavior,
-  //       content: content,
-  //       duration: seconds != null
-  //           ? Duration(seconds: seconds)
-  //           : const Duration(seconds: 4),
-  //     ),
-  //   );
-  // }
+  /// Provides a modal bottom sheet to facilitate either alerting the customer
+  /// to changes in status, needing quick information, or providing the ability
+  /// to utilize a custom full page by specifying the height as
+  /// double.maxFinite. Each of the corresponding optional parameters support
+  /// the specify [CDialogType] value. If you do not specify a proper one, an
+  /// error is thrown. The return value is based on the [CDialogType] specified
+  /// and works in conjunction with the [CodeMeltedAPI.closeDialog] function.
+  /// @nodoc
+  Future<T?> showDialog<T>({
+    required CDialogType type,
+    List<Widget>? actions,
+    List<String>? choices,
+    String? title,
+    String? message,
+    Widget? content,
+    double? height,
+  }) async {
+    // Setup our widgets for the dialog
+    var closeButton = uiButton(
+      icon: Icons.close,
+      type: CButtonType.icon,
+      title: "Close",
+      onPressed: closeDialog,
+    );
+    List<Widget>? sheetActions;
+    Widget? sheetContent;
+    double maxHeight = height ?? 300.0;
+
+    // Determine the type of dialog we are going to build.
+    if (type == CDialogType.alert) {
+      sheetActions = [closeButton];
+      sheetContent = uiCenter(
+        child: uiContainer(
+          padding: EdgeInsets.all(15.0),
+          child: uiLabel(
+            data: message!,
+            softWrap: true,
+          ),
+        ),
+      );
+    } else if (type == CDialogType.browser) {
+      sheetActions = [closeButton];
+      sheetContent = uiWebView(
+        controller: CWebViewController(
+          initialUrl: message!,
+        ),
+      );
+    } else if (type == CDialogType.choose) {
+      int answer = 0;
+      sheetActions = [
+        uiButton(
+          type: CButtonType.text,
+          title: "OK",
+          onPressed: () => closeDialog<int>(answer),
+        ),
+      ];
+
+      final dropdownItems = <DropdownMenuEntry<int>>[];
+      for (final (index, choices) in choices!.indexed) {
+        dropdownItems.add(DropdownMenuEntry(label: choices, value: index));
+      }
+
+      sheetContent = uiCenter(
+        child: uiContainer(
+          padding: EdgeInsets.all(15.0),
+          child: uiComboBox<int>(
+            width: double.maxFinite,
+            label: uiLabel(data: message ?? "", softWrap: true),
+            dropdownMenuEntries: dropdownItems,
+            enableSearch: false,
+            initialSelection: 0,
+            onSelected: (v) {
+              answer = v!;
+            },
+          ),
+        ),
+      );
+    } else if (type == CDialogType.confirm) {
+      sheetActions = [
+        uiButton(
+          type: CButtonType.text,
+          title: "Yes",
+          onPressed: () => closeDialog<bool>(true),
+        ),
+        uiButton(
+          type: CButtonType.text,
+          title: "No",
+          onPressed: () => closeDialog<bool>(false),
+        ),
+      ];
+      sheetContent = uiCenter(
+        child: uiContainer(
+          padding: EdgeInsets.all(15.0),
+          child: uiLabel(
+            data: message!,
+            softWrap: true,
+          ),
+        ),
+      );
+    } else if (type == CDialogType.custom) {
+      sheetActions = actions;
+      sheetContent = content!;
+    } else if (type == CDialogType.loading) {
+      sheetContent = uiCenter(
+        child: uiContainer(
+          padding: EdgeInsets.all(15.0),
+          child: uiColumn(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 25.0,
+                width: 25.0,
+                child: CircularProgressIndicator(),
+              ),
+              uiDivider(height: 5.0),
+              uiLabel(
+                data: message!,
+                softWrap: true,
+                style: TextStyle(overflow: TextOverflow.ellipsis),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else if (type == CDialogType.prompt) {
+      String answer = "";
+      sheetActions = [
+        uiButton(
+          type: CButtonType.text,
+          title: "OK",
+          onPressed: () => closeDialog<String>(answer),
+        ),
+      ];
+      sheetContent = uiCenter(
+        child: uiContainer(
+          padding: EdgeInsets.all(15.0),
+          child: uiTextField(
+            labelText: message ?? "",
+            onChanged: (v) => answer = v,
+          ),
+        ),
+      );
+    }
+
+    // Now go show the dialog as a bottom sheet to the page.
+    return showModalBottomSheet(
+      constraints: BoxConstraints(
+        maxHeight: maxHeight,
+      ),
+      enableDrag: false,
+      isDismissible: false,
+      isScrollControlled: true,
+      useSafeArea: true,
+      useRootNavigator: true,
+      context: navigatorKey.currentContext!,
+      builder: (context) {
+        return PointerInterceptor(
+          child: Scaffold(
+            appBar: AppBar(
+              leading: SizedBox.shrink(),
+              actions: sheetActions,
+              centerTitle: false,
+              title: Text(title ?? type.title),
+            ),
+            body: sheetContent!,
+          ),
+        );
+      },
+    );
+  }
 
   // --------------------------------------------------------------------------
   // [JSON Use Case] ----------------------------------------------------------
@@ -1209,29 +1387,29 @@ class CodeMeltedAPI {
 
   /// Sets the [CodeMeltedAPI.spa] dark theme.
   /// @nodoc
-  set darkTheme(ThemeData? v) {
+  set spaDarkTheme(ThemeData? v) {
     CSpaView.darkTheme = v;
   }
 
   /// Sets the [CodeMeltedAPI.spa] light theme.
   /// @nodoc
-  set theme(ThemeData? v) {
+  set spaTheme(ThemeData? v) {
     CSpaView.theme = v;
   }
 
   /// Sets the [CodeMeltedAPI.spa] theme mode.
   /// @nodoc
-  set themeMode(ThemeMode v) {
+  set spaThemeMode(ThemeMode v) {
     CSpaView.themeMode = v;
   }
 
   /// Sets / removes the [CodeMeltedAPI.spa] title.
   /// @nodoc
-  set title(String? v) {
+  set spaTitle(String? v) {
     CSpaView.title = v;
   }
 
-  String? get title {
+  String? get spaTitle {
     return CSpaView.title;
   }
 
@@ -1243,7 +1421,7 @@ class CodeMeltedAPI {
 
   // TBD
   // @nodoc
-  void open({
+  void openScheme({
     required CSchemeType scheme,
     bool popupWindow = false,
     String? mailtoParams,
@@ -1270,7 +1448,7 @@ class CodeMeltedAPI {
 
   /// Sets / removes the [CodeMeltedAPI.spa] header area.
   /// @nodoc
-  void header({
+  void spaHeader({
     List<Widget>? actions,
     bool automaticallyImplyLeading = true,
     bool forceMaterialTransparency = false,
@@ -1290,7 +1468,7 @@ class CodeMeltedAPI {
 
   /// Sets / removes the [CodeMeltedAPI.spa] content area.
   /// @nodoc
-  void content({
+  void spaContent({
     required Widget? body,
     bool extendBody = false,
     bool extendBodyBehindAppBar = false,
@@ -1304,7 +1482,7 @@ class CodeMeltedAPI {
 
   /// Sets / removes the [CodeMeltedAPI.spa] footer area.
   /// @nodoc
-  void footer({
+  void spaFooter({
     List<Widget>? actions,
     bool automaticallyImplyLeading = true,
     bool forceMaterialTransparency = false,
@@ -1324,7 +1502,7 @@ class CodeMeltedAPI {
 
   /// Sets / removes the [CodeMeltedAPI.spa] floating action button.
   /// @nodoc
-  void floatingActionButton({
+  void spaFloatingActionButton({
     Widget? button,
     FloatingActionButtonLocation? location,
   }) {
@@ -1333,49 +1511,49 @@ class CodeMeltedAPI {
 
   /// Sets / removes the [CodeMeltedAPI.spa] drawer.
   /// @nodoc
-  void drawer({Widget? header, List<Widget>? items}) {
+  void spaDrawer({Widget? header, List<Widget>? items}) {
     CSpaView.drawer(header: header, items: items);
   }
 
   /// Sets / removes the [CodeMeltedAPI.spa] end drawer.
   /// @nodoc
-  void endDrawer({Widget? header, List<Widget>? items}) {
+  void spaEndDrawer({Widget? header, List<Widget>? items}) {
     CSpaView.endDrawer(header: header, items: items);
   }
 
   /// Closes the [CodeMeltedAPI.spa] drawer or end drawer.
   /// @nodoc
-  void closeDrawer() {
+  void spaCloseDrawer() {
     CSpaView.closeDrawer();
   }
 
   /// Opens the [CodeMeltedAPI.spa] drawer or end drawer.
   /// @nodoc
-  void openDrawer({bool isEndDrawer = false}) {
+  void spaOpenDrawer({bool isEndDrawer = false}) {
     CSpaView.openDrawer(isEndDrawer: isEndDrawer);
   }
 
   /// Provides the ability to get items from the global app state.
   /// @nodoc
-  T getAppState<T>({required String key}) {
+  T getSpaState<T>({required String key}) {
     return CSpaView.uiState.get<T>(key: key);
   }
 
   /// Provides the ability to set items on the global app state.
   /// @nodoc
-  void setAppState<T>({required String key, required T value}) {
+  void setSpaState<T>({required String key, required T value}) {
     CSpaView.uiState.set<T>(key: key, value: value);
   }
 
   /// Retrieves the total height of the specified context.
   /// @nodoc
-  double height(BuildContext context) {
+  double spaHeight(BuildContext context) {
     return MediaQuery.of(context).size.height;
   }
 
   /// Retrieves the available width of the specified context.
   /// @nodoc
-  double width(BuildContext context) {
+  double spaWidth(BuildContext context) {
     return MediaQuery.of(context).size.width;
   }
 
@@ -1429,7 +1607,7 @@ class CodeMeltedAPI {
 
   /// Will allow for a delay in an asynchronous function.
   /// @nodoc
-  Future<void> sleep({required int delay}) async {
+  Future<void> sleepTask({required int delay}) async {
     assert(delay >= 0, "delay specified must be greater than 0.");
     return Future.delayed(Duration(milliseconds: delay));
   }
@@ -1574,7 +1752,7 @@ class CodeMeltedAPI {
   /// utilize the style override. These are stateless buttons so any changing
   /// of them is up to the parent.
   /// @nodoc
-  Widget button({
+  Widget uiButton({
     required void Function() onPressed,
     required String title,
     required CButtonType type,
@@ -1669,7 +1847,7 @@ class CodeMeltedAPI {
   /// Provides the ability to center a widget with the ability to specify
   /// the visibility of the child tree of widgets wrapped by this.
   /// @nodoc
-  Widget center({
+  Widget uiCenter({
     Key? key,
     Widget? child,
     double? heightFactor,
@@ -1685,7 +1863,7 @@ class CodeMeltedAPI {
 
   /// Layout to put widgets vertically.
   /// @nodoc
-  Widget column({
+  Widget uiColumn({
     required List<Widget> children,
     Key? key,
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
@@ -1704,7 +1882,7 @@ class CodeMeltedAPI {
   /// Creates a customizable combo box drop down with the ability to implement
   /// a search box to filter the combo box.
   /// @nodoc
-  Widget comboBox<T>({
+  Widget uiComboBox<T>({
     required List<DropdownMenuEntry<T>> dropdownMenuEntries,
     Key? key,
     bool enabled = true,
@@ -1762,7 +1940,7 @@ class CodeMeltedAPI {
   /// to setup padding, margins, or build custom stylized widgets combining
   /// said widget or layouts to build a more complex widget.
   /// @nodoc
-  Widget container({
+  Widget uiContainer({
     Key? key,
     AlignmentGeometry? alignment,
     EdgeInsetsGeometry? padding,
@@ -1799,7 +1977,7 @@ class CodeMeltedAPI {
   /// Creates a vertical or horizontal spacer between widgets that can be
   /// hidden if necessary.
   /// @nodoc
-  Widget divider({
+  Widget uiDivider({
     Key? key,
     double? height,
     double? width,
@@ -1815,7 +1993,7 @@ class CodeMeltedAPI {
 
   /// Provides the ability to have an expansion list of widgets.
   /// @nodoc
-  Widget expansionTile({
+  Widget uiExpansionTile({
     required List<Widget> children,
     required Widget title,
     Key? key,
@@ -1853,7 +2031,7 @@ class CodeMeltedAPI {
   /// Provides a wrapper for an asynchronous widget to load data and then
   /// present it when completed.
   /// @nodoc
-  Widget futureBuilder<T>({
+  Widget uiFutureBuilder<T>({
     required Widget Function(BuildContext, AsyncSnapshot<T>) builder,
     required Future<T>? future,
     Key? key,
@@ -1870,7 +2048,7 @@ class CodeMeltedAPI {
   /// Creates a scrollable grid layout of widgets that based on the
   /// crossAxisCount.
   /// @nodoc
-  Widget gridView({
+  Widget uiGridView({
     required int crossAxisCount,
     required List<Widget> children,
     Key? key,
@@ -1905,7 +2083,7 @@ class CodeMeltedAPI {
   /// characteristics specified with the widget. No theme controls this widget
   /// type so the characteristics are unique to each widget created.
   /// @nodoc
-  Image image({
+  Image uiImage({
     required CImageType type,
     required dynamic src,
     Alignment alignment = Alignment.center,
@@ -1955,7 +2133,7 @@ class CodeMeltedAPI {
   /// Provides a basic text label with the ability to make it multi-line, clip
   /// it if to long.
   /// @nodoc
-  Widget label({
+  Widget uiLabel({
     required String data,
     Key? key,
     int? maxLines,
@@ -1973,7 +2151,7 @@ class CodeMeltedAPI {
 
   /// Creates a selectable widget to be part of a view of selectable items.
   /// @nodoc
-  Widget listTile({
+  Widget uiListTile({
     required void Function() onTap,
     Key? key,
     bool enabled = true,
@@ -2015,7 +2193,7 @@ class CodeMeltedAPI {
   /// Provides a list view of widgets with automatic scrolling that can be
   /// set for vertical (default) or horizontal.
   /// @nodoc
-  Widget listView({
+  Widget uiListView({
     required List<Widget> children,
     Key? key,
     Clip clipBehavior = Clip.hardEdge,
@@ -2039,7 +2217,7 @@ class CodeMeltedAPI {
 
   /// Layout to put widgets horizontally.
   /// @nodoc
-  Widget row({
+  Widget uiRow({
     required List<Widget> children,
     Key? key,
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
@@ -2058,7 +2236,7 @@ class CodeMeltedAPI {
   /// Creates a stacked widget based on the children allowing for a custom
   /// look and feel for "special" widgets that stack bottom to top and overlap.
   /// @nodoc
-  Widget stack({
+  Widget uiStack({
     required List<Widget> children,
     Key? key,
     AlignmentGeometry alignment = AlignmentDirectional.topStart,
@@ -2079,7 +2257,7 @@ class CodeMeltedAPI {
   /// Constructs a tab view of content to allow for users to switch between
   /// widgets of data.
   /// @nodoc
-  Widget tabbedView({
+  Widget uiTabbedView({
     required List<CTabItem> tabItems,
     Key? key,
     bool automaticIndicatorColorAdjustment = true,
@@ -2116,7 +2294,7 @@ class CodeMeltedAPI {
   /// options to allow for building custom text fields
   /// (i.e. spin controls, number only, etc.).
   /// @nodoc
-  Widget textField({
+  Widget uiTextField({
     bool autocorrect = true,
     bool enableSuggestions = true,
     TextEditingController? controller,
@@ -2211,7 +2389,7 @@ class CodeMeltedAPI {
   /// Provides the ability to show / hide a widget and setup how to treat
   /// other aspects of the widget.
   /// @nodoc
-  Widget visibility({
+  Widget uiVisibility({
     required Widget child,
     Key? key,
     bool maintainState = false,
@@ -2235,7 +2413,7 @@ class CodeMeltedAPI {
 
   /// Provides an embedded web view via an iFrame to load other HTML documents.
   /// @nodoc
-  Widget webView({required CWebViewController controller}) {
+  Widget uiWebView({required CWebViewController controller}) {
     // Create the IFrame.
     var iFrameElement = web.HTMLIFrameElement();
     iFrameElement.style.height = "100%";

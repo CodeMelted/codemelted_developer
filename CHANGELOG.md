@@ -1,3 +1,8 @@
+## 0.2.2 (Last Modified 2025-01-26)
+
+* Fleshed out the dialog use case for the codemelted.dart module.
+* Provided some cleanup to the SPA and User Interface codemelted.dart module functions.
+
 ## 0.2.1 (Last Modified 2025-01-08)
 
 * Fleshing out use case descriptions and acceptance criteria.
