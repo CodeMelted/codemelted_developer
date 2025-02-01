@@ -1872,6 +1872,7 @@ export default Object.freeze({
    */
   get isPWA() {
     if (this.isWeb) {
+      // @ts-ignore Will have this method in browser context.
       return globalThis.matchMedia('(display-mode: standalone)').matches
         || ('standalone' in navigator && (navigator).standalone === true);
     }

@@ -2,9 +2,15 @@
 # [TERMINAL MODULE DEFINITION] ================================================
 # =============================================================================
 <#PSScriptInfo
-
+.AUTHOR mark.shaffer@codemelted.com
+.COPYRIGHT © 2024 Mark Shaffer. All Rights Reserved. MIT License
+.LICENSEURI https://github.com/CodeMelted/codemelted_developer/blob/main/LICENSE
+.PROJECTURI https://github.com/codemelted/codemelted_developer
+.ICONURI https://codemelted.com/assets/images/icon-codemelted-terminal.png
+.EXTERNALMODULEDEPENDENCIES Microsoft.PowerShell.ConsoleGuiTools
+.TAGS pwsh pwsh-scripts pwsh-modules CodeMeltedDEV codemelted
+.GUID c757fe44-4ed5-46b0-8e24-9a9aaaad872c
 .VERSION 0.1.1
-
 .RELEASENOTES
   0.1.1 2025-01-08
   - Broke out the --json into individual actions.
@@ -12,30 +18,6 @@
 
   0.1.0 2024-12-28
   - Initial release of the codemelted CLI with the --json use case implemented.
-
-.GUID c757fe44-4ed5-46b0-8e24-9a9aaaad872c
-
-.AUTHOR mark.shaffer@codemelted.com
-
-.COPYRIGHT © 2024 Mark Shaffer. All Rights Reserved. MIT License
-
-.TAGS pwsh pwsh-scripts pwsh-modules CodeMeltedDEV codemelted
-
-.LICENSEURI https://github.com/CodeMelted/codemelted_developer/blob/main/LICENSE
-
-.PROJECTURI https://github.com/codemelted/codemelted_developer
-
-.ICONURI https://codemelted.com/assets/images/icon-codemelted-terminal.png
-
-.EXTERNALMODULEDEPENDENCIES Microsoft.PowerShell.ConsoleGuiTools
-
-.COMPANYNAME N/A
-
-.REQUIREDSCRIPTS N/A
-
-.EXTERNALSCRIPTDEPENDENCIES N/A
-
-.PRIVATEDATA N/A
 #>
 
 <#
