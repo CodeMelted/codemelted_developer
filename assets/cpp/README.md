@@ -6,9 +6,9 @@ KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-ja
 DESCRIPTION: TBD
 -->
 <center>
-  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
+  <a title="Back To Developer Main" href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-codemelted-wasm.png" /> CodeMelted DEV | NPU Module</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-codemelted-wasm.png" /> CodeMelted DEV | C++ Module</h1>
 
 TBD
 

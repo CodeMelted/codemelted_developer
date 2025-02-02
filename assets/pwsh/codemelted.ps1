@@ -98,8 +98,8 @@ function help {
         The optional set of named arguments wrapped within a [hashtable]
 
   .LINK
-    CodeMelted | DEV Modules:
-    https://developer.codemelted.com
+    CodeMelted DEV | pwsh Module:
+    https://codemelted.com/developer/assets/pwsh
 
     GitHub Source:
     https://github.com/CodeMelted/codemelted_developer/tree/main/terminal

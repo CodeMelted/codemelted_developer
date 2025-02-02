@@ -1,5 +1,5 @@
 <!--
-TITLE: CodeMelted DEV | Modules
+TITLE: CodeMelted DEV | Flutter Module
 PUBLISH_DATE: 2025-02-02
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, wasm

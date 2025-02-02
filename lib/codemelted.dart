@@ -26,7 +26,7 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
-/// Represents the Flutter SDK bindings for the CodeMelted DEV | PWA Modules.
+/// Represents the Flutter SDK bindings for the CodeMelted DEV | Modules.
 /// Selecting this will give the construct of those SDK binding. To see
 /// examples of the Flutter SDK / JavaScript SDK (plus specifics), click on
 /// the CodeMelted DEV | PWA SDK button at the top of the page.
