@@ -416,53 +416,11 @@ A `codemelted.cpp` C++ 20 module that will support the *WASM Module* use cases f
 
 *NOTE: A developer can also just utilize this module within a C++ application if they so choose utilizing the C++ 20 module standard.*
 
-# GETTING STARTED
 
-## Environment Setup
-
-The following are the items recommended for installation to properly make use of this repo in your development environment.
-
-### GitHub
-
-- [ ] [git](https://git-scm.com/downloads)
-- [ ] [GitHub Desktop](https://desktop.github.com/)
-
-### Programming Languages
-
-- [ ] [C/C++](https://code.visualstudio.com/docs/languages/cpp)
-- [ ] [Deno](https://deno.com/)
-- [ ] [Flutter](https://flutter.dev/)
-- [ ] [NodeJS](https://nodejs.org/en)
-- [ ] [PowerShell Core](https://github.com/PowerShell/PowerShell)
-- [ ] [Python](https://www.python.org/)
-
-### VS Code
-
-**The Application:**
-
-- [ ] [VS Code](https://code.visualstudio.com/)
-
-**Extensions:**
-
-- [ ] [C/C++ Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools-extension-pack)
-- [ ] [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker)
-- [ ] [Dart](https://marketplace.visualstudio.com/items?itemName=Dart-Code.dart-code)
-- [ ] [Deno](https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno)
-- [ ] [Docker](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)
-- [ ] [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
-- [ ] [Flutter](https://marketplace.visualstudio.com/items?itemName=Dart-Code.flutter)
-- [ ] [Markdown All in One](https://marketplace.visualstudio.com/items?itemName=yzhang.markdown-all-in-one)
-- [ ] [Markdown Preview Mermaid Support](https://marketplace.visualstudio.com/items?itemName=bierner.markdown-mermaid)
-- [ ] [PowerShell](https://marketplace.visualstudio.com/items?itemName=ms-vscode.PowerShell)
-- [ ] [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
-
-## Build Script
-
-The `build.ps1 --build` script provides the ability to build, test, and document the `codemelted_developer` repo modules. The `build.ps1 --deploy` deploys the [CodeMelted DEV](https://developer.codemelted.com) website. The `build.ps1 --test` will test any changes to the repo modules.
 
 # MODULE INFORMATION
 
-The following sub-sections cover various aspects of information for each of the module files. They are single file implementations of the identified use cases. The module files are `codemelted.dart`, `codemelted.js`, `codemelted.ps1`, and `codemelted.cpp`
+The following sub-sections cover various aspects the `codemelted.dart` module information.It is a single file implementation of the identified use cases.
 
 ## License
 
@@ -487,33 +445,3 @@ The versioning of the module will be captured via GitHub or the modules document
 ## codemelted.dart Change Log
 
 <iframe style="background-color: white" src="CHANGELOG.md" width="100%" height="350px"></iframe>
-
-## codemelted.js Test Results
-
-### Deno Runtime Coverage
-
-<iframe src="pwa/coverage/index.html" width="100%" height="350px"></iframe>
-
-### Browser Mocha Test Runner
-
-<mark>TBD</mark>
-
-# SDK REFERENCES
-
-The following sub-sections provide the links utilized to flesh out the code implementation of each of the modules.
-
-## codemelted.dart
-
-<mark>TBD</mark>
-
-## codemelted.js
-
-<mark>TBD</mark>
-
-## codemelted.ps1
-
-<mark>TBD</mark>
-
-## codemelted.cpp
-
-<mark>TBD</mark>
