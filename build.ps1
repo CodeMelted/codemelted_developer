@@ -300,9 +300,9 @@ function build([string[]]$params) {
       New-Item -Path docs/assets/pi -ItemType Directory
       New-Item -Path docs/assets/pwsh -ItemType Directory
       Copy-Item -Path design-notes -Destination docs -Force -Recurse
-      Copy-Item -Path assets/cpp/docs/* -Destination docs/assets/cpp -Force
-      Copy-Item -Path assets/pi/docs/* -Destination docs/assets/pi -Force
-      Copy-Item -Path assets/pwsh/docs/* -Destination docs/assets/pwsh -Force
+      Copy-Item -Path assets/cpp/docs/* -Destination docs/assets/cpp -Force -Recurse
+      Copy-Item -Path assets/pi/docs/* -Destination docs/assets/pi -Force -Recurse
+      Copy-Item -Path assets/pwsh/docs/* -Destination docs/assets/pwsh -Force -Recurse
     }
     "--deploy" {
       Write-Host "MESSAGE: Now uploading codemelted.com/developer content.";
