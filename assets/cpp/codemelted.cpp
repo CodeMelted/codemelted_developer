@@ -2,23 +2,10 @@ module;
 /**
  * @file codemelted.cpp
  * @author Mark Shaffer
- * @date 2025-01-08
- * @version 0.0.2 <br />
- * - [0.0.2 / 2025-01-08]: Implemented the macros to allow for cross compiling
- * between a WASM file, C++ 20 included source file, and as a static library
- * for mac, windows, and linux. Also stubbed some other functions as I ponder
- * the NPU design. Added additional mathematical formulas from JavaScript
- * refactors.
- * - [0.0.1 / 2024-12-27]: Sets up the initial file construct to support
- * tooling and integrating with PWA modules.
- * @brief Serves as a software Numerical Processing Unit (NPU) to the
- * other codemelted modules. This module will contain all mathematical
- * calculations to leverage the power of C++ but will also provide
- * other mechanisms for running complicated tasks suited for C++ processing
- * via DLL or WASM compilation target.
- * @note Testing of this module will be handled by the other codemelted
- * modules which will provide the interfaces to consume this module.
- * @see <i>CodeMelted DEV | Modules:</i> https://developer.codemelted.com
+ * @date 2025-02-02
+ * @version 0.0.0 <br />
+ * @brief TBD
+ * @see <i>CodeMelted DEV | Modules:</i> https://codemelted.com/developer
  * @see <i>WASM Use Cases:</i> https://webassembly.org/docs/use-cases/
  * @copyright 2024 Mark Shaffer. All Rights Reserved.
  * MIT License

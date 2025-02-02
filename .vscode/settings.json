@@ -54,9 +54,6 @@
     "webrtc",
     "winget"
   ],
-  "deno.config": "codemelted_js/deno.json",
-  "deno.enable": true,
-  "deno.lint": true,
   "files.associations": {
     "numbers": "cpp",
     "__verbose_abort": "cpp",

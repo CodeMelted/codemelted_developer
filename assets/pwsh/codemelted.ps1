@@ -6,7 +6,7 @@
 .COPYRIGHT © 2024 Mark Shaffer. All Rights Reserved. MIT License
 .LICENSEURI https://github.com/CodeMelted/codemelted_developer/blob/main/LICENSE
 .PROJECTURI https://github.com/codemelted/codemelted_developer
-.ICONURI https://codemelted.com/assets/images/icon-codemelted-terminal.png
+.ICONURI https://codemelted.com/assets/images/icon-codemelted-pwsh.png
 .EXTERNALMODULEDEPENDENCIES Microsoft.PowerShell.ConsoleGuiTools
 .TAGS pwsh pwsh-scripts pwsh-modules CodeMeltedDEV codemelted
 .GUID c757fe44-4ed5-46b0-8e24-9a9aaaad872c
@@ -32,7 +32,7 @@ param(
   )]
   [ValidateSet(
     # Module Definition Use Case
-    "--about",
+    "--version",
     "--help",
     # JSON Use Case
     "--as-bool",
@@ -664,7 +664,7 @@ function try_valid_url {
 # OK, go parse the command.
 switch ($Action) {
   # Module Information
-  "--about" { Get-PSScriptFileInfo -Path $PSScriptRoot/codemelted.ps1 }
+  "--version" { Get-PSScriptFileInfo -Path $PSScriptRoot/codemelted.ps1 }
   "--help" { help $Params }
   # JSON Use Case
   "--as-bool" { as_bool $Params }

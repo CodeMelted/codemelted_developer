@@ -1,6 +1,6 @@
 <!--
-TITLE: CodeMelted DEV | NPU Module
-PUBLISH_DATE: 2025-01-08
+TITLE: CodeMelted DEV | C++ Module
+PUBLISH_DATE: 2025-02-02
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: TBD
@@ -12,7 +12,7 @@ DESCRIPTION: TBD
 
 TBD
 
-**LAST UPDATED:** 2025-01-08
+**LAST UPDATED:** 2025-02-02
 
 <center>
   <br />
@@ -26,10 +26,19 @@ TBD
 **Table of Contents**
 
 - [GETTING STARTED](#getting-started)
+- [FEATURES](#features)
 - [USAGE](#usage)
-- [LICENSE](#license)
+- [MODULE INFORMATION](#module-information)
+  - [License](#license)
+  - [Versioning](#versioning)
 
 # GETTING STARTED
+
+TBD
+
+# FEATURES
+
+<center><img style="width: 100%; max-width: 560px;" src="../../design-notes/use-case-model.drawio.png" /></center>
 
 TBD
 
@@ -37,7 +46,11 @@ TBD
 
 TBD
 
-# LICENSE
+# MODULE INFORMATION
+
+The following sub-sections cover various aspects the `codemelted.cpp` module information. It is a single file implementation of the identified use cases.
+
+## License
 
 MIT License
 
@@ -48,3 +61,11 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## Versioning
+
+The versioning of the module will be captured via GitHub or the modules documentation method. It will utilize semantic versioning `X.Y.Z` with the following rules for the numbering scheme this project.
+
+- **X:** Completion of a given set of use cases (i.e. Async IO, Data, NPU, SDK, or User Interface).
+- **Y:** Use case implemented, documented, tested, and ready for usage by a developer.
+- **Z:** Bug fix or expansion of a use case.
