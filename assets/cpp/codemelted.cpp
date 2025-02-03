@@ -41,9 +41,9 @@ module;
 #elif defined(_MSC_VER)
 #endif
 
-#if defined(__EMSCRIPTEN__) || defined(__wasm__)
+// #if defined(__EMSCRIPTEN__) || defined(__wasm__)
 #include <emscripten.h>
-#endif
+// #endif
 
 #include <numbers>
 #include <cmath>

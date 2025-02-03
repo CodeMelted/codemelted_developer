@@ -53,14 +53,5 @@
     "stylesheet",
     "webrtc",
     "winget"
-  ],
-  "files.associations": {
-    "numbers": "cpp",
-    "__verbose_abort": "cpp",
-    "cmath": "cpp",
-    "cstddef": "cpp",
-    "cstdint": "cpp",
-    "initializer_list": "cpp",
-    "limits": "cpp"
-  },
+  ]
 }
