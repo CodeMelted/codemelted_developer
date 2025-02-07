@@ -71,15 +71,29 @@
 <codemelted-navigation></codemelted-navigation>
 <script src="https://codemelted.com/assets/js/codemelted_navigation.js" defer></script>
 <style>
-div.contents {
-  margin-bottom: 65px;
-}
-.content-main {
-  margin-bottom: 65px;
-}
-footer {
-  margin-bottom: 85px;
-}
+    .content-container {
+      overflow: auto;
+      position: fixed;
+      top: 0px;
+      left: 0px;
+      right: 0px;
+      bottom: 75px;
+    }
+    footer {
+      margin-bottom: 75px;
+    }
+
+    @media print {
+      .content-container {
+        position: relative;
+      }
+      header {
+        display: none;
+      }
+      footer {
+        display: none;
+      }
+    }
 </style>
 "@
 
@@ -103,17 +117,35 @@ footer {
   <link rel="stylesheet" href="https://codemelted.com/assets/css/developer-theme.css">
   <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png">
   <style>
-    .main-content {
-      margin-bottom: 65px;
+    .content-container {
+      overflow: auto;
+      position: fixed;
+      top: 0px;
+      left: 0px;
+      right: 0px;
+      bottom: 75px;
     }
-    footer {
-      margin-bottom: 85px;
+    .content-main {
+      max-width: 47em;
+      margin: auto;
+      padding: 0.6250em;
+    }
+
+    @media print {
+      .content-container {
+        position: relative;
+      }
     }
   </style>
-</head><body><div class="content-main">
-  [CONTENT]
+</head><body>
+  <div class="content-container">
+    <div class="content-main">
+      [CONTENT]
+    </div>
+  </div>
+
   [FOOTER_TEMPLATE]
-</div></body></html>
+</body></html>
 "@
 
 function build([string[]]$params) {
@@ -148,21 +180,23 @@ function build([string[]]$params) {
     if (-not $isTestOnly) {
       message "Now documenting codemelted.cpp module."
       doxygen doxygen.cfg
-      [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | NPU Module")
+      [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | C++ Module")
       [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
       $htmlData = $htmlData.Replace("/></a><br  />", "/></a><br  />`n$htmlNavTemplate")
       $htmlData = $htmlData.Replace("README.md", "index.html")
       $htmlData = $htmlData.Replace("</head>", '    <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png"></head>')
       $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
-      $htmlData = $htmlData.Replace("</body>", "<p><br /><br /><br /><br /><br /></p><p><br /><br /><br /><br /><br /></p>`n$footerTemplate`n</body>")
+      $htmlData = $htmlData.Replace("<body>", '<body><div class="content-container"><div class="content-main">')
+      $htmlData = $htmlData.Replace("</body>", "</div>`n$footerTemplate`n</body>")
       $htmlData | Out-File docs/index.html -Force
 
       $files = Get-ChildItem -Path docs/*.html -Exclude "index.html"
       foreach ($file in $files) {
         [string]$htmlData = Get-Content -Path $file.FullName -Raw
         $htmlData = $htmlData.Replace("</head>", '    <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png"></head>')
+        $htmlData = $htmlData.Replace("<body>", '<body><div class="content-container">')
         $htmlData = $htmlData.Replace("/></a><br  />", "/></a><br  />`n$htmlNavTemplate")
-        $htmlData = $htmlData.Replace("</body>", "<p><br /><br /><br /><br /><br /></p><p><br /><br /><br /><br /><br /></p>`n$footerTemplate`n</body>")
+        $htmlData = $htmlData.Replace("</body>", "</div>`n$footerTemplate`n</body>")
         $htmlData | Out-File $file.FullName -Force
       }
 

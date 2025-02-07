@@ -25,5 +25,5 @@ dev_dependencies:
 
 flutter:
   assets:
-  - assets/cpp/docs/codemelted.wasm
-  - assets/cpp/docs/codemelted.js
+  - assets/cpp/codemelted.wasm
+  - assets/cpp/codemelted.js
