@@ -1229,10 +1229,11 @@ class CodeMeltedAPI {
         return PointerInterceptor(
           child: Scaffold(
             appBar: AppBar(
-              leading: SizedBox.shrink(),
+              automaticallyImplyLeading: false,
               actions: sheetActions,
               centerTitle: false,
               title: Text(title ?? type.title),
+              titleSpacing: 15.0,
             ),
             body: sheetContent!,
           ),
