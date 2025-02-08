@@ -173,9 +173,9 @@ function build([string[]]$params) {
 
     emcc --std=c++20 codemelted.cpp -o codemelted.js
     Copy-Item -Path codemelted.wasm -Destination docs/codemelted.wasm -Force
-    Move-Item -Path codemelted.wasm -Destination $PSScriptRoot/test -Force
+    Copy-Item -Path codemelted.wasm -Destination $PSScriptRoot/test -Force
     Copy-Item -Path codemelted.js -Destination docs/codemelted.js -Force
-    Move-Item -Path codemelted.js -Destination $PSScriptRoot/test -Force
+    Copy-Item -Path codemelted.js -Destination $PSScriptRoot/test -Force
 
     if (-not $isTestOnly) {
       message "Now documenting codemelted.cpp module."
