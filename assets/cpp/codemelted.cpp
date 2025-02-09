@@ -271,86 +271,142 @@ CODEMELTED_API double math(
 
 #if defined(__CODEMELTED_TARGET_WASM__)
 
-// ----------------------------------------------------------------------------
-// [Runtime Use Case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
-
 /**
- * @name codemelted_is_pwa
- * @brief Determines if the web page is an installed PWA.
- * @returns true if web page is a PWA, false otherwise.
+ * @name setup_codemelted_js_module
+ * @brief Sets up a codemelted global object to provide for configuration /
+ * utility methods to be available to the codemelted_XXX use case functions.
  */
-EM_JS(bool, codemelted_is_pwa, (), {
-  return codemelted.trySyncTransaction(() => {
-    return globalThis.matchMedia('(display-mode: standalone)').matches
-     || ('standalone' in navigator && (navigator).standalone === true);
-  });
+EM_JS(void, setup_codemelted_js_module, (), {
+  // If we are already defined, then don't redefine ourselves.
+  if (globalThis["codemelted"]) {
+    return;
+  }
+
+  // Setup our codemelted global object to facilitate JS to C++
+  // communications along with setting up a way of capturing values
+  // accessible by both sides of the application.
+  window["codemelted"] = (function() {
+    // PRIVATE MODULE MEMBERS
+
+
+    // PUBLIC API
+    return {
+      /**
+       * Will try a synchronous transaction within the module definition.
+       * @private
+       * @returns {any | undefined}
+       * @throws {SyntaxError} if an unexpected module error occurs.
+       */
+      trySyncTransaction: function(func) {
+        try {
+          return func();
+        } catch (err) {
+          let moduleError = new SyntaxError();
+          moduleError.stack = err?.stack;
+          moduleError.message = `ModuleError: ${err?.message}`;
+          throw moduleError;
+        }
+      },
+    };
+  })();
 });
 
 /**
- * @name codemelted_is_touch_enabled
- * @brief Determines if the web page is within a touch enabled environment.
- * @returns true if touch enabled environment, false otherwise.
+ * @name setup_runtime_uc_functions
+ * @brief Something Something star wars.
  */
-EM_JS(bool, codemelted_is_touch_enabled, (), {
-  return codemelted.trySyncTransaction(() => {
-    return globalThis.navigator.maxTouchPoints > 0;
-  });
+EM_JS(void, setup_runtime_uc_functions, (), {
+  function codemelted_is_pwa() {
+    return codemelted.trySyncTransaction(() => {
+      return globalThis.matchMedia('(display-mode: standalone)').matches
+       || ('standalone' in navigator && (navigator).standalone === true);
+    });
+  }
+
+  function codemelted_is_touch_enabled() {
+    return codemelted.trySyncTransaction(() => {
+      return globalThis.navigator.maxTouchPoints > 0;
+    });
+  }
+
+  /**
+   * Loads a specified resource into a new or existing browsing context
+   * (that is, a tab, a window, or an iframe) under a specified name. These
+   * are based on the different schema supported protocol items.
+   * @param {object} params The named parameters.
+   * @param {string} params.schema Either "file:", "http://",
+   * "https://", "mailto:", "tel:", or "sms:".
+   * @param {boolean} [params.popupWindow = false] true to open a new
+   * popup browser window. false to utilize the _target for browser
+   * behavior.
+   * @param {string} [params.mailtoParams] Object to assist in the
+   * mailto: schema URL construction.
+   * @param {string} [params.url] The url to utilize with the schema.
+   * @param {string} [params.target = "_blank"] The target to utilize when
+   * opening the schema. Only valid when not utilizing popupWindow.
+   * @param {number} [params.width] The width to open the window with.
+   * @param {number} [params.height] The height to open the window with.
+   * @returns {void}
+   */
+  function codemelted_open_schema({
+    schema,
+    popupWindow = false,
+    mailtoParams, url,
+    target = "_blank",
+    width,
+    height
+  }) {
+    codemelted.trySyncTransaction(() => {
+      let urlToLaunch = "";
+      if (schema === "file:" ||
+          schema === "http://" ||
+          schema === "https://" ||
+          schema === "sms:" ||
+          schema === "tel:") {
+        urlToLaunch = `${schema}${url}`;
+      } else if (schema === "mailto:") {
+        urlToLaunch = mailtoParams != null
+            ? `mailto:${mailtoParams.toString()}`
+            : `mailto:${url}`;
+      } else {
+        throw new SyntaxError("Invalid schema specified");
+      }
+
+      let rtnval = null;
+      if (popupWindow) {
+        const w = width ?? 900.0;
+        const h = height ?? 600.0;
+        const top = (globalThis.screen.height - h) / 2;
+        const left = (globalThis.screen.width - w) / 2;
+        const settings = "toolbar=no, location=no, " +
+            "directories=no, status=no, menubar=no, " +
+            "scrollbars=no, resizable=yes, copyhistory=no, " +
+            `width=${w}, height=${h}, top=${top}, left=${left}`;
+        globalThis.open(
+          urlToLaunch,
+          "_blank",
+          settings,
+        );
+      } else {
+        globalThis.open(urlToLaunch, target);
+      }
+    });
+  }
+
+  // Now bind the functions
+  globalThis["codemelted_is_pwa"] = codemelted_is_pwa;
+  globalThis["codemelted_is_touch_enabled"] = codemelted_is_touch_enabled;
+  globalThis["codemelted_open_schema"] = codemelted_open_schema;
 });
 
-// ----------------------------------------------------------------------------
-// [Main JS Binding Setup] ----------------------------------------------------
-// ----------------------------------------------------------------------------
-
 /**
- * @brief Sets up a revealing module pattern codemelted area to allow for our bound
- * functions to be able to have support in both C++ and JS.
+ * @brief Calls the series of setup functions to configure the C++ / JS
+ * bindings.
  * @returns always 0.
  */
 int main(void) {
-  EM_ASM(
-    // If we are already defined, then don't redefine ourselves.
-    if (globalThis["codemelted"]) {
-      return;
-    }
-
-    // Setup our codemelted global object to facilitate JS to C++
-    // communications along with setting up a way of capturing values
-    // accessible by both sides of the application.
-    window["codemelted"] = (function() {
-      // PRIVATE MODULE MEMBERS
-
-
-      // PUBLIC API
-      return {
-        /**
-         * Will try a synchronous transaction within the module definition.
-         * @private
-         * @returns {any | undefined}
-         * @throws {SyntaxError} if an unexpected module error occurs.
-         */
-        trySyncTransaction: function(func) {
-          try {
-            return func();
-          } catch (err) {
-            let moduleError = new SyntaxError();
-            apiError.stack = err?.stack;
-            apiError.message = `ModuleError: ${err?.message}`;
-            throw moduleError;
-          }
-        },
-      };
-    })();
-
-    // Now bind our global functions to global scope so they are more easily
-    // accessible in JavaScript. NOTE: These correspond to the EM_JS
-    // definitions above and the names should match.
-    setTimeout(() => {
-      // Runtime Use Cases
-      globalThis["codemelted_is_pwa"] = codemelted_is_pwa;
-      globalThis["codemelted_is_touch_enabled"] = codemelted_is_touch_enabled;
-    }, 250);
-  );
+  setup_codemelted_js_module();
+  setup_runtime_uc_functions();
   return 0;
 }
 

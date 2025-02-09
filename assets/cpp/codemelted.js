@@ -877,11 +877,8 @@ async function createWasm() {
 
 // === Body ===
 
-var ASM_CONSTS = {
-  68400: () => { if (globalThis["codemelted"]) { return; } window["codemelted"] = (function() { return { trySyncTransaction: function(func) { try { return func(); } catch (err) { let moduleError = new SyntaxError(); apiError.stack = err?.stack; apiError.message = `ModuleError: ${err?.message}`; throw moduleError; } }, }; })(); setTimeout(() => { globalThis["codemelted_is_pwa"] = codemelted_is_pwa; globalThis["codemelted_is_touch_enabled"] = codemelted_is_touch_enabled; }, 250); }
-};
-function codemelted_is_pwa() { return codemelted.trySyncTransaction(() => { return globalThis.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && (navigator).standalone === true); }); }
-function codemelted_is_touch_enabled() { return codemelted.trySyncTransaction(() => { return globalThis.navigator.maxTouchPoints > 0; }); }
+function setup_codemelted_js_module() { if (globalThis["codemelted"]) { return; } window["codemelted"] = (function() { return { trySyncTransaction: function(func) { try { return func(); } catch (err) { let moduleError = new SyntaxError(); moduleError.stack = err?.stack; moduleError.message = `ModuleError: ${err?.message}`; throw moduleError; } }, }; })(); }
+function setup_runtime_uc_functions() { function codemelted_is_pwa() { return codemelted.trySyncTransaction(() => { return globalThis.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && (navigator).standalone === true); }); } function codemelted_is_touch_enabled() { return codemelted.trySyncTransaction(() => { return globalThis.navigator.maxTouchPoints > 0; }); } function codemelted_open_schema({ schema, popupWindow = false, mailtoParams, url, target = "_blank", width, height }) { codemelted.trySyncTransaction(() => { let urlToLaunch = ""; if (schema === "file:" || schema === "http://" || schema === "https://" || schema === "sms:" || schema === "tel:") { urlToLaunch = `${schema}${url}`; } else if (schema === "mailto:") { urlToLaunch = mailtoParams != null ? `mailto:${mailtoParams.toString()}` : `mailto:${url}`; } else { throw new SyntaxError("Invalid schema specified"); } let rtnval = null; if (popupWindow) { const w = width ?? 900.0; const h = height ?? 600.0; const top = (globalThis.screen.height - h) / 2; const left = (globalThis.screen.width - w) / 2; const settings = "toolbar=no, location=no, " + "directories=no, status=no, menubar=no, " + "scrollbars=no, resizable=yes, copyhistory=no, " + `width=${w}, height=${h}, top=${top}, left=${left}`; globalThis.open( urlToLaunch, "_blank", settings, ); } else { globalThis.open(urlToLaunch, target); } }); } globalThis["codemelted_is_pwa"] = codemelted_is_pwa; globalThis["codemelted_is_touch_enabled"] = codemelted_is_touch_enabled; globalThis["codemelted_open_schema"] = codemelted_open_schema; }
 
 // end include: preamble.js
 
@@ -964,48 +961,6 @@ function codemelted_is_touch_enabled() { return codemelted.trySyncTransaction(()
       }
     };
 
-  var readEmAsmArgsArray = [];
-  var readEmAsmArgs = (sigPtr, buf) => {
-      // Nobody should have mutated _readEmAsmArgsArray underneath us to be something else than an array.
-      assert(Array.isArray(readEmAsmArgsArray));
-      // The input buffer is allocated on the stack, so it must be stack-aligned.
-      assert(buf % 16 == 0);
-      readEmAsmArgsArray.length = 0;
-      var ch;
-      // Most arguments are i32s, so shift the buffer pointer so it is a plain
-      // index into HEAP32.
-      while (ch = HEAPU8[sigPtr++]) {
-        var chr = String.fromCharCode(ch);
-        var validChars = ['d', 'f', 'i', 'p'];
-        // In WASM_BIGINT mode we support passing i64 values as bigint.
-        validChars.push('j');
-        assert(validChars.includes(chr), `Invalid character ${ch}("${chr}") in readEmAsmArgs! Use only [${validChars}], and do not specify "v" for void return argument.`);
-        // Floats are always passed as doubles, so all types except for 'i'
-        // are 8 bytes and require alignment.
-        var wide = (ch != 105);
-        wide &= (ch != 112);
-        buf += wide && (buf % 8) ? 4 : 0;
-        readEmAsmArgsArray.push(
-          // Special case for pointers under wasm64 or CAN_ADDRESS_2GB mode.
-          ch == 112 ? HEAPU32[((buf)>>2)] :
-          ch == 106 ? HEAP64[((buf)>>3)] :
-          ch == 105 ?
-            HEAP32[((buf)>>2)] :
-            HEAPF64[((buf)>>3)]
-        );
-        buf += wide ? 8 : 4;
-      }
-      return readEmAsmArgsArray;
-    };
-  var runEmAsmFunction = (code, sigPtr, argbuf) => {
-      var args = readEmAsmArgs(sigPtr, argbuf);
-      assert(ASM_CONSTS.hasOwnProperty(code), `No EM_ASM constant found at address ${code}.  The loaded WebAssembly file is likely out of sync with the generated JavaScript.`);
-      return ASM_CONSTS[code](...args);
-    };
-  var _emscripten_asm_const_int = (code, sigPtr, argbuf) => {
-      return runEmAsmFunction(code, sigPtr, argbuf);
-    };
-
   
   var runtimeKeepaliveCounter = 0;
   var keepRuntimeAlive = () => noExitRuntime || runtimeKeepaliveCounter > 0;
@@ -1056,7 +1011,9 @@ function checkIncomingModuleAPI() {
 }
 var wasmImports = {
   /** @export */
-  emscripten_asm_const_int: _emscripten_asm_const_int
+  setup_codemelted_js_module,
+  /** @export */
+  setup_runtime_uc_functions
 };
 var wasmExports;
 createWasm();
@@ -1103,7 +1060,7 @@ var missingLibrarySymbols = [
   'readSockaddr',
   'writeSockaddr',
   'emscriptenLog',
-  'runMainThreadEmAsm',
+  'readEmAsmArgs',
   'jstoi_q',
   'getExecutableName',
   'listenOnce',
@@ -1301,8 +1258,6 @@ var unexportedSymbols = [
   'timers',
   'warnOnce',
   'readEmAsmArgsArray',
-  'readEmAsmArgs',
-  'runEmAsmFunction',
   'jstoi_s',
   'handleException',
   'keepRuntimeAlive',

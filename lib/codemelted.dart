@@ -446,10 +446,10 @@ enum CSandboxAllow {
 /// @nodoc
 typedef OnResizeEventHandler = bool Function(Size);
 
-/// Identifies the scheme to utilize as part of the module open
+/// Identifies the schema to utilize as part of the module open
 /// function.
 /// @nodoc
-enum CSchemeType {
+enum CSchemaType {
   /// Will open the program associated with the file.
   file("file:"),
 
@@ -468,10 +468,10 @@ enum CSchemeType {
   /// Will open the default texting app to send a text.
   sms("sms:");
 
-  /// Identifies the leading scheme to form a URL.
-  final String scheme;
+  /// Identifies the leading schema to form a URL.
+  final String schema;
 
-  const CSchemeType(this.scheme);
+  const CSchemaType(this.schema);
 }
 
 /// Provides the Single Page Application for the [CodeMeltedAPI.spa]
@@ -1394,8 +1394,8 @@ class CodeMeltedAPI {
 
   // TBD
   // @nodoc
-  void openScheme({
-    required CSchemeType scheme,
+  void openSchema({
+    required CSchemaType schema,
     bool popupWindow = false,
     String? mailtoParams,
     String? url,
@@ -1403,12 +1403,8 @@ class CodeMeltedAPI {
     double? width,
     double? height,
   }) {
-    assert(
-      _codemeltedJsModule != null,
-      "codemelted.js Module not initialized.",
-    );
     var params = <String, dynamic>{
-      "scheme": scheme.scheme,
+      "schema": schema.schema,
       "popupWindow": popupWindow,
       "mailtoParams": mailtoParams,
       "url": url,
@@ -1416,7 +1412,7 @@ class CodeMeltedAPI {
       "width": width,
       "height": height,
     }.jsify();
-    _codemeltedJsModule!.callMethod("open".toJS, params);
+    web.window.callMethod("codemelted_open_schema".toJS, params);
   }
 
   /// Sets / removes the [CodeMeltedAPI.spa] header area.
