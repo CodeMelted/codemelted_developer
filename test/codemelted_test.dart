@@ -36,6 +36,8 @@ void main() {
       codemeltedJsModuleUrl: "./codemelted.js",
     );
     expect(success, isTrue);
+    var isPWA = codemelted.isPWA;
+    expect(isPWA, isFalse);
   });
 
   // This is called once before EVERY test

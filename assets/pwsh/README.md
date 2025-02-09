@@ -1,18 +1,18 @@
 <!--
-TITLE: CodeMelted DEV | Terminal Module
-PUBLISH_DATE: 2025-01-08
+TITLE: CodeMelted DEV | pwsh Module
+PUBLISH_DATE: 2025-02-02
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
-DESCRIPTION: The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in `ps1` scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text based user interface.
+DESCRIPTION: The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed, the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in `ps1` scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text based user interface. Lastly it will facilitate in developing applications utilizing the *CodeMelted DEV | Modules*.
 -->
 <center>
-  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
+  <a title="Back To Developer Main" href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-codemelted-terminal.png" /> CodeMelted DEV | Terminal Module</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-codemelted-pwsh.png" /> CodeMelted DEV | pwsh Module</h1>
 
-The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed, the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in `ps1` scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text based user interface.
+The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed, the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in `ps1` scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text based user interface. Lastly it will facilitate in developing applications utilizing the *CodeMelted DEV | Modules*.
 
-**LAST UPDATED:** 2025-01-08
+**LAST UPDATED:** 2025-02-02
 
 <center>
   <br />
@@ -39,12 +39,13 @@ The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facil
     - [Troubleshooting](#troubleshooting)
       - [Mac OS](#mac-os-1)
       - [Windows OS](#windows-os)
+- [FEATURES](#features)
 - [USAGE](#usage)
-  - [codemelted CLI](#codemelted-cli)
-    - [Get Version](#get-version)
-    - [Navigate Help](#navigate-help)
-  - [Raspberry Pi Services](#raspberry-pi-services)
-- [LICENSE](#license)
+  - [Get Version](#get-version)
+  - [Navigate Help](#navigate-help)
+- [MODULE INFORMATION](#module-information)
+  - [License](#license)
+  - [Versioning](#versioning)
 
 # GETTING STARTED
 
@@ -139,15 +140,19 @@ export PATH="$PWSH_SCRIPT_INSTALL:$PATH"
 
 No issues when running the `Install-Script` cmdlet.
 
-# USAGE
+# FEATURES
 
-## codemelted CLI
+<center><img style="width: 100%; max-width: 560px;" src="../../design-notes/use-case-model.drawio.png" /></center>
+
+<mark>TBD</mark>
+
+# USAGE
 
 The following sub-sections break down how to drill into the codemelted CLI help system. It utilizes the PowerShell Help system tailored to the codemelted CLI needs.
 
-### Get Version
+## Get Version
 
-`codemelted --about` will tell you what version of the codemelted CLI module is installed. The output will be as follows:
+`codemelted --version` will tell you what version of the codemelted CLI module is installed. The output will be as follows:
 
 ```
 Name       Version Author                      Description
@@ -157,7 +162,7 @@ codemelted 0.1.0.0 mark.shaffer@codemelted.com   A CLI to facilitate common deve
 
 To check for the latest version of the script execute `Update-Script -Name codemelted` in a `pwsh` terminal window.
 
-### Navigate Help
+## Navigate Help
 
 `codemelted --help` will produce the following STDOUT from the PowerShell `Get-Help` system. From the help output, you can drill into the help system of each `[Action]` to learn about each of the supported use case actions.
 
@@ -211,17 +216,17 @@ DESCRIPTION
 
 RELATED LINKS
     CodeMelted | DEV Modules:
-    https://developer.codemelted.com
+    https://codemelted.com/developer
 
     GitHub Source:
     https://github.com/CodeMelted/codemelted_developer/tree/main/terminal
 ```
 
-## Raspberry Pi Services
+# MODULE INFORMATION
 
-<mark>TBD</mark>
+The following sub-sections cover various aspects the `codemelted.ps1` module information. It is a single file implementation of the identified use cases.
 
-# LICENSE
+## License
 
 MIT License
 
@@ -232,3 +237,11 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## Versioning
+
+The versioning of the module will be captured via GitHub or the modules documentation method. It will utilize semantic versioning `X.Y.Z` with the following rules for the numbering scheme this project.
+
+- **X:** Completion of a given set of use cases (i.e. Async IO, Data, NPU, SDK, or User Interface).
+- **Y:** Use case implemented, documented, tested, and ready for usage by a developer.
+- **Z:** Bug fix or expansion of a use case.

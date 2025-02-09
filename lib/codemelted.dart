@@ -26,7 +26,7 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
-/// Represents the Flutter SDK bindings for the CodeMelted DEV | PWA Modules.
+/// Represents the Flutter SDK bindings for the CodeMelted DEV | Modules.
 /// Selecting this will give the construct of those SDK binding. To see
 /// examples of the Flutter SDK / JavaScript SDK (plus specifics), click on
 /// the CodeMelted DEV | PWA SDK button at the top of the page.
@@ -1334,47 +1334,19 @@ class CodeMeltedAPI {
     }
   }
 
-  /// Will load a WASM module into the flutter web context. Returns null if
-  /// unable to be loaded.
-  /// @nodoc
-  Future<web.WebAssemblyInstantiatedSource?> importWASM(String url) async {
-    try {
-      return (web.WebAssembly.instantiateStreaming(
-        web.window.fetch(url.toJS),
-      ).toDart);
-    } catch (err) {
-      // TODO: How to signal error.
-      return null;
-    }
-  }
-
   // --------------------------------------------------------------------------
   // [SPA Use Case] -----------------------------------------------------------
   // --------------------------------------------------------------------------
 
   /// Determines if the SPA is an installed PWA or not.
   bool get isPWA {
-    assert(
-      _codemeltedJsModule != null,
-      "codemelted.js Module not initialized.",
-    );
-    return _codemeltedJsModule!
-        .getProperty<JSBoolean>(
-          "isPWA".toJS,
-        )
-        .toDart;
+    return web.window.callMethod<JSBoolean>("codemelted_is_pwa".toJS).toDart;
   }
 
   /// Determines if the flutter app is running in a touch enabled environment.
   bool get isTouchEnabled {
-    assert(
-      _codemeltedJsModule != null,
-      "codemelted.js Module not initialized.",
-    );
-    return _codemeltedJsModule!
-        .getProperty<JSBoolean>(
-          "isTouchEnabled".toJS,
-        )
+    return web.window
+        .callMethod<JSBoolean>("codemelted_is_touch_enabled".toJS)
         .toDart;
   }
 
@@ -2461,7 +2433,7 @@ class CodeMeltedAPI {
   /// within this module.
   /// @nodoc
   static const codemeltedJsModuleUrl =
-      "/assets/packages/codemelted_developer/pwa/codemelted.js";
+      "/assets/packages/codemelted_developer/assets/cpp/codemelted.js";
 
   /// Holds the reference to the codemelted.js module for hooking up logic that
   /// their is no direct dart / flutter implementation that is better.
@@ -2485,9 +2457,9 @@ class CodeMeltedAPI {
       var now = DateTime.now().millisecond;
       _codemeltedJsModule = (await importJSModule(
         moduleUrl: "$codemeltedJsModuleUrl?t=$now",
-      ))
-          ?.getProperty("default".toJS);
-      return _codemeltedJsModule != null;
+      ));
+      await Future.delayed(Duration(milliseconds: 750));
+      return _codemeltedJsModule != null && web.window.has("codemelted");
     } catch (ex, st) {
       _handleError(ex, st);
       return false;
