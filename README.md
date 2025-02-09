@@ -1,18 +1,18 @@
 <!--
 TITLE: CodeMelted DEV | Flutter Module
-PUBLISH_DATE: 2025-02-02
+PUBLISH_DATE: 2025-02-09
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, wasm
-DESCRIPTION: TBD
+DESCRIPTION: The `codemelted.dart` module provides the power of Flutter to build Single Page Applications (SPA) with an easy setup to install the SPA as a Progressive Web App (PWA). This module only targets the Flutter web implementing Flutter specific code to take full advantage of the widget toolkit and Flutter native code that can be utilized within the web. Code that has no native Flutter equivalent will be facilitated via the `codemelted.cpp` loading the compiled `*.wasm` and `*.js` outputs and calling those bindings within the `codemelted.dart` Flutter module.
 -->
 <center>
   <img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-codemelted-flutter.png" /> CodeMelted DEV | Flutter Module</h1>
 
-<mark>TBD</mark>
+The `codemelted.dart` module provides the power of Flutter to build Single Page Applications (SPA) with an easy setup to install the SPA as a Progressive Web App (PWA). This module only targets the Flutter web implementing Flutter specific code to take full advantage of the widget toolkit and Flutter native code that can be utilized within the web. Code that has no native Flutter equivalent will be facilitated via the `codemelted.cpp` loading the compiled `*.wasm` and `*.js` outputs and calling those bindings within the `codemelted.dart` Flutter module.
 
-**LAST UPDATED:** 2025-02-02
+**LAST UPDATED:** 2025-02-09
 
 <center>
   <br />

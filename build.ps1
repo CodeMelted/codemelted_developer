@@ -169,9 +169,11 @@ function build([string[]]$params) {
     message "Compiling codemelted.cpp WASM Module"
     Set-Location $PSScriptRoot/assets/cpp
     Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
+    Remove-Item -Path codemelted.wasm
+    Remove-Item -Path codemelted.js
     New-Item -Path "docs" -ItemType Directory
 
-    emcc --std=c++20 codemelted.cpp -o codemelted.js
+    emcc -D__CODEMELTED_TARGET_WASM__ --std=c++20 codemelted.cpp -o codemelted.js
     Copy-Item -Path codemelted.wasm -Destination docs/codemelted.wasm -Force
     Copy-Item -Path codemelted.wasm -Destination $PSScriptRoot/test -Force
     Copy-Item -Path codemelted.js -Destination docs/codemelted.js -Force

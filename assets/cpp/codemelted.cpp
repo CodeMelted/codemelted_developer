@@ -2,9 +2,21 @@ module;
 /**
  * @file codemelted.cpp
  * @author Mark Shaffer
- * @date 2025-02-02
- * @version 0.0.0 <br />
- * @brief TBD
+ * @date 2025-02-09
+ * @version 0.0.1 <br />
+ * 0.0.1 2025-02-09: Updated the module to support the toolchains of building
+ * a WASM / JS module for usage on web pages and to support the current
+ * codemelted.dart beta module bindings.
+ * @brief The codemelted.cpp is a C++ 20 module that supports three targets
+ * of compilation. One as a WASM module mixing C++ and JS bindings accessible
+ * in a web page. The secondary compilation target is as a static library.
+ * This is to support the codemelted.ps1 module. The final is as an included
+ * C++20 module in a developer's toolchain. This is for module bound
+ * namespaced functions to support native C++ application development.
+ * @note Set compiler directive of __CODEMELTED_TARGET_WASM__ for wasm
+ * compile, __CODEMELTED_TARGET_LIB__ for dynamic library build. If simply
+ * including the C++ 20 module into your build toolchain, no directive is
+ * needed.
  * @see <i>CodeMelted DEV | Modules:</i> https://codemelted.com/developer
  * @see <i>WASM Use Cases:</i> https://webassembly.org/docs/use-cases/
  * @copyright 2024 Mark Shaffer. All Rights Reserved.
@@ -41,38 +53,39 @@ module;
 #elif defined(_MSC_VER)
 #endif
 
-// #if defined(__EMSCRIPTEN__) || defined(__wasm__)
-#include <emscripten.h>
-// #endif
+// ============================================================================
+// [INCLUDES] =================================================================
+// ============================================================================
+
+#if defined(__CODEMELTED_TARGET_WASM__)
+  #include <emscripten.h>
+#endif
 
 #include <numbers>
 #include <cmath>
 
-// ----------------------------------------------------------------------------
-// [MACRO DEFINITIONS] --------------------------------------------------------
-// ----------------------------------------------------------------------------
+// ============================================================================
+// [MACRO DEFINITIONS] ========================================================
+// ============================================================================
 
 /**
- * @brief Something something star wars.
+ * @brief Sets up the CODEMELTED_API that based on the set compilation target
+ * will properly setup the public export for the C++ functions.
  */
-#define CODEMELTED_NPU_API export
-#if defined(__EMSCRIPTEN__) || defined(__wasm__)
-  #undef CODEMELTED_NPU_API
-  #define CODEMELTED_NPU_API EMSCRIPTEN_KEEPALIVE
-#elif defined(_WIN32) || defined(_WIN64)
-  #if defined(CODEMELTED_NPU_EXPORT)
-    #undef CODEMELTED_NPU_API
-    #define CODEMELTED_NPU_API __declspec(dllexport)
+#define CODEMELTED_API
+#if defined(__CODEMELTED_TARGET_WASM__)
+  #undef CODEMELTED_API
+  #define CODEMELTED_API EMSCRIPTEN_KEEPALIVE
+#elif defined(__CODEMELTED_TARGET_LIB__)
+  #undef CODEMELTED_API
+  #if defined(_WIN32) || defined(_WIN64)
+    #define CODEMELTED_API __declspec(dllexport)
   #else
-    #undef CODEMELTED_NPU_API
-    #define CODEMELTED_NPU_API __declspec(dllimport)
+    #define CODEMELTED_API __attribute__((__visibility__("default")))
   #endif
-#elif defined(__linux__) || defined(__linux)   \
-    || defined(__APPLE__) || defined(__MACH__)
-  #if defined(CODEMELTED_NPU_EXPORT)
-    #undef CODEMELTED_NPU_API
-    #define CODEMELTED_NPU_API __attribute__((__visibility__("default")))
-  #endif
+#else
+  #undef CODEMELTED_API
+  #define CODEMELTED_API export
 #endif
 
 /**
@@ -90,7 +103,7 @@ module;
 /**
  * @brief something something star wars.
  */
-export module codemelted_npu;
+export module codemelted;
 
 /**
  * @brief Something Something star wars.
@@ -102,6 +115,7 @@ namespace codemelted {
 // ----------------------------------------------------------------------------
 
 /**
+ * @private
  * @brief Calculates the distance in meters between two WGS84 points.
  * @param startLatitude The starting latitude coordinate.
  * @param startLongitude The starting longitude coordinate.
@@ -143,6 +157,7 @@ double _geodetic_distance(double startLatitude, double startLongitude,
 }
 
 /**
+ * @private
  * @brief Calculates the geodetic heading WGS84 to true north represented as 0
  * and rotating around 360 degrees.
  * @param startLatitude The starting latitude coordinate.
@@ -169,6 +184,7 @@ double _geodetic_heading(double startLatitude, double startLongitude,
 }
 
 /**
+ * @private
  * @brief Calculates the speed between two points in meters per second.
  * @param startMilliseconds The starting time in milliseconds.
  * @param startLatitude The starting latitude coordinate.
@@ -197,71 +213,148 @@ double _geodetic_speed(double startMilliseconds, double startLatitude,
 extern "C" {
 #endif
 
-  // --------------------------------------------------------------------------
-  // [Data Definitions] -------------------------------------------------------
-  // --------------------------------------------------------------------------
+/**
+ * @brief Enumeration of different conversions supported by this module.
+ */
+CODEMELTED_API typedef enum {
+  geodetic_distance, /**< Distance in meters between two WGS84 points */
+  geodetic_heading, /**< Heading in °N true North 0 - 359. */
+  geodetic_speed, /**< Speed in meters per second between two WGS84 points. */
+  temperature_celsius_to_fahrenheit, /**< °F = (°C x 9/5) + 32 */
+  temperature_celsius_to_kelvin, /**< °C + 273.15 */
+  temperature_fahrenheit_to_celsius, /**< (°F − 32) × 5/9 */
+  temperature_fahrenheit_to_kelvin, /**< (°F − 32) × 5/9 + 273.15 */
+  temperature_kelvin_to_celsius, /**< °K − 273.15 */
+  temperature_kelvin_to_fahrenheit /**< (°K − 273.15) × 9/5 + 32 */
+} CFormula_t;
 
-  CODEMELTED_NPU_API typedef enum {
-    calculate_stats
-  } CComputeRequest_t;
-
-
-  CODEMELTED_NPU_API typedef struct {
-    char _reserved[8];
-    int size;
-    CComputeRequest_t request;
-  } CComputeHeader_t;
-
-  /**
-   * @brief Enumeration of different conversions supported by this module.
-   */
-  CODEMELTED_NPU_API typedef enum {
-    geodetic_distance, /**< */
-    geodetic_heading, /**< */
-    geodetic_speed, /**< */
-    temperature_celsius_to_fahrenheit, /**< °F = (°C x 9/5) + 32 */
-    temperature_celsius_to_kelvin, /**< °C + 273.15 */
-    temperature_fahrenheit_to_celsius, /**< (°F − 32) × 5/9 */
-    temperature_fahrenheit_to_kelvin, /**< (°F − 32) × 5/9 + 273.15 */
-    temperature_kelvin_to_celsius, /**< °K − 273.15 */
-    temperature_kelvin_to_fahrenheit /**< (°K − 273.15) × 9/5 + 32 */
-  } CFormula_t;
-
-  // --------------------------------------------------------------------------
-  // [Function Definitions] ---------------------------------------------------
-  // --------------------------------------------------------------------------
-
-  /**
-   * @brief A collection of Formula_t mathematical formula quickly execute
-   * those formulas to arrive at the given calculated answer.
-   * @param formula The identified Formula_t to execute.
-   * @param arg1 - The first parameter of the equation.
-   * @returns The double of the converted value or NAN if the Conversion_t was
-   * not found.
-   */
-  CODEMELTED_NPU_API double math(
-      CFormula_t formula, double arg1, double arg2 = NAN, double arg3 = NAN,
-      double arg4 = NAN, double arg5 = NAN, double arg6 = NAN
-  ) {
-    switch (formula) {
-      _EXEC_FORMULA(geodetic_distance, _geodetic_distance(arg1, arg2, arg3, arg4))
-      _EXEC_FORMULA(geodetic_heading, _geodetic_distance(arg1, arg2, arg3, arg4))
-      _EXEC_FORMULA(geodetic_speed, _geodetic_speed(arg1, arg2, arg3, arg4, arg5, arg6))
-      _EXEC_FORMULA(temperature_celsius_to_fahrenheit, ((arg1 * (9/5)) + 32))
-      _EXEC_FORMULA(temperature_celsius_to_kelvin, (arg1 + 273.15))
-      _EXEC_FORMULA(temperature_fahrenheit_to_celsius, ((arg1 - 32) * (5 / 9)))
-      _EXEC_FORMULA(temperature_fahrenheit_to_kelvin, ((arg1 - 32) * (5 / 9) + 273.15))
-      _EXEC_FORMULA(temperature_kelvin_to_celsius, (arg1 - 273.15))
-      _EXEC_FORMULA(temperature_kelvin_to_fahrenheit, ((arg1 - 273.15) * (9 / 5) + 32))
-    }
-    return NAN;
+/**
+ * @brief A collection of Formula_t mathematical formula quickly execute
+ * those formulas to arrive at the given calculated answer.
+ * @param formula The identified Formula_t to execute.
+ * @param arg1 The first parameter of the equation.
+ * @param arg2 The next possible parameter of the equation.
+ * @param arg3 The next possible parameter of the equation.
+ * @param arg4 The next possible parameter of the equation.
+ * @param arg5 The next possible parameter of the equation.
+ * @param arg6 The next possible parameter of the equation.
+ * @returns The double of the converted value or NAN if the Conversion_t was
+ * not found.
+ */
+CODEMELTED_API double math(
+    CFormula_t formula, double arg1, double arg2 = NAN, double arg3 = NAN,
+    double arg4 = NAN, double arg5 = NAN, double arg6 = NAN
+) {
+  switch (formula) {
+    _EXEC_FORMULA(geodetic_distance, _geodetic_distance(arg1, arg2, arg3, arg4))
+    _EXEC_FORMULA(geodetic_heading, _geodetic_distance(arg1, arg2, arg3, arg4))
+    _EXEC_FORMULA(geodetic_speed, _geodetic_speed(arg1, arg2, arg3, arg4, arg5, arg6))
+    _EXEC_FORMULA(temperature_celsius_to_fahrenheit, ((arg1 * (9/5)) + 32))
+    _EXEC_FORMULA(temperature_celsius_to_kelvin, (arg1 + 273.15))
+    _EXEC_FORMULA(temperature_fahrenheit_to_celsius, ((arg1 - 32) * (5 / 9)))
+    _EXEC_FORMULA(temperature_fahrenheit_to_kelvin, ((arg1 - 32) * (5 / 9) + 273.15))
+    _EXEC_FORMULA(temperature_kelvin_to_celsius, (arg1 - 273.15))
+    _EXEC_FORMULA(temperature_kelvin_to_fahrenheit, ((arg1 - 273.15) * (9 / 5) + 32))
   }
+  return NAN;
+}
 
 #ifdef __cplusplus
 }
 #endif
 
 } // END codemelted
+
+// ============================================================================
+// [JS WASM BINDINGS] =========================================================
+// ============================================================================
+
+#if defined(__CODEMELTED_TARGET_WASM__)
+
+// ----------------------------------------------------------------------------
+// [Runtime Use Case] ---------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/**
+ * @name codemelted_is_pwa
+ * @brief Determines if the web page is an installed PWA.
+ * @returns true if web page is a PWA, false otherwise.
+ */
+EM_JS(bool, codemelted_is_pwa, (), {
+  return codemelted.trySyncTransaction(() => {
+    return globalThis.matchMedia('(display-mode: standalone)').matches
+     || ('standalone' in navigator && (navigator).standalone === true);
+  });
+});
+
+/**
+ * @name codemelted_is_touch_enabled
+ * @brief Determines if the web page is within a touch enabled environment.
+ * @returns true if touch enabled environment, false otherwise.
+ */
+EM_JS(bool, codemelted_is_touch_enabled, (), {
+  return codemelted.trySyncTransaction(() => {
+    return globalThis.navigator.maxTouchPoints > 0;
+  });
+});
+
+// ----------------------------------------------------------------------------
+// [Main JS Binding Setup] ----------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/**
+ * @brief Sets up a revealing module pattern codemelted area to allow for our bound
+ * functions to be able to have support in both C++ and JS.
+ * @returns always 0.
+ */
+int main(void) {
+  EM_ASM(
+    // If we are already defined, then don't redefine ourselves.
+    if (globalThis["codemelted"]) {
+      return;
+    }
+
+    // Setup our codemelted global object to facilitate JS to C++
+    // communications along with setting up a way of capturing values
+    // accessible by both sides of the application.
+    window["codemelted"] = (function() {
+      // PRIVATE MODULE MEMBERS
+
+
+      // PUBLIC API
+      return {
+        /**
+         * Will try a synchronous transaction within the module definition.
+         * @private
+         * @returns {any | undefined}
+         * @throws {SyntaxError} if an unexpected module error occurs.
+         */
+        trySyncTransaction: function(func) {
+          try {
+            return func();
+          } catch (err) {
+            let moduleError = new SyntaxError();
+            apiError.stack = err?.stack;
+            apiError.message = `ModuleError: ${err?.message}`;
+            throw moduleError;
+          }
+        },
+      };
+    })();
+
+    // Now bind our global functions to global scope so they are more easily
+    // accessible in JavaScript. NOTE: These correspond to the EM_JS
+    // definitions above and the names should match.
+    setTimeout(() => {
+      // Runtime Use Cases
+      globalThis["codemelted_is_pwa"] = codemelted_is_pwa;
+      globalThis["codemelted_is_touch_enabled"] = codemelted_is_touch_enabled;
+    }, 250);
+  );
+  return 0;
+}
+
+#endif
 
 // Wrap up our disabling of warnings depending on the compiler and target of
 // the module.

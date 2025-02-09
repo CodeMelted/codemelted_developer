@@ -1,18 +1,18 @@
 <!--
 TITLE: CodeMelted DEV | C++ Module
-PUBLISH_DATE: 2025-02-02
+PUBLISH_DATE: 2025-02-09
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
-DESCRIPTION: TBD
+DESCRIPTION: The `codemelted.cpp` is a C++20 module that serves as a swiss army knife of the CodeMelted DEV modules. It has two primary compilation targets. The first is WASM providing the necessary JS and C++ bindings to support Single Page Application (SPA) development in either pure JS or using C++ and compiling the page. The second is as a C++20 module imported into a developer's C++ native application. The public namespaced interface will provide native implementations of the CodeMelted DEV module use cases where appropriate. The final compilation target is as a static library for usage primarily by the `codemelted.ps1` module.
 -->
 <center>
   <a title="Back To Developer Main" href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-codemelted-wasm.png" /> CodeMelted DEV | C++ Module</h1>
 
-TBD
+The `codemelted.cpp` is a C++20 module that serves as a swiss army knife of the CodeMelted DEV modules. It has two primary compilation targets. The first is WASM providing the necessary JS and C++ bindings to support Single Page Application (SPA) development in either pure JS or using C++ and compiling the page. The second is as a C++20 module imported into a developer's C++ native application. The public namespaced interface will provide native implementations of the CodeMelted DEV module use cases where appropriate. The final compilation target is as a static library for usage primarily by the `codemelted.ps1` module.
 
-**LAST UPDATED:** 2025-02-02
+**LAST UPDATED:** 2025-02-09
 
 <center>
   <br />
