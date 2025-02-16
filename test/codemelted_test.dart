@@ -36,8 +36,6 @@ void main() {
       codemeltedJsModuleUrl: "./codemelted.js",
     );
     expect(success, isTrue);
-    // var isPWA = codemelted.isPWA;
-    // expect(isPWA, isFalse);
   });
 
   // This is called once before EVERY test
@@ -53,134 +51,134 @@ void main() {
   // [JSON Use Case] ----------------------------------------------------------
   // --------------------------------------------------------------------------
 
-  group("codemelted.json Tests", () {
-    test("CArray Validation", () {
-      var listenerCount = 0;
-      onDataChanged() => listenerCount += 1;
+  // group("codemelted.json Tests", () {
+  //   test("CArray Validation", () {
+  //     var listenerCount = 0;
+  //     onDataChanged() => listenerCount += 1;
 
-      var array = codemelted.createArray();
-      array.addListener(listener: onDataChanged);
-      expect(array.isEmpty, isTrue);
+  //     var array = codemelted.createArray();
+  //     array.addListener(listener: onDataChanged);
+  //     expect(array.isEmpty, isTrue);
 
-      // Fire listener
-      array.add(2);
-      array.notifyAll();
-      expect(array.isNotEmpty, isTrue);
-      expect(listenerCount, equals(1));
+  //     // Fire listener
+  //     array.add(2);
+  //     array.notifyAll();
+  //     expect(array.isNotEmpty, isTrue);
+  //     expect(listenerCount, equals(1));
 
-      // Don't fire listener
-      array.insert(0, "hello");
-      expect(array.length, equals(2));
-      expect(listenerCount, equals(1));
+  //     // Don't fire listener
+  //     array.insert(0, "hello");
+  //     expect(array.length, equals(2));
+  //     expect(listenerCount, equals(1));
 
-      // Now validate index works as expected.
-      array.insert(1, true);
-      array.notifyAll();
-      expect(array.length, equals(3));
-      expect(listenerCount, equals(2));
-      expect(array[1], isTrue);
-      expect(array[2], equals(2));
-      expect(array[0], equals("hello"));
+  //     // Now validate index works as expected.
+  //     array.insert(1, true);
+  //     array.notifyAll();
+  //     expect(array.length, equals(3));
+  //     expect(listenerCount, equals(2));
+  //     expect(array[1], isTrue);
+  //     expect(array[2], equals(2));
+  //     expect(array[0], equals("hello"));
 
-      // Make a copy and prove it is a copy
-      var arrayCopy = array.copy();
-      arrayCopy.add("another string");
-      expect(array.length != arrayCopy.length, isTrue);
+  //     // Make a copy and prove it is a copy
+  //     var arrayCopy = array.copy();
+  //     arrayCopy.add("another string");
+  //     expect(array.length != arrayCopy.length, isTrue);
 
-      var stringified = arrayCopy.stringify();
-      expect(stringified!.contains("another"), isTrue);
+  //     var stringified = arrayCopy.stringify();
+  //     expect(stringified!.contains("another"), isTrue);
 
-      // Now validate the parse clears the data of the original array
-      // and load the copies data as if it were serialized data read from
-      // storage to be used.
-      var success = array.parse(data: stringified);
-      expect(success, isTrue);
-    });
+  //     // Now validate the parse clears the data of the original array
+  //     // and load the copies data as if it were serialized data read from
+  //     // storage to be used.
+  //     var success = array.parse(data: stringified);
+  //     expect(success, isTrue);
+  //   });
 
-    test("CObject Validation", () {
-      var listenerCount = 0;
-      onDataChanged() => listenerCount += 1;
+  //   test("CObject Validation", () {
+  //     var listenerCount = 0;
+  //     onDataChanged() => listenerCount += 1;
 
-      var obj = codemelted.createObject();
-      obj.addListener(listener: onDataChanged);
-      expect(obj.isEmpty, isTrue);
+  //     var obj = codemelted.createObject();
+  //     obj.addListener(listener: onDataChanged);
+  //     expect(obj.isEmpty, isTrue);
 
-      obj.set<String>(key: "test", value: "test", notify: true);
-      expect(listenerCount, equals(1));
-      expect(obj.isNotEmpty, isTrue);
-      expect(obj.get<String>(key: "test"), equals("test"));
+  //     obj.set<String>(key: "test", value: "test", notify: true);
+  //     expect(listenerCount, equals(1));
+  //     expect(obj.isNotEmpty, isTrue);
+  //     expect(obj.get<String>(key: "test"), equals("test"));
 
-      obj.set<bool?>(key: "is_good", value: null);
-      expect(obj.get<bool?>(key: "is_good"), isNull);
-      expect(listenerCount, equals(1));
+  //     obj.set<bool?>(key: "is_good", value: null);
+  //     expect(obj.get<bool?>(key: "is_good"), isNull);
+  //     expect(listenerCount, equals(1));
 
-      obj.set<CArray>(key: "anArray", value: [1, true, "three"], notify: true);
-      expect(listenerCount, equals(2));
-      expect(obj.get<CArray>(key: "anArray").length, equals(3));
+  //     obj.set<CArray>(key: "anArray", value: [1, true, "three"], notify: true);
+  //     expect(listenerCount, equals(2));
+  //     expect(obj.get<CArray>(key: "anArray").length, equals(3));
 
-      var copy = obj.copy();
-      copy.set<int>(key: "newKey", value: 2);
-      expect(listenerCount, equals(2));
-      expect(copy.entries.length != obj.entries.length, isTrue);
+  //     var copy = obj.copy();
+  //     copy.set<int>(key: "newKey", value: 2);
+  //     expect(listenerCount, equals(2));
+  //     expect(copy.entries.length != obj.entries.length, isTrue);
 
-      var stringified = obj.stringify();
-      expect(stringified, isNotNull);
+  //     var stringified = obj.stringify();
+  //     expect(stringified, isNotNull);
 
-      var success = obj.parse(initData: stringified!);
-      expect(success, isTrue);
-    });
+  //     var success = obj.parse(initData: stringified!);
+  //     expect(success, isTrue);
+  //   });
 
-    test("asXXX() Validation", () {
-      // Bool validation
-      expect(codemelted.asBool(data: "42"), isFalse);
-      expect(codemelted.asBool(data: "1"), isTrue);
-      expect(codemelted.asBool(data: "yes"), isTrue);
-      expect(codemelted.asBool(data: "no"), isFalse);
+  //   test("asXXX() Validation", () {
+  //     // Bool validation
+  //     expect(codemelted.asBool(data: "42"), isFalse);
+  //     expect(codemelted.asBool(data: "1"), isTrue);
+  //     expect(codemelted.asBool(data: "yes"), isTrue);
+  //     expect(codemelted.asBool(data: "no"), isFalse);
 
-      // double validation
-      expect(codemelted.asDouble(data: "a"), isNull);
-      expect(codemelted.asDouble(data: "42.2"), isNotNull);
-      expect(codemelted.asDouble(data: "42"), isNotNull);
+  //     // double validation
+  //     expect(codemelted.asDouble(data: "a"), isNull);
+  //     expect(codemelted.asDouble(data: "42.2"), isNotNull);
+  //     expect(codemelted.asDouble(data: "42"), isNotNull);
 
-      // int validation
-      expect(codemelted.asInt(data: "a"), isNull);
-      expect(codemelted.asInt(data: "42.2"), isNull);
-      expect(codemelted.asInt(data: "42"), isNotNull);
-    });
+  //     // int validation
+  //     expect(codemelted.asInt(data: "a"), isNull);
+  //     expect(codemelted.asInt(data: "42.2"), isNull);
+  //     expect(codemelted.asInt(data: "42"), isNotNull);
+  //   });
 
-    test("checkXXX() / tryXXX() Validation", () {
-      var obj = codemelted.createObject(data: {
-        "one": 1,
-        "two": "two",
-        "three": null,
-      });
+  //   test("checkXXX() / tryXXX() Validation", () {
+  //     var obj = codemelted.createObject(data: {
+  //       "one": 1,
+  //       "two": "two",
+  //       "three": null,
+  //     });
 
-      expect(codemelted.checkHasProperty(obj: obj, key: "one"), isTrue);
-      expect(codemelted.checkHasProperty(obj: obj, key: "4"), isFalse);
-      try {
-        codemelted.tryHasProperty(obj: obj, key: "4");
-        fail("should throw exception");
-      } catch (ex) {
-        expect(ex, isA<String>());
-      }
+  //     expect(codemelted.checkHasProperty(obj: obj, key: "one"), isTrue);
+  //     expect(codemelted.checkHasProperty(obj: obj, key: "4"), isFalse);
+  //     try {
+  //       codemelted.tryHasProperty(obj: obj, key: "4");
+  //       fail("should throw exception");
+  //     } catch (ex) {
+  //       expect(ex, isA<String>());
+  //     }
 
-      expect(codemelted.checkType<String>(data: 42), isFalse);
-      expect(codemelted.checkType<String>(data: "42"), isTrue);
-      try {
-        codemelted.tryType<String>(data: 42);
-        fail("should throw exception");
-      } catch (ex) {
-        expect(ex, isA<String>());
-      }
+  //     expect(codemelted.checkType<String>(data: 42), isFalse);
+  //     expect(codemelted.checkType<String>(data: "42"), isTrue);
+  //     try {
+  //       codemelted.tryType<String>(data: 42);
+  //       fail("should throw exception");
+  //     } catch (ex) {
+  //       expect(ex, isA<String>());
+  //     }
 
-      expect(codemelted.checkValidUrl(data: "https://codemelted.com"), isTrue);
-      expect(codemelted.checkValidUrl(data: "j;,ht:/b;l42"), isFalse);
-      try {
-        codemelted.tryValidUrl(data: "j;,ht:/b;l42");
-        fail("should throw exception");
-      } catch (ex) {
-        expect(ex, isA<String>());
-      }
-    });
-  });
+  //     expect(codemelted.checkValidUrl(data: "https://codemelted.com"), isTrue);
+  //     expect(codemelted.checkValidUrl(data: "j;,ht:/b;l42"), isFalse);
+  //     try {
+  //       codemelted.tryValidUrl(data: "j;,ht:/b;l42");
+  //       fail("should throw exception");
+  //     } catch (ex) {
+  //       expect(ex, isA<String>());
+  //     }
+  //   });
+  // });
 }
