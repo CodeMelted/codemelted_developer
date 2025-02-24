@@ -12,7 +12,7 @@ DESCRIPTION: The `codemelted.ps1` script will provide a Command Line Interface (
 
 The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed, the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in `ps1` scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text based user interface. Lastly it will facilitate in developing applications utilizing the *CodeMelted DEV | Modules*.
 
-**LAST UPDATED:** 2025-02-02
+**LAST UPDATED:** 2025-02-23
 
 <center>
   <br />
@@ -40,9 +40,20 @@ The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facil
       - [Mac OS](#mac-os-1)
       - [Windows OS](#windows-os)
 - [FEATURES](#features)
+  - [codemelted.ps1 Structure](#codemeltedps1-structure)
+  - [codemelted --version](#codemelted---version)
+  - [codemelted --help](#codemelted---help)
 - [USAGE](#usage)
-  - [Get Version](#get-version)
-  - [Navigate Help](#navigate-help)
+  - [Async I/O Use Cases](#async-io-use-cases)
+  - [Data Use Cases](#data-use-cases)
+    - [codemelted --data-check](#codemelted---data-check)
+    - [codemelted --json](#codemelted---json)
+    - [codemelted --string-parse](#codemelted---string-parse)
+  - [NPU Use Cases](#npu-use-cases)
+  - [SDK Use Cases](#sdk-use-cases)
+    - [codemelted --logger](#codemelted---logger)
+  - [User Interface Use Cases](#user-interface-use-cases)
+    - [codemelted --console](#codemelted---console)
 - [MODULE INFORMATION](#module-information)
   - [License](#license)
   - [Versioning](#versioning)
@@ -144,31 +155,29 @@ No issues when running the `Install-Script` cmdlet.
 
 <center><img style="width: 100%; max-width: 560px;" src="../../design-notes/use-case-model.drawio.png" /></center>
 
-<mark>TBD</mark>
+The following describes how the *codemelted* CLI implements the above use cases.
 
-# USAGE
+## codemelted.ps1 Structure
 
-The following sub-sections break down how to drill into the codemelted CLI help system. It utilizes the PowerShell Help system tailored to the codemelted CLI needs.
+The `codemelted.ps1` is divided into three sections. The first section is the *TERMINAL MODULE DEFINITION*. This section contains the `PSScriptInfo` that describes the script on [PowerShell  Gallery](https://www.powershellgallery.com/). It also defines the general script interface, the `--version` flag, and the `--help` system.
 
-## Get Version
+The next section is the *USE CASE DEFINITIONS*. This section is divided into the five use case groups reflected in the use case model above. Each of these sections contains a `function codemelted_xxx {}` definition representing each individual use case function for the given group. The function definition is divided into the `<#.SYNOPSIS #>` that defines the help section along with the `param()` which defines the interface to the function. Any violation of the function will result in a `SyntaxError: xxx` which will aid in properly using the function.
 
-`codemelted --version` will tell you what version of the codemelted CLI module is installed. The output will be as follows:
+The last section is the *MAIN API DEFINITION*. This defines the mapping between the `--use-case` flag to the function call. This completes the overall `codemelted --use-case @{}` CLI signature of this module. The next sections will walk you through utilizing CLI to get help on individual use cases *(NOTE: They are also covered in this page)*.
+
+## codemelted --version
 
 ```
 Name       Version Author                      Description
 ----       ------- ------                      -----------
-codemelted 0.1.0.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac, Linux, or Windows systems.
+codemelted 0.5.1.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac, Linux, or Windows systems.
 ```
 
-To check for the latest version of the script execute `Update-Script -Name codemelted` in a `pwsh` terminal window.
-
-## Navigate Help
-
-`codemelted --help` will produce the following STDOUT from the PowerShell `Get-Help` system. From the help output, you can drill into the help system of each `[Action]` to learn about each of the supported use case actions.
+## codemelted --help
 
 ```
 NAME
-    help
+    codemelted_help
 
 SYNOPSIS
     The codemelted Command Line Interface (CLI) Terminal Module. It allows
@@ -184,42 +193,246 @@ SYNOPSIS
 
       [Action]
         # To Learn About the CLI use cases.
-        --about : Get current information about the codemelted CLI
-        --help  : Execute 'codemelted --help @{ "action" = [Use Case] }'
-                  to learn more about the CLI Actions.
+        --help : Execute 'codemelted --help @{ "action" = "--use-case" }'
+                 to learn more about the CLI Actions.
+        --version : Get current information about the codemelted CLI
 
-        # JSON Use Cases
-        --as-bool
-        --as-int
-        --as-double
-        --check-has-property
-        --check-type
-        --check-valid-url
-        --create-array
-        --create-object
-        --parse-json
-        --stringify-json
-        --try-has-property"
-        --try-type
-        --try-valid-url
+        # Async I/O Use Cases
+        TBD
+
+        # Data Use Cases
+        --data-check
+        --disk (IN DEVELOPMENT. DON'T USE)
+        --json
+        --string-parse
+
+        # NPU Use Cases
+        TBD
+
+        # SDK Use Cases
+        --logger
+
+        # User Interface Use Cases
+        --console
 
       [Params]
         The optional set of named arguments wrapped within a [hashtable]
 
+    RETURNS:
+      Will vary depending on the called [Action].
+```
 
-SYNTAX
-    help [[-Params] <Hashtable>] [<CommonParameters>]
+# USAGE
 
+<center><img style="width: 100%; max-width: 560px;" src="../../design-notes/module-architecture.drawio.png" /></center>
 
-DESCRIPTION
+The following sub-sections provides examples of each of the implemented use cases.
 
+## Async I/O Use Cases
 
-RELATED LINKS
-    CodeMelted | DEV Modules:
-    https://codemelted.com/developer
+<mark>TBD</mark>
 
-    GitHub Source:
-    https://github.com/CodeMelted/codemelted_developer/tree/main/terminal
+## Data Use Cases
+
+<mark>TBD</mark>
+
+### codemelted --data-check
+
+```
+NAME
+    codemelted_data_check
+
+SYNOPSIS
+    Provides basic data validation and type checking of dynamic variables
+    within a powershell script.
+
+    SYNTAX:
+      # Checks that the specified 'data' [hashtable] has the specified 'key'.
+      $answer = codemelted --data-check @{
+        "action" = "has_property";      # required
+        "data" = [hashtable];           # required
+        "key" = "name of key in data";  # required
+        "should_throw" = $false         # optional
+      }
+
+      # Checks that the specified 'data' variable is the expected typename
+      # specified by the 'key'.
+      $answer = codemelted --data-check @{
+        "action" = "type";       # required
+        "data" = $variable;      # required
+        "key" = "typename";      # required (.NET type names)
+        "should_throw" = $false  # optional
+      }
+
+      # Checks that the specified 'data' is a well formed URI object.
+      $answer = codemelted --data-check @{
+        "action" = "url";        # required
+        "data" = "url string";   # required
+        "should_throw" = $false  # optional
+      }
+
+    RETURNS:
+      [boolean] $true if data check passes, $false otherwise
+
+    THROWS:
+      [string] if 'should_throw' is set to $true in the $Params.
+```
+
+### codemelted --json
+
+```
+NAME
+    codemelted_json
+
+SYNOPSIS
+    Provides the facilities to create / copy JSON compliant .NET objects and
+    the ability to parse / stringify that data for storage, transmission, and
+    processing of the data.
+
+    SYNTAX:
+      # Create / copy data into a new [arraylist]
+      $data = codemelted --json @{
+        "action" = "create_array";  # required
+        "data" = $arrayListData     # optional [arraylist] to copy
+      }
+
+      # Create / copy data into a new [arraylist]
+      $data = codemelted --json @{
+        "action" = "create_object";  # required
+        "data" = $hashTableData      # optional [arraylist] to copy
+      }
+
+      # Parse a string into a [hashtable] or [arraylist] or generic datatype
+      $data = codemelted --json @{
+        "action" = "parse";   # required
+        "data" = $stringData  # required [string] data
+      }
+
+      # Transform a [arraylist] or [hashtable] into string data
+      $data = codemelted --json @{
+        "action" = "stringify"; # required
+        "data" = $theData       # required [arraylist] or [hashtable] data
+      }
+
+    RETURNS:
+      [arraylist] for 'create_array' / 'parse' actions.
+      [hashtable] for 'create_object' / 'parse' actions.
+      [string] for 'stringify' action.
+      $null for invalid data types that can't be translated.
+```
+
+### codemelted --string-parse
+
+```
+NAME
+    codemelted_string_parse
+
+SYNOPSIS
+    Provides the facilities to translate strings into their appropriate
+    data type.
+
+    SYNTAX:
+      $data = codemelted --string-parse @{
+        "action" = "";  # required
+        "data" = $dataString  # required
+      }
+
+    ACTIONS:
+      array / boolean / double / int / object
+
+    RETURNS:
+      [System.Collections.ArrayList] for 'array' action.
+      [boolean] for 'boolean' action.
+      [double] for 'double' action.
+      [int] for 'int' action.
+      [object] for 'object' action.
+      $null for string data that can't be translated.
+```
+
+## NPU Use Cases
+
+<mark>TBD</mark>
+
+## SDK Use Cases
+
+<mark>TBD</mark>
+
+### codemelted --logger
+
+```
+NAME
+    codemelted_logger
+
+SYNOPSIS
+    Provides a logging facility to report log events to STDOUT color coded
+    based on the type of event. Also provides for setting up a handler to
+    perform other types of processing not just to STDOUT.
+
+    SYNTAX:
+      # Set up the log level for the logging facility within the module.
+      # The "data" levels are 'debug' / 'info' / 'warning' / 'error' / 'off'.
+      codemelted --logger @{
+        "action" = "log_level";  # required
+        "data" = [string]       # optional
+      }
+
+      # Set up a log handler for logged events via the logger. This will
+      # be called when the logger is not configured as off. Regardless of
+      # the log level, the event will be passed to the handler. The
+      # CLogRecord object will include the current moduleLogLevel.
+      codemelted --logger @{
+        "action" = "handler";           # required
+        "data" = [scriptblock] / $null  # required
+      }
+
+      # To log data to STDOUT set the "action" to 'debug' / 'info' /
+      # 'warning' / 'error'. If the event meets the module log level,
+      # it will report to STDOUT color coded and time stamped.
+      codemelted --logger @{
+        "action" = [string]  # required
+        "data"   = [string]  # required
+      }
+
+    RETURNS:
+      [string] When the action is 'log_level' but no log level is set.
+      [void]   For all other actions.
+```
+
+## User Interface Use Cases
+
+<mark>TBD</mark>
+
+### codemelted --console
+
+```
+NAME
+    codemelted_console
+
+SYNOPSIS
+    Provides a basic mechanism for interacting with a user via STDIN and
+    STDOUT for later processing within a script.
+
+    SYNTAX:
+      $answer = codemelted --console @{
+        "action" = "";  # required
+        "message" = ""; # optional message to associate with action
+        "choices" = @(  # required when using the 'choose' action.
+          "dog",
+          "cat",
+          "fish"
+        )
+      }
+
+    ACTIONS:
+      alert / confirm / choose / password / prompt / writeln
+
+    RETURNS:
+      alert    [void]
+      confirm  [boolean]
+      choose   [int]
+      password [string]
+      prompt   [string]
+      writeln  [void]
 ```
 
 # MODULE INFORMATION

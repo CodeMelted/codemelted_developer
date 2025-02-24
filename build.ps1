@@ -355,8 +355,7 @@ function build([string[]]$params) {
     "--publish-script" {
       Write-Host "MESSAGE: Now publishing the codemelted.ps1 CLI module"
 
-      Set-Location $PSScriptRoot/terminal
-      Publish-Script -Path ./codemelted.ps1 -NugetAPIKey $env:PWSH_PUBLISH_KEY -Verbose
+      Publish-Script -Path ./assets/pwsh/codemelted.ps1 -NugetAPIKey $env:PWSH_PUBLISH_KEY -Verbose
       Set-Location $PSScriptRoot
 
       Write-Host "MESSAGE: Publishing completed."
