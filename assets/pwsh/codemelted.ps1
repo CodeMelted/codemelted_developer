@@ -768,8 +768,6 @@ function codemelted_logger {
 # [User Interface Use Cases] --------------------------------------------------
 # -----------------------------------------------------------------------------
 
-# TBD - Audio
-
 function codemelted_console {
   <#
     .SYNOPSIS

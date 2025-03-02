@@ -240,6 +240,7 @@ function build([string[]]$params) {
       $htmlData = $htmlData.Replace(".png`"><br>", ".png`"><br>`n$htmlNavTemplate")
       $htmlData = $htmlData.Replace("README.md", "index.html")
       $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
+      $htmlData = $htmlData.Replace('<a href="codemelted">','<a href="codemelted/index.html">')
       $htmlData | Out-File docs/index.html -Force
 
       $files = Get-ChildItem -Path docs/codemelted/*.html, docs/codemelted/*/*.html -Exclude "*sidebar*"
@@ -249,6 +250,9 @@ function build([string[]]$params) {
         $htmlData = $htmlData.Replace("</head>", '<link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css"><script src="https://codemelted.com/assets/js/footer.js" defer></script></head>')
         $htmlData = $htmlData.Replace(".png`"><br>", ".png`"><br>`n$htmlNavTemplate")
         $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
+        $htmlData = $htmlData.Replace('<a href="../codemelted">','<a href="../codemelted/index.html">')
+        $htmlData = $htmlData.Replace('<a href="../codemelted">codemelted.dart</a>','<a href="../codemelted/index.html">codemelted.dart</a>')
+
         $htmlData | Out-File $file.FullName -Force
       }
 

@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted DEV | Flutter Module
-PUBLISH_DATE: 2025-02-23
+PUBLISH_DATE: 2025-03-02
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, wasm
 DESCRIPTION: The `codemelted.dart` module provides the power of Flutter to build Single Page Applications (SPA) with an easy setup to install the SPA as a Progressive Web App (PWA). This module only targets the Flutter web implementing Flutter specific code to take full advantage of the widget toolkit and Flutter native code that can be utilized within the web. Code that has no native Flutter equivalent will be facilitated via the `codemelted.cpp` loading the compiled `*.wasm` and `*.js` outputs and calling those bindings within the `codemelted.dart` Flutter module.
@@ -12,7 +12,7 @@ DESCRIPTION: The `codemelted.dart` module provides the power of Flutter to build
 
 The `codemelted.dart` module provides the power of Flutter to build Single Page Applications (SPA) with an easy setup to install the SPA as a Progressive Web App (PWA). This module only targets the Flutter web implementing Flutter specific code to take full advantage of the widget toolkit and Flutter native code that can be utilized within the web. Code that has no native Flutter equivalent will be facilitated via the `codemelted.cpp` loading the compiled `*.wasm` and `*.js` outputs and calling those bindings within the `codemelted.dart` Flutter module.
 
-**LAST UPDATED:** 2025-02-23
+**LAST UPDATED:** 2025-03-02
 
 <center>
   <br />
@@ -29,6 +29,7 @@ The `codemelted.dart` module provides the power of Flutter to build Single Page 
 - [FEATURES](#features)
 - [USAGE](#usage)
   - [Async I/O Use Cases](#async-io-use-cases)
+    - [Game](#game)
     - [Task](#task)
     - [Worker](#worker)
   - [Data Use Cases](#data-use-cases)
@@ -36,6 +37,7 @@ The `codemelted.dart` module provides the power of Flutter to build Single Page 
     - [Data Check](#data-check)
     - [Disk](#disk)
     - [File](#file)
+    - [Firebase](#firebase)
     - [JSON](#json)
     - [String Parse](#string-parse)
     - [Storage](#storage)
@@ -49,18 +51,15 @@ The `codemelted.dart` module provides the power of Flutter to build Single Page 
     - [Hardware](#hardware)
     - [Logger](#logger)
     - [Network](#network)
-    - [Orientation](#orientation)
     - [Runtime](#runtime)
     - [Schema](#schema)
     - [Share](#share)
-    - [WebRTC](#webrtc)
   - [User Interface Use Cases](#user-interface-use-cases)
+    - [App](#app)
     - [Audio](#audio)
     - [Dialog](#dialog)
-    - [Gamepad](#gamepad)
-    - [SPA](#spa)
-    - [Theming](#theming)
-    - [UI Widgets](#ui-widgets)
+    - [Theme](#theme)
+    - [UI Widget](#ui-widget)
 - [MODULE INFORMATION](#module-information)
   - [License](#license)
   - [Versioning](#versioning)
@@ -83,6 +82,10 @@ The `codemelted.dart` module provides the power of Flutter to build Single Page 
 The above module reflects how the `codemelted.dart` module communicates with the supporting `codemelted.js` and `codemelted.wasm` files. These are a result of the WASM `codemelted.cpp` compiled target. It provides the support functionality where no direct Flutter implementation exists. So the `codemelted.dart` module imports the module to provide that functionality. The sub-sections below will provide Flutter examples of each of the use case functions.
 
 ## Async I/O Use Cases
+
+### Game
+
+<mark>TBD</mark>
 
 ### Task
 
@@ -107,6 +110,10 @@ The above module reflects how the `codemelted.dart` module communicates with the
 <mark>TBD</mark>
 
 ### File
+
+<mark>TBD</mark>
+
+### Firebase
 
 <mark>TBD</mark>
 
@@ -158,10 +165,6 @@ The above module reflects how the `codemelted.dart` module communicates with the
 
 <mark>TBD</mark>
 
-### Orientation
-
-<mark>TBD</mark>
-
 ### Runtime
 
 <mark>TBD</mark>
@@ -174,11 +177,12 @@ The above module reflects how the `codemelted.dart` module communicates with the
 
 <mark>TBD</mark>
 
-### WebRTC
-
-<mark>TBD</mark>
 
 ## User Interface Use Cases
+
+### App
+
+<mark>TBD</mark>
 
 ### Audio
 
@@ -188,19 +192,11 @@ The above module reflects how the `codemelted.dart` module communicates with the
 
 <mark>TBD</mark>
 
-### Gamepad
+### Theme
 
 <mark>TBD</mark>
 
-### SPA
-
-<mark>TBD</mark>
-
-### Theming
-
-<mark>TBD</mark>
-
-### UI Widgets
+### UI Widget
 
 <mark>TBD</mark>
 
