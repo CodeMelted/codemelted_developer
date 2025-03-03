@@ -3101,13 +3101,6 @@ class CodeMeltedAPI {
   /// [CodeMeltedAPI.app] functions.
   static final scaffoldKey = GlobalKey<ScaffoldState>();
 
-  /// The NPU module location when compiling a codemelted_developer flutter
-  /// module with the WASM / PWA resources that support utilizing those assets
-  /// within this module.
-  /// @nodoc
-  static const codemeltedJsModuleUrl =
-      "/assets/packages/codemelted_developer/assets/cpp/codemelted.js";
-
   /// Kicks off the running of a web applications within a runZoneGuarded
   /// so any errors during runtime are logged. Also initializes the
   /// codemelted.js / .wasm binding to support other module functions. Specify
@@ -3121,9 +3114,6 @@ class CodeMeltedAPI {
     runZonedGuarded<Future<void>>(() async {
       // Ensure flutter is initialized.
       WidgetsFlutterBinding.ensureInitialized();
-
-      // Setup our binding to the codemelted.js module
-      await initCodeMeltedJS();
 
       // Do any pre-initialization
       await preInit?.call();
@@ -3160,12 +3150,9 @@ class CodeMeltedAPI {
     _instance = this;
   }
 
-  /// Provides the ability to initialize the codemelted.js/.wasm files to allow
-  /// for this module to fully function. This serves as a bypass if not running
-  /// [CodeMeltedAPI.appRun] to initialize your web application.
-  Future<void> initCodeMeltedJS({
-    String codemeltedJsModuleUrl = CodeMeltedAPI.codemeltedJsModuleUrl,
-  }) async {
+  /// @nodoc
+  @visibleForTesting
+  Future<void> initCodeMeltedJS({required String codemeltedJsModuleUrl}) async {
     var now = DateTime.now().millisecond;
     await importModule(
       "$codemeltedJsModuleUrl?t=$now".toJS,
