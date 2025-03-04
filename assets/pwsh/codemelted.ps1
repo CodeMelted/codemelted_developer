@@ -10,8 +10,12 @@
 .EXTERNALMODULEDEPENDENCIES Microsoft.PowerShell.ConsoleGuiTools
 .TAGS pwsh pwsh-scripts pwsh-modules CodeMeltedDEV codemelted
 .GUID c757fe44-4ed5-46b0-8e24-9a9aaaad872c
-.VERSION 0.5.1
+.VERSION 0.5.2
 .RELEASENOTES
+  0.5.2 2025-03-03
+  - Added --network to the SDK Use cases.
+  - Only fetch action exists at this time.
+
   0.5.1 2025-02-23
   - Tailored the script to match the use case groups.
   - Implemented the --data-check, --json, and --string-parse options of the
@@ -53,6 +57,7 @@ param(
 
     # SDK Use Cases
     "--logger",
+    "--network",
 
     # User Interface Use Cases
     "--console"
@@ -101,6 +106,7 @@ function codemelted_help {
 
         # SDK Use Cases
         --logger
+        --network (IN DEVELOPMENT. fetch usable)
 
         # User Interface Use Cases
         --console
@@ -136,6 +142,7 @@ function codemelted_help {
     # NPU Use Cases
     # SDK Use Cases
     "--logger" = { Get-Help codemelted_logger };
+    "--network" = { Get-Help codemelted_network };
     # User Interface Use Cases
     "--console" = { Get-Help codemelted_console };
   }
@@ -764,6 +771,130 @@ function codemelted_logger {
   }
 }
 
+# A response object returned from the codemelted_network fetch action.
+# Contains the statusCode, statusText, and the data.
+class CFetchResponse {
+  # Member Fields
+  [int] $statusCode
+  [string] $statusText
+  [object] $data
+
+  # Will treat the data as a series of bytes if it is that or return $null.
+  [byte[]] asBytes() {
+    return $this.data -is [byte[]] ? $this.data : $null
+  }
+
+  # Will treat the data as a JSON object if it is that or return $null.
+  [hashtable] asObject() {
+    return $this.data -is [hashtable] ? $this.data : $null
+  }
+
+  # Will treat the data as a string if it is that or return $null.
+  [string] asString() {
+    return $this.data -is [string] ? $this.data : $null
+  }
+
+  # Constructor for the class transforming the response into the appropriate
+  # data for consumption.
+  CFetchResponse([Microsoft.PowerShell.Commands.WebResponseObject] $resp) {
+    $this.statusCode = $resp.StatusCode
+    $this.statusText = $resp.StatusDescription
+    [string] $headers = $resp.Headers | Out-String
+    if ($headers.ToLower().Contains("application/json")) {
+      $this.data = codemelted_json @{
+        "action" = "parse";
+        "data" = $resp.Content
+      }
+      $this.data -is [hashtable]
+    } else {
+      $this.data = $resp.Content
+    }
+  }
+}
+
+function codemelted_network {
+  <#
+    .SYNOPSIS
+    Provides a basic mechanism for interacting with a user via STDIN and
+    STDOUT for later processing within a script.
+
+    SYNTAX:
+      # Perform a network fetch to a REST API. The "data" is a [hashtable]
+      # reflecting the named parameters of the Invoke-WebRequest. So the two
+      # most common items will be "method" / "body" / "headers" but others
+      # are reflected via the link.
+      $resp = codemelted --network @{
+        "action" = "fetch";    # required
+        "url" = [string / ip]; # required
+        "data" = [hashtable]   # required
+      }
+
+      # FUTURE ACTIONS not implemented yet.
+      http_server / websocket_client / websocket_server
+
+    RETURNS:
+      [CNetworkResponse] for the 'fetch' action that has the statusCode,
+        statusText, and data as properties. Methods of asBytes(), asObject(),
+        asString() exists to get the data of the expected type or $null if
+        not of that type.
+
+    .LINK
+      Invoke-WebRequest Details:
+      https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-webrequest
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+
+  $action = $Params["action"]
+  $url = $Params["url"]
+  # TBD FUTURE $port = $Params["port"]
+  $data = $Params["data"]
+
+  # Validate the required entries utilized by all actions.
+  if ([string]::IsNullOrEmpty($url) -or [string]::IsNullOrWhiteSpace($url)) {
+    throw "SyntaxError: codemelted --network Params expects a url key with " +
+      "a [string] URL / IP address"
+  }
+
+  # Go perform the actions.
+  try {
+    if ($action -eq "fetch") {
+      # data needs to be a hashtable or this won't work.
+      if (-not ($data -is [hashtable])) {
+        throw "SyntaxError: codemelted --network Params 'fetch' action " +
+          "expects a data [hashtable] entry."
+      }
+
+      # Go carry out the fetch.
+      [hashtable] $request = codemelted_json @{
+        "action" = "create_object";
+        "data" = $data
+      }
+      $request.Add("uri", $url)
+      $resp = Invoke-WebRequest @request -SkipHttpErrorCheck
+      return [CFetchResponse]::new($resp)
+    } elseif ($action -eq "http_server") {
+      throw "FUTURE IMPLEMENTATION"
+    } elseif ($action -eq "websocket_client") {
+      throw "FUTURE IMPLEMENTATION"
+    } elseif ($action -eq "websocket_server") {
+      throw "FUTURE IMPLEMENTATION"
+    } else {
+      throw "SyntaxError: codemelted --network Params did not have a " +
+        "supported action key specified. Valid actions are fetch / "
+    }
+  } catch {
+    throw "SyntaxError: codemelted --network encountered an issue. " +
+      $_.Exception.Message
+  }
+}
+
 # -----------------------------------------------------------------------------
 # [User Interface Use Cases] --------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -884,6 +1015,7 @@ switch ($Action) {
   # NPU Use Cases
   # SDK Use Cases
   "--logger" { codemelted_logger $Params }
+  "--network" { codemelted_network $Params }
   # User Interface Use Case
   "--console" { codemelted_console $Params }
 }

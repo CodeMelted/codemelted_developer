@@ -954,7 +954,7 @@ class CTabItem {
 }
 
 // TODO: Create custom theme to add other items to reflect tab style like other
-//       matieral3 widgets.
+//       material3 widgets.
 
 /// Widget associated with the [CUiTabbedViewConfig] to display a tabbed
 /// interface of content for the [CodeMeltedAPI.app] view.

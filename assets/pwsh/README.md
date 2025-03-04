@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted DEV | pwsh Module
-PUBLISH_DATE: 2025-02-02
+PUBLISH_DATE: 2025-03-03
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed, the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in `ps1` scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text based user interface. Lastly it will facilitate in developing applications utilizing the *CodeMelted DEV | Modules*.
@@ -12,7 +12,7 @@ DESCRIPTION: The `codemelted.ps1` script will provide a Command Line Interface (
 
 The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed, the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in `ps1` scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text based user interface. Lastly it will facilitate in developing applications utilizing the *CodeMelted DEV | Modules*.
 
-**LAST UPDATED:** 2025-02-23
+**LAST UPDATED:** 2025-03-03
 
 <center>
   <br />
@@ -52,6 +52,7 @@ The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facil
   - [NPU Use Cases](#npu-use-cases)
   - [SDK Use Cases](#sdk-use-cases)
     - [codemelted --logger](#codemelted---logger)
+    - [codemelted --network](#codemelted---network)
   - [User Interface Use Cases](#user-interface-use-cases)
     - [codemelted --console](#codemelted---console)
 - [MODULE INFORMATION](#module-information)
@@ -170,7 +171,7 @@ The last section is the *MAIN API DEFINITION*. This defines the mapping between 
 ```
 Name       Version Author                      Description
 ----       ------- ------                      -----------
-codemelted 0.5.1.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac, Linux, or Windows systems.
+codemelted 0.5.2.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac, Linux, or Windows systems.
 ```
 
 ## codemelted --help
@@ -211,6 +212,7 @@ SYNOPSIS
 
         # SDK Use Cases
         --logger
+        --network (IN DEVELOPMENT. fetch usable)
 
         # User Interface Use Cases
         --console
@@ -396,6 +398,41 @@ SYNOPSIS
     RETURNS:
       [string] When the action is 'log_level' but no log level is set.
       [void]   For all other actions.
+```
+
+### codemelted --network
+
+```
+NAME
+    codemelted_network
+
+SYNOPSIS
+    Provides a basic mechanism for interacting with a user via STDIN and
+    STDOUT for later processing within a script.
+
+    SYNTAX:
+      # Perform a network fetch to a REST API. The "data" is a [hashtable]
+      # reflecting the named parameters of the Invoke-WebRequest. So the two
+      # most common items will be "method" / "body" / "headers" but others
+      # are reflected via the link.
+      $resp = codemelted --network @{
+        "action" = "fetch";    # required
+        "url" = [string / ip]; # required
+        "data" = [hashtable]   # required
+      }
+
+      # FUTURE ACTIONS not implemented yet.
+      http_server / websocket_client / websocket_server
+
+    RETURNS:
+      [CNetworkResponse] for the 'fetch' action that has the statusCode,
+        statusText, and data as properties. Methods of asBytes(), asObject(),
+        asString() exists to get the data of the expected type or $null if
+        not of that type.
+
+RELATED LINKS
+    Invoke-WebRequest Details:
+    https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-webrequest
 ```
 
 ## User Interface Use Cases
