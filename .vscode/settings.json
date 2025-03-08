@@ -29,6 +29,7 @@
     "iframe",
     "jsify",
     "keepalive",
+    "LASTEXITCODE",
     "lerp",
     "libc",
     "libstdc",

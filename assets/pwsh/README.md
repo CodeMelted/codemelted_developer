@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted DEV | pwsh Module
-PUBLISH_DATE: 2025-03-03
+PUBLISH_DATE: 2025-03-09
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed, the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in `ps1` scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text based user interface. Lastly it will facilitate in developing applications utilizing the *CodeMelted DEV | Modules*.
@@ -12,7 +12,7 @@ DESCRIPTION: The `codemelted.ps1` script will provide a Command Line Interface (
 
 The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed, the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in `ps1` scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text based user interface. Lastly it will facilitate in developing applications utilizing the *CodeMelted DEV | Modules*.
 
-**LAST UPDATED:** 2025-03-03
+**LAST UPDATED:** 2025-03-09
 
 <center>
   <br />
@@ -52,7 +52,9 @@ The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facil
   - [NPU Use Cases](#npu-use-cases)
   - [SDK Use Cases](#sdk-use-cases)
     - [codemelted --logger](#codemelted---logger)
+    - [codemelted --monitor](#codemelted---monitor)
     - [codemelted --network](#codemelted---network)
+    - [codemelted --runtime](#codemelted---runtime)
   - [User Interface Use Cases](#user-interface-use-cases)
     - [codemelted --console](#codemelted---console)
 - [MODULE INFORMATION](#module-information)
@@ -75,7 +77,7 @@ brew install --cask powershell
 
 ### Linux OS
 
-Follow the <a target="_blank" href="https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-linux?view=powershell-7.4">Install Powershell on Linux</a> to properly setup the pwsh terminal for your Linux flavor.
+Follow the <a target="_blank" href="https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-linux">Install Powershell on Linux</a> to properly setup the pwsh terminal for your Linux flavor.
 
 ### Windows
 
@@ -87,18 +89,19 @@ winget install --id Microsoft.PowerShell --source winget
 
 ### Raspberry Pi
 
-The following series of commands will setup a pwsh terminal on a Raspberry Pi picking up the necessary repo and setting up the environment. Notice the `v7.4.6` as the currently identified version. Change this to install the latest version.
+The following series of commands will setup a pwsh terminal on a Raspberry Pi picking up the necessary repo and setting up the environment. Notice the `VERSION` as the currently identified version. Change this to install the latest version.
 
-```
-dpkg --add-architecture arm64
-apt-get update
-apt-get install -y libc6:arm64 libstdc++6:arm64
-mkdir -p /opt/microsoft/powershell/7
-wget -O /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v7.4.6/powershell-7.4.6-linux-arm64.tar.gz
-tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7
-chmod +x /opt/microsoft/powershell/7/pwsh
-ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
-rm /tmp/powershell.tar.gz
+```sh
+VERSION=7.5.0
+sudo dpkg --add-architecture arm64
+sudo apt-get update
+sudo apt-get install -y libc6:arm64 libstdc++6:arm64
+sudo mkdir -p /opt/microsoft/powershell/7
+sudo wget -O /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v${VERSION}/powershell-$VERSION}-linux-arm64.tar.gz
+sudo tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7
+sudo chmod +x /opt/microsoft/powershell/7/pwsh
+sudo ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
+sudo rm /tmp/powershell.tar.gz
 pwsh --version
 ```
 
@@ -171,7 +174,7 @@ The last section is the *MAIN API DEFINITION*. This defines the mapping between 
 ```
 Name       Version Author                      Description
 ----       ------- ------                      -----------
-codemelted 0.5.2.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac, Linux, or Windows systems.
+codemelted 0.5.3.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac, Linux, or Windows systems.
 ```
 
 ## codemelted --help
@@ -212,7 +215,9 @@ SYNOPSIS
 
         # SDK Use Cases
         --logger
+        --monitor
         --network (IN DEVELOPMENT. fetch usable)
+        --runtime (IN DEVELOPMENT. Linux stats incomplete)
 
         # User Interface Use Cases
         --console
@@ -400,6 +405,12 @@ SYNOPSIS
       [void]   For all other actions.
 ```
 
+### codemelted --monitor
+
+```
+
+```
+
 ### codemelted --network
 
 ```
@@ -433,6 +444,81 @@ SYNOPSIS
 RELATED LINKS
     Invoke-WebRequest Details:
     https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-webrequest
+```
+
+### codemelted --runtime
+
+```
+NAME
+    codemelted_runtime
+
+SYNOPSIS
+    Provides an interface for interacting and learning about the host
+    operating system.
+
+    SYNTAX:
+      Lookups:
+        # Provides the ability to lookup / run commands with the host
+        # operating system. These actions are 'environment' / 'exist' /
+        # 'system'. These would have a corresponding name identified that
+        # will lookup a variable with the environment, check on a command
+        # that exist, or a system command to execute (to include
+        # parameters to command).
+        $answer = codemelted --runtime @{
+          "action" = [string] # required action identified above.
+          "name" = [string]   # required
+        }
+
+      Queryable Actions:
+        # Queryable answers to items available about the host operating
+        # system. These actions are 'home_path' / 'hostname' / 'newline' /
+        # 'online' / 'os_name' / 'os_version' / 'path_separator' /
+        # 'processor_count' / 'temp_path' / 'username'
+        $answer = codemelted --runtime @{
+          "action" = [string] # required action identified above.
+        }
+
+      Stats:
+        # Gets the current stats of the host operating system.
+        # These actions are 'stats_disk' / 'stats_perf' / 'stats_tcp' /
+        # 'stats_udp'
+        $answer = codemelted --runtime @{
+          "action" = [string] # required action identified above.
+        }
+
+    RETURNS:
+      Lookups:
+        [bool] $true if a 'command' action exists.
+        [string] For a environment variable found or $null if not. For a
+          'system' action, this will be the STDOUT of the command.
+
+      Queryable Actions:
+        [bool] for the 'online' queryable action. $true means path to Internet.
+          $False means no path to the Internet.
+        [char] for the 'newline' queryable action.
+        [int] for the 'processor_count' queryable action.
+        [string] for all the queryable actions.
+
+      Stats:
+        # 'stats_disk' action:
+        [hashtable] @{
+          "bytes_used_percent" = [double];
+          "bytes_used" = [int]; # kilobytes
+          "bytes_free" = [int]; # kilobytes
+          "bytes_total" = [int]; # kilobytes
+        }
+
+        # 'stats_perf' action:
+        [hashtable] @{
+          "cpu_used_percent" = [double];
+          "cpu_processor_count" = [int];
+          "mem_used_percent" = [double];
+          "mem_used_kb" = [int];
+          "mem_available_kb" = [int];
+          "mem_total_kb" = [int];
+      }
+
+      [string] for 'stats_tcp' / 'stats_udp' action.
 ```
 
 ## User Interface Use Cases

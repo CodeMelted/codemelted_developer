@@ -10,10 +10,13 @@
 .EXTERNALMODULEDEPENDENCIES Microsoft.PowerShell.ConsoleGuiTools
 .TAGS pwsh pwsh-scripts pwsh-modules CodeMeltedDEV codemelted
 .GUID c757fe44-4ed5-46b0-8e24-9a9aaaad872c
-.VERSION 0.5.2
+.VERSION 0.5.3
 .RELEASENOTES
+  0.5.3 2025-03-08
+  - Added --runtime and --monitor to the SDK use cases.
+
   0.5.2 2025-03-03
-  - Added --network to the SDK Use cases.
+  - Added --network to the SDK use cases.
   - Only fetch action exists at this time.
 
   0.5.1 2025-02-23
@@ -58,6 +61,7 @@ param(
     # SDK Use Cases
     "--logger",
     "--network",
+    "--runtime",
 
     # User Interface Use Cases
     "--console"
@@ -106,7 +110,9 @@ function codemelted_help {
 
         # SDK Use Cases
         --logger
+        --monitor
         --network (IN DEVELOPMENT. fetch usable)
+        --runtime (IN DEVELOPMENT. Linux stats incomplete)
 
         # User Interface Use Cases
         --console
@@ -143,6 +149,7 @@ function codemelted_help {
     # SDK Use Cases
     "--logger" = { Get-Help codemelted_logger };
     "--network" = { Get-Help codemelted_network };
+    "--runtime" = { Get-Help codemelted_runtime };
     # User Interface Use Cases
     "--console" = { Get-Help codemelted_console };
   }
@@ -815,8 +822,10 @@ class CFetchResponse {
 function codemelted_network {
   <#
     .SYNOPSIS
-    Provides a basic mechanism for interacting with a user via STDIN and
-    STDOUT for later processing within a script.
+    Provides a mechanism for getting data within a script via various network
+    calls or setting up a server based network protocol. These are focused
+    around web OSS network technologies and not all the different networking
+    technologies available.
 
     SYNTAX:
       # Perform a network fetch to a REST API. The "data" is a [hashtable]
@@ -892,6 +901,208 @@ function codemelted_network {
   } catch {
     throw "SyntaxError: codemelted --network encountered an issue. " +
       $_.Exception.Message
+  }
+}
+
+function codemelted_runtime {
+  <#
+    .SYNOPSIS
+    Provides an interface for interacting and learning about the host
+    operating system.
+
+    SYNTAX:
+      Lookups:
+        # Provides the ability to lookup / run commands with the host
+        # operating system. These actions are 'environment' / 'exist' /
+        # 'system'. These would have a corresponding name identified that
+        # will lookup a variable with the environment, check on a command
+        # that exist, or a system command to execute (to include
+        # parameters to command).
+        $answer = codemelted --runtime @{
+          "action" = [string] # required action identified above.
+          "name" = [string]   # required
+        }
+
+      Queryable Actions:
+        # Queryable answers to items available about the host operating
+        # system. These actions are 'home_path' / 'hostname' / 'newline' /
+        # 'online' / 'os_name' / 'os_version' / 'path_separator' /
+        # 'processor_count' / 'temp_path' / 'username'
+        $answer = codemelted --runtime @{
+          "action" = [string] # required action identified above.
+        }
+
+      Stats:
+        # Gets the current stats of the host operating system.
+        # These actions are 'stats_disk' / 'stats_perf' / 'stats_tcp' /
+        # 'stats_udp'
+        $answer = codemelted --runtime @{
+          "action" = [string] # required action identified above.
+        }
+
+    RETURNS:
+      Lookups:
+        [bool] $true if a 'command' action exists.
+        [string] For a environment variable found or $null if not. For a
+          'system' action, this will be the STDOUT of the command.
+
+      Queryable Actions:
+        [bool] for the 'online' queryable action. $true means path to Internet.
+          $False means no path to the Internet.
+        [char] for the 'newline' queryable action.
+        [int] for the 'processor_count' queryable action.
+        [string] for all the queryable actions.
+
+      Stats:
+        # 'stats_disk' action:
+        [hashtable] @{
+          "bytes_used_percent" = [double];
+          "bytes_used" = [int]; # kilobytes
+          "bytes_free" = [int]; # kilobytes
+          "bytes_total" = [int]; # kilobytes
+        }
+
+        # 'stats_perf' action:
+        [hashtable] @{
+          "cpu_used_percent" = [double];
+          "cpu_processor_count" = [int];
+          "mem_used_percent" = [double];
+          "mem_used_kb" = [int];
+          "mem_available_kb" = [int];
+          "mem_total_kb" = [int];
+      }
+
+      [string] for 'stats_tcp' / 'stats_udp' action.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+
+  # Get our expected parameters.
+  $action = $Params["action"]
+  $name = $Params["name"]
+
+  # Validate name parameter based on actions that would use it.
+  if ($action -eq "environment" -or $action -eq "exist" `
+        -or $action -eq "system") {
+    if ([string]::isNullOrEmpty($name) -or
+        [string]::IsNullOrWhiteSpace($name)) {
+      throw "SyntaxError: codemelted --runtime $action action expects the " +
+        "name Params key to have a string value."
+    }
+  }
+
+  # Now go carry out the request.
+  if ($action -eq "environment") {
+    return [System.Environment]::GetEnvironmentVariable($name)
+  } elseif ($action -eq "exist") {
+    if ($IsWindows) {
+      cmd /c where $name > nul 2>&1
+    } else {
+      which -s $name
+    }
+    return $LASTEXITCODE -eq 0
+  } elseif ($action -eq "home_path") {
+    return $IsWindows `
+      ? [System.Environment]::GetEnvironmentVariable("USERPROFILE")
+      : [System.Environment]::GetEnvironmentVariable("HOME")
+  } elseif ($action -eq "hostname") {
+    return [System.Environment]::MachineName
+  } elseif ($action -eq "newline") {
+    return [System.Environment]::NewLine
+  } elseif ($action -eq "online") {
+    return (Test-Connection -Ping google.com -Count 1 -Quiet)
+  } elseif ($action -eq "os_name") {
+    return $IsLinux ? "linux" : $IsMacOS ? "mac" : "windows"
+  } elseif ($action -eq "os_version") {
+    return [System.Environment]::OSVersion.VersionString
+  } elseif ($action -eq "path_separator") {
+    return [System.IO.Path]::DirectorySeparatorChar
+  } elseif ($action -eq "processor_count") {
+    return [System.Environment]::ProcessorCount
+  } elseif ($action -eq "stats_disk") {
+    $diskStats = (Get-PSDrive -PSProvider FileSystem)
+    $diskTotal = $diskStats[0].Free + $diskStats[0].Used
+    $diskTotalUsedPercent = ($diskStats[0].Used / $diskTotal) * 100
+    return [ordered] @{
+      "bytes_used_percent" = $diskTotalUsedPercent;
+      "bytes_used" = $diskStats[0].Used;
+      "bytes_free" = $diskStats[0].Free;
+      "bytes_total" = $diskTotal;
+    }
+  } elseif ($action -eq "stats_perf") {
+    if ($IsWindows) {
+      if ($null -eq $Global:cpuCounter) {
+        $Global:cpuCounter = [System.Diagnostics.PerformanceCounter]::new(
+          "Processor", "% Processor Time", "_Total"
+        )
+        $Global:cpuCounter.NextValue() | Out-Null
+      }
+      if ($null -eq $Global:memCounter) {
+        $Global:memCounter = [System.Diagnostics.PerformanceCounter]::new(
+          "Memory", "Available MBytes"
+        )
+        $Global:memCounter.NextValue() | Out-Null
+      }
+
+      # All memory stats in Kilobytes
+      $availableRam = $Global:memCounter.NextValue()
+      $totalRam = (wmic ComputerSystem get TotalPhysicalMemory | findstr [0..9])
+      $totalRam = $totalRam.Trim()
+      $totalRam = [double]::Parse($totalRam) / 1e+6
+      $memUsedKb = $totalRam - $availableRam
+      $memUsed = ($memUsedKb / $totalRam) * 100
+      return [ordered] @{
+        "cpu_used_percent" = $Global:cpuCounter.NextValue();
+        "cpu_processor_count" = [System.Environment]::ProcessorCount;
+        "mem_used_percent" = $memUsed;
+        "mem_used_kb" = $memUsedKb;
+        "mem_available_kb" = $availableRam
+        "mem_total_kb" = $totalRam
+      }
+    } elseif ($IsMacOS) {
+      $cpuLoad = (top -l 1 | grep -E "^CPU" | tail -1 | awk '{ print $3 + $5"%" }').Replace("%", "")
+      $cpuLoad = [double]::Parse($cpuLoad)
+      $usedMemM = (top -l 1 | grep "^Phys" | awk '{ print $2 }').Replace("M", "")
+      $usedMemKb = [double]::Parse($usedMemM) * 1000
+      $availableMemM = (top -l 1 | grep "^Phys" | awk '{ print $8 }').Replace("M", "")
+      $availableMemKb = [double]::Parse($availableMemM) * 1000
+      $totalMemKb = $availableMemKb + $usedMemKb
+      $memUsedPercent = ($usedMemKb / $totalMemKb) * 100
+      return [ordered]  @{
+        "cpu_used_percent" = $cpuLoad;
+        "cpu_processor_count" = [System.Environment]::ProcessorCount;
+        "mem_used_percent" = $memUsedPercent;
+        "mem_used_kb" = $usedMemKb;
+        "mem_available_kb" = $availableMemKb;
+        "mem_total_kb" = $totalMemKb;
+      }
+    } else {
+      throw "FUTURE IMPLEMENTATION"
+    }
+  } elseif ($action -eq "stats_tcp") {
+    return (netstat -nap tcp)
+  } elseif ($action -eq "stats_udp") {
+    return (netstat -nap udp)
+  } elseif ($action -eq "system") {
+    return $IsWindows ? (cmd /c $name) : (sh -c $name)
+  } elseif ($action -eq "temp_path") {
+    return [System.IO.Path]::GetTempPath()
+  } elseif ($action -eq "username") {
+    return $IsWindows `
+      ? [System.Environment]::GetEnvironmentVariable("USERNAME")
+      : [System.Environment]::GetEnvironmentVariable("USER")
+  } else {
+    throw "SyntaxError: codemelted --runtime Params did not have a " +
+      "supported action key specified. Valid actions are environment / " +
+      "exist / home_path / hostname / newline / online / os_name / " +
+      "os_version / path_separator / processor_count / stats_disk / " +
+      "stats_perf / stats_tcp / stats_udp / system / temp_path / username"
   }
 }
 
@@ -1016,6 +1227,7 @@ switch ($Action) {
   # SDK Use Cases
   "--logger" { codemelted_logger $Params }
   "--network" { codemelted_network $Params }
+  "--runtime" { codemelted_runtime $Params }
   # User Interface Use Case
   "--console" { codemelted_console $Params }
 }
