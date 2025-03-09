@@ -32,12 +32,9 @@ The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facil
     - [Windows](#windows)
     - [Raspberry Pi](#raspberry-pi)
   - [Install codemelted CLI](#install-codemelted-cli)
-    - [Find-Script](#find-script)
-    - [Install-Script](#install-script)
-    - [Update-Script](#update-script)
-    - [Uninstall-Script](#uninstall-script)
+    - [cmdlets](#cmdlets)
     - [Troubleshooting](#troubleshooting)
-      - [Mac OS](#mac-os-1)
+      - [Linux / Mac / Raspberry Pi](#linux--mac--raspberry-pi)
       - [Windows OS](#windows-os)
 - [FEATURES](#features)
   - [codemelted.ps1 Structure](#codemeltedps1-structure)
@@ -107,53 +104,41 @@ pwsh --version
 
 ## Install codemelted CLI
 
-### Find-Script
+The `codemelted.ps1` CLI script is hosted at [PowerShell Gallery](https://www.powershellgallery.com/packages/codemelted/0.5.3) to facilitate its installation as discussed below.
 
-To find the current version published in the PSGallery execute:
+### cmdlets
 
-```
-Find-Script -Name codemelted
-```
-
-### Install-Script
-
-To install the codemelted CLI from the PS Gallery execute:
-
-```
-Install-Script -Name codemelted
-```
-
-### Update-Script
-
-To update to the latest version of the codemelted CLI from the PS Gallery execute:
-
-```
-Update-Script -Name codemelted
-```
-
-### Uninstall-Script
-
-To completely uninstall the codemelted CLI execute:
-
-```
-Uninstall-Script -Name codemelted
-```
+- `Find-Script -Name codemelted`: To find the current version published in the PSGallery.
+- `Install-Script -Name codemelted`: To install the codemelted CLI from the PSGallery.
+- `Update-Script -Name codemelted`: To update to the latest version of the codemelted CLI from the PSGallery.
+- `Uninstall-Script -Name codemelted`: To completely uninstall the codemelted CLI.
 
 ### Troubleshooting
 
-#### Mac OS
+#### Linux / Mac / Raspberry Pi
 
-On Mac OS in the zsh terminal, the `$env:PSModulePath` does not include the `Scripts/` path where the `Install-Script` installs the `codemelted.ps1` script file. To fix this issue, add the following entry to your `.zshrc` file.
+On the various supported unix variant operating systems, the `$env:PSModulePath` does not include the `Scripts/` path where the `Install-Script` installs the `codemelted.ps1` script file. To fix this issue, add the following entry to the appropriate **Sources** script so when you kick off `pwsh` shell, you can access the `codemelted` command.
 
-```bash
-export PWSH_SCRIPT_INSTALL="$HOME/.local/share/powershell/Scripts:/usr/local/share/powershell/Scripts:/usr/local/microsoft/powershell/7/Scripts"
-# Make sure on this to not eliminate any other script settings.
-export PATH="$PWSH_SCRIPT_INSTALL:$PATH"
+**Sources:** The following bullets discuss the script profile order from login to executing an interactive shell. Utilize this to determine where to put the script code below to add the pwsh scripts to the `$PATH` variable.
+
+- [Shell Startup](https://docs.nersc.gov/environment/shell_startup/)
+- [zsh Guide Section 2.2](https://zsh.sourceforge.io/Guide/zshguide02.html)
+
+**Shell Code to Add to Appropriate Login / Startup Script:**
+
+```sh
+# set PATH so it includes user's pwsh installed scripts
+if [ -d "$HOME/.local/share/powershell/Scripts" ]; then
+   PATH="$HOME/.local/share/powershell/Scripts:$PATH"
+fi
 ```
 
 #### Windows OS
 
-No issues when running the `Install-Script` cmdlet.
+No issues when running the `Install-Script` cmdlet on Windows 10/11.
+
+
+*NOTE: If the `$env:PSModulePath` is not a part of the `%PATH%`, you can correct this by adding the value of `$env:PSModulePath` to the [How to Edit Environment Variables on Windows 10 or 11](https://www.howtogeek.com/787217/how-to-edit-environment-variables-on-windows-10-or-11/)*
 
 # FEATURES
 

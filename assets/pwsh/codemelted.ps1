@@ -10,8 +10,11 @@
 .EXTERNALMODULEDEPENDENCIES Microsoft.PowerShell.ConsoleGuiTools
 .TAGS pwsh pwsh-scripts pwsh-modules CodeMeltedDEV codemelted
 .GUID c757fe44-4ed5-46b0-8e24-9a9aaaad872c
-.VERSION 0.5.3
+.VERSION 0.5.4
 .RELEASENOTES
+  0.5.4 2025-03-08
+  - Fixed missing type on Linux OS to allow proper running of the CLI.
+
   0.5.3 2025-03-08
   - Added --runtime and --monitor to the SDK use cases.
 
@@ -75,6 +78,9 @@ param(
   )]
   [hashtable]$Params
 )
+
+# TYPES:
+Add-Type -AssemblyName Microsoft.PowerShell.Commands.Utility
 
 function codemelted_help {
   <#
