@@ -10,8 +10,12 @@
 .EXTERNALMODULEDEPENDENCIES Microsoft.PowerShell.ConsoleGuiTools
 .TAGS pwsh pwsh-scripts pwsh-modules CodeMeltedDEV codemelted
 .GUID c757fe44-4ed5-46b0-8e24-9a9aaaad872c
-.VERSION 0.5.4
+.VERSION 0.5.5
 .RELEASENOTES
+  0.5.5 2025-03-08
+  - Removed complaining item so Add-Type can complete properly.
+  - This will make autocomplete in the future interesting.
+
   0.5.4 2025-03-08
   - Fixed missing type on Linux OS to allow proper running of the CLI.
 
@@ -809,7 +813,7 @@ class CFetchResponse {
 
   # Constructor for the class transforming the response into the appropriate
   # data for consumption.
-  CFetchResponse([Microsoft.PowerShell.Commands.WebResponseObject] $resp) {
+  CFetchResponse($resp) {
     $this.statusCode = $resp.StatusCode
     $this.statusText = $resp.StatusDescription
     [string] $headers = $resp.Headers | Out-String
