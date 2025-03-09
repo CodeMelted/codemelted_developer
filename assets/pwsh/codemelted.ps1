@@ -10,8 +10,14 @@
 .EXTERNALMODULEDEPENDENCIES Microsoft.PowerShell.ConsoleGuiTools
 .TAGS pwsh pwsh-scripts pwsh-modules CodeMeltedDEV codemelted
 .GUID c757fe44-4ed5-46b0-8e24-9a9aaaad872c
-.VERSION 0.5.5
+.VERSION 0.7.0
 .RELEASENOTES
+  0.7.0 2025-03-09
+  - Completed --runtime testing on Linux. All three major systems available.
+  - Clean up of script data definitions.
+  - Corrected version number to reflect fully implemented use cases for the
+    different use case groups. No full group is implemented yet.
+
   0.5.5 2025-03-08
   - Removed complaining item so Add-Type can complete properly.
   - This will make autocomplete in the future interesting.
@@ -41,9 +47,13 @@
   - Initial release of the codemelted CLI with the --json use case implemented.
 #>
 
+# -----------------------------------------------------------------------------
+# [Main Parameter Definition] -------------------------------------------------
+# -----------------------------------------------------------------------------
+
 <#
-.DESCRIPTION
-  A CLI to facilitate common developer use cases on Mac, Linux, or Windows systems.
+  .DESCRIPTION
+  A CLI to facilitate common developer use cases on Mac / Linux / Windows OS.
 #>
 param(
   [Parameter(
@@ -83,8 +93,129 @@ param(
   [hashtable]$Params
 )
 
-# TYPES:
+# -----------------------------------------------------------------------------
+# [Data Types] ----------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
+# .NET Assemblies
+
 Add-Type -AssemblyName Microsoft.PowerShell.Commands.Utility
+
+class CodeMeltedAPI {
+  static [int] $logLevel = [CLogRecord]::offLogLevel
+  static [scriptblock] $logHandler = $null
+}
+
+# A response object returned from the codemelted_network fetch action.
+# Contains the statusCode, statusText, and the data.
+class CFetchResponse {
+  # Member Fields
+  [int] $statusCode
+  [string] $statusText
+  [object] $data
+
+  # Will treat the data as a series of bytes if it is that or return $null.
+  [byte[]] asBytes() {
+    return $this.data -is [byte[]] ? $this.data : $null
+  }
+
+  # Will treat the data as a JSON object if it is that or return $null.
+  [hashtable] asObject() {
+    return $this.data -is [hashtable] ? $this.data : $null
+  }
+
+  # Will treat the data as a string if it is that or return $null.
+  [string] asString() {
+    return $this.data -is [string] ? $this.data : $null
+  }
+
+  # Constructor for the class transforming the response into the appropriate
+  # data for consumption.
+  CFetchResponse($resp) {
+    $this.statusCode = $resp.StatusCode
+    $this.statusText = $resp.StatusDescription
+    [string] $headers = $resp.Headers | Out-String
+    if ($headers.ToLower().Contains("application/json")) {
+      $this.data = codemelted_json @{
+        "action" = "parse";
+        "data" = $resp.Content
+      }
+      $this.data -is [hashtable]
+    } else {
+      $this.data = $resp.Content
+    }
+  }
+}
+
+# Provides the log record object to pass to a handler for post processing.
+# Attached to it is the module log level along with the current captured
+# log level, data, and the time it was logged.
+class CLogRecord {
+  # Constants
+  static [int] $debugLogLevel = 0
+  static [int] $infoLogLevel = 1
+  static [int] $warningLogLevel = 2
+  static [int] $errorLogLevel = 3
+  static [int] $offLogLevel = 4
+
+  # Utility to translate to the constants to string representation.
+  static [string] logLevelString([int]$logLevel) {
+    if ($logLevel -eq [CLogRecord]::debugLogLevel) {
+      return "DEBUG"
+    } elseif ($logLevel -eq [CLogRecord]::infoLogLevel) {
+      return "INFO"
+    } elseif ($logLevel -eq [CLogRecord]::warningLogLevel) {
+      return "WARNING"
+    } elseif ($logLevel -eq [CLogRecord]::errorLogLevel) {
+      return "ERROR"
+    } elseif ($logLevel -eq [CLogRecord]::offLogLevel) {
+      return "OFF"
+    }
+
+    return "UNKNOWN"
+  }
+
+  # Utility to translate from string to constant log level number.
+  static [int] logLevelInt([string]$logLevel) {
+    if ($logLevel.ToLower() -eq "debug") {
+      return [CLogRecord]::debugLogLevel
+    } elseif ($logLevel.ToLower() -eq "info") {
+      return [CLogRecord]::infoLogLevel
+    } elseif ($logLevel.ToLower() -eq "warning") {
+      return [CLogRecord]::warningLogLevel
+    } elseif ($logLevel.ToLower() -eq "error") {
+      return [CLogRecord]::errorLogLevel
+    }
+
+    return -1
+  }
+
+  # Member Fields
+  [string]$timestamp
+  [int]$moduleLogLevel = -1
+  [int]$logLevel = -1
+  [string]$data = ""
+
+  # Constructor for the class.
+  CLogRecord([int]$moduleLogLevel, [int] $logLevel, [string] $data) {
+    $this.timestamp = (Get-Date -Format "yyyy/MM/dd HH:mm:ss.fff")
+    $this.moduleLogLevel = $moduleLogLevel
+    $this.logLevel = $logLevel
+    $this.data = $data
+  }
+
+  [string] ToString() {
+    return $this.timestamp +
+      " [" +
+      [CLogRecord]::logLevelString($this.logLevel) +
+      "]: " +
+      $this.data
+  }
+}
+
+# -----------------------------------------------------------------------------
+# [CLI Help System] -----------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 function codemelted_help {
   <#
@@ -122,7 +253,7 @@ function codemelted_help {
         --logger
         --monitor
         --network (IN DEVELOPMENT. fetch usable)
-        --runtime (IN DEVELOPMENT. Linux stats incomplete)
+        --runtime
 
         # User Interface Use Cases
         --console
@@ -617,72 +748,6 @@ function codemelted_string_parse {
 # [SDK Use Cases] -------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
-# Provides the log record object to pass to a handler for post processing.
-# Attached to it is the module log level along with the current captured
-# log level, data, and the time it was logged.
-class CLogRecord {
-  # Constants
-  static [int] $debugLogLevel = 0
-  static [int] $infoLogLevel = 1
-  static [int] $warningLogLevel = 2
-  static [int] $errorLogLevel = 3
-  static [int] $offLogLevel = 4
-
-  # Utility to translate to the constants to string representation.
-  static [string] logLevelString([int]$logLevel) {
-    if ($logLevel -eq [CLogRecord]::debugLogLevel) {
-      return "DEBUG"
-    } elseif ($logLevel -eq [CLogRecord]::infoLogLevel) {
-      return "INFO"
-    } elseif ($logLevel -eq [CLogRecord]::warningLogLevel) {
-      return "WARNING"
-    } elseif ($logLevel -eq [CLogRecord]::errorLogLevel) {
-      return "ERROR"
-    } elseif ($logLevel -eq [CLogRecord]::offLogLevel) {
-      return "OFF"
-    }
-
-    return "UNKNOWN"
-  }
-
-  # Utility to translate from string to constant log level number.
-  static [int] logLevelInt([string]$logLevel) {
-    if ($logLevel.ToLower() -eq "debug") {
-      return [CLogRecord]::debugLogLevel
-    } elseif ($logLevel.ToLower() -eq "info") {
-      return [CLogRecord]::infoLogLevel
-    } elseif ($logLevel.ToLower() -eq "warning") {
-      return [CLogRecord]::warningLogLevel
-    } elseif ($logLevel.ToLower() -eq "error") {
-      return [CLogRecord]::errorLogLevel
-    }
-
-    return -1
-  }
-
-  # Member Fields
-  [string]$timestamp
-  [int]$moduleLogLevel = -1
-  [int]$logLevel = -1
-  [string]$data = ""
-
-  # Constructor for the class.
-  CLogRecord([int]$moduleLogLevel, [int] $logLevel, [string] $data) {
-    $this.timestamp = (Get-Date -Format "yyyy/MM/dd HH:mm:ss.fff")
-    $this.moduleLogLevel = $moduleLogLevel
-    $this.logLevel = $logLevel
-    $this.data = $data
-  }
-
-  [string] ToString() {
-    return $this.timestamp +
-      " [" +
-      [CLogRecord]::logLevelString($this.logLevel) +
-      "]: " +
-      $this.data
-  }
-}
-
 function codemelted_logger {
   <#
     .SYNOPSIS
@@ -728,17 +793,12 @@ function codemelted_logger {
     [hashtable]$Params
   )
 
-  # Properly initialize the log level if not set yet.
-  if ($null -eq $Global:logLevel) {
-    $Global:logLevel = [CLogRecord]::offLogLevel
-  }
-
   $action = $Params["action"]
   $data = $Params["data"]
 
   if ($action -eq "log_level") {
     if ($null -eq $data) {
-      $logLevelString = [CLogRecord]::logLevelString($Global:logLevel)
+      $logLevelString = [CLogRecord]::logLevelString([CodeMeltedAPI]::logLevel)
       return $logLevelString
     }
     $level = [CLogRecord]::logLevelInt($data)
@@ -747,12 +807,12 @@ function codemelted_logger {
         "value for setting log level. Valid values are 'debug' / 'info' " +
         "/ 'warning' / 'error'"
     }
-    $Global:logLevel = $level
+    [CodeMeltedAPI]::logLevel = $level
   } elseif ($action -eq "handler") {
     if ($null -eq $data) {
-      $Global:logHandler = $null
+      [CodeMeltedAPI]::logHandler = $null
     } elseif ($data -is [scriptblock]) {
-      $Global:logHandler = $data
+      [CodeMeltedAPI]::logHandler = $data
     } else {
       throw "SyntaxError: codemelted --logger Params handler action only " +
         "supports a data value of [null] or [scriptblock]"
@@ -785,47 +845,6 @@ function codemelted_logger {
     throw "SyntaxError: codemelted --slogger Params did not have a " +
     "supported action key specified. Valid actions are log_level / " +
     "handler / debug / info / warning / error."
-  }
-}
-
-# A response object returned from the codemelted_network fetch action.
-# Contains the statusCode, statusText, and the data.
-class CFetchResponse {
-  # Member Fields
-  [int] $statusCode
-  [string] $statusText
-  [object] $data
-
-  # Will treat the data as a series of bytes if it is that or return $null.
-  [byte[]] asBytes() {
-    return $this.data -is [byte[]] ? $this.data : $null
-  }
-
-  # Will treat the data as a JSON object if it is that or return $null.
-  [hashtable] asObject() {
-    return $this.data -is [hashtable] ? $this.data : $null
-  }
-
-  # Will treat the data as a string if it is that or return $null.
-  [string] asString() {
-    return $this.data -is [string] ? $this.data : $null
-  }
-
-  # Constructor for the class transforming the response into the appropriate
-  # data for consumption.
-  CFetchResponse($resp) {
-    $this.statusCode = $resp.StatusCode
-    $this.statusText = $resp.StatusDescription
-    [string] $headers = $resp.Headers | Out-String
-    if ($headers.ToLower().Contains("application/json")) {
-      $this.data = codemelted_json @{
-        "action" = "parse";
-        "data" = $resp.Content
-      }
-      $this.data -is [hashtable]
-    } else {
-      $this.data = $resp.Content
-    }
   }
 }
 
@@ -1028,7 +1047,13 @@ function codemelted_runtime {
   } elseif ($action -eq "online") {
     return (Test-Connection -Ping google.com -Count 1 -Quiet)
   } elseif ($action -eq "os_name") {
-    return $IsLinux ? "linux" : $IsMacOS ? "mac" : "windows"
+    return $IsMacOS `
+      ? "mac" 
+      : $IsWindows `
+        ? "windows" 
+        : (Test-Path "/etc/rpi-issue") `
+          ? "pi" 
+          : "linux"
   } elseif ($action -eq "os_version") {
     return [System.Environment]::OSVersion.VersionString
   } elseif ($action -eq "path_separator") {
@@ -1093,12 +1118,27 @@ function codemelted_runtime {
         "mem_total_kb" = $totalMemKb;
       }
     } else {
-      throw "FUTURE IMPLEMENTATION"
+      $memUsedKb = (free --line | awk '{ print $6}')
+      $memUsedKb = [double]::Parse($memUsedKb)
+      $memFreeKb = (free --line | awk '{ print $8}')
+      $memFreeKb = [double]::Parse($memFreeKb)
+      $memTotalKb = $memFreeKb + $memUsedKb
+      $memUsedPercent = ($memUsedKb / $memTotalKb) * 100      
+      $cpuIdle = (top -b -d1 -n1 | grep Cpu | awk '{ print $8 }')
+      $cpuUsed = 100.0 - [double]::Parse($cpuIdle)
+      return [ordered]  @{
+        "cpu_used_percent" = $cpuUsed;
+        "cpu_processor_count" = [System.Environment]::ProcessorCount;
+        "mem_used_percent" = $memUsedPercent;
+        "mem_used_kb" = $memUsedKb;
+        "mem_available_kb" = $memFreeKb;
+        "mem_total_kb" = $memTotalKb;
+      }
     }
   } elseif ($action -eq "stats_tcp") {
-    return (netstat -nap tcp)
+    return $IsLinux ? (netstat -na | grep "tcp") : (netstat -nap tcp)
   } elseif ($action -eq "stats_udp") {
-    return (netstat -nap udp)
+    return $IsLinux ? (netstat -na | grep "udp") : (netstat -nap tcp)
   } elseif ($action -eq "system") {
     return $IsWindows ? (cmd /c $name) : (sh -c $name)
   } elseif ($action -eq "temp_path") {

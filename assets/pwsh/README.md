@@ -159,7 +159,7 @@ The last section is the *MAIN API DEFINITION*. This defines the mapping between 
 ```
 Name       Version Author                      Description
 ----       ------- ------                      -----------
-codemelted 0.5.3.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac, Linux, or Windows systems.
+codemelted 0.7.0.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac / Linux / Windows OS.
 ```
 
 ## codemelted --help
@@ -167,49 +167,49 @@ codemelted 0.5.3.0 mark.shaffer@codemelted.com   A CLI to facilitate common deve
 ```
 NAME
     codemelted_help
-
+    
 SYNOPSIS
     The codemelted Command Line Interface (CLI) Terminal Module. It allows
     a developer to execute the CodeMelted DEV | Module use cases within a
     pwsh terminal shell. This allows for building CLI tools, Terminal User
     Interface (TUI) tools, or building DevOps toolchain automation.
-
+    
     SYNTAX:
-
+    
       codemelted [Action] [Params]
-
+    
     PARAMETERS:
-
+    
       [Action]
         # To Learn About the CLI use cases.
         --help : Execute 'codemelted --help @{ "action" = "--use-case" }'
                  to learn more about the CLI Actions.
         --version : Get current information about the codemelted CLI
-
+    
         # Async I/O Use Cases
         TBD
-
+    
         # Data Use Cases
         --data-check
         --disk (IN DEVELOPMENT. DON'T USE)
         --json
         --string-parse
-
+    
         # NPU Use Cases
         TBD
-
+    
         # SDK Use Cases
         --logger
         --monitor
         --network (IN DEVELOPMENT. fetch usable)
-        --runtime (IN DEVELOPMENT. Linux stats incomplete)
-
+        --runtime
+    
         # User Interface Use Cases
         --console
-
+    
       [Params]
         The optional set of named arguments wrapped within a [hashtable]
-
+    
     RETURNS:
       Will vary depending on the called [Action].
 ```
