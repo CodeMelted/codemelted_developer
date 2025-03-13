@@ -10,8 +10,14 @@
 .EXTERNALMODULEDEPENDENCIES Microsoft.PowerShell.ConsoleGuiTools
 .TAGS pwsh pwsh-scripts pwsh-modules CodeMeltedDEV codemelted
 .GUID c757fe44-4ed5-46b0-8e24-9a9aaaad872c
-.VERSION 0.7.0
+.VERSION 0.8.0
 .RELEASENOTES
+  0.8.0 2025-03-12
+  - Completed --task Async IO Use Cases
+  - Stubbed out the other use case functions.
+  - Implemented new mobile global definition for background thread processing.
+  - --logger updated to the new module definition.
+
   0.7.0 2025-03-09
   - Completed --runtime testing on Linux. All three major systems available.
   - Clean up of script data definitions.
@@ -66,6 +72,7 @@ param(
     "--version",
     "--help",
     # Async I/O Use Cases
+    "--task",
 
     # Data Use Cases
     "--data-check",
@@ -101,9 +108,28 @@ param(
 
 Add-Type -AssemblyName Microsoft.PowerShell.Commands.Utility
 
-class CodeMeltedAPI {
-  static [int] $logLevel = [CLogRecord]::offLogLevel
-  static [scriptblock] $logHandler = $null
+# Setup our module API for tracking items and supporting each of the use case
+# functions.
+if ($null -eq $Global:CodeMeltedAPI) {
+  $Global:CodeMeltedAPI = @{
+    tracker = @{
+      id = 0;
+      map = @{};
+    };
+    logger = @{
+      level = [CLogRecord]::offLogLevel;
+      handler = $null;
+    };
+    process = @{
+      output = @{};
+      error = @{};
+    };
+    worker = @{
+      inQueue = [System.Collections.ArrayList]::new();
+      outQueue = [System.Collections.ArrayList]::new();
+      handler = $null;
+    };
+  }
 }
 
 # A response object returned from the codemelted_network fetch action.
@@ -159,7 +185,7 @@ class CLogRecord {
   static [int] $offLogLevel = 4
 
   # Utility to translate to the constants to string representation.
-  static [string] logLevelString([int]$logLevel) {
+  static [string] logLevelString([int] $logLevel) {
     if ($logLevel -eq [CLogRecord]::debugLogLevel) {
       return "DEBUG"
     } elseif ($logLevel -eq [CLogRecord]::infoLogLevel) {
@@ -176,7 +202,7 @@ class CLogRecord {
   }
 
   # Utility to translate from string to constant log level number.
-  static [int] logLevelInt([string]$logLevel) {
+  static [int] logLevelInt([string] $logLevel) {
     if ($logLevel.ToLower() -eq "debug") {
       return [CLogRecord]::debugLogLevel
     } elseif ($logLevel.ToLower() -eq "info") {
@@ -213,6 +239,70 @@ class CLogRecord {
   }
 }
 
+# Holds the results of a codemelted_task 'run' action. This happens in a
+# background thread.
+class CTaskRunResult {
+  # Member Fields
+  hidden [object] $threadJob = $null
+
+  # Will contain the final result of the ran task. Will block if called
+  # before the task has completed.
+  [object] result() {
+    $this.threadJob | Wait-Job
+    $answer = ($this.threadJob | Receive-Job)
+    $this.threadJob | Remove-Job
+    return $answer
+  }
+
+  # Provides the ability to check if the task has completed.
+  [bool] hasCompleted() {
+    return $this.threadJob.State.ToLower() -eq "completed"
+  }
+
+  # Constructor for the class.
+  CTaskRunResult([scriptblock] $task, [object] $data, [int] $delay) {
+    $this.threadJob = Start-ThreadJob -ScriptBlock {
+      param($taskRunner, $taskData, $taskDelay)
+      Start-Sleep -Milliseconds $taskDelay
+      $answer = Invoke-Command -ScriptBlock $taskRunner -ArgumentList $taskData
+      return $answer
+    } -ArgumentList $task, $data, $delay
+  }
+}
+
+# Object for tracking codemelted_task 'start_timer' action. This happens in a
+# background thread.
+class CTaskTimer {
+  # Member Fields
+  [int] $id = -1
+  hidden [object] $threadJob = $null
+
+  # Provides the ability to check if the task is running or not.
+  [bool] isRunning() {
+    return $this.threadJob.State.ToLower() -eq "running"
+  }
+
+  # Stops the running timer.
+  [void] stop() {
+    Stop-Job -Job $this.threadJob
+    Remove-Job -Job $this.threadJob
+  }
+
+  # Constructor for the class.
+  CTaskTimer([int] $id, [scriptblock] $task, [int] $delay) {
+    # Setup the background thread job to call the task on the given
+    # delay interval.
+    $this.id = $id
+    $this.threadJob = Start-ThreadJob -ScriptBlock {
+      param([scriptblock] $timerTask, [int] $timerDelay)
+      while ($true) {
+        Start-Sleep -Milliseconds $timerDelay
+        Invoke-Command -ScriptBlock $timerTask
+      }
+    } -ArgumentList $task, $delay
+  }
+}
+
 # -----------------------------------------------------------------------------
 # [CLI Help System] -----------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -238,7 +328,7 @@ function codemelted_help {
         --version : Get current information about the codemelted CLI
 
         # Async I/O Use Cases
-        TBD
+        --task
 
         # Data Use Cases
         --data-check
@@ -281,16 +371,21 @@ function codemelted_help {
   )
   [hashtable] $helpLookup = @{
     # Async I/O Use Cases
+    "--task" = { Get-Help codemelted_task };
+
     # Data Use Cases
     "--data-check" = { Get-Help codemelted_data_check };
     "--disk" = { Get-Help codemelted_disk };
     "--json" = { Get-Help codemelted_json };
     "--string-parse" = { Get-Help codemelted_string_parse };
+
     # NPU Use Cases
+
     # SDK Use Cases
     "--logger" = { Get-Help codemelted_logger };
     "--network" = { Get-Help codemelted_network };
     "--runtime" = { Get-Help codemelted_runtime };
+
     # User Interface Use Cases
     "--console" = { Get-Help codemelted_console };
   }
@@ -314,13 +409,133 @@ function codemelted_help {
 # [Async I/O Use Cases] -------------------------------------------------------
 # -----------------------------------------------------------------------------
 
-# TBD
+function codemelted_process {
+  throw "FUTURE IMPLEMENTATION"
+}
+
+function codemelted_task {
+  <#
+    .SYNOPSIS
+
+
+    SYNTAX:
+      # Kicks off a one off background processing task that returns a
+      # promise that will eventually hold the answer. The two required
+      # are the action and task. Utilize the param() within the task
+      # scriptblock to receive data for the task. Make sure to return the
+      # answer for the promise to contain the result.
+      $answer = codemelted --task @{
+        action = "run";        # required
+        task = [scriptblock];  # required
+        data = [object];       # optional
+        delay = [int];         # optional
+      }
+
+        'task' Example:
+          $task = {
+            param($data)
+            return $data + 5
+          }
+
+      # To sleep the processing within the given code specify the action
+      # and a delay in milliseconds. The delay is required and must be >= 0.
+      codemelted --task @{
+        action = "sleep";  # required
+        delay = [int];     # required
+      }
+
+      # Kick-off a background repeating timer that kicks of the given
+      # delay interval.
+      $id = codemelted --task @{
+        action = "start_timer";  # required
+        task = [scriptblock];    # required
+        delay = [int];           # required
+      }
+
+      codemelted --task @{
+        action = "stop_timer";  # required
+        data = $id;             # required
+      }
+
+    RETURNS:
+      [CTaskRunResult] 'run' action result that represents a promise with
+        two methods. The hasCompleted() will return $true if the answer is
+        ready or $false. The result() is a blocking call that will return
+        the result. It is of an [object] type so any data type can be
+        returned.
+
+      [int] 'start_timer' action with a successfully created repeating
+        background timer.
+
+      [void] 'sleep' action delays processing for a specified milliseconds.
+        'stop_timer' action will end a 'start_timer' action repeating task.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+
+  # Get the parameters to support the requested action.
+  $action = $Params["action"]
+  $task = $Params["task"]
+  $data = $Params["data"]
+  $delay = $Params["delay"] ?? 0
+
+  # Do validity checks of said parameters
+  if ($delay -lt 0) {
+    throw "SyntaxError: codemelted --task expects the Params 'delay' key " +
+      "to be a [int] >= 0"
+  } elseif ($action -eq "run" -or $action -eq "sleep" -or `
+            $action -eq "start_timer") {
+    if (-not ($task -is [scriptblock])) {
+      throw "SyntaxError: codemelted --task expects the Params 'task' key " +
+        "to be a [scriptblock]"
+    }
+  }
+
+  # Carry out the requested action.
+  if ($action -eq "run") {
+    return [CTaskRunResult]::new($task, $data, $delay)
+  } elseif ($action -eq "sleep") {
+    Start-Sleep -Milliseconds $delay
+  } elseif ($action -eq "start_timer") {
+    if ($delay -lt 100) {
+      throw "SyntaxError: codemelted --task 'start_timer' action requires " +
+        "delay to be > 100"
+    }
+    $id = $Global:CodeMeltedAPI.tracker.id += 1
+    $Global:CodeMeltedAPI.tracker.map.Add($id, [CTaskTimer]::new(
+      $id,
+      $task,
+      $delay
+    ))
+    return $id
+  } elseif ($action -eq "stop_timer") {
+    $timerTask = $Global:CodeMeltedAPI.tracker.map[$data]
+    $timerTask.stop()
+    $Global:CodeMeltedAPI.tracker.map.Remove($data)
+  } else {
+    throw "SyntaxError: codemelted --task Params did not have a " +
+      "supported action key specified. Valid actions are run / sleep / " +
+      "start_timer / stop_timer"
+  }
+}
+
+function codemelted_worker {
+  throw "FUTURE IMPLEMENTATION"
+}
 
 # -----------------------------------------------------------------------------
 # [Data Use Cases] ------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
-# TBD - Database
+function codemelted_database {
+  throw "FUTURE IMPLEMENTATION"
+}
 
 function codemelted_data_check {
   <#
@@ -575,7 +790,9 @@ function codemelted_disk {
   }
 }
 
-# TBD - File
+function codemelted_file {
+  throw "FUTURE IMPLEMENTATION"
+}
 
 function codemelted_json {
   <#
@@ -734,19 +951,33 @@ function codemelted_string_parse {
   }
 }
 
-# TBD - Storage
+function codemelted_storage {
+  throw "FUTURE IMPLEMENTATION"
+}
 
-# TBD - XML
+function codemelted_xml {
+  throw "FUTURE IMPLEMENTATION"
+}
 
 # -----------------------------------------------------------------------------
 # [NPU Use Cases] -------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
-# TBD
+function codemelted_compute {
+  throw "FUTURE IMPLEMENTATION"
+}
+
+function codemelted_math {
+  throw "FUTURE IMPLEMENTATION"
+}
 
 # -----------------------------------------------------------------------------
 # [SDK Use Cases] -------------------------------------------------------------
 # -----------------------------------------------------------------------------
+
+function codemelted_developer {
+  throw "FUTURE IMPLEMENTATION"
+}
 
 function codemelted_logger {
   <#
@@ -798,7 +1029,7 @@ function codemelted_logger {
 
   if ($action -eq "log_level") {
     if ($null -eq $data) {
-      $logLevelString = [CLogRecord]::logLevelString([CodeMeltedAPI]::logLevel)
+      $logLevelString = [CLogRecord]::logLevelString($Global:CodeMeltedAPI.logger.level)
       return $logLevelString
     }
     $level = [CLogRecord]::logLevelInt($data)
@@ -807,38 +1038,38 @@ function codemelted_logger {
         "value for setting log level. Valid values are 'debug' / 'info' " +
         "/ 'warning' / 'error'"
     }
-    [CodeMeltedAPI]::logLevel = $level
+    $Global:CodeMeltedAPI.logger.level = $level
   } elseif ($action -eq "handler") {
     if ($null -eq $data) {
-      [CodeMeltedAPI]::logHandler = $null
+      $Global:CodeMeltedAPI.logger.handler = $null
     } elseif ($data -is [scriptblock]) {
-      [CodeMeltedAPI]::logHandler = $data
+      $Global:CodeMeltedAPI.logger.handler = $data
     } else {
       throw "SyntaxError: codemelted --logger Params handler action only " +
         "supports a data value of [null] or [scriptblock]"
     }
   } elseif ($action -eq "debug" -or $action -eq "info" -or `
             $action -eq "warning" -or $action -eq "error") {
-    if ($Global:logLevel -eq [CLogRecord]::offLogLevel) {
+    if ($Global:CodeMeltedAPI.logger.level -eq [CLogRecord]::offLogLevel) {
       return [void]
     }
     $level = [CLogRecord]::logLevelInt($action)
-    $record = [CLogRecord]::new($Global:logLevel, $level, $data)
-    if ($Global:logLevel -le [CLogRecord]::debugLogLevel -and `
+    $record = [CLogRecord]::new($Global:CodeMeltedAPI.logger.level, $level, $data)
+    if ($Global:CodeMeltedAPI.logger.level -le [CLogRecord]::debugLogLevel -and `
         $level -eq [CLogRecord]::debugLogLevel) {
       Write-Host $record.ToString() -ForegroundColor White
-    } elseif ($Global:logLevel -le [CLogRecord]::infoLogLevel -and `
+    } elseif ($Global:CodeMeltedAPI.logger.level -le [CLogRecord]::infoLogLevel -and `
             $level -eq [CLogRecord]::infoLogLevel) {
       Write-Host $record.ToString() -ForegroundColor Green
-    } elseif ($Global:logLevel -le [CLogRecord]::warningLogLevel -and `
+    } elseif ($Global:CodeMeltedAPI.logger.level -le [CLogRecord]::warningLogLevel -and `
             $level -eq [CLogRecord]::warningLogLevel) {
       Write-Host $record.ToString() -ForegroundColor Yellow
-    } elseif ($Global:logLevel -le [CLogRecord]::errorLogLevel -and `
+    } elseif ($Global:CodeMeltedAPI.logger.level-le [CLogRecord]::errorLogLevel -and `
             $level -eq [CLogRecord]::errorLogLevel) {
       Write-Host $record.ToString() -ForegroundColor Red
     }
 
-    if ($null -ne $Global:logHandler) {
+    if ($null -ne $Global:CodeMeltedAPI.logger.handler) {
       Invoke-Command -ScriptBlock $Global:logHandler -ArgumentList $record
     }
   } else {
@@ -846,6 +1077,10 @@ function codemelted_logger {
     "supported action key specified. Valid actions are log_level / " +
     "handler / debug / info / warning / error."
   }
+}
+
+function codemelted_monitor {
+  throw "FUTURE IMPLEMENTATION"
 }
 
 function codemelted_network {
@@ -1048,11 +1283,11 @@ function codemelted_runtime {
     return (Test-Connection -Ping google.com -Count 1 -Quiet)
   } elseif ($action -eq "os_name") {
     return $IsMacOS `
-      ? "mac" 
+      ? "mac"
       : $IsWindows `
-        ? "windows" 
+        ? "windows"
         : (Test-Path "/etc/rpi-issue") `
-          ? "pi" 
+          ? "pi"
           : "linux"
   } elseif ($action -eq "os_version") {
     return [System.Environment]::OSVersion.VersionString
@@ -1123,7 +1358,7 @@ function codemelted_runtime {
       $memFreeKb = (free --line | awk '{ print $8}')
       $memFreeKb = [double]::Parse($memFreeKb)
       $memTotalKb = $memFreeKb + $memUsedKb
-      $memUsedPercent = ($memUsedKb / $memTotalKb) * 100      
+      $memUsedPercent = ($memUsedKb / $memTotalKb) * 100
       $cpuIdle = (top -b -d1 -n1 | grep Cpu | awk '{ print $8 }')
       $cpuUsed = 100.0 - [double]::Parse($cpuIdle)
       return [ordered]  @{
@@ -1156,9 +1391,21 @@ function codemelted_runtime {
   }
 }
 
+function codemelted_pi {
+  throw "FUTURE IMPLEMENTATION"
+}
+
+function codemelted_setup {
+  throw "FUTURE IMPLEMENTATION"
+}
+
 # -----------------------------------------------------------------------------
 # [User Interface Use Cases] --------------------------------------------------
 # -----------------------------------------------------------------------------
+
+function codemelted_app {
+  throw "FUTURE IMPLEMENTATION"
+}
 
 function codemelted_console {
   <#
@@ -1252,11 +1499,13 @@ function codemelted_console {
   }
 }
 
-# TBD - Dialog
+function codemelted_dialog {
+  throw "FUTURE IMPLEMENTATION"
+}
 
-# TBD - SPA
-
-# TBD - UI Widgets
+function codemelted_ui {
+  throw "FUTURE IMPLEMENTATION"
+}
 
 # =============================================================================
 # [MAIN API DEFINITION] =======================================================
@@ -1268,6 +1517,7 @@ switch ($Action) {
   "--version" { Get-PSScriptFileInfo -Path $PSScriptRoot/codemelted.ps1 }
   "--help" { codemelted_help $Params }
   # Async I/O Use Cases
+  "--task" { codemelted_task $Params }
   # Data Use Cases
   "--data-check" { codemelted_data_check $Params }
   "--disk" { codemelted_disk $Params }

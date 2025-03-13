@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted DEV | pwsh Module
-PUBLISH_DATE: 2025-03-09
+PUBLISH_DATE: 2025-03-12
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
 DESCRIPTION: The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed, the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in `ps1` scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text based user interface. Lastly it will facilitate in developing applications utilizing the *CodeMelted DEV | Modules*.
@@ -12,7 +12,7 @@ DESCRIPTION: The `codemelted.ps1` script will provide a Command Line Interface (
 
 The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed, the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in `ps1` scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text based user interface. Lastly it will facilitate in developing applications utilizing the *CodeMelted DEV | Modules*.
 
-**LAST UPDATED:** 2025-03-09
+**LAST UPDATED:** 2025-03-12
 
 <center>
   <br />
@@ -42,6 +42,7 @@ The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facil
   - [codemelted --help](#codemelted---help)
 - [USAGE](#usage)
   - [Async I/O Use Cases](#async-io-use-cases)
+    - [codemelted --task](#codemelted---task)
   - [Data Use Cases](#data-use-cases)
     - [codemelted --data-check](#codemelted---data-check)
     - [codemelted --json](#codemelted---json)
@@ -49,7 +50,6 @@ The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facil
   - [NPU Use Cases](#npu-use-cases)
   - [SDK Use Cases](#sdk-use-cases)
     - [codemelted --logger](#codemelted---logger)
-    - [codemelted --monitor](#codemelted---monitor)
     - [codemelted --network](#codemelted---network)
     - [codemelted --runtime](#codemelted---runtime)
   - [User Interface Use Cases](#user-interface-use-cases)
@@ -159,7 +159,7 @@ The last section is the *MAIN API DEFINITION*. This defines the mapping between 
 ```
 Name       Version Author                      Description
 ----       ------- ------                      -----------
-codemelted 0.7.0.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac / Linux / Windows OS.
+codemelted 0.8.0.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac / Linux / Windows OS.
 ```
 
 ## codemelted --help
@@ -167,49 +167,49 @@ codemelted 0.7.0.0 mark.shaffer@codemelted.com   A CLI to facilitate common deve
 ```
 NAME
     codemelted_help
-    
+
 SYNOPSIS
     The codemelted Command Line Interface (CLI) Terminal Module. It allows
     a developer to execute the CodeMelted DEV | Module use cases within a
     pwsh terminal shell. This allows for building CLI tools, Terminal User
     Interface (TUI) tools, or building DevOps toolchain automation.
-    
+
     SYNTAX:
-    
+
       codemelted [Action] [Params]
-    
+
     PARAMETERS:
-    
+
       [Action]
         # To Learn About the CLI use cases.
         --help : Execute 'codemelted --help @{ "action" = "--use-case" }'
                  to learn more about the CLI Actions.
         --version : Get current information about the codemelted CLI
-    
+
         # Async I/O Use Cases
-        TBD
-    
+        --task
+
         # Data Use Cases
         --data-check
         --disk (IN DEVELOPMENT. DON'T USE)
         --json
         --string-parse
-    
+
         # NPU Use Cases
         TBD
-    
+
         # SDK Use Cases
         --logger
         --monitor
         --network (IN DEVELOPMENT. fetch usable)
         --runtime
-    
+
         # User Interface Use Cases
         --console
-    
+
       [Params]
         The optional set of named arguments wrapped within a [hashtable]
-    
+
     RETURNS:
       Will vary depending on the called [Action].
 ```
@@ -222,11 +222,67 @@ The following sub-sections provides examples of each of the implemented use case
 
 ## Async I/O Use Cases
 
-<mark>TBD</mark>
+### codemelted --task
+
+```
+NAME
+    codemelted_task
+
+SYNOPSIS
+    SYNTAX:
+      # Kicks off a one off background processing task that returns a
+      # promise that will eventually hold the answer. The two required
+      # are the action and task. Utilize the param() within the task
+      # scriptblock to receive data for the task. Make sure to return the
+      # answer for the promise to contain the result.
+      $answer = codemelted --task @{
+        action = "run";        # required
+        task = [scriptblock];  # required
+        data = [object];       # optional
+        delay = [int];         # optional
+      }
+
+        'task' Example:
+          $task = {
+            param($data)
+            return $data + 5
+          }
+
+      # To sleep the processing within the given code specify the action
+      # and a delay in milliseconds. The delay is required and must be >= 0.
+      codemelted --task @{
+        action = "sleep";  # required
+        delay = [int];     # required
+      }
+
+      # Kick-off a background repeating timer that kicks of the given
+      # delay interval.
+      $id = codemelted --task @{
+        action = "start_timer";  # required
+        task = [scriptblock];    # required
+        delay = [int];           # required
+      }
+
+      codemelted --task @{
+        action = "stop_timer";  # required
+        data = $id;             # required
+      }
+
+    RETURNS:
+      [CTaskRunResult] 'run' action result that represents a promise with
+        two methods. The hasCompleted() will return $true if the answer is
+        ready or $false. The result() is a blocking call that will return
+        the result. It is of an [object] type so any data type can be
+        returned.
+
+      [int] 'start_timer' action with a successfully created repeating
+        background timer.
+
+      [void] 'sleep' action delays processing for a specified milliseconds.
+        'stop_timer' action will end a 'start_timer' action repeating task.
+```
 
 ## Data Use Cases
-
-<mark>TBD</mark>
 
 ### codemelted --data-check
 
@@ -347,8 +403,6 @@ SYNOPSIS
 
 ## SDK Use Cases
 
-<mark>TBD</mark>
-
 ### codemelted --logger
 
 ```
@@ -388,12 +442,6 @@ SYNOPSIS
     RETURNS:
       [string] When the action is 'log_level' but no log level is set.
       [void]   For all other actions.
-```
-
-### codemelted --monitor
-
-```
-
 ```
 
 ### codemelted --network
@@ -507,8 +555,6 @@ SYNOPSIS
 ```
 
 ## User Interface Use Cases
-
-<mark>TBD</mark>
 
 ### codemelted --console
 
