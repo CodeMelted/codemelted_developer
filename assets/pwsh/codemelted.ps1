@@ -125,6 +125,7 @@ if ($null -eq $Global:CodeMeltedAPI) {
       error = @{};
     };
     worker = @{
+      threadJob = $null;
       inQueue = [System.Collections.ArrayList]::new();
       outQueue = [System.Collections.ArrayList]::new();
       handler = $null;
@@ -416,7 +417,9 @@ function codemelted_process {
 function codemelted_task {
   <#
     .SYNOPSIS
-
+    Provides the ability to kick-off background threaded tasks. Either a
+    one-off that returns a promise, a repeating timer that can stopped later,
+    and the ability to sleep the given background tasks in milliseconds.
 
     SYNTAX:
       # Kicks off a one off background processing task that returns a
@@ -505,7 +508,7 @@ function codemelted_task {
   } elseif ($action -eq "start_timer") {
     if ($delay -lt 100) {
       throw "SyntaxError: codemelted --task 'start_timer' action requires " +
-        "delay to be > 100"
+        "delay to be >= 100"
     }
     $id = $Global:CodeMeltedAPI.tracker.id += 1
     $Global:CodeMeltedAPI.tracker.map.Add($id, [CTaskTimer]::new(
@@ -526,7 +529,122 @@ function codemelted_task {
 }
 
 function codemelted_worker {
-  throw "FUTURE IMPLEMENTATION"
+  <#
+    .SYNOPSIS
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  # Go get our actions and supporting variables to carry them out.
+  $action = $Params["action"]
+  $data = $Params["data"]
+  $task = $Params["task"]
+  $handler = $Params["handler"]
+  $delay = $Params["delay"] ?? 500
+  $isRunning = $Global:CodeMeltedAPI.worker.threadJob -eq $null `
+    ? $false
+    : ($Global:CodeMeltedAPI.worker.threadJob.State.ToLower() -eq "running")
+
+  # Carry out the action requested.
+  if ($action -eq "is_running") {
+    return $isRunning
+  } elseif ($action -eq "start") {
+    # Validate our given parameters to start a worker pool.
+    if (-not ($task -is [scriptblock])) {
+      throw "SyntaxError: codemelted --worker Params 'start' action" +
+        "expects 'task' [scriptblock] key / value entry."
+    } elseif (-not ($handler -is [scriptblock])) {
+      throw "SyntaxError: codemelted --worker Params 'start' action" +
+        "expects 'handler' [scriptblock] key / value entry."
+    } elseif ((-not ($delay -is [int])) -or $delay -lt 100) {
+      throw "SyntaxError: codemelted --worker Params 'start' action" +
+        "expects 'delay' [int] key / value entry if specified to be > 99."
+    } elseif ($isRunning) {
+      throw "SyntaxError: codemelted --worker pool is already running."
+    }
+
+    # Setup the handler for when tasks are completed.
+    $Global:CodeMeltedAPI.worker.handler = $workerHandler
+
+    # Starter the worker pool thread that will process through the queues
+    # as work is received for processing.
+    $Global:CodeMeltedAPI.worker.threadJob = Start-ThreadJob -ScriptBlock {
+      param($delayTime)
+
+      # We will not allow more than processorCount of work tasks.
+      $processorCount = codemelted --runtime @{
+        action = "processor_count"
+      }
+
+      # Run the worker pool until we are terminated.
+      while ($true) {
+        # Delay before processing our queues.
+        Start-Sleep -Milliseconds $delayTime
+
+        # See what our completed tasks are, report the answer, and
+        # dequeue for the next batch of tasks.
+        for ($i = $Global:CodeMeltedAPI.worker.outQueue.Count -1; `
+            $i -ge 0; $i--) {
+          $task = $Global:CodeMeltedAPI.worker.outQueue[$i]
+          if ($task.hasCompleted()) {
+            $answer = $task.result()
+            Invoke-Command -ScriptBlock $Global:CodeMeltedAPI.worker.handler `
+              -ArgumentList $answer
+            $Global:CodeMeltedAPI.worker.outQueue.RemoveAt($i)
+          }
+        }
+
+        # Now go see what queued work there is to go process and kick off
+        # those tasks.
+        for ($i = $Global:CodeMeltedAPI.worker.inQueue.Count - 1; `
+            $i -ge 0; $i--) {
+          # If our currently processing work is the same as our processor count,
+          # then break loop.
+          if ($Global.CodeMeltedAPI.worker.outQueue.Count -ge $processorCount) {
+            break
+          }
+
+          # Nope we have room for work, lets go queue up some work.
+          $data = $Global:CodeMeltedAPI.worker.inQueue[$i]
+          $task = [CTaskRunResult]::new($task, $data, 0)
+          $Global:CodemeltedAPI.worker.outQueue.Add($task)
+          $Global:CodeMeltedAPI.worker.inQueue.RemoveAt($i)
+        }
+      }
+    } -ArgumentList $delay
+  } elseif ($action -eq "post_message") {
+    # Validate our conditions before carrying out the post.
+    if (-not ($data -is [hashtable])) {
+      throw "SyntaxError: codemelted --worker Params 'post_message' action" +
+        "expects a data [hashtable] entry for worker processing"
+    } elseif (-not $isRunning) {
+      throw "SyntaxError: codemelted --worker pool is not running."
+    }
+
+    # We are good, go post the message for later processing.
+    $Global:CodeMeltedAPI.worker.inQueue.Insert(0, $data)
+  } elseif ($action -eq "terminate") {
+    # Make sure we are actually running before terminating.
+    if (-not $isRunning) {
+      throw "SyntaxError: codemelted --worker pool is not running."
+    }
+
+    # We are, go clear our global module.
+    $Global:CodeMeltedAPI.worker.threadJob | Stop-Job | Remove-Job
+    $Global:CodeMeltedAPI.worker.threadJob = $null
+    $Global:CodeMeltedAPI.worker.inQueue.Clear()
+    $Global:CodeMeltedAPI.worker.outQueue.Clear()
+    $Global:CodeMeltedAPI.worker.handler = $null
+  } else {
+    throw "SyntaxError: codemelted --worker Params did not have a " +
+      "supported action key specified. Valid actions are is_running / " +
+      "start / post_message / terminate"
+  }
 }
 
 # -----------------------------------------------------------------------------
