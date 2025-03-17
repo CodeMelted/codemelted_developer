@@ -69,7 +69,7 @@
 [string]$footerTemplate = @"
 <!-- Links to main domain assets for embedding this widget code into different configurations -->
 <codemelted-navigation></codemelted-navigation>
-<script src="https://codemelted.com/navigation/js/main.js" defer></script>
+<script src="https://codemelted.com/services/js/codemelted_navigation.js" defer></script>
 <style>
     .content-container {
       overflow: auto;
