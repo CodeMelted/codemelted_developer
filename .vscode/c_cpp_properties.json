@@ -4,7 +4,6 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/opt/homebrew/Cellar/emscripten/4.0.1/libexec/system/include"
             ],
             "defines": [
                 "__CODEMELTED_TARGET_WASM__"

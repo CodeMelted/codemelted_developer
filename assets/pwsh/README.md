@@ -42,7 +42,9 @@ The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facil
   - [codemelted --help](#codemelted---help)
 - [USAGE](#usage)
   - [Async I/O Use Cases](#async-io-use-cases)
+    - [codemelted --process](#codemelted---process)
     - [codemelted --task](#codemelted---task)
+    - [codemelted --worker](#codemelted---worker)
   - [Data Use Cases](#data-use-cases)
     - [codemelted --data-check](#codemelted---data-check)
     - [codemelted --json](#codemelted---json)
@@ -159,7 +161,7 @@ The last section is the *MAIN API DEFINITION*. This defines the mapping between 
 ```
 Name       Version Author                      Description
 ----       ------- ------                      -----------
-codemelted 0.8.0.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac / Linux / Windows OS.
+codemelted 1.0.0.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac / Linux / Windows OS.
 ```
 
 ## codemelted --help
@@ -186,26 +188,39 @@ SYNOPSIS
                  to learn more about the CLI Actions.
         --version : Get current information about the codemelted CLI
 
-        # Async I/O Use Cases
+        # Async I/O Use Cases (Completed)
         --task
+        --process
+        --worker
 
         # Data Use Cases
+        --database     (TBD)
         --data-check
-        --disk (IN DEVELOPMENT. DON'T USE)
+        --disk         (IN DEVELOPMENT. DON'T USE)
+        --file         (TBD)
         --json
         --string-parse
+        --storage      (TBD)
+        --xml          (TBD)
 
         # NPU Use Cases
-        TBD
+        --compute (TBD)
+        --math    (TBD)
 
         # SDK Use Cases
+        --developer (TBD)
         --logger
-        --monitor
-        --network (IN DEVELOPMENT. fetch usable)
+        --monitor   (TBD)
+        --network   (IN DEVELOPMENT. fetch usable)
+        --pi        (TBD)
         --runtime
+        --setup     (TBD)
 
         # User Interface Use Cases
+        --app     (TBD)
         --console
+        --dialog  (TBD)
+        --ui      (TBD)
 
       [Params]
         The optional set of named arguments wrapped within a [hashtable]
@@ -221,6 +236,12 @@ SYNOPSIS
 The following sub-sections provides examples of each of the implemented use cases.
 
 ## Async I/O Use Cases
+
+### codemelted --process
+
+```
+
+```
 
 ### codemelted --task
 
@@ -280,6 +301,86 @@ SYNOPSIS
 
       [void] 'sleep' action delays processing for a specified milliseconds.
         'stop_timer' action will end a 'start_timer' action repeating task.
+```
+
+### codemelted --worker
+
+```
+NAME
+    codemelted_worker
+
+SYNOPSIS
+    Sets up a background worker pool that supports queuing JSON based objects
+    to process with your own custom ID system and communicate the results
+    once the background worker has completed the processing. The number of
+    workers for the pool are based on the number of physical processors
+    available on the host system. If the queued work exceeds the number of
+    available workers, it is queued up in FIFO order so as work completes,
+    a worker will pick up its processing.
+
+    NOTE 1: The scheduling of work is FIFO. The completion of work is not
+      guaranteed to complete in that order. Hence a custom ID system is
+      necessary.
+
+    NOTE 2: Only one worker pool may be running. If you attempt to start
+      a new pool before stopping an existing one will result in a
+      SyntaxError. This is also true if you attempt to stop or post work
+      to be done on a pool that is not running.
+
+    SYNTAX:
+      # Check to see if a worker pool is running
+      $isRunning = codemelted --worker @{
+        action = "is_running" # required
+      }
+
+      # Post message (a.k.a.) work to the pool to process. The result of the
+      # worker completing the worker will be received via the 'handler'
+      # setup via the Params for the 'start' action.
+      #
+      # data must be a [hashtable] in whatever construct you setup.
+      codemelted --worker @{
+        action = "post_message";           # required
+        data = @{ id = "add"; data = 25; } # required
+      }
+
+      # To terminate the worker pool.
+      codemelted --worker @{
+        action = "terminate"; # required
+      }
+
+      # To start a worker pool for custom background work processing.
+      codemelted --worker @{
+        # required
+        action = "start";
+
+        # required, The common background worker logic for all queued work.
+        task = [scriptblock] {
+          param([hashtable] $evt)
+          $id = $evt["id"]
+          $data = $evt["data"]
+          if ($id -eq "add") {
+            return @{
+              id = "add";
+              data = 25 + $data
+            }
+          }
+        };
+
+        # required, where you will receive the completed work
+        handler = [scriptblock] {
+          param([hashtable] $evt)
+          Write-Host $evt["data"]
+        };
+
+        # optional (how often to check queues)
+        delay = 500;
+      }
+
+    RETURNS:
+      [boolean] action 'is_running' $true if a pool is running,
+        $false otherwise.
+
+      [void] for all other actions.
 ```
 
 ## Data Use Cases

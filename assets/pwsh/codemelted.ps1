@@ -10,8 +10,13 @@
 .EXTERNALMODULEDEPENDENCIES Microsoft.PowerShell.ConsoleGuiTools
 .TAGS pwsh pwsh-scripts pwsh-modules CodeMeltedDEV codemelted
 .GUID c757fe44-4ed5-46b0-8e24-9a9aaaad872c
-.VERSION 0.8.0
+.VERSION 1.0.0
 .RELEASENOTES
+  1.0.0 2025-03-23
+  - Completed --process / worker of the Async IO Use Cases.
+  - Identified the other planned use case functions. Marked with TBD.
+  - Some cleanup of the DATA TYPES section.
+
   0.8.0 2025-03-12
   - Completed --task Async IO Use Cases
   - Stubbed out the other use case functions.
@@ -71,8 +76,11 @@ param(
     # Module Definition Use Case
     "--version",
     "--help",
+
     # Async I/O Use Cases
+    "--process",
     "--task",
+    "--worker",
 
     # Data Use Cases
     "--data-check",
@@ -105,7 +113,6 @@ param(
 # -----------------------------------------------------------------------------
 
 # .NET Assemblies
-
 Add-Type -AssemblyName Microsoft.PowerShell.Commands.Utility
 
 # Setup our module API for tracking items and supporting each of the use case
@@ -120,14 +127,16 @@ if ($null -eq $Global:CodeMeltedAPI) {
       level = [CLogRecord]::offLogLevel;
       handler = $null;
     };
-    process = @{
-      output = @{};
-      error = @{};
-    };
+    process = @{};
     worker = @{
       threadJob = $null;
-      inQueue = [System.Collections.ArrayList]::new();
-      outQueue = [System.Collections.ArrayList]::new();
+      queued = [System.Collections.ArrayList]::Synchronized( `
+        [System.Collections.ArrayList]::new()
+      );
+      scheduled = [System.Collections.ArrayList]::Synchronized( `
+        [System.Collections.ArrayList]::new()
+      );
+      task = $null;
       handler = $null;
     };
   }
@@ -240,6 +249,72 @@ class CLogRecord {
   }
 }
 
+# Adds the [CProcess] type for C# to support the codemelted_process cmdlet.
+Add-Type -Language CSharp @"
+  using System;
+  using System.Diagnostics;
+  using System.IO;
+  using System.Text;
+
+  // Main class definition for the codemelted_process cmdlet.
+  public class CProcess {
+    // Member Fields
+    private String _output;
+    private Process _process;
+    private DataReceivedEventHandler _dataRxHandler;
+
+    // Gets the PID of the kicked off powershell process.
+    public int id() {
+      return _process.Id;
+    }
+
+    // Kills this process and deregisters the handlers.
+    public void kill() {
+      _process.Kill();
+      _process.OutputDataReceived -= _dataRxHandler;
+      _process.ErrorDataReceived -= _dataRxHandler;
+    }
+
+    // Gets the current output captured by the process and clears the
+    // member field for later queries.
+    public string read() {
+      var rtnval = _output;
+      _output = "";
+      return rtnval;
+    }
+
+    /// Takes a string of data to write and converts it to bytes.
+    public void write(string data) {
+      var buffer = System.Text.Encoding.ASCII.GetBytes(data);
+      _process.StandardInput.BaseStream.Write(buffer, 0, buffer.Length);
+      _process.StandardInput.BaseStream.Flush();
+    }
+
+    // Constructor for the class. Takes the command and arguments to run the
+    // command.
+    public CProcess(string command, string arguments) {
+      _process = new Process();
+      _process.StartInfo.FileName = command;
+      _process.StartInfo.Arguments = arguments;
+      _process.StartInfo.UseShellExecute = false;
+      _process.StartInfo.RedirectStandardInput = true;
+      _process.StartInfo.RedirectStandardError = true;
+      _process.StartInfo.RedirectStandardOutput = true;
+
+      _dataRxHandler = new DataReceivedEventHandler((sender, e) => {
+          _output += e.Data;
+          _output += "\n";
+      });
+      _process.OutputDataReceived += _dataRxHandler;
+      _process.ErrorDataReceived += _dataRxHandler;
+
+      _process.Start();
+      _process.BeginErrorReadLine();
+      _process.BeginOutputReadLine();
+    }
+  }
+"@
+
 # Holds the results of a codemelted_task 'run' action. This happens in a
 # background thread.
 class CTaskRunResult {
@@ -328,26 +403,39 @@ function codemelted_help {
                  to learn more about the CLI Actions.
         --version : Get current information about the codemelted CLI
 
-        # Async I/O Use Cases
+        # Async I/O Use Cases (Completed)
         --task
+        --process
+        --worker
 
         # Data Use Cases
+        --database     (TBD)
         --data-check
-        --disk (IN DEVELOPMENT. DON'T USE)
+        --disk         (IN DEVELOPMENT. DON'T USE)
+        --file         (TBD)
         --json
         --string-parse
+        --storage      (TBD)
+        --xml          (TBD)
 
         # NPU Use Cases
-        TBD
+        --compute (TBD)
+        --math    (TBD)
 
         # SDK Use Cases
+        --developer (TBD)
         --logger
-        --monitor
-        --network (IN DEVELOPMENT. fetch usable)
+        --monitor   (TBD)
+        --network   (IN DEVELOPMENT. fetch usable)
+        --pi        (TBD)
         --runtime
+        --setup     (TBD)
 
         # User Interface Use Cases
+        --app     (TBD)
         --console
+        --dialog  (TBD)
+        --ui      (TBD)
 
       [Params]
         The optional set of named arguments wrapped within a [hashtable]
@@ -360,7 +448,7 @@ function codemelted_help {
     https://codemelted.com/developer/assets/pwsh
 
     GitHub Source:
-    https://github.com/CodeMelted/codemelted_developer/tree/main/terminal
+    https://github.com/CodeMelted/codemelted_developer/tree/main/assets/pwsh
   #>
   param(
     [Parameter(
@@ -372,7 +460,10 @@ function codemelted_help {
   )
   [hashtable] $helpLookup = @{
     # Async I/O Use Cases
+    "--process" = { Get-Help codemelted_process };
     "--task" = { Get-Help codemelted_task };
+    "--worker" = { Get-Help codemelted_worker };
+
 
     # Data Use Cases
     "--data-check" = { Get-Help codemelted_data_check };
@@ -411,7 +502,85 @@ function codemelted_help {
 # -----------------------------------------------------------------------------
 
 function codemelted_process {
-  throw "FUTURE IMPLEMENTATION"
+  <#
+    .SYNOPSIS
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+
+  # Go get our parameters for our actions.
+  $action = $Params["action"]
+  $arguments = $Params["arguments"]
+  $command = $Params["command"]
+  $data = $Params["data"]
+  $id = $Params["id"]
+  $includeUserName = $Params["include_user_name"] ?? $false
+
+  # For actions utilizing id, go check it so those actions can be carried out.
+  if ((-not ($id -is [int])) -and ($action -ne "list" -and `
+      $action -ne "start")) {
+    throw "SyntaxError: codemelted --process Params expects a specified " +
+      "'id' key to be an [int] type."
+  } elseif ($action -eq "read" -or $action -eq "write" -or $action -eq "kill") {
+    $p = $Global:CodeMeltedAPI.process[$id]
+    if ($null -eq $p) {
+      throw "SyntaxError: codemelted --process '$action' Params action " +
+        "did not find the specified $id 'id'."
+    }
+  }
+
+  # Now carry out the actions. First two deal with operating system processes.
+  if ($action -eq "list") {
+    $name = $data ?? "*"
+    if ([string]::IsNullOrEmpty($name) -or `
+        [string]::IsNullOrWhiteSpace($name)) {
+      throw "SyntaxError: codemelted --process 'list' Params action " +
+        "expects 'data' key / [string] value when specified."
+    }
+    return $includeUserName -eq $true `
+      ? (Get-Process -Name $data -IncludeUserName)
+      : (Get-Process -Name $data)
+  } elseif ($action -eq "stop") {
+      Stop-Process -id $id -ErrorAction -SilentlyContinue
+
+  # The remainder of these actions deal with working with a process spawned
+  # from the codemelted.ps1 module.
+  } elseif ($action -eq "start") {
+    if ([string]::IsNullOrEmpty($command) -or `
+        [string]::IsNullOrWhiteSpace($command)) {
+      throw "SyntaxError: codemelted --process 'start' Params action " +
+        "expects 'command' key to be a [string] value."
+    }
+    $p = [CProcess]::new($command, $arguments)
+    $id = $Global:CodeMeltedAPI.tracker.allocate()
+    $Global:CodeMeltedAPI.process[$id] = $p
+    return $id
+  } elseif ($action -eq "kill") {
+    $p = $Global:CodeMeltedAPI.process[$id]
+    $p.Kill()
+    $Global:CodemeltedAPI.process.Remove($id)
+  } elseif ($action -eq "read") {
+    $p = $Global:CodeMeltedAPI.process[$id]
+    $rtnval = $p.read()
+    return $rtnval
+  } elseif ($action -eq "write") {
+    if ([string]::IsNullOrEmpty($data)) {
+      throw "SyntaxError: codemelted --process 'write' Params action " +
+        "expects 'data' key be a [string] type and not NULL"
+    }
+    $p = $Global:CodeMeltedAPI.process[$id]
+    $p.write($data)
+  } else {
+    throw "SyntaxError: codemelted --process Params did not have a " +
+      "supported action key specified. Valid actions are start / kill / " +
+      "read / write"
+  }
 }
 
 function codemelted_task {
@@ -531,6 +700,77 @@ function codemelted_task {
 function codemelted_worker {
   <#
     .SYNOPSIS
+    Sets up a background worker pool that supports queuing JSON based objects
+    to process with your own custom ID system and communicate the results
+    once the background worker has completed the processing. The number of
+    workers for the pool are based on the number of physical processors
+    available on the host system. If the queued work exceeds the number of
+    available workers, it is queued up in FIFO order so as work completes,
+    a worker will pick up its processing.
+
+    NOTE 1: The scheduling of work is FIFO. The completion of work is not
+      guaranteed to complete in that order. Hence a custom ID system is
+      necessary.
+
+    NOTE 2: Only one worker pool may be running. If you attempt to start
+      a new pool before stopping an existing one will result in a
+      SyntaxError. This is also true if you attempt to stop or post work
+      to be done on a pool that is not running.
+
+    SYNTAX:
+      # Check to see if a worker pool is running
+      $isRunning = codemelted --worker @{
+        action = "is_running" # required
+      }
+
+      # Post message (a.k.a.) work to the pool to process. The result of the
+      # worker completing the worker will be received via the 'handler'
+      # setup via the Params for the 'start' action.
+      #
+      # data must be a [hashtable] in whatever construct you setup.
+      codemelted --worker @{
+        action = "post_message";           # required
+        data = @{ id = "add"; data = 25; } # required
+      }
+
+      # To terminate the worker pool.
+      codemelted --worker @{
+        action = "terminate"; # required
+      }
+
+      # To start a worker pool for custom background work processing.
+      codemelted --worker @{
+        # required
+        action = "start";
+
+        # required, The common background worker logic for all queued work.
+        task = [scriptblock] {
+          param([hashtable] $evt)
+          $id = $evt["id"]
+          $data = $evt["data"]
+          if ($id -eq "add") {
+            return @{
+              id = "add";
+              data = 25 + $data
+            }
+          }
+        };
+
+        # required, where you will receive the completed work
+        handler = [scriptblock] {
+          param([hashtable] $evt)
+          Write-Host $evt["data"]
+        };
+
+        # optional (how often to check queues)
+        delay = 500;
+      }
+
+    RETURNS:
+      [boolean] action 'is_running' $true if a pool is running,
+        $false otherwise.
+
+      [void] for all other actions.
   #>
   param(
     [Parameter(
@@ -546,7 +786,7 @@ function codemelted_worker {
   $task = $Params["task"]
   $handler = $Params["handler"]
   $delay = $Params["delay"] ?? 500
-  $isRunning = $Global:CodeMeltedAPI.worker.threadJob -eq $null `
+  $isRunning = $null -eq $Global:CodeMeltedAPI.worker.threadJob `
     ? $false
     : ($Global:CodeMeltedAPI.worker.threadJob.State.ToLower() -eq "running")
 
@@ -556,31 +796,32 @@ function codemelted_worker {
   } elseif ($action -eq "start") {
     # Validate our given parameters to start a worker pool.
     if (-not ($task -is [scriptblock])) {
-      throw "SyntaxError: codemelted --worker Params 'start' action" +
+      throw "SyntaxError: codemelted --worker Params 'start' action " +
         "expects 'task' [scriptblock] key / value entry."
     } elseif (-not ($handler -is [scriptblock])) {
-      throw "SyntaxError: codemelted --worker Params 'start' action" +
+      throw "SyntaxError: codemelted --worker Params 'start' action " +
         "expects 'handler' [scriptblock] key / value entry."
     } elseif ((-not ($delay -is [int])) -or $delay -lt 100) {
-      throw "SyntaxError: codemelted --worker Params 'start' action" +
+      throw "SyntaxError: codemelted --worker Params 'start' action " +
         "expects 'delay' [int] key / value entry if specified to be > 99."
     } elseif ($isRunning) {
       throw "SyntaxError: codemelted --worker pool is already running."
     }
 
     # Setup the handler for when tasks are completed.
-    $Global:CodeMeltedAPI.worker.handler = $workerHandler
+    $Global:CodeMeltedAPI.worker.handler = $handler
 
     # Starter the worker pool thread that will process through the queues
     # as work is received for processing.
     $Global:CodeMeltedAPI.worker.threadJob = Start-ThreadJob -ScriptBlock {
-      param($delayTime)
+      param($delayTime, $inQueue, $outQueue)
 
       # We will not allow more than processorCount of work tasks.
       $processorCount = codemelted --runtime @{
         action = "processor_count"
       }
 
+      "Processor Count = $processorCount" | Out-File -FilePath "workerThread.txt"
       # Run the worker pool until we are terminated.
       while ($true) {
         # Delay before processing our queues.
@@ -588,40 +829,49 @@ function codemelted_worker {
 
         # See what our completed tasks are, report the answer, and
         # dequeue for the next batch of tasks.
-        for ($i = $Global:CodeMeltedAPI.worker.outQueue.Count -1; `
+        "Before outQueue $($outQueue.Count)" | Out-File -FilePath "workerThread.txt" -Append
+        for ($i = $outQueue.Count - 1; `
             $i -ge 0; $i--) {
-          $task = $Global:CodeMeltedAPI.worker.outQueue[$i]
+          $task = $outQueue[$i]
+          "Dequeuing task" | Out-File -FilePath "workerThread.txt" -Append
+          "Has Completed $($task.hasCompleted())" | Out-File -FilePath "workerThread.txt" -Append
           if ($task.hasCompleted()) {
+            "It completed" | Out-File -FilePath "workerThread.txt" -Append
             $answer = $task.result()
+            "Answer is $answer" | Out-File -FilePath "workerThread.txt" -Append
             Invoke-Command -ScriptBlock $Global:CodeMeltedAPI.worker.handler `
               -ArgumentList $answer
-            $Global:CodeMeltedAPI.worker.outQueue.RemoveAt($i)
+            "ScriptBlock invoked" | Out-File -FilePath "workerThread.txt" -Append
+            $outQueue.RemoveAt($i)
+            Write-Host "outQueue dequeued $($outQueue.Count)" | Out-File -FilePath "workerThread.txt" -Append
           }
         }
 
         # Now go see what queued work there is to go process and kick off
         # those tasks.
-        for ($i = $Global:CodeMeltedAPI.worker.inQueue.Count - 1; `
+        "Before inQueue $($inQueue.Count)" | Out-File -FilePath "workerThread.txt" -Append
+        for ($i = $inQueue.Count - 1; `
             $i -ge 0; $i--) {
           # If our currently processing work is the same as our processor count,
           # then break loop.
-          if ($Global.CodeMeltedAPI.worker.outQueue.Count -ge $processorCount) {
+          "Checking outQueue for work $($outQueue.Count)" | Out-File -FilePath "workerThread.txt" -Append
+          if ($outQueue.Count -ge $processorCount) {
             break
           }
 
           # Nope we have room for work, lets go queue up some work.
-          $data = $Global:CodeMeltedAPI.worker.inQueue[$i]
+          $data = $inQueue[$i]
           $task = [CTaskRunResult]::new($task, $data, 0)
-          $Global:CodemeltedAPI.worker.outQueue.Add($task)
-          $Global:CodeMeltedAPI.worker.inQueue.RemoveAt($i)
+          $outQueue.Add($task)
+          $inQueue.RemoveAt($i)
         }
       }
-    } -ArgumentList $delay
+    } -ArgumentList ($delay, $Global:CodeMeltedAPI.worker.inQueue, $Global:CodeMeltedAPI.worker.outQueue)
   } elseif ($action -eq "post_message") {
     # Validate our conditions before carrying out the post.
     if (-not ($data -is [hashtable])) {
-      throw "SyntaxError: codemelted --worker Params 'post_message' action" +
-        "expects a data [hashtable] entry for worker processing"
+      throw "SyntaxError: codemelted --worker Params 'post_message' action " +
+        "expects a data [hashtable] entry for worker processing."
     } elseif (-not $isRunning) {
       throw "SyntaxError: codemelted --worker pool is not running."
     }
@@ -635,7 +885,8 @@ function codemelted_worker {
     }
 
     # We are, go clear our global module.
-    $Global:CodeMeltedAPI.worker.threadJob | Stop-Job | Remove-Job
+    $Global:CodeMeltedAPI.worker.threadJob | Stop-Job
+    $Global:CodeMeltedAPI.worker.threadJob | Remove-Job
     $Global:CodeMeltedAPI.worker.threadJob = $null
     $Global:CodeMeltedAPI.worker.inQueue.Clear()
     $Global:CodeMeltedAPI.worker.outQueue.Clear()
@@ -1636,6 +1887,7 @@ switch ($Action) {
   "--help" { codemelted_help $Params }
   # Async I/O Use Cases
   "--task" { codemelted_task $Params }
+  "--worker" { codemelted_worker $Params }
   # Data Use Cases
   "--data-check" { codemelted_data_check $Params }
   "--disk" { codemelted_disk $Params }
