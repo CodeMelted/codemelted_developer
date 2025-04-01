@@ -6,9 +6,9 @@ KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-ja
 DESCRIPTION: The CodeMelted DEV Pi Project will focus on developing native services to setup the ability to capture photography. This will come in two forms. The first is the ability to build a vehicle infotainment system with the ability to capture live photos / video while taking road trips. The second is as a dedicated photography station able to capture live video of the sky. All captured media will then have the ability to be archived to the codemelted.com network for later viewing via the CodeMelted PWA.
 -->
 <center>
-  <a title="Back To Developer Main" href="../../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
+  <a title="Back To Developer Main"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-codemelted-pi.png" /> CodeMelted DEV | Pi Project</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-raspberry-pi.png" /> CodeMelted DEV | Pi Project</h1>
 
 The CodeMelted DEV Pi Project will focus on developing native services to setup the ability to capture photography. This will come in two forms. The first is the ability to build a vehicle infotainment system with the ability to capture live photos / video while taking road trips. The second is as a dedicated photography station able to capture live video of the sky. All captured media will then have the ability to be archived to the codemelted.com network for later viewing via the CodeMelted PWA.
 

@@ -30,6 +30,7 @@ build/
 .flutter-plugins
 .flutter-plugins-dependencies
 
+target/
 docs/
 developer/
 README.html

@@ -24,25 +24,14 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
-import 'dart:js_interop';
-import 'dart:js_interop_unsafe';
-
-import 'package:codemelted_developer/codemelted.dart';
+import 'package:codemelted_flutter/codemelted.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import "package:web/web.dart" as web;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   // This is called once after ALL tests
-  setUpAll(() async {
-    await CodeMeltedAPI().initCodeMeltedJS(
-      codemeltedJsModuleUrl: "./codemelted.js",
-    );
-    var success = web.window.hasProperty("codemelted".toJS).toDart;
-    expect(success, isTrue);
-  });
+  setUpAll(() {});
 
   // This is called once before EVERY test
   setUp(() {});
