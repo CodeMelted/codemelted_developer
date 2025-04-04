@@ -33,29 +33,67 @@ DEALINGS IN THE SOFTWARE.
 // [MODULE DATA DEFINITION] ===================================================
 // ============================================================================
 
-pub enum CUseCaseResponse {
-  None,
-  Bool(bool),
-  Double(f64),
-  Int(i128),
-  String(String),
+mod codemelted_api {
+  use crate::{CLogLevel, CLoggedEventHandler};
+  use std::sync::Mutex;
+
+  static LOG_LEVEL: Mutex<CLogLevel> = Mutex::new(CLogLevel::Warning);
+  static LOG_HANDLER: Mutex<Option<CLoggedEventHandler>> = Mutex::new(None);
+
+  pub fn set_log_level(log_level: CLogLevel) {
+    let mut data = LOG_LEVEL.lock().unwrap();
+    *data = log_level;
+  }
+  pub fn get_log_level() -> CLogLevel {
+    let data = LOG_LEVEL.lock().unwrap();
+    data.clone()
+  }
+  pub fn set_log_handler(handler: Option<CLoggedEventHandler>) {
+    let mut data = LOG_HANDLER.lock().unwrap();
+    *data = handler;
+  }
+  pub fn get_log_handler() -> Option<CLoggedEventHandler> {
+    let data = LOG_HANDLER.lock().unwrap();
+    *data
+  }
 }
 
-impl CUseCaseResponse {
-  const TRUE_STRINGS: [&'static str; 9] = [
-    "true",
-    "1",
-    "t",
-    "y",
-    "yes",
-    "yeah",
-    "yup",
-    "certainly",
-    "uh-huh",
-  ];
+/// Defines a trait to attach to the [CObject] providing utility function
+/// definitions to make a bool based on a series of strings that can be
+/// considered true in nature.
+pub trait IsTruthyString {
+  /// Provides a binding to attach the ability for a [CObject] to determine
+  /// if its held str value is truthy or not.
+  fn as_truthy(&self) -> bool;
+  /// Static function that implements the truthy string logic.
+  fn is_truthy(data: &str) -> bool;
+}
 
-  fn is_true_string(v: &str) -> bool {
-    CUseCaseResponse::TRUE_STRINGS.as_ref().contains(&v.to_lowercase().as_str())
+/// The binding that provides the codemelted module's "dynamic" data allowing
+/// for full support of JSON along with holding general Rust data types that
+/// can be returned from different use case functions.
+pub type CObject = json::JsonValue;
+
+/// Implements the [IsTruthyString] trait for our [CObject] dynamic type.
+impl IsTruthyString for CObject {
+  fn as_truthy(&self) -> bool {
+    CObject::is_truthy(self.as_str().unwrap())
+  }
+
+  fn is_truthy(data: &str) -> bool {
+    let true_strings: [&'static str; 9] = [
+      "true",
+      "1",
+      "t",
+      "y",
+      "yes",
+      "yeah",
+      "yup",
+      "certainly",
+      "uh-huh",
+    ];
+    let data_check = data.to_lowercase();
+    true_strings.as_ref().contains(&data_check.as_str())
   }
 }
 
@@ -63,13 +101,33 @@ impl CUseCaseResponse {
 // [ASYNC IO USE CASES] =======================================================
 // ============================================================================
 
+/// What kind of comment does this produce?
+pub mod codemelted_async {
+  /// Another fun thingy.
+  pub fn run_task() {
+
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Process Use Case] ---------------------------------------------------------
+// ----------------------------------------------------------------------------
+
 fn _codemelted_process() {
   unimplemented!();
 }
 
+// ----------------------------------------------------------------------------
+// [Task Use Case] ------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
 fn _codemelted_task() {
   unimplemented!();
 }
+
+// ----------------------------------------------------------------------------
+// [Worker Use Case] ----------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 fn _codemelted_worker() {
   unimplemented!();
@@ -79,20 +137,177 @@ fn _codemelted_worker() {
 // [DATA USE CASES] ===========================================================
 // ============================================================================
 
-fn _codemelted_data_check() {
-  unimplemented!();
+// ----------------------------------------------------------------------------
+// [Data Check Use Case] ------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// The enumerated actions for the [codemelted_data_check] use case function.
+pub enum CDataCheckAction {
+  HasProperty,
+  Type,
+  Url,
 }
 
-fn _codemelted_json() {
-  unimplemented!();
+/// Supports the data validity checks of the [CObject] dynamic type to ensure
+/// it is as expected. The check performed will yield a true / false based on
+/// the finding. If should_panic is set to true, the function will force a
+/// panic! on a failed data check.
+///
+/// # HasProperty Check
+/// ```
+/// use codemelted::CDataCheckAction;
+/// use codemelted::codemelted_data_check;
+/// ```
+///
+/// # Data Type Check
+/// ```
+/// use codemelted::CDataCheckAction;
+/// use codemelted::codemelted_data_check;
+/// ```
+///
+/// # Url Validity Check
+/// ```
+/// use codemelted::CDataCheckAction;
+/// use codemelted::codemelted_data_check;
+/// ```
+pub fn codemelted_data_check(
+  action: CDataCheckAction,
+  data: CObject,
+  should_panic: bool,
+  key: Option<&str>,
+) -> bool {
+  let answer = match action {
+    CDataCheckAction::HasProperty => {
+      data.has_key(key.unwrap())
+    },
+    CDataCheckAction::Type => {
+      match key.unwrap() {
+        "array" => data.is_array(),
+        "boolean" => data.is_boolean(),
+        "empty" => data.is_empty(),
+        "null" => data.is_null(),
+        "number" => data.is_number(),
+        "object" => data.is_object(),
+        "string" => data.is_string(),
+        &_ => false,
+      }
+    },
+    CDataCheckAction::Url => {
+      url::Url::parse(data.as_str().unwrap()).is_err()
+    },
+  };
+
+  if should_panic && !answer {
+    panic!("ERROR: codemelted_data_check failed.");
+  }
+  answer
 }
 
-fn _codemelted_string_parse<T>(v: &str) -> Option<T> {
-  unimplemented!();
+// ----------------------------------------------------------------------------
+// [JSON Use Case] ------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// The result of a [codemelted_json] function call.
+pub enum CJsonResult {
+  /// The result if the use case function call fails.
+  None,
+  /// Holds the [CObject] created as a result of a successful
+  /// [CJsonAction::CreateArray], [CJsonAction::CreateObject] or
+  /// [CJsonAction::Parse] action.
+  Object(CObject),
+  /// Holds the String created as a result of a successful
+  /// [CJsonAction::Stringify] creation.
+  String(String),
 }
 
-fn _codemelted_xml() {
-  unimplemented!();
+/// The requested action for the [codemelted_json] use case function.
+pub enum CJsonAction {
+  /// Creates a [CJsonResult::Object] empty [CObject] array to facilitate
+  /// building a JSON compliant array for later processing.
+  CreateArray,
+  /// Creates a [CJsonResult::Object] empty [CObject] object to facilitate
+  /// building a JSON compliant object for later processing.
+  CreateObject,
+  /// Parses the [codemelted_json] parse_data argument transforming a str
+  /// into a [CJsonResult::Object].
+  Parse,
+  /// Parses the [codemelted_json] stringify_data argument transforming a
+  /// [CObject] into a [CJsonResult::String].
+  Stringify,
+}
+
+/// Carries out the [CJsonAction] request to create a [CJsonResult] to work
+/// the [CObject] json compliant data object.
+///
+/// # CreateArray / CreateObject Requests
+/// ```
+/// use codemelted::CJsonAction;
+/// use codemelted::CJsonResult;
+/// use codemelted::codemelted_json;
+/// ```
+///
+/// # Parse Request
+/// ```
+/// use codemelted::CJsonAction;
+/// use codemelted::CJsonResult;
+/// use codemelted::codemelted_json;
+/// ```
+///
+/// # Stringify Request
+/// ```
+/// use codemelted::CJsonAction;
+/// use codemelted::CJsonResult;
+/// use codemelted::codemelted_json;
+/// ```
+pub fn codemelted_json(
+  action: CJsonAction,
+  parse_data: Option<&str>,
+  stringify_data: Option<CObject>
+) -> CJsonResult {
+  match action {
+    CJsonAction::CreateArray => CJsonResult::Object(CObject::new_array()),
+    CJsonAction::CreateObject => CJsonResult::Object(CObject::new_object()),
+    CJsonAction::Parse  => {
+      match parse_data {
+        Some(v) => {
+          let obj = json::parse(&v);
+          match obj {
+            Ok(v2) => CJsonResult::Object(v2),
+            _ => CJsonResult::None,
+          }
+        },
+        _ => CJsonResult::None
+      }
+    },
+    CJsonAction::Stringify => {
+      match stringify_data {
+        Some(v) => CJsonResult::String(v.dump()),
+        _ => CJsonResult::None,
+      }
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [String Parse Use Case] ----------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Takes a string and will transform it into either a CObject or None if
+/// something fails with attempting to transform the str into the expected
+/// data type.
+///
+/// ```
+/// use codemelted::CDataCheckAction;
+/// use codemelted::codemelted_data_check;
+/// ```
+pub fn codemelted_string_parse(
+  data: &str
+) -> Option<CObject> {
+  let result = json::parse(data);
+  match result {
+    Ok(v) => Some(v),
+    _ => None,
+  }
 }
 
 // ============================================================================
@@ -286,7 +501,7 @@ pub fn codemelted_math(formula: CMathFormula, args: &[f64]) -> f64 {
 
   Result::expect(
     result,
-    "SyntaxError: args did not match the math formula selected"
+    "SyntaxError: codemelted_math args did not match the formula selected."
   )
 }
 
@@ -294,17 +509,25 @@ pub fn codemelted_math(formula: CMathFormula, args: &[f64]) -> f64 {
 // [RETENTION USE CASES] ======================================================
 // ============================================================================
 
-fn _codemelted_database() {
-  unimplemented!();
-}
+// ----------------------------------------------------------------------------
+// [Disk Use Case] ------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 fn _codemelted_disk() {
   unimplemented!();
 }
 
+// ----------------------------------------------------------------------------
+// [File Use Case] ------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
 fn _codemelted_file() {
   unimplemented!();
 }
+
+// ----------------------------------------------------------------------------
+// [Storage Use Case] ---------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 fn _codemelted_storage() {
   unimplemented!();
@@ -314,16 +537,193 @@ fn _codemelted_storage() {
 // [SERVICES USE CASES] =======================================================
 // ============================================================================
 
-fn _codemelted_logger() {
+// ----------------------------------------------------------------------------
+// [Database Use Case] --------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+fn _codemelted_database() {
   unimplemented!();
 }
+
+// ----------------------------------------------------------------------------
+// [Logger Use Case] ----------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// TBD
+#[derive(Clone, PartialEq)]
+pub enum CLogLevel {
+  Debug,
+  Info,
+  Warning,
+  Error,
+  Off,
+}
+impl CLogLevel {
+  pub fn as_string(&self) -> String {
+    match self {
+      CLogLevel::Debug => String::from("DEBUG"),
+      CLogLevel::Info => String::from("INFO"),
+      CLogLevel::Warning => String::from("WARNING"),
+      CLogLevel::Error => String::from("ERROR"),
+      CLogLevel::Off => String::from("OFF"),
+    }
+  }
+
+  pub fn as_int(&self) -> u8 {
+    match self {
+      CLogLevel::Debug => 0,
+      CLogLevel::Info => 1,
+      CLogLevel::Warning => 2,
+      CLogLevel::Error => 3,
+      CLogLevel::Off => 4,
+    }
+  }
+}
+
+/// TBD
+pub struct CLogRecord {
+  time_stamp: chrono::DateTime<chrono::Utc>,
+  log_level: CLogLevel,
+  data: String,
+}
+impl CLogRecord {
+  pub fn new(log_level: CLogLevel, data: &str) -> CLogRecord {
+    CLogRecord {
+      time_stamp: chrono::Utc::now(),
+      log_level,
+      data: String::from(data),
+    }
+  }
+
+  pub fn get_time_stamp(&self) -> &chrono::DateTime<chrono::Utc> {
+    &self.time_stamp
+  }
+
+  pub fn get_log_level(&self) -> &CLogLevel {
+    &self.log_level
+  }
+
+  pub fn get_data(&self) -> &str {
+    &self.data
+  }
+
+  pub fn as_string(&self) -> String {
+    format!(
+      "{} [{}]: {}",
+      self.get_time_stamp().format("%Y-%b-%d %H:%M:%S.%3f"),
+      self.get_log_level().as_string(),
+      self.get_data()
+    )
+  }
+}
+
+/// TBD
+pub type CLoggedEventHandler = fn(CLogRecord);
+
+/// TBD
+pub enum CLoggerAction {
+  SetLogLevel,
+  SetHandler,
+  LogDebug,
+  LogInfo,
+  LogWarning,
+  LogError
+}
+
+/// TBD
+pub fn codemelted_logger(
+  action: CLoggerAction,
+  data: Option<&str>,
+  log_level: Option<CLogLevel>,
+  handler: Option<CLoggedEventHandler>
+) {
+  match action {
+    // Set our log level action
+    CLoggerAction::SetLogLevel => {
+      match log_level {
+        Some(v) => codemelted_api::set_log_level(v),
+        _ => panic!("SyntaxError: log_level expected w/ LogLevel action.")
+      };
+    },
+
+    // Set our handler action.
+    CLoggerAction::SetHandler => codemelted_api::set_log_handler(handler),
+
+    // Welp, I guess we have to log something then.
+    _ => {
+      // See if we are logging this somewhere
+      let logger_level = codemelted_api::get_log_level();
+      if logger_level == CLogLevel::Off {
+        return
+      }
+
+      // Get the log level of the log record to create.
+      let log_record_level = match action {
+        CLoggerAction::LogDebug => CLogLevel::Debug,
+        CLoggerAction::LogInfo => CLogLevel::Info,
+        CLoggerAction::LogWarning => CLogLevel::Warning,
+        CLoggerAction::LogError => CLogLevel::Error,
+        _ => panic!("The developer did something very bad!!!")
+      };
+
+      // Create the log record.
+      let record = match data {
+        Some(v) => CLogRecord::new(log_record_level, v),
+        _ => panic!("SyntaxError: data expected with LogXXX action.")
+      };
+
+      if record.get_log_level().as_int() >= logger_level.as_int() {
+        println!("{}", record.as_string())
+      }
+
+      // Now to send it to the log handler
+      let log_handler = codemelted_api::get_log_handler();
+      if let Some(v) = log_handler {
+        v(record);
+      }
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+// [Network Use Case] ---------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 fn _codemelted_network() {
   unimplemented!();
 }
 
+// ----------------------------------------------------------------------------
+// [Pi Use Case] --------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
 fn _codemelted_pi() {
   unimplemented!();
+}
+
+// ----------------------------------------------------------------------------
+// [Runtime Use Case] ---------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// TBD
+pub enum CRuntimeAction {
+  Environment,
+  Exists,
+  HomePath,
+  Hostname,
+  Newline,
+  Online,
+  OSName,
+  OSVersion,
+  PathSeparator,
+  ProcessorCount,
+  StatsDisk,
+  StatsPerf,
+  StatsTcp,
+  StatsUdp,
+  System,
+  TempPath,
+  UserName
 }
 
 fn _codemelted_runtime() {
@@ -349,24 +749,41 @@ fn _codemelted_app() {
 /// Identifies the actions associated with the [codemelted_console] use case
 /// function.
 pub enum CConsoleAction {
+  /// Prompts an alert and awaits for a user to press the enter key.
   Alert,
-  Confirm,
+  /// Provides for choosing between a series of choices returning the index
+  /// of the selection.
   Choose,
+  /// Prompts for confirmation return true / false based on the answer.
+  Confirm,
+  /// Provides the ability to enter a password not reflecting the keys typed.
   Password,
+  /// Provides the ability to prompt for a string answer being reflected to the
+  /// console.
   Prompt,
+  /// Will write text to STDOUT with no new line.
   Write,
+  /// Will write text to STDOUT with a new line.
   WriteLn,
 }
 
+/// Attaches some utility methods for working with stdin / stdout to the
+/// enumeration.
 impl CConsoleAction {
-  fn read(prompt: &str, is_password: bool) -> String {
+  /// Utility function to read from stdin with a specified prompt.
+  fn read(prompt: &str) -> String {
     use std::io::stdin;
+    use std::io::stdout;
+    use std::io::Write;
+
     let mut answer = String::new();
     print!("{}", prompt);
+    let _ = stdout().flush();
     let _ = stdin().read_line(&mut answer);
     answer
   }
 
+  ///Utility function to write to stdout with or without a new line.
   fn write(message: &str, use_new_line: bool) {
     if use_new_line {
       println!("{}", message);
@@ -376,46 +793,143 @@ impl CConsoleAction {
   }
 }
 
+/// Provides a function to work with stdin / stdout to create basic event
+/// driven console applications. The answer will be a [CObject]
+/// with value held by the datatype specified by the enum.
+///
+/// # Alert Action
+/// ```no_run
+/// use codemelted::CConsoleAction;
+/// use codemelted::codemelted_console;
+/// ```
+///
+/// # Choose Action
+/// ```no_run
+/// use codemelted::CConsoleAction;
+/// use codemelted::codemelted_console;
+///
+/// let answer = codemelted_console(
+///   CConsoleAction::Choose,
+///   None,
+///   Some(&["fish", "dog", "cat"])
+/// );
+/// println!("{}", answer.as_number());
+/// ```
+///
+/// # Confirm Action
+/// ```no_run
+/// use codemelted::CConsoleAction;
+/// use codemelted::codemelted_console;
+/// ```
+///
+/// # Password / Prompt Actions
+/// ```no_run
+/// use codemelted::CConsoleAction;
+/// use codemelted::codemelted_console;
+/// ```
+///
+/// # Write / WriteLn Actions
+/// ```no_run
+/// use codemelted::CConsoleAction;
+/// use codemelted::codemelted_console;
+/// ```
+///
 pub fn codemelted_console(
   action: CConsoleAction,
-  message: &str,
-  choices: Option<Vec<String>>
-) -> CUseCaseResponse {
+  message: Option<&str>,
+  choices: Option<&[&str]>
+) -> CObject {
+  // Format our message if one was specified or not.
+  let msg = match message {
+    Some(v) => {
+      match action {
+        CConsoleAction::Alert => &format!("{} [ENTER]: ", v),
+        CConsoleAction::Confirm => &format!("{} CONFIRM [y/N]: ", v),
+        CConsoleAction::Choose => &format!("{}", v),
+        CConsoleAction::Password =>  &format!("{}: ", v),
+        CConsoleAction::Prompt =>  &format!("{}: ", v),
+        CConsoleAction::Write => v,
+        CConsoleAction::WriteLn => v,
+      }
+    },
+    _ => {
+      match action {
+        CConsoleAction::Alert => "[ENTER]: ",
+        CConsoleAction::Confirm => "CONFIRM [y/N]: ",
+        CConsoleAction::Choose => "CHOOSE",
+        CConsoleAction::Password => "PASSWORD: ",
+        CConsoleAction::Prompt => "PROMPT: ",
+        CConsoleAction::Write => "",
+        CConsoleAction::WriteLn => "",
+      }
+    },
+  };
+
+  // Now go carry out our action to get our data.
   match action {
     CConsoleAction::Alert => {
-      let msg: &str = if message.is_empty() {
-        "[ENTER]: "
-      } else {
-        &format!("{} [ENTER]: ", message)
-      };
-      CConsoleAction::read(msg, false);
-      CUseCaseResponse::None
+      CConsoleAction::read(msg);
+      CObject::Null
     },
     CConsoleAction::Confirm => {
-      let msg: &str = if message.is_empty() {
-        "[ENTER]: "
-      } else {
-        &format!("{} [ENTER]: ", message)
-      };
-      let answer: String = CConsoleAction::read(msg, false);
-      CUseCaseResponse::Bool(CUseCaseResponse::is_true_string(&answer))
+      let answer: String = CConsoleAction::read(msg);
+      CObject::Boolean(CObject::is_truthy(&answer))
     },
     CConsoleAction::Choose => {
-      CUseCaseResponse::Int(0)
+      if choices.is_some() {
+        let options = choices.unwrap();
+        let answer: i32;
+        loop {
+          println!("{}", "-".repeat(msg.chars().count()));
+          println!("{}", msg);
+          println!("{}", "-".repeat(msg.chars().count()));
+          let mut x = -1;
+          for option in options {
+            x += 1;
+            println!("{}. {}", x, option);
+          }
+          println!("");
+          let selection = CConsoleAction::read("Make a Selection: ");
+          match selection.trim().parse::<i32>() {
+            Ok(n) => {
+              if n >=0 || n < options.len().try_into().unwrap() {
+                answer = n;
+                break;
+              } else {
+                println!("");
+                println!("ERROR: Invalid selection, please try again.");
+                println!("");
+              }
+            },
+            Err(_e) => {
+              println!("");
+              println!("ERROR: Invalid selection, please try again.");
+              println!("");
+            }
+          }
+        }
+        CObject::Number(answer.into())
+      } else {
+        panic!(
+          "SyntaxError: codemelted_console choices option not specified."
+        );
+      }
     },
     CConsoleAction::Password => {
-      CUseCaseResponse::String(String::from(""))
+      let password = rpassword::prompt_password(msg).unwrap();
+      CObject::String(String::from(password))
     },
     CConsoleAction::Prompt => {
-      CUseCaseResponse::String(String::from(""))
+      let answer: String = CConsoleAction::read(msg);
+      CObject::String(String::from(answer))
     },
     CConsoleAction::Write => {
-      CConsoleAction::write(message, false);
-      CUseCaseResponse::None
+      CConsoleAction::write(msg, false);
+      CObject::Null
     },
     CConsoleAction::WriteLn => {
-      CConsoleAction::write(message, true);
-      CUseCaseResponse::None
+      CConsoleAction::write(msg, true);
+      CObject::Null
     },
   }
 }
@@ -453,5 +967,21 @@ mod tests {
 // Used to play around with functions before test definition.
 // Delete when no longer needed.
 fn main() {
+  fn cb(r: CLogRecord) {
+    println!("I am in the callback {}", r.as_string());
+  }
 
+  codemelted_logger(
+    CLoggerAction::SetHandler,
+    None,
+    None,
+    Some(cb),
+  );
+
+  codemelted_logger(
+    CLoggerAction::LogError,
+    Some("Oh my gosh the world is on fire"),
+    None,
+    None
+  );
 }
