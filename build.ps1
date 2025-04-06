@@ -52,6 +52,15 @@
       margin-bottom: 75px;
     }
 
+    /* Specific to rust updates for footer */
+    .sidebar {
+      margin-bottom: 75px;
+    }
+
+    main {
+      margin-bottom: 75px;
+    }
+
     @media print {
       .content-container {
         position: relative;
@@ -158,6 +167,7 @@ function build([string[]]$params) {
       $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
       $htmlData = $htmlData.Replace("../README.md", "../index.html")
       $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
+      $htmlData = $htmlData.Replace("margin-bottom: 75px;", "margin-bottom: 0;")
       $htmlData = $htmlData.Replace('<a href="codemelted">','<a href="codemelted/index.html">')
       $htmlData | Out-File docs/index.html -Force
 
@@ -165,6 +175,7 @@ function build([string[]]$params) {
       foreach ($file in $files) {
         [string]$htmlData = Get-Content -Path $file.FullName -Raw
         $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
+        $htmlData = $htmlData.Replace("margin-bottom: 75px;", "margin-bottom: 0;")
         $htmlData = $htmlData.Replace('<a href="../codemelted">','<a href="../codemelted/index.html">')
         $htmlData = $htmlData.Replace('<a href="../codemelted">codemelted.dart</a>','<a href="../codemelted/index.html">codemelted.dart</a>')
         $htmlData | Out-File $file.FullName -Force
@@ -289,8 +300,18 @@ function build([string[]]$params) {
     message "Now testing the codemelted.rs module"
     cargo test
     if (-not $isTestingOnly) {
+      message "Now building the codemelted.rs documentation"
+      cargo clean
       cargo doc --no-deps
-      message "codemelted.rs module documentation completed."
+      Set-Location $PSScriptRoot/codemelted_rust/target/doc
+      $files = Get-ChildItem -Path codemelted/*.html, src/codemelted/*.html
+      foreach ($file in $files) {
+        [string]$htmlData = Get-Content -Path $file.FullName -Raw
+        $htmlData = $htmlData.Replace("../README.md", "../../index.html")
+        $htmlData = $htmlData.Replace("</body>", "`n$footerTemplate</body>")
+        $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
+        $htmlData | Out-File $file.FullName -Force
+      }
     }
 
     Set-Location $PSScriptRoot
