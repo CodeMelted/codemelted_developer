@@ -107,12 +107,11 @@ import "package:web/web.dart" as web;
 // [UI Use Case] ==============================================================
 // ============================================================================
 
-// ============================================================================
-// [CODEMELTED API DEFINITION] ================================================
-// ============================================================================
+// [TO BE REFACTORED INTO NEW DESIGN BELOW] ===================================
 
 /// This class serves as a global data collection to support each of the
 /// codemelted_xxx use case functions.
+/// @nodoc
 class CodeMeltedAPI {
   /// Holds the tracking of objects created by the module where a
   /// [CodeMeltedAPI.trackerId] is returned as a handle to facilitate work.
@@ -195,12 +194,14 @@ class CodeMeltedAPI {
 
 /// Base class for setting up the Single Page App (SPA) via the
 /// [codemelted_app] function.
+/// @nodoc
 abstract class CAppConfig {
   /// Function that carries out the configuration request in the child object.
   void _execute();
 }
 
 /// Provides the [codemelted_app] function content for the SPA.
+/// @nodoc
 class CAppContentConfig extends CAppConfig {
   /// Sets up the widget to display in the main area of the [CAppView] widget.
   final Widget? body;
@@ -230,6 +231,7 @@ class CAppContentConfig extends CAppConfig {
 }
 
 /// Provides the [codemelted_app] drawer / end drawer setup.
+/// @nodoc
 class CAppDrawerConfig extends CAppConfig {
   /// True to set the left hand drawer. False to set the right hand drawer.
   final bool isEndDrawer;
@@ -254,6 +256,7 @@ class CAppDrawerConfig extends CAppConfig {
 /// Provides the [codemelted_app] floating action button. This can also be
 /// achieved with a [codemelted_ui] function utilizing a stack and a
 /// position widget for exact X / Y placement.
+/// @nodoc
 class CAppFloatingActionButtonConfig extends CAppConfig {
   /// The widget that represents the floating action button.
   final Widget? button;
@@ -271,6 +274,7 @@ class CAppFloatingActionButtonConfig extends CAppConfig {
 }
 
 /// Provides the [codemelted_app] header / footer configuration.
+/// @nodoc
 class CAppHeaderFooterConfig extends CAppConfig {
   /// True for being the header, false for being the footer.
   final bool isFooter;
@@ -318,6 +322,7 @@ class CAppHeaderFooterConfig extends CAppConfig {
 
 /// Sets the overall SPA theme of the [codemelted_app] via the
 /// [codemelted_theme] function.
+/// @nodoc
 class CAppThemeConfig extends CAppConfig {
   /// Sets up the light theme for the overall SPA.
   final ThemeData? theme;
@@ -349,6 +354,7 @@ class CAppThemeConfig extends CAppConfig {
 
 /// Provides the Single Page Application for the [codemelted_app] function.
 /// It is recommended to not use this class directly and to use the function.
+/// @nodoc
 class CAppView extends StatefulWidget {
   /// Tracks if the app has already been called.
   static bool _isInitialized = false;
@@ -643,9 +649,11 @@ class _CAppViewState extends State<CAppView> {
 }
 
 /// Defines an array definition to match JSON Array construct.
+/// @nodoc
 typedef CArray = List<dynamic>;
 
 /// Provides helper methods for the CArray.
+/// @nodoc
 extension CArrayExtension on CArray {
   /// Builds a map of ChangeNotifier objects to support notification via the
   /// [CArray] definition.
@@ -696,14 +704,17 @@ extension CArrayExtension on CArray {
 }
 
 /// Supports identifying the module [CUiButtonWidget] for widget construction.
+/// @nodoc
 enum CButtonType { elevated, filled, icon, outlined, text }
 
 /// Supports identifying what module [CUiImageWidget] for widget construction.
+/// @nodoc
 enum CImageType { asset, file, memory, network }
 
 /// Provides theming of the regular [InputDecorationTheme] but expands to
 /// the input style and other attributes of styling. Modeled off the
 /// [DropdownMenuTheme] to be consistent with that control.
+/// @nodoc
 class CInputDecorationTheme extends InputDecorationTheme {
   /// Adds the items associated with the input field so it is in line with
   /// other material3 widgets. See DropdownMenu as an example.
@@ -921,11 +932,13 @@ class CInputDecorationTheme extends InputDecorationTheme {
 }
 
 /// Defines an object definition to match a valid JSON Object construct.
+/// @nodoc
 typedef CObject = Map<String, dynamic>;
 
 /// Provides helper methods for the [CObject] for set / get data, implementing
 /// a [ChangeNotifier], and being able to serialize / deserialize between
 /// JSON and string data.
+/// @nodoc
 extension CObjectExtension on CObject {
   /// Builds a map of ChangeNotifier objects to support notification via the
   /// [CObject] definition.
@@ -996,6 +1009,7 @@ extension CObjectExtension on CObject {
 
 /// Enumerations set specifying the allowed actions within
 /// [CUiWebViewWidget] widget.
+/// @nodoc
 enum CSandboxAllow {
   forms("allow-forms"),
   modals("allow-modals"),
@@ -1018,10 +1032,12 @@ enum CSandboxAllow {
 /// change to the UI state is necessary for the SPA. Return true if you are
 /// handling the resize event, false to propagate the event up the widget
 /// tree.
+/// @nodoc
 typedef OnResizeEventHandler = bool Function(Size);
 
 /// Provides a series of asXXX() conversion from a string data type and do non
 /// case sensitive compares.
+/// @nodoc
 extension CStringExtension on String {
   /// Will attempt to return an array object ir null if it cannot.
   CArray? asArray() {
@@ -1073,6 +1089,7 @@ extension CStringExtension on String {
 }
 
 /// Defines a tab item to utilize with the [CTabbedView] object.
+/// @nodoc
 class CTabItem {
   /// The content displayed with the tab.
   final Widget? content;
@@ -1104,6 +1121,7 @@ class CTabItem {
 
 /// Widget associated with the [CUiTabbedViewWidget] to build a tabbed
 /// interface of content via the [codemelted_ui] function.
+/// @nodoc
 class CTabbedView extends StatefulWidget {
   /// The list of [CTabItem] definitions of the tabbed content.
   final List<CTabItem> tabItems;
@@ -1228,6 +1246,7 @@ class _CTabViewState extends State<CTabbedView> with TickerProviderStateMixin {
 }
 
 /// The task to run as part of the [codemelted_task] function.
+/// @nodoc
 typedef CTask = Future<dynamic> Function([dynamic]);
 
 /// Provides a wrapper around the Flutter ThemeData object that isolates
@@ -1244,6 +1263,7 @@ extension ThemeDataExtension on ThemeData {
 
 /// Base Widget configuration for the [codemelted_ui] widget building
 /// function.
+/// @nodoc
 abstract class CUiWidget {
   /// Function to build the actual widget based on the configuration.
   Widget _build();
@@ -1251,6 +1271,7 @@ abstract class CUiWidget {
 
 /// Provides the [codemelted_ui] button widget with different supported
 /// styles.
+/// @nodoc
 class CUiButtonWidget extends CUiWidget {
   /// The action to take when the button is pressed.
   final void Function() onPressed;
@@ -1371,6 +1392,7 @@ class CUiButtonWidget extends CUiWidget {
 }
 
 /// Provides the [codemelted_ui] center a widget within a view.
+/// @nodoc
 class CUiCenterWidget extends CUiWidget {
   /// The key to tie together a series of widgets.
   final Key? key;
@@ -1399,6 +1421,7 @@ class CUiCenterWidget extends CUiWidget {
 }
 
 /// Provides the [codemelted_ui] layout widgets vertically.
+/// @nodoc
 class CUiColumnWidget extends CUiWidget {
   /// The widgets to put in the layout.
   final List<Widget> children;
@@ -1439,6 +1462,7 @@ class CUiColumnWidget extends CUiWidget {
 /// Provides the [codemelted_ui] that creates a customizable combo box
 /// drop down with the ability to implement a search box to filter the combo
 /// box.
+/// @nodoc
 class CUiComboBoxWidget<T> extends CUiWidget {
   /// The menu entries for the combo box.
   final List<DropdownMenuEntry<T>> dropdownMenuEntries;
@@ -1554,6 +1578,7 @@ class CUiComboBoxWidget<T> extends CUiWidget {
 /// UI. This widget can be utilized to setup padding, margins, or build custom
 /// stylized widgets combining said widget or layouts to build a more complex
 /// widget.
+/// @nodoc
 class CUiContainerWidget extends CUiWidget {
   /// The key to group a series of widgets as a singular group.
   final Key? key;
@@ -1638,6 +1663,7 @@ class CUiContainerWidget extends CUiWidget {
 
 /// Provides the [codemelted_ui] a vertical or horizontal spacer between
 /// widgets that can have a dividing line set if necessary.
+/// @nodoc
 class CUiDividerWidget extends CUiWidget {
   /// The key to use to group a bunch of widgets.
   final Key? key;
@@ -1672,6 +1698,7 @@ class CUiDividerWidget extends CUiWidget {
 
 /// Provides the [codemelted_ui] the ability to have an expansion list of
 /// widgets.
+/// @nodoc
 class CUiExpansionTileWidget extends CUiWidget {
   /// The widgets that are part of the expansion widget.
   final List<Widget> children;
@@ -1742,6 +1769,7 @@ class CUiExpansionTileWidget extends CUiWidget {
 
 /// Provides the [codemelted_ui] a wrapper for an asynchronous widget to
 /// load data and then present it when completed.
+/// @nodoc
 class CUiFutureBuilderWidget<T> extends CUiWidget {
   /// The builder to perform the necessary widget and async calls.
   final Widget Function(BuildContext, AsyncSnapshot<T>) builder;
@@ -1776,6 +1804,7 @@ class CUiFutureBuilderWidget<T> extends CUiWidget {
 
 /// Provides the [codemelted_ui] a scrollable grid layout of widgets that
 /// based on the crossAxisCount.
+/// @nodoc
 class CUiGridViewWidget extends CUiWidget {
   /// How many columns is this thing going to be.
   final int crossAxisCount;
@@ -1852,6 +1881,7 @@ class CUiGridViewWidget extends CUiWidget {
 /// specified [CImageType] enumerated value and display it when available based
 /// on the characteristics specified with the widget. No theme controls this
 /// widget type so the characteristics are unique to each widget created.
+/// @nodoc
 class CUiImageWidget extends CUiWidget {
   /// Identifies the [CImageType] of data.
   final CImageType type;
@@ -1928,6 +1958,7 @@ class CUiImageWidget extends CUiWidget {
 
 /// Provides the [codemelted_ui] a basic text label with the ability to make
 /// it multi-line, clip it if to long.
+/// @nodoc
 class CUiLabelWidget extends CUiWidget {
   /// Tell me you want to say in this label.
   final String data;
@@ -1967,6 +1998,7 @@ class CUiLabelWidget extends CUiWidget {
 
 /// Provides the [codemelted_ui] a selectable widget to be part of a view of
 /// selectable items.
+/// @nodoc
 class CUiListTileWidget extends CUiWidget {
   /// What do I do when tapped.
   final void Function() onTap;
@@ -2038,6 +2070,7 @@ class CUiListTileWidget extends CUiWidget {
 
 /// Provides the [codemelted_ui] a list view of widgets with automatic
 /// scrolling that can be set for vertical (default) or horizontal.
+/// @nodoc
 class CUiListViewWidget extends CUiWidget {
   /// The items to put in a scrollable list.
   final List<Widget> children;
@@ -2091,6 +2124,7 @@ class CUiListViewWidget extends CUiWidget {
 }
 
 /// Provides the [codemelted_ui] layout to put widgets horizontally.
+/// @nodoc
 class CUiRowWidget extends CUiWidget {
   /// The widgets we want on the horizon.
   final List<Widget> children;
@@ -2131,6 +2165,7 @@ class CUiRowWidget extends CUiWidget {
 /// Provides the [codemelted_ui] a stacked widget based on the children
 /// allowing for a custom look and feel for "special" widgets that stack
 /// bottom to top and overlap.
+/// @nodoc
 class CUiStackWidget extends CUiWidget {
   /// The widgets to stack on each other to create the super widget.
   final List<Widget> children;
@@ -2175,6 +2210,7 @@ class CUiStackWidget extends CUiWidget {
 
 /// Provides the [codemelted_ui] a tab view of content to allow for users to
 /// switch between widgets of data.
+/// @nodoc
 class CUiTabbedViewWidget extends CUiWidget {
   /// The tab [CTabItem] list that represents the tabbed content.
   final List<CTabItem> tabItems;
@@ -2256,6 +2292,7 @@ class CUiTabbedViewWidget extends CUiWidget {
 /// collection of data and providing feedback to a user. It exposes the most
 /// common text field options to allow for building custom text fields (i.e.
 /// spin controls, number only, etc.).
+/// @nodoc
 class CUiTextFieldWidget extends CUiWidget {
   /// Whether to enable / disable auto correct within the text field.
   final bool autocorrect;
@@ -2428,6 +2465,7 @@ class CUiTextFieldWidget extends CUiWidget {
 
 /// Provides the [codemelted_ui] the ability to show / hide a widget and
 /// setup how to treat other aspects of the widget.
+/// @nodoc
 class CUiVisibilityWidget extends CUiWidget {
   /// The widget that will be shown / hidden.
   final Widget child;
@@ -2482,6 +2520,7 @@ class CUiVisibilityWidget extends CUiWidget {
 
 /// Provides the [codemelted_ui] with an embedded web view via an iFrame to
 /// load other HTML documents.
+/// @nodoc
 class CUiWebViewWidget extends CUiWidget {
   /// The [CWebViewController] to allow working with the view context.
   final CWebViewController controller;
@@ -2520,6 +2559,7 @@ class CUiWebViewWidget extends CUiWidget {
 
 /// The web view controller to support the [CUiWebViewWidget] for widget
 /// creation.
+/// @nodoc
 class CWebViewController {
   /// Handles the changing of the URL within the web view.
   late web.HTMLIFrameElement _iFrameRef;
@@ -2570,6 +2610,7 @@ class CWebViewController {
 /// a timer and eventually stop it. Finally one can simple sleep between
 /// asynchronous tasks. The supported actions are run / start_timer /
 /// stop_timer / sleep.
+/// @nodoc
 dynamic codemelted_task({
   required String action,
   required CTask task,
@@ -2623,6 +2664,7 @@ Future<dynamic> database() async {
 /// has a given property key, and if a URL is valid or not. This is returned as
 /// a bool but can also throw a string error if the check fails. The valid
 /// actions are has_property / type / url.
+/// @nodoc
 bool data_check<T>({
   required String action,
   dynamic data,
@@ -2663,6 +2705,7 @@ Future<dynamic> file() async {
 /// either CArray / CObject / String / null if the conversion cannot be done.
 /// The data object provides the/ optional ability to copy data when creating
 /// or performing the parsing / stringifying.
+/// @nodoc
 dynamic json({required String action, dynamic data}) {
   if (action == "create_array") {
     return data != null ? data.copy() : [];
@@ -2685,6 +2728,7 @@ Future<dynamic> storage() async {
 /// Provides the ability to convert string data into different object types.
 /// The supported actions are array / bool / double / int / object. null is
 /// returned on a failed conversion.
+/// @nodoc
 dynamic codemelted_string_parse({
   required String action,
   required String data,
@@ -2753,6 +2797,7 @@ Future<dynamic> codemelted_network() async {
 /// Provides a queryable set of properties along with one off actions carried
 /// out by a SPA within the web runtime. Supported actions are is_pwa /
 /// is_touch_enabled.
+/// @nodoc
 dynamic codemelted_runtime({required String action, BuildContext? context}) {
   // TODO: Update codemelted.js / .wasm binding names
   if (action == "is_pwa") {
@@ -2778,6 +2823,7 @@ dynamic codemelted_runtime({required String action, BuildContext? context}) {
 /// attempt to open the desktop service associated with the schema. The
 /// supported schemas are 'file:' / 'http://' 'https://' / 'mailto:' / 'tel:'
 /// / 'sms:'
+/// @nodoc
 web.Window? codemelted_open({
   required String schema,
   bool popupWindow = false,
@@ -2816,6 +2862,7 @@ Future<dynamic> codemelted_share() async {
 /// can update the UI state via the [CAppConfig] or open / close the app drawer.
 /// The supported actions to facilitate this are 'config' / 'close_drawer' /
 /// 'open_drawer'.
+/// @nodoc
 void codemelted_app({
   required String action,
   CAppConfig? config,
@@ -2845,6 +2892,7 @@ Future<dynamic> codemelted_audio() async {
 /// This is an asynchronous call allowing for the dialog display and returned
 /// answer. The supported actions are about / alert / browser / choose / close /
 /// confirm / custom / loading / prompt.
+/// @nodoc
 Future<T?> codemelted_dialog<T>({
   required String action,
   Widget? appIcon,
@@ -3092,6 +3140,7 @@ Future<T?> codemelted_dialog<T>({
 
 /// Creates a ThemeData object but it only exposes the material3 themes so
 /// that any application theming is done with the future in mind.
+/// @nodoc
 ThemeData codemelted_theme({
   ActionIconThemeData? actionIconTheme,
   AppBarTheme? appBarTheme,
@@ -3216,4 +3265,5 @@ ThemeData codemelted_theme({
 
 /// Provides a utility function to build the [CUiWidget] set of standardized
 /// widgets.
+/// @nodoc
 Widget codemelted_ui({required CUiWidget widget}) => widget._build();

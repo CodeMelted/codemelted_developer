@@ -89,6 +89,8 @@ DEALINGS IN THE SOFTWARE.
 // [UI Use Case] ==============================================================
 // ============================================================================
 
+// [REFACTOR BELOW THIS LINE] =================================================
+
 mod codemelted_api {
   use crate::{CLogLevel, CLoggedEventHandler};
   use std::sync::Mutex;
@@ -153,52 +155,9 @@ impl IsTruthyString for CObject {
   }
 }
 
-// ============================================================================
-// [ASYNC IO USE CASES] =======================================================
-// ============================================================================
-
-/// What kind of comment does this produce?
-pub mod codemelted_async {
-  /// Another fun thingy.
-  pub fn run_task() {
-
-  }
-}
-
-// ----------------------------------------------------------------------------
-// [Process Use Case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-fn _codemelted_process() {
-  unimplemented!();
-}
-
-// ----------------------------------------------------------------------------
-// [Task Use Case] ------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-fn _codemelted_task() {
-  unimplemented!();
-}
-
-// ----------------------------------------------------------------------------
-// [Worker Use Case] ----------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-fn _codemelted_worker() {
-  unimplemented!();
-}
-
-// ============================================================================
-// [DATA USE CASES] ===========================================================
-// ============================================================================
-
-// ----------------------------------------------------------------------------
-// [Data Check Use Case] ------------------------------------------------------
-// ----------------------------------------------------------------------------
 
 /// The enumerated actions for the [codemelted_data_check] use case function.
-pub enum CDataCheckAction {
+enum CDataCheckAction {
   HasProperty,
   Type,
   Url,
@@ -226,7 +185,7 @@ pub enum CDataCheckAction {
 /// use codemelted::CDataCheckAction;
 /// use codemelted::codemelted_data_check;
 /// ```
-pub fn codemelted_data_check(
+fn codemelted_data_check(
   action: CDataCheckAction,
   data: CObject,
   should_panic: bool,
@@ -264,7 +223,7 @@ pub fn codemelted_data_check(
 // ----------------------------------------------------------------------------
 
 /// The result of a [codemelted_json] function call.
-pub enum CJsonResult {
+enum CJsonResult {
   /// The result if the use case function call fails.
   None,
   /// Holds the [CObject] created as a result of a successful
@@ -277,7 +236,7 @@ pub enum CJsonResult {
 }
 
 /// The requested action for the [codemelted_json] use case function.
-pub enum CJsonAction {
+enum CJsonAction {
   /// Creates a [CJsonResult::Object] empty [CObject] array to facilitate
   /// building a JSON compliant array for later processing.
   CreateArray,
@@ -315,7 +274,7 @@ pub enum CJsonAction {
 /// use codemelted::CJsonResult;
 /// use codemelted::codemelted_json;
 /// ```
-pub fn codemelted_json(
+fn codemelted_json(
   action: CJsonAction,
   parse_data: Option<&str>,
   stringify_data: Option<CObject>
@@ -356,7 +315,7 @@ pub fn codemelted_json(
 /// use codemelted::CDataCheckAction;
 /// use codemelted::codemelted_data_check;
 /// ```
-pub fn codemelted_string_parse(
+fn codemelted_string_parse(
   data: &str
 ) -> Option<CObject> {
   let result = json::parse(data);
@@ -371,21 +330,13 @@ pub fn codemelted_string_parse(
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// [Compute Use Case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-fn _codemelted_compute() {
-  unimplemented!();
-}
-
-// ----------------------------------------------------------------------------
 // [Math Use Case] ------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
 /// Collection of mathematical formulas that support the [codemelted_math]
 /// function. Simply specify the formula, pass the parameters, and get the
 /// answer.
-pub enum CMathFormula {
+enum CMathFormula {
   /// Distance in meters between two WGS84 points.
   GeodeticDistance,
   /// Heading in °N true North 0 - 359.
@@ -518,7 +469,7 @@ impl CMathFormula {
 /// - _NOTE: The args slice of f64 types go left to right in terms of the
 /// associated formula when passing the args._
 ///
-pub fn codemelted_math(formula: CMathFormula, args: &[f64]) -> f64 {
+fn codemelted_math(formula: CMathFormula, args: &[f64]) -> f64 {
   use std::panic;
   let result = panic::catch_unwind(|| {
     match formula {
@@ -565,49 +516,9 @@ pub fn codemelted_math(formula: CMathFormula, args: &[f64]) -> f64 {
 // [RETENTION USE CASES] ======================================================
 // ============================================================================
 
-// ----------------------------------------------------------------------------
-// [Disk Use Case] ------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-fn _codemelted_disk() {
-  unimplemented!();
-}
-
-// ----------------------------------------------------------------------------
-// [File Use Case] ------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-fn _codemelted_file() {
-  unimplemented!();
-}
-
-// ----------------------------------------------------------------------------
-// [Storage Use Case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-fn _codemelted_storage() {
-  unimplemented!();
-}
-
-// ============================================================================
-// [SERVICES USE CASES] =======================================================
-// ============================================================================
-
-// ----------------------------------------------------------------------------
-// [Database Use Case] --------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-fn _codemelted_database() {
-  unimplemented!();
-}
-
-// ----------------------------------------------------------------------------
-// [Logger Use Case] ----------------------------------------------------------
-// ----------------------------------------------------------------------------
-
 /// TBD
 #[derive(Clone, PartialEq)]
-pub enum CLogLevel {
+enum CLogLevel {
   Debug,
   Info,
   Warning,
@@ -637,7 +548,7 @@ impl CLogLevel {
 }
 
 /// TBD
-pub struct CLogRecord {
+struct CLogRecord {
   time_stamp: chrono::DateTime<chrono::Utc>,
   log_level: CLogLevel,
   data: String,
@@ -674,10 +585,10 @@ impl CLogRecord {
 }
 
 /// TBD
-pub type CLoggedEventHandler = fn(CLogRecord);
+type CLoggedEventHandler = fn(CLogRecord);
 
 /// TBD
-pub enum CLoggerAction {
+enum CLoggerAction {
   SetLogLevel,
   SetHandler,
   LogDebug,
@@ -687,7 +598,7 @@ pub enum CLoggerAction {
 }
 
 /// TBD
-pub fn codemelted_logger(
+fn codemelted_logger(
   action: CLoggerAction,
   data: Option<&str>,
   log_level: Option<CLogLevel>,
@@ -741,70 +652,9 @@ pub fn codemelted_logger(
   }
 }
 
-// ----------------------------------------------------------------------------
-// [Network Use Case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-fn _codemelted_network() {
-  unimplemented!();
-}
-
-// ----------------------------------------------------------------------------
-// [Pi Use Case] --------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-fn _codemelted_pi() {
-  unimplemented!();
-}
-
-// ----------------------------------------------------------------------------
-// [Runtime Use Case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// TBD
-pub enum CRuntimeAction {
-  Environment,
-  Exists,
-  HomePath,
-  Hostname,
-  Newline,
-  Online,
-  OSName,
-  OSVersion,
-  PathSeparator,
-  ProcessorCount,
-  StatsDisk,
-  StatsPerf,
-  StatsTcp,
-  StatsUdp,
-  System,
-  TempPath,
-  UserName
-}
-
-fn _codemelted_runtime() {
-  unimplemented!();
-}
-
-// ============================================================================
-// [USER INTERFACE USE CASES] =================================================
-// ============================================================================
-
-// ----------------------------------------------------------------------------
-// [App Use Case] -------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-fn _codemelted_app() {
-  unimplemented!();
-}
-
-// ----------------------------------------------------------------------------
-// [Console Use Case] ---------------------------------------------------------
-// ----------------------------------------------------------------------------
-
 /// Identifies the actions associated with the [codemelted_console] use case
 /// function.
-pub enum CConsoleAction {
+enum CConsoleAction {
   /// Prompts an alert and awaits for a user to press the enter key.
   Alert,
   /// Provides for choosing between a series of choices returning the index
@@ -890,7 +740,7 @@ impl CConsoleAction {
 /// use codemelted::codemelted_console;
 /// ```
 ///
-pub fn codemelted_console(
+fn codemelted_console(
   action: CConsoleAction,
   message: Option<&str>,
   choices: Option<&[&str]>
@@ -990,22 +840,6 @@ pub fn codemelted_console(
   }
 }
 
-// ----------------------------------------------------------------------------
-// [Dialog Use Case] ----------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-fn _codemelted_dialog() {
-  unimplemented!();
-}
-
-// ----------------------------------------------------------------------------
-// [UI Widget Use Case] -------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-fn _codemelted_ui() {
-  unimplemented!();
-}
-
 // ============================================================================
 // [UNIT TEST DEFINITIONS] ====================================================
 // ============================================================================
@@ -1018,26 +852,4 @@ mod tests {
   fn test_is_nan() {
     assert_eq!(true, f64::is_nan((-1.0 as f64).sqrt()));
   }
-}
-
-// Used to play around with functions before test definition.
-// Delete when no longer needed.
-fn main() {
-  fn cb(r: CLogRecord) {
-    println!("I am in the callback {}", r.as_string());
-  }
-
-  codemelted_logger(
-    CLoggerAction::SetHandler,
-    None,
-    None,
-    Some(cb),
-  );
-
-  codemelted_logger(
-    CLoggerAction::LogError,
-    Some("Oh my gosh the world is on fire"),
-    None,
-    None
-  );
 }
