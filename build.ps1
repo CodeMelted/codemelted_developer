@@ -35,39 +35,6 @@
 <meta property="og:image:width" content="100px">
 "@
 
-[string]$htmlNavTemplate = @"
-<style>
-  .codemelted-dev-nav {
-    display: grid;
-    grid-template-columns: auto auto auto auto;
-    width: 100%;
-    max-width: 375px;
-    border: none;
-    border-top: 5px solid black;
-    border-bottom: 5px solid black;
-    margin: 0;
-    padding: 0;
-  }
-  .codemelted-dev-nav a {
-    padding: 5px;
-    text-decoration: none;
-    cursor: pointer;
-  }
-  .codemelted-dev-nav a:hover {
-    background-color: maroon;
-  }
-  .codemelted-dev-nav img {
-    height: 50px;
-  }
-</style>
-<div class="codemelted-dev-nav">
-  <a title="Flutter Module" href="https://codemelted.com/developer/"><img src="https://codemelted.com/assets/images/icon-codemelted-flutter.png" /></a>
-  <a title="C++ Module" href="https://codemelted.com/developer/assets/cpp"><img src="https://codemelted.com/assets/images/icon-codemelted-wasm.png" /></a>
-  <a title="pwsh Module" href="https://codemelted.com/developer/assets/pwsh" ><img src="https://codemelted.com/assets/images/icon-codemelted-pwsh.png" /></a>
-  <a title="Pi" href="https://codemelted.com/developer/assets/pi"><img src="https://codemelted.com/assets/images/icon-codemelted-pi.png" /></a>
-</div>
-"@
-
 [string]$footerTemplate = @"
 <!-- Links to main domain assets for embedding this widget code into different configurations -->
 <codemelted-navigation></codemelted-navigation>
@@ -189,10 +156,7 @@ function build([string[]]$params) {
       [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | Flutter Module")
       [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
       $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
-      $htmlData = $htmlData.Replace("codemelted_developer - Dart API docs", "CodeMelted DEV | Flutter Module")
-      $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
-      $htmlData = $htmlData.Replace(".png`"><br>", ".png`"><br>`n$htmlNavTemplate")
-      $htmlData = $htmlData.Replace("README.md", "index.html")
+      $htmlData = $htmlData.Replace("../README.md", "../index.html")
       $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
       $htmlData = $htmlData.Replace('<a href="codemelted">','<a href="codemelted/index.html">')
       $htmlData | Out-File docs/index.html -Force
@@ -200,13 +164,9 @@ function build([string[]]$params) {
       $files = Get-ChildItem -Path docs/codemelted/*.html, docs/codemelted/*/*.html -Exclude "*sidebar*"
       foreach ($file in $files) {
         [string]$htmlData = Get-Content -Path $file.FullName -Raw
-        $htmlData = $htmlData.Replace('<link rel="icon" href="static-assets/favicon.png?v1">', '<link rel="icon" href="https://codemelted.com/favicon.png">')
-        $htmlData = $htmlData.Replace("</head>", '<link rel="stylesheet" href="https://codemelted.com/assets/css/footer.css"><script src="https://codemelted.com/assets/js/footer.js" defer></script></head>')
-        $htmlData = $htmlData.Replace(".png`"><br>", ".png`"><br>`n$htmlNavTemplate")
         $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
         $htmlData = $htmlData.Replace('<a href="../codemelted">','<a href="../codemelted/index.html">')
         $htmlData = $htmlData.Replace('<a href="../codemelted">codemelted.dart</a>','<a href="../codemelted/index.html">codemelted.dart</a>')
-
         $htmlData | Out-File $file.FullName -Force
       }
 
@@ -251,10 +211,8 @@ function build([string[]]$params) {
       $files = Get-ChildItem -Path docs/*.html
       foreach ($file in $files) {
         [string]$htmlData = Get-Content -Path $file.FullName -Raw
-        $htmlData = $htmlData.Replace("README.md", "index.html")
-        $htmlData = $htmlData.Replace("/></a><br />", "/></a><br />`n$htmlNavTemplate")
+        $htmlData = $htmlData.Replace("../README.md", "../index.html")
         $htmlData = $htmlData.Replace("</body>", "`n$footerTemplate</body>")
-        $htmlData = $htmlData.Replace("</head>", '<meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="https://codemelted.com/favicon.png"></head>')
         $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
         $htmlData | Out-File $file.FullName -Force
       }
@@ -289,9 +247,8 @@ function build([string[]]$params) {
     $html = $html.Replace("[DESCRIPTION]", $description)
     $html = $html.Replace("[KEYWORDS]", $keywords)
     $html = $html.Replace("[CONTENT]", $readme.Html)
-    $html = $html.Replace("/></a><br />", "/></a><br />`n$htmlNavTemplate")
     $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
-    $html = $html.Replace("README.md", "index.html")
+    $html = $html.Replace("../README.md", "../index.html")
     $html | Out-File docs/index.html -Force
 
     Set-Location $PSScriptRoot
@@ -317,9 +274,8 @@ function build([string[]]$params) {
     $html = $html.Replace("[DESCRIPTION]", $description)
     $html = $html.Replace("[KEYWORDS]", $keywords)
     $html = $html.Replace("[CONTENT]", $readme.Html)
-    $html = $html.Replace("/></a><br />", "/></a><br />`n$htmlNavTemplate")
     $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
-    $html = $html.Replace("README.md", "index.html")
+    $html = $html.Replace("../README.md", "../index.html")
     $html | Out-File docs/index.html -Force
 
     Set-Location $PSScriptRoot

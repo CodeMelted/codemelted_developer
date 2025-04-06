@@ -2,7 +2,7 @@
 TITLE: CodeMelted DEV | pi Project
 PUBLISH_DATE: 2025-04-06
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
+KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, pwsh-lib, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, rust, rust-lib
 DESCRIPTION: The CodeMelted DEV Pi Project will focus on developing native services to setup the ability to capture photography. This will come in two forms. The first is the ability to build a vehicle infotainment system with the ability to capture live photos / video while taking road trips. The second is as a dedicated photography station able to capture live video of the sky. All captured media will then have the ability to be archived to the codemelted.com network for later viewing via the CodeMelted PWA.
 -->
 <center>

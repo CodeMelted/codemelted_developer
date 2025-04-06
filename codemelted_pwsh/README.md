@@ -1,8 +1,8 @@
 <!--
 TITLE: CodeMelted DEV | pwsh Module
-PUBLISH_DATE: 2025-03-12
+PUBLISH_DATE: 2025-04-06
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
+KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, pwsh-lib, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, rust, rust-lib
 DESCRIPTION: The codemelted.ps1 script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed, the CLI will provide the codemelted command that can be accessed in a pwsh terminal or in ps1 scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text-based user interface. Lastly it will facilitate in developing applications utilizing the CodeMelted DEV | Modules.
 -->
 <center>
@@ -12,7 +12,7 @@ DESCRIPTION: The codemelted.ps1 script will provide a Command Line Interface (CL
 
 The codemelted.ps1 script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed, the CLI will provide the codemelted command that can be accessed in a pwsh terminal or in ps1 scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text-based user interface. Lastly it will facilitate in developing applications utilizing the CodeMelted DEV | Modules.
 
-**LAST UPDATED:** 2025-03-12
+**LAST UPDATED:** 2025-04-06
 
 <center>
   <br />
@@ -129,90 +129,31 @@ No issues when running the `Install-Script` cmdlet on Windows 10/11.
 
 # FEATURES
 
-<center><img style="width: 100%; max-width: 560px;" src="../../design-notes/use-case-model.drawio.png" /></center>
-
 The following describes how the *codemelted* CLI implements the above use cases.
 
 ## codemelted.ps1 Structure
 
-The `codemelted.ps1` is divided into three sections. The first section is the *TERMINAL MODULE DEFINITION*. This section contains the `PSScriptInfo` that describes the script on [PowerShell  Gallery](https://www.powershellgallery.com/). It also defines the general script interface, the `--version` flag, and the `--help` system.
+<mark>TBD</mark>
+
+<!-- The `codemelted.ps1` is divided into three sections. The first section is the *TERMINAL MODULE DEFINITION*. This section contains the `PSScriptInfo` that describes the script on [PowerShell  Gallery](https://www.powershellgallery.com/). It also defines the general script interface, the `--version` flag, and the `--help` system.
 
 The next section is the *USE CASE DEFINITIONS*. This section is divided into the five use case groups reflected in the use case model above. Each of these sections contains a `function codemelted_xxx {}` definition representing each individual use case function for the given group. The function definition is divided into the `<#.SYNOPSIS #>` that defines the help section along with the `param()` which defines the interface to the function. Any violation of the function will result in a `SyntaxError: xxx` which will aid in properly using the function.
 
-The last section is the *MAIN API DEFINITION*. This defines the mapping between the `--use-case` flag to the function call. This completes the overall `codemelted --use-case @{}` CLI signature of this module. The next sections will walk you through utilizing CLI to get help on individual use cases *(NOTE: They are also covered in this page)*.
+The last section is the *MAIN API DEFINITION*. This defines the mapping between the `--use-case` flag to the function call. This completes the overall `codemelted --use-case @{}` CLI signature of this module. The next sections will walk you through utilizing CLI to get help on individual use cases *(NOTE: They are also covered in this page)*. -->
 
 ## codemelted --version
 
 ```
 Name       Version Author                      Description
 ----       ------- ------                      -----------
-codemelted 1.0.0.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac / Linux / Windows OS.
+codemelted 0.8.0.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac / Linux / Windows OS.
 ```
 
 ## codemelted --help
 
-```
-NAME
-    codemelted_help
+*NOTE: Current version is frozen and usable. But it will be going through a refactor. Stay Tuned*
 
-SYNOPSIS
-    The codemelted Command Line Interface (CLI) Terminal Module. It allows
-    a developer to execute the CodeMelted DEV | Module use cases within a
-    pwsh terminal shell. This allows for building CLI tools, Terminal User
-    Interface (TUI) tools, or building DevOps toolchain automation.
-
-    SYNTAX:
-
-      codemelted [Action] [Params]
-
-    PARAMETERS:
-
-      [Action]
-        # To Learn About the CLI use cases.
-        --help : Execute 'codemelted --help @{ "action" = "--use-case" }'
-                 to learn more about the CLI Actions.
-        --version : Get current information about the codemelted CLI
-
-        # Async I/O Use Cases (Completed)
-        --task
-        --process
-        --worker
-
-        # Data Use Cases
-        --database     (TBD)
-        --data-check
-        --disk         (IN DEVELOPMENT. DON'T USE)
-        --file         (TBD)
-        --json
-        --string-parse
-        --storage      (TBD)
-        --xml          (TBD)
-
-        # NPU Use Cases
-        --compute (TBD)
-        --math    (TBD)
-
-        # SDK Use Cases
-        --developer (TBD)
-        --logger
-        --monitor   (TBD)
-        --network   (IN DEVELOPMENT. fetch usable)
-        --pi        (TBD)
-        --runtime
-        --setup     (TBD)
-
-        # User Interface Use Cases
-        --app     (TBD)
-        --console
-        --dialog  (TBD)
-        --ui      (TBD)
-
-      [Params]
-        The optional set of named arguments wrapped within a [hashtable]
-
-    RETURNS:
-      Will vary depending on the called [Action].
-```
+<mark>TBD</mark>
 
 # USAGE
 

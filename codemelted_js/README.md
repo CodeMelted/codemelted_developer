@@ -1,8 +1,8 @@
 <!--
 TITLE: CodeMelted DEV | js Module
-PUBLISH_DATE: 2025-03-12
+PUBLISH_DATE: 2025-04-06
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, c-library, cpp-lib
+KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, pwsh-lib, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, rust, rust-lib
 DESCRIPTION: The codemelted.js module will be an ES6 module that supports its usage within Deno / NodeJS V8 runtimes for backend services along with Web browsers to support regular HTML / CSS / JS Single Page Application (SPA) development. The module will make heavy usage of JSDoc typing to ensure it works with available TypeScript type checkers within a software engineers chosen development platform. This module serves as the one that can provide a singular language for the full stack solution. The others provide enhancements where this may not be applicable.
 -->
 <center>

@@ -2,7 +2,7 @@
 TITLE: CodeMelted DEV | Flutter Module
 PUBLISH_DATE: 2025-04-06
 AUTHOR: Mark Shaffer
-KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, wasm
+KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, pwsh-lib, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, rust, rust-lib
 DESCRIPTION: The codemelted.dart module provides the power of Flutter to build Single Page Applications (SPA) with an easy setup to install the SPA as a Progressive Web App (PWA). This module only targets the Flutter web implementing Flutter specific code to take full advantage of the widget toolkit and Flutter native code that can be utilized within the web. The remaining use case functionality will take advantage of Flutter's bindings with the JavaScript browser APIs.
 -->
 <center>
