@@ -1,16 +1,15 @@
 [package]
 name = "codemelted"
-version = "0.1.0"
+version = "0.0.4"
 description = ""
-author = ["Mark Shaffer <mark.shaffer@codemelted.com>"]
+authors = ["Mark Shaffer <mark.shaffer@codemelted.com>"]
 keywords = []
 categories = []
 readme = "README.md"
 edition = "2024"
-homepage = ""
+homepage = "https://codemelted.com/developer"
 repository = ""
-license = ""
-license-file = ""
+license = "MIT"
 publish = false
 # rust-version = ""
 
