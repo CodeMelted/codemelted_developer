@@ -6,7 +6,7 @@ KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-ja
 DESCRIPTION: The codemelted.js module will be an ES6 module that supports its usage within Deno / NodeJS V8 runtimes for backend services along with Web browsers to support regular HTML / CSS / JS Single Page Application (SPA) development. The module will make heavy usage of JSDoc typing to ensure it works with available TypeScript type checkers within a software engineers chosen development platform. This module serves as the one that can provide a singular language for the full stack solution. The others provide enhancements where this may not be applicable.
 -->
 <center>
-  <a title="Back To Developer Main" href="../README.md"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
+  <a title="Back To Developer Main" href="#"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-js.png" /> CodeMelted DEV | js Module</h1>
 

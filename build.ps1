@@ -38,7 +38,7 @@
 [string]$footerTemplate = @"
 <!-- Links to main domain assets for embedding this widget code into different configurations -->
 <codemelted-navigation></codemelted-navigation>
-<script src="https://codemelted.com/services/js/codemelted_navigation.js" defer></script>
+<script src="https://codemelted.com/assets/js/codemelted_navigation.js" defer></script>
 <style>
     .content-container {
       overflow: auto;
@@ -165,7 +165,7 @@ function build([string[]]$params) {
       [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | Flutter Module")
       [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
       $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
-      $htmlData = $htmlData.Replace("../README.md", "../index.html")
+      $htmlData = $htmlData.Replace("#", "../index.html")
       $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
       $htmlData = $htmlData.Replace("margin-bottom: 75px;", "margin-bottom: 0;")
       $htmlData = $htmlData.Replace('<a href="codemelted">','<a href="codemelted/index.html">')
@@ -222,7 +222,7 @@ function build([string[]]$params) {
       $files = Get-ChildItem -Path docs/*.html
       foreach ($file in $files) {
         [string]$htmlData = Get-Content -Path $file.FullName -Raw
-        $htmlData = $htmlData.Replace("../README.md", "../index.html")
+        $htmlData = $htmlData.Replace("#", "../index.html")
         $htmlData = $htmlData.Replace("</body>", "`n$footerTemplate</body>")
         $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
         $htmlData | Out-File $file.FullName -Force
@@ -259,7 +259,7 @@ function build([string[]]$params) {
     $html = $html.Replace("[KEYWORDS]", $keywords)
     $html = $html.Replace("[CONTENT]", $readme.Html)
     $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
-    $html = $html.Replace("../README.md", "../index.html")
+    $html = $html.Replace("#", "../index.html")
     $html | Out-File docs/index.html -Force
 
     Set-Location $PSScriptRoot
@@ -286,7 +286,7 @@ function build([string[]]$params) {
     $html = $html.Replace("[KEYWORDS]", $keywords)
     $html = $html.Replace("[CONTENT]", $readme.Html)
     $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
-    $html = $html.Replace("../README.md", "../index.html")
+    $html = $html.Replace("#", "../index.html")
     $html | Out-File docs/index.html -Force
 
     Set-Location $PSScriptRoot
@@ -311,8 +311,9 @@ function build([string[]]$params) {
         codemelted/codemelted_npu/*.html, `
         src/codemelted/*.html
       foreach ($file in $files) {
+        [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | Rust Module")
         [string]$htmlData = Get-Content -Path $file.FullName -Raw
-        $htmlData = $htmlData.Replace("../README.md", "../../index.html")
+        $htmlData = $htmlData.Replace("#", "../../index.html")
         $htmlData = $htmlData.Replace("</body>", "`n$footerTemplate</body>")
         $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
         $htmlData | Out-File $file.FullName -Force
