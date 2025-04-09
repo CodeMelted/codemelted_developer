@@ -1,0 +1,27 @@
+[package]
+name = "codemelted"
+version = "0.0.4"
+description = ""
+authors = ["Mark Shaffer <mark.shaffer@codemelted.com>"]
+keywords = []
+categories = []
+readme = "README.md"
+edition = "2024"
+homepage = "https://codemelted.com/developer"
+repository = ""
+license = "MIT"
+publish = false
+# rust-version = ""
+
+[lib]
+path = 'codemelted.rs'
+
+[[bin]]
+name = 'codemelted'
+path = 'codemelted.rs'
+
+[dependencies]
+chrono = "0.4.40"
+json = "0.12.4"
+rpassword = "7.3.1"
+url = "2.5.4"

@@ -1,229 +1,56 @@
-<!--
-TITLE: CodeMelted DEV | Flutter Module
-PUBLISH_DATE: 2025-03-02
-AUTHOR: Mark Shaffer
-KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, wasm
-DESCRIPTION: The `codemelted.dart` module provides the power of Flutter to build Single Page Applications (SPA) with an easy setup to install the SPA as a Progressive Web App (PWA). This module only targets the Flutter web implementing Flutter specific code to take full advantage of the widget toolkit and Flutter native code that can be utilized within the web. Code that has no native Flutter equivalent will be facilitated via the `codemelted.cpp` loading the compiled `*.wasm` and `*.js` outputs and calling those bindings within the `codemelted.dart` Flutter module.
--->
 <center>
   <img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-codemelted-flutter.png" /> CodeMelted DEV | Flutter Module</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-design.png" /> CodeMelted DEV | Getting Started</h1>
 
-The `codemelted.dart` module provides the power of Flutter to build Single Page Applications (SPA) with an easy setup to install the SPA as a Progressive Web App (PWA). This module only targets the Flutter web implementing Flutter specific code to take full advantage of the widget toolkit and Flutter native code that can be utilized within the web. Code that has no native Flutter equivalent will be facilitated via the `codemelted.cpp` loading the compiled `*.wasm` and `*.js` outputs and calling those bindings within the `codemelted.dart` Flutter module.
-
-**LAST UPDATED:** 2025-03-02
-
-<center>
-  <br />
-  <a href="https://www.buymeacoffee.com/codemelted" target="_blank">
-    <img height="50px" src="https://codemelted.com/assets/images/icon-bmc-button.png" />
-  </a>
-  <br /><br />
-  <p>Hope you enjoy the content. Any support is greatly appreciated. Thank you! 🙇</p>
-</center>
+The following document will help you setup this repo for local development utilizing PowerShell Core, VS Code, and the installation of the necessary tools to support the `build.ps1` script.
 
 **Table of Contents**
 
-- [GETTING STARTED](#getting-started)
-- [FEATURES](#features)
-- [USAGE](#usage)
-  - [Async I/O Use Cases](#async-io-use-cases)
-    - [Game](#game)
-    - [Task](#task)
-    - [Worker](#worker)
-  - [Data Use Cases](#data-use-cases)
-    - [Database](#database)
-    - [Data Check](#data-check)
-    - [Disk](#disk)
-    - [File](#file)
-    - [Firebase](#firebase)
-    - [JSON](#json)
-    - [String Parse](#string-parse)
-    - [Storage](#storage)
-    - [XML](#xml)
-  - [NPU Use Cases](#npu-use-cases)
-    - [Compute](#compute)
-    - [Math](#math)
-    - [Memory](#memory)
-  - [SDK Use Cases](#sdk-use-cases)
-    - [Events](#events)
-    - [Hardware](#hardware)
-    - [Logger](#logger)
-    - [Network](#network)
-    - [Runtime](#runtime)
-    - [Schema](#schema)
-    - [Share](#share)
-  - [User Interface Use Cases](#user-interface-use-cases)
-    - [App](#app)
-    - [Audio](#audio)
-    - [Dialog](#dialog)
-    - [Theme](#theme)
-    - [UI Widget](#ui-widget)
-- [MODULE INFORMATION](#module-information)
-  - [License](#license)
-  - [Versioning](#versioning)
-  - [codemelted.dart Change Log](#codemelteddart-change-log)
+- [Environment Setup](#environment-setup)
+  - [GitHub](#github)
+  - [Programming Languages](#programming-languages)
+  - [VS Code](#vs-code)
+- [Build Script](#build-script)
 
-# GETTING STARTED
+## Environment Setup
 
-<mark>TBD</mark>
+The following are the items recommended for installation to properly make use of this repo in your development environment.
 
-*NOTE: Module is in active development and not ready for primetime. Once stable, this section will be filled in.*
+### GitHub
 
-# FEATURES
+- [ ] [git](https://git-scm.com/downloads)
+- [ ] [GitHub Desktop](https://desktop.github.com/)
 
-<center><img style="width: 100%; max-width: 560px;" src="./design-notes/use-case-model.drawio.png" /></center>
+### Programming Languages
 
-# USAGE
+- [ ] [C/C++](https://code.visualstudio.com/docs/languages/cpp)
+- [ ] [Deno](https://deno.com/)
+- [ ] [Flutter](https://flutter.dev/)
+- [ ] [NodeJS](https://nodejs.org/en)
+- [ ] [PowerShell Core](https://github.com/PowerShell/PowerShell)
+- [ ] [Python](https://www.python.org/)
 
-<center><img style="width: 100%; max-width: 560px;" src="./design-notes/module-architecture.drawio.png" /></center>
+### VS Code
 
-The above module reflects how the `codemelted.dart` module communicates with the supporting `codemelted.js` and `codemelted.wasm` files. These are a result of the WASM `codemelted.cpp` compiled target. It provides the support functionality where no direct Flutter implementation exists. So the `codemelted.dart` module imports the module to provide that functionality. The sub-sections below will provide Flutter examples of each of the use case functions.
+**The Application:**
 
-## Async I/O Use Cases
+- [ ] [VS Code](https://code.visualstudio.com/)
 
-### Game
+**Extensions:**
 
-<mark>TBD</mark>
+- [ ] [C/C++ Extension Pack](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools-extension-pack)
+- [ ] [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker)
+- [ ] [Dart](https://marketplace.visualstudio.com/items?itemName=Dart-Code.dart-code)
+- [ ] [Deno](https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno)
+- [ ] [Docker](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker)
+- [ ] [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
+- [ ] [Flutter](https://marketplace.visualstudio.com/items?itemName=Dart-Code.flutter)
+- [ ] [Markdown All in One](https://marketplace.visualstudio.com/items?itemName=yzhang.markdown-all-in-one)
+- [ ] [Markdown Preview Mermaid Support](https://marketplace.visualstudio.com/items?itemName=bierner.markdown-mermaid)
+- [ ] [PowerShell](https://marketplace.visualstudio.com/items?itemName=ms-vscode.PowerShell)
+- [ ] [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python)
 
-### Task
+## Build Script
 
-<mark>TBD</mark>
-
-### Worker
-
-<mark>TBD</mark>
-
-## Data Use Cases
-
-### Database
-
-<mark>TBD</mark>
-
-### Data Check
-
-<mark>TBD</mark>
-
-### Disk
-
-<mark>TBD</mark>
-
-### File
-
-<mark>TBD</mark>
-
-### Firebase
-
-<mark>TBD</mark>
-
-### JSON
-
-<mark>TBD</mark>
-
-### String Parse
-
-<mark>TBD</mark>
-
-### Storage
-
-<mark>TBD</mark>
-
-### XML
-
-<mark>TBD</mark>
-
-## NPU Use Cases
-
-### Compute
-
-<mark>TBD</mark>
-
-### Math
-
-<mark>TBD</mark>
-
-### Memory
-
-<mark>TBD</mark>
-
-## SDK Use Cases
-
-### Events
-
-<mark>TBD</mark>
-
-### Hardware
-
-<mark>TBD</mark>
-
-### Logger
-
-<mark>TBD</mark>
-
-### Network
-
-<mark>TBD</mark>
-
-### Runtime
-
-<mark>TBD</mark>
-
-### Schema
-
-<mark>TBD</mark>
-
-### Share
-
-<mark>TBD</mark>
-
-
-## User Interface Use Cases
-
-### App
-
-<mark>TBD</mark>
-
-### Audio
-
-<mark>TBD</mark>
-
-### Dialog
-
-<mark>TBD</mark>
-
-### Theme
-
-<mark>TBD</mark>
-
-### UI Widget
-
-<mark>TBD</mark>
-
-# MODULE INFORMATION
-
-The following sub-sections cover various aspects the `codemelted.dart` module information. It is a single file implementation of the identified use cases.
-
-## License
-
-MIT License
-
-© 2024 Mark Shaffer
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-## Versioning
-
-The versioning of the module will be captured via GitHub or the modules documentation method. It will utilize semantic versioning `X.Y.Z` with the following rules for the numbering scheme this project.
-
-- **X:** Completion of a given set of use cases (i.e. Async IO, Data, NPU, SDK, or User Interface).
-- **Y:** Use case implemented, documented, tested, and ready for usage by a developer.
-- **Z:** Bug fix or expansion of a use case.
-
-## codemelted.dart Change Log
-
-<iframe style="background-color: white" src="CHANGELOG.md" width="100%" height="350px"></iframe>
+The `build.ps1 --build` script provides the ability to build, test, and document the `codemelted_developer` repo modules. The `build.ps1 --deploy` deploys the [CodeMelted DEV](https://developer.codemelted.com) website. The `build.ps1 --test` will test any changes to the repo modules.
