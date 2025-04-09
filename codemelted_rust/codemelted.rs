@@ -282,7 +282,7 @@ pub mod codemelted_json {
   use crate::CObject;
   use json::number::Number;
 
-  /// Enumeration to support the [is_type] function for checking if a
+  /// Enumeration to support the [check_type] function for checking if a
   /// [CObject] holds the specified data type.
   pub enum CDataType {
     /// Check if the data type is an array.
@@ -427,7 +427,7 @@ pub mod codemelted_json {
   /// use codemelted::codemelted_json::CDataType;
   ///
   /// let obj = codemelted_json::create_array();
-  /// assert_eq!(codemelted_json::is_type(CDataType::Array, obj, false), true);
+  /// assert_eq!(codemelted_json::check_type(CDataType::Array, &obj, false), true);
   /// ```
   pub fn create_array() -> CObject {
     CObject::new_array()
@@ -441,7 +441,7 @@ pub mod codemelted_json {
   /// use codemelted::codemelted_json::CDataType;
   ///
   /// let obj = codemelted_json::create_object();
-  /// assert_eq!(codemelted_json::is_type(CDataType::Object, obj, false), true);
+  /// assert_eq!(codemelted_json::check_type(CDataType::Object, &obj, false), true);
   /// ```
   pub fn create_object() -> CObject {
     CObject::new_object()

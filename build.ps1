@@ -304,7 +304,12 @@ function build([string[]]$params) {
       cargo clean
       cargo doc --no-deps
       Set-Location $PSScriptRoot/codemelted_rust/target/doc
-      $files = Get-ChildItem -Path codemelted/*.html, src/codemelted/*.html
+      $files = Get-ChildItem -Path codemelted/*.html, `
+        codemelted/codemelted_console/*.html, `
+        codemelted/codemelted_json/*.html, `
+        codemelted/codemelted_logger/*.html, `
+        codemelted/codemelted_npu/*.html, `
+        src/codemelted/*.html
       foreach ($file in $files) {
         [string]$htmlData = Get-Content -Path $file.FullName -Raw
         $htmlData = $htmlData.Replace("../README.md", "../../index.html")
