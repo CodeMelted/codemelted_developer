@@ -3267,3 +3267,12 @@ ThemeData codemelted_theme({
 /// widgets.
 /// @nodoc
 Widget codemelted_ui({required CUiWidget widget}) => widget._build();
+
+/// Function pointer to the [CodeMeltedAPI.appRun].
+final codemelted_app_run = CodeMeltedAPI().appRun;
+
+/// Function pointer to the [CodeMeltedAPI.appStateGet].
+final codemelted_app_state_get = CodeMeltedAPI().appStateGet;
+
+/// Function pointer to the [CodeMeltedAPI.appStateSet].
+final codemelted_app_state_set = CodeMeltedAPI().appStateSet;
