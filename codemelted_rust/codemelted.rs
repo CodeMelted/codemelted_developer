@@ -122,6 +122,7 @@ pub mod codemelted_console {
   /// Puts out an alert to STDOUT awaiting for the user to press the ENTER
   /// key.
   ///
+  /// **Example:**
   /// ```no_run
   /// use codemelted::codemelted_console;
   /// codemelted_console::alert("Oh no it exploded!");
@@ -137,6 +138,7 @@ pub mod codemelted_console {
   /// Prompts a user via STDIN to confirm a choice. The response will be a
   /// true / false based on [CObject::is_truthy] testing of the response.
   ///
+  /// **Example:**
   /// ```no_run
   /// use codemelted::codemelted_console;
   /// let answer = codemelted_console::confirm(
@@ -156,6 +158,7 @@ pub mod codemelted_console {
   /// will be a u32 based on the selection made. Entering invalid data will
   /// repeat the menu of choices until a valid selection is made.
   ///
+  /// **Example:**
   /// ```no_run
   /// use codemelted::codemelted_console;
   /// let answer = codemelted_console::choose(
@@ -205,6 +208,7 @@ pub mod codemelted_console {
   /// Prompts a user via STDIN to enter their password. The password will not
   /// be reflected as they type.
   ///
+  /// **Example:**
   /// ```no_run
   /// use codemelted::codemelted_console;
   /// let answer = codemelted_console::password(
@@ -222,6 +226,7 @@ pub mod codemelted_console {
 
   /// Prompts a user via STDIN to answer a question.
   ///
+  /// **Example:**
   /// ```no_run
   /// use codemelted::codemelted_console;
   /// let answer = codemelted_console::prompt(
@@ -239,6 +244,7 @@ pub mod codemelted_console {
 
   /// Will put a string to STDOUT without the new line character.
   ///
+  /// **Example:**
   /// ```no_run
   /// use codemelted::codemelted_console;
   /// codemelted_console::write("Oh Know!");
@@ -249,6 +255,7 @@ pub mod codemelted_console {
 
   /// Will put a string to STDOUT with a new line character.
   ///
+  /// **Example:**
   /// ```no_run
   /// use codemelted::codemelted_console;
   /// codemelted_console::write("Oh Know!");
@@ -304,7 +311,7 @@ pub mod codemelted_json {
   /// Will convert the given [CObject] to its equivalent bool value. This will
   /// also be false if not a valid value.
   ///
-  /// # Successful Conversion
+  /// **Example (Successful Conversion):**
   /// ```
   /// use codemelted::CObject;
   /// use codemelted::codemelted_json;
@@ -313,7 +320,7 @@ pub mod codemelted_json {
   /// assert_eq!(codemelted_json::as_bool(&obj), true);
   /// ```
   ///
-  /// # Convert False (data or invalid)
+  /// **Example (Convert false with actual data or invalid):**
   /// ```
   /// use codemelted::CObject;
   /// use codemelted::codemelted_json;
@@ -335,7 +342,7 @@ pub mod codemelted_json {
   /// Will convert the given [CObject] to its equivalent number value. This
   /// will be set to None if the conversion fails.
   ///
-  /// # Successful Conversion
+  /// **Example (Successful Conversion):**
   /// ```
   /// use codemelted::CObject;
   /// use codemelted::codemelted_json;
@@ -344,7 +351,7 @@ pub mod codemelted_json {
   /// assert_eq!(codemelted_json::as_number(&obj).is_some(), true);
   /// ```
   ///
-  /// # Failed Conversion
+  /// **Example (Failed Conversion):**
   /// ```
   /// use codemelted::CObject;
   /// use codemelted::codemelted_json;
@@ -360,7 +367,7 @@ pub mod codemelted_json {
   /// Will convert the given [CObject] to its equivalent string value. This
   /// will be None if the conversion fails.
   ///
-  /// # Successful Conversion
+  /// **Example (Successful Conversion):**
   /// ```
   /// use codemelted::CObject;
   /// use codemelted::codemelted_json;
@@ -369,7 +376,7 @@ pub mod codemelted_json {
   /// assert_eq!(codemelted_json::as_string(&obj).is_some(), true);
   /// ```
   ///
-  /// # Failed Conversion
+  /// **Example (Failed Conversion):**
   /// ```
   /// use codemelted::CObject;
   /// use codemelted::codemelted_json;
@@ -389,6 +396,7 @@ pub mod codemelted_json {
   /// Will determine if the specified [CObject] is of the specified
   /// [CDataType] enumeration.
   ///
+  /// **Example:**
   /// ```
   /// use codemelted::CObject;
   /// use codemelted::codemelted_json;
@@ -421,6 +429,7 @@ pub mod codemelted_json {
 
   /// Creates a JSON compliant [CObject] for working with array JSON data.
   ///
+  /// **Example:**
   /// ```
   /// use codemelted::CObject;
   /// use codemelted::codemelted_json;
@@ -435,6 +444,7 @@ pub mod codemelted_json {
 
   /// Creates a JSON compliant [CObject] for working with object JSON data.
   ///
+  /// **Example:**
   /// ```
   /// use codemelted::CObject;
   /// use codemelted::codemelted_json;
@@ -450,6 +460,7 @@ pub mod codemelted_json {
   /// Will check if a [CObject] object data JSON type has the specified key
   /// property before working with it.
   ///
+  /// **Example:**
   /// ```
   /// use codemelted::CObject;
   /// use codemelted::codemelted_json;
@@ -473,7 +484,7 @@ pub mod codemelted_json {
   /// Takes a JSON serialized string and parses it to create a [CObject].
   /// Returns None if the parse fails.
   ///
-  /// # Successful Parse
+  /// **Example (Successful Parse):**
   /// ```
   /// use codemelted::CObject;
   /// use codemelted::codemelted_json;
@@ -485,7 +496,7 @@ pub mod codemelted_json {
   /// assert_eq!(obj1, obj2);
   /// ```
   ///
-  /// # Failed Parse
+  /// **Example (Failed Parse):**
   /// ```
   /// use codemelted::CObject;
   /// use codemelted::codemelted_json;
@@ -509,6 +520,7 @@ pub mod codemelted_json {
   /// Validates if a specified data str represents a valid URL. True if it is
   /// and false if not.
   ///
+  /// **Example:**
   /// ```
   /// use codemelted::CObject;
   /// use codemelted::codemelted_json;
@@ -632,6 +644,7 @@ pub mod codemelted_logger {
 
   /// Gets / sets the [CLogLevel] for the logging module.
   ///
+  /// **Example:**
   /// ```
   /// use codemelted::codemelted_logger;
   /// use codemelted::codemelted_logger::CLogLevel;
@@ -650,6 +663,7 @@ pub mod codemelted_logger {
 
   /// Gets / sets the [CLoggedEventHandler] for the logging module.
   ///
+  /// **Example:**
   /// ```
   /// use codemelted::codemelted_logger;
   /// use codemelted::codemelted_logger::CLogRecord;
@@ -676,6 +690,7 @@ pub mod codemelted_logger {
   /// [CLoggedEventHandler], will pass the [CLogRecord] along for further
   /// processing.
   ///
+  /// **Example:**
   /// ```no_run
   /// use codemelted::codemelted_logger;
   /// use codemelted::codemelted_logger::CLogLevel;
@@ -888,6 +903,7 @@ pub mod codemelted_npu {
   /// Function to execute the [CodeMeltedNPU] enumerated formula by specifying
   /// enumerated formula and the arguments for the calculated result.
   ///
+  /// **Example:**
   /// ```rust
   /// use codemelted::codemelted_npu;
   /// use codemelted::codemelted_npu::CodeMeltedNPU;
@@ -915,6 +931,82 @@ pub mod codemelted_npu {
 // [Runtime Use Case] =========================================================
 // ============================================================================
 
+/// Implements the CodeMelted DEV Runtime use case. This is highly specialized
+/// based on the chosen SDK module. In the case for the rust module, the main
+/// functions exposed via this module are checking for existing programs,
+/// running system calls and gathering their output, and making specific calls
+/// that support the codemelted-pi project.
+pub mod codemelted_runtime {
+  use std::process::Command;
+
+  /// Determines if a given executable command exists on the host operating
+  /// system. Indicated with a true / false return.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_runtime;
+  ///
+  /// let exist = codemelted_runtime::exist("deno");
+  /// println!("{}", exist);
+  /// ```
+  ///
+  /// _NOTE: System commands (like dir on windows) will return false. This is
+  /// regular executables._
+  pub fn exist(command: &str) -> bool {
+    let mut proc = if cfg!(target_os = "windows") {
+      Command::new("cmd")
+        .args(["/c", "where", command])
+        .spawn()
+        .expect("Expected process to execute.")
+    } else {
+      Command::new("sh")
+        .args(["-c", "which", command])
+        .spawn()
+        .expect("Expected process to execute.")
+    };
+    let rc = proc.wait().expect("Expected process to wait.");
+    rc.success()
+  }
+
+  /// Will execute a command with the host operating system and return its
+  /// reported output. This is a blocking non-interactive call so no
+  /// communicating with the process via STDIN.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_runtime;
+  ///
+  /// let output = codemelted_runtime::system("dir");
+  /// println!("{}", output);
+  /// ```
+  pub fn system(command: &str) -> String {
+    let proc = if cfg!(target_os = "windows") {
+      Command::new("cmd")
+        .args(["/c", command])
+        .output()
+        .expect("Expected process to execute.")
+    } else {
+      Command::new("sh")
+        .args(["-c", command])
+        .output()
+        .expect("Expected process to execute.")
+    };
+    String::from_utf8(proc.stdout).expect("Should vec<u8> to String")
+  }
+
+  fn _pi_camera() {
+    todo!();
+  }
+
+  fn _pi_gps() {
+    todo!();
+  }
+
+  fn _pi_video() {
+    todo!();
+  }
+}
+
 // ============================================================================
 // [Storage Use Case] =========================================================
 // ============================================================================
@@ -940,8 +1032,9 @@ mod tests {
 // Only used for testing out modules that can't have a unit test derived.
 // Comment out when ready to deliver module to crate.
 pub fn main() {
-  use crate::codemelted_logger;
-  use crate::codemelted_logger::CLogLevel;
+  let exist = codemelted_runtime::exist("deno");
+  println!("{}", exist);
 
-  codemelted_logger::log(CLogLevel::Error, "Oh Know!");
+  let output = codemelted_runtime::system("duh help");
+  println!("{}", output);
 }
