@@ -1,6 +1,6 @@
 [package]
 name = "codemelted"
-version = "0.0.5"
+version = "0.0.6"
 description = ""
 authors = ["Mark Shaffer <mark.shaffer@codemelted.com>"]
 keywords = []

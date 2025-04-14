@@ -60,7 +60,7 @@ dependencies = [
 
 [[package]]
 name = "codemelted"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "chrono",
  "json",

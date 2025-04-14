@@ -273,6 +273,109 @@ pub mod codemelted_console {
 // [Disk Use Case] ============================================================
 // ============================================================================
 
+/// UNDER DEVELOPMENT
+pub mod codemelted_disk {
+  pub fn home_path() -> String {
+    if cfg!(target_os = "windows") {
+      crate::codemelted_storage::environment("USERPROFILE").unwrap()
+    } else {
+      crate::codemelted_storage::environment("HOME").unwrap()
+    }
+  }
+
+  pub fn newline() -> String {
+    if cfg!(target_os = "windows") {
+      String::from("\r\n")
+    } else {
+      String::from("\n")
+    }
+  }
+
+  pub fn path_separator() -> String {
+    if cfg!(target_os = "windows") {
+      String::from("\\")
+    } else {
+      String::from("/")
+    }
+  }
+
+  pub fn read_file_as_bytes(
+    filename: &str
+  ) -> Result<Vec<u8>, std::io::Error> {
+    use std::io::Read;
+    let file = std::fs::File::open(filename);
+    match file {
+        Ok(_) => {
+          let mut data = Vec::new();
+          let result = file?.read_to_end(&mut data);
+          match result {
+            Ok(_) => Ok(data),
+            Err(err) => Err(err),
+          }
+        },
+        Err(err) => Err(err),
+    }
+  }
+
+  pub fn read_file_as_string(filename: &str) -> Result<String, std::io::Error> {
+    use std::io::Read;
+    let file = std::fs::File::open(filename);
+    match file {
+        Ok(_) => {
+          let mut data = String::new();
+          let result = file?.read_to_string(&mut data);
+          match result {
+            Ok(_) => Ok(data),
+            Err(err) => Err(err),
+          }
+        },
+        Err(err) => Err(err),
+    }
+  }
+
+  pub fn temp_path() -> String {
+    std::env::temp_dir().to_str().unwrap().to_string()
+  }
+
+  pub fn user() -> String {
+    if cfg!(target_os = "windows") {
+      crate::codemelted_storage::environment("USERNAME").unwrap()
+    } else {
+      crate::codemelted_storage::environment("USER").unwrap()
+    }
+  }
+
+  pub fn write_file_as_bytes(
+    filename: &str,
+    data: &[u8],
+    append: bool,
+  ) -> Result<(), std::io::Error> {
+    use std::fs::OpenOptions;
+    use std::io::Write;
+    let mut file = if append {
+      OpenOptions::new()
+        .append(true)
+        .create(true)
+        .open(filename)?
+    } else {
+      OpenOptions::new()
+        .write(true)
+        .create(true)
+        .open(filename)?
+    };
+    let _ = file.write_all(data)?;
+    Ok(())
+  }
+
+  pub fn write_file_as_string(
+    filename: &str,
+    data: &str,
+    append: bool,
+  ) -> Result<(), std::io::Error> {
+    write_file_as_bytes(filename, data.as_bytes(), append)
+  }
+}
+
 // ============================================================================
 // [HW Use Case] ==============================================================
 // ============================================================================
@@ -283,7 +386,7 @@ pub mod codemelted_console {
 
 /// Implements the CodeMelted DEV JSON use case. Provides the ability to work
 /// with JSON based data. This includes performing data validations, parsing,
-/// stringifying, and converting to basic data types. This is based on the
+/// stringify, and converting to basic data types. This is based on the
 /// [CObject] which represents rust based JSON data.
 pub mod codemelted_json {
   use crate::CObject;
@@ -851,6 +954,7 @@ pub mod codemelted_npu {
         return dist_meters / time_s;
     }
 
+    /// Function that is the brains for doing all the enumerated calculations.
     fn math(&self, args: &[f64]) -> f64 {
       use std::panic;
       let result = panic::catch_unwind(|| {
@@ -937,6 +1041,7 @@ pub mod codemelted_npu {
 /// running system calls and gathering their output, and making specific calls
 /// that support the codemelted-pi project.
 pub mod codemelted_runtime {
+  // Use Statements
   use std::process::Command;
 
   /// Determines if a given executable command exists on the host operating
@@ -1011,6 +1116,188 @@ pub mod codemelted_runtime {
 // [Storage Use Case] =========================================================
 // ============================================================================
 
+/// Implements the CodeMelted DEV Storage use case. This implements a
+/// string key / value storage that is initialized into memory and stored as
+/// file for later running of the application. This means you can set / get
+/// values from this storage between app runs.
+pub mod codemelted_storage {
+  // Use Statements
+  use std::ops::DerefMut;
+  use std::sync::Mutex;
+  use crate::{codemelted_disk, CObject};
+
+  /// Mutex to hold the storage object for tracking items
+  static STORAGE: Mutex<Option<CObject>> = Mutex::new(None);
+
+  /// Responsible for saving the storage to a private file on disk anytime
+  /// a change is made to the storage.
+  fn save_storage(data: &str) {
+    let filename = format!("{}/{}",
+      codemelted_disk::home_path(),
+      ".codemelted_storage"
+    );
+    let result = codemelted_disk::write_file_as_string(
+      &filename,
+      &data,
+      false
+    );
+    if result.is_err() {
+      panic!("codemelted_storage: {}", result.err().unwrap());
+    }
+  }
+
+  /// Responsible for initializing the [crate::codemelted_storage] module.
+  /// This must be called first before the module can be used or a panic will
+  /// occur. It will read previous storage from disk and bring it into memory
+  /// for later access.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_storage;
+  /// codemelted_storage::init();
+  /// ```
+  pub fn init() {
+    let mut storage_mutex = STORAGE.lock().unwrap();
+    if storage_mutex.is_none() {
+      let filename = format!("{}/{}",
+        codemelted_disk::home_path(),
+        ".codemelted_storage"
+      );
+      let data = codemelted_disk::read_file_as_string(&filename);
+      let storage_obj = match data {
+        Ok(v) => {
+          if v.len() == 0 {
+            CObject::new_object()
+          } else {
+            crate::codemelted_json::parse(&v).unwrap()
+          }
+        },
+        Err(_) => CObject::new_object(),
+      };
+      *storage_mutex = Some(storage_obj);
+    }
+  }
+
+  /// Provides access to the operating system environment settings. Simply
+  /// specify the key and get the result. If the key is not found then None
+  /// is returned.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_storage;
+  /// let answer = codemelted_storage::environment("PATH").unwrap();
+  /// assert!(answer.len() > 0);
+  /// ```
+  pub fn environment(key: &str) -> Option<String> {
+    match std::env::var(key) {
+        Ok(val) => Some(val),
+        Err(_e) => None,
+    }
+  }
+
+  /// Clears the currently held [crate::codemelted_storage] memory and disk.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_storage;
+  /// codemelted_storage::init();
+  /// codemelted_storage::clear();
+  /// assert!(codemelted_storage::length() == 0);
+  /// ```
+  pub fn clear() {
+    let mut storage_mutex = STORAGE.lock().unwrap();
+    if let Some(storage_obj) = storage_mutex.deref_mut().as_mut() {
+      storage_obj.clear();
+      save_storage("");
+    } else {
+      panic!("SyntaxError: codemelted_storage::init() not yet called!");
+    }
+  }
+
+  /// Gets a key from the [crate::codemelted_storage] or None if it don't exist.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_storage;
+  ///
+  /// codemelted_storage::init();
+  /// codemelted_storage::set("test", "test");
+  /// let result = codemelted_storage::get("test");
+  /// assert!(result.is_some());
+  /// let result = codemelted_storage::get("test2");
+  /// assert!(result.is_none());
+  /// ```
+  pub fn get(key: &str) -> Option<String> {
+    let mut storage_mutex = STORAGE.lock().unwrap();
+    if let Some(storage_obj) = storage_mutex.deref_mut().as_mut() {
+      match storage_obj.has_key(key) {
+        true => {
+          Some(storage_obj[key].to_string())
+        },
+        false => None
+      }
+    } else {
+      panic!("SyntaxError: codemelted_storage::init() not yet called!");
+    }
+  }
+
+  /// Retrieves the currently held key / value pairs by the
+  /// [crate::codemelted_storage] module.
+  pub fn length() -> usize {
+    let mut storage_mutex = STORAGE.lock().unwrap();
+    if let Some(storage_obj) = storage_mutex.deref_mut().as_mut() {
+      storage_obj.len()
+    } else {
+      panic!("SyntaxError: codemelted_storage::init() not yet called!");
+    }
+  }
+
+  /// Removes a key / value in the [crate::codemelted_storage].
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_storage;
+  ///
+  /// codemelted_storage::init();
+  /// codemelted_storage::set("test", "test");
+  /// let length1 = codemelted_storage::length();
+  /// codemelted_storage::remove("test");
+  /// let length2 = codemelted_storage::length();
+  /// assert!(length2 < length1);
+  /// ```
+  pub fn remove(key: &str) {
+    let mut storage_mutex = STORAGE.lock().unwrap();
+    if let Some(storage_obj) = storage_mutex.deref_mut().as_mut() {
+      storage_obj.remove(key);
+      let data = storage_obj.dump();
+      save_storage(&data);
+    } else {
+      panic!("SyntaxError: codemelted_storage::init() not yet called!");
+    }
+  }
+
+  /// Sets a key / value in the [crate::codemelted_storage].
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_storage;
+  ///
+  /// codemelted_storage::init();
+  /// codemelted_storage::set("test", "test");
+  /// assert!(codemelted_storage::length() != 0);
+  /// ```
+  pub fn set(key: &str, value: &str) {
+    let mut storage_mutex = STORAGE.lock().unwrap();
+    if let Some(storage_obj) = storage_mutex.deref_mut().as_mut() {
+      let _ = storage_obj.insert(key, value);
+      let data = storage_obj.dump();
+      save_storage(&data);
+    } else {
+      panic!("SyntaxError: codemelted_storage::init() not yet called!");
+    }
+  }
+}
+
 // ============================================================================
 // [UI Use Case] ==============================================================
 // ============================================================================
@@ -1032,9 +1319,11 @@ mod tests {
 // Only used for testing out modules that can't have a unit test derived.
 // Comment out when ready to deliver module to crate.
 pub fn main() {
-  let exist = codemelted_runtime::exist("deno");
-  println!("{}", exist);
-
-  let output = codemelted_runtime::system("duh help");
-  println!("{}", output);
+  use crate::codemelted_storage;
+  codemelted_storage::init();
+  codemelted_storage::set("test", "test");
+  let result = codemelted_storage::get("test");
+  assert!(result.is_some());
+  let result = codemelted_storage::get("test2");
+  assert!(result.is_none());
 }
