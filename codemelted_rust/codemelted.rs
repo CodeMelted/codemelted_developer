@@ -81,6 +81,10 @@ impl IsTruthyString for CObject {
 // [Async Use Case] ===========================================================
 // ============================================================================
 
+mod codemelted_async {
+  // FUTURE IMPLEMENTATION
+}
+
 // ============================================================================
 // [Audio Use Case] ===========================================================
 // ============================================================================
@@ -269,12 +273,70 @@ pub mod codemelted_console {
 // [DB Use Case] ==============================================================
 // ============================================================================
 
+mod codemelted_db {
+  // FUTURE IMPLEMENTATION
+}
+
 // ============================================================================
 // [Disk Use Case] ============================================================
 // ============================================================================
 
-/// UNDER DEVELOPMENT
+/// Implements the CodeMelted DEV Disk use case. Provides the ability to
+/// manage files / directories on disk, query properties associated with
+/// managing the disk, and reading / writing files.
 pub mod codemelted_disk {
+  /// Use Statements
+  use std::io::{Read, Write};
+  use std::fs::{File, Metadata, OpenOptions};
+  use std::path::Path;
+
+  /// Identifies the type of src on the disk when attempting to see if it
+  /// [exists] or not.
+  pub enum CDiskType {
+    /// Does not matter the type, just does it exist or not.
+    Either,
+    /// Only true if it is a directory.
+    Directory,
+    /// Only true if it is a file.
+    File,
+  }
+
+  fn _cp(_src: &str, _dest: &str) -> Result<(), std::io::Error> {
+    unimplemented!("UNDER DEVELOPMENT!");
+  }
+
+  /// Determines if a directory or file exists on the host operating system
+  /// and will further determine if it is of the expected [CDiskType].
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  /// use codemelted::codemelted_disk::CDiskType;
+  ///
+  /// let path = codemelted_disk::home_path();
+  /// assert_eq!(codemelted_disk::exists(&path, CDiskType::Either), true);
+  /// assert_eq!(codemelted_disk::exists(&path, CDiskType::Directory), true);
+  /// assert_eq!(codemelted_disk::exists(&path, CDiskType::File), false);
+  /// ```
+  pub fn exists(src: &str, disk_type: CDiskType) -> bool {
+    match disk_type {
+        CDiskType::Either => Path::new(src).is_dir()
+          || Path::new(src).is_file(),
+        CDiskType::Directory => Path::new(src).is_dir(),
+        CDiskType::File => Path::new(src).is_file(),
+    }
+  }
+
+  /// Retrieves the current user's home directory on the host operating
+  /// system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let answer = codemelted_disk::home_path();
+  /// assert!(answer.len() > 0);
+  /// ```
   pub fn home_path() -> String {
     if cfg!(target_os = "windows") {
       crate::codemelted_storage::environment("USERPROFILE").unwrap()
@@ -283,6 +345,42 @@ pub mod codemelted_disk {
     }
   }
 
+  fn _ls(_src: &str) {
+    unimplemented!("UNDER DEVELOPMENT!");
+  }
+
+  /// Retrieves metadata about the specified directory or stored on the
+  /// host operating system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let path = codemelted_disk::home_path();
+  /// let answer = codemelted_disk::metadata(&path);
+  /// assert!(answer.is_ok());
+  /// ```
+  pub fn metadata(src: &str) -> Result<Metadata, std::io::Error> {
+    Path::new(src).metadata()
+  }
+
+  fn _mkdir(_src: &str) -> Result<(), std::io::Error> {
+    unimplemented!("UNDER DEVELOPMENT!");
+  }
+
+  fn _mv(_src: &str, _dest: &str) -> Result<(), std::io::Error> {
+    unimplemented!("UNDER DEVELOPMENT!");
+  }
+
+  /// Retrieves the newline character for the host operating system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let answer = codemelted_disk::newline();
+  /// assert!(answer.len() > 0);
+  /// ```
   pub fn newline() -> String {
     if cfg!(target_os = "windows") {
       String::from("\r\n")
@@ -291,6 +389,16 @@ pub mod codemelted_disk {
     }
   }
 
+  /// Retrieves the path separator (a.k.a. what separates directory names) for
+  /// the host operating system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let answer = codemelted_disk::path_separator();
+  /// assert!(answer.len() > 0);
+  /// ```
   pub fn path_separator() -> String {
     if cfg!(target_os = "windows") {
       String::from("\\")
@@ -299,27 +407,64 @@ pub mod codemelted_disk {
     }
   }
 
+  /// Reads a binary file from the host operating system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let data = Vec::<u8>::from([0x01, 0x02]);
+  /// let filename = format!("{}/test.bin", codemelted_disk::temp_path());
+  /// let result = codemelted_disk::write_file_as_bytes(
+  ///   &filename,
+  ///   &data,
+  ///   false
+  /// );
+  /// assert!(result.is_ok());
+  /// let data = codemelted_disk::read_file_as_bytes(
+  ///   &filename,
+  /// );
+  /// assert!(data.is_ok());
+  /// ```
   pub fn read_file_as_bytes(
     filename: &str
   ) -> Result<Vec<u8>, std::io::Error> {
-    use std::io::Read;
-    let file = std::fs::File::open(filename);
+    let file = File::open(filename);
     match file {
-        Ok(_) => {
-          let mut data = Vec::new();
-          let result = file?.read_to_end(&mut data);
-          match result {
-            Ok(_) => Ok(data),
-            Err(err) => Err(err),
-          }
-        },
-        Err(err) => Err(err),
+      Ok(_) => {
+        let mut data = Vec::new();
+        let result = file?.read_to_end(&mut data);
+        match result {
+          Ok(_) => Ok(data),
+          Err(err) => Err(err),
+        }
+      },
+      Err(err) => Err(err),
     }
   }
 
-  pub fn read_file_as_string(filename: &str) -> Result<String, std::io::Error> {
-    use std::io::Read;
-    let file = std::fs::File::open(filename);
+  /// Reads a text file from the host operating system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let filename = format!("{}/test.txt", codemelted_disk::temp_path());
+  /// let result = codemelted_disk::write_file_as_string(
+  ///   &filename,
+  ///   "Hello",
+  ///   false
+  /// );
+  /// assert!(result.is_ok());
+  /// let data = codemelted_disk::read_file_as_string(
+  ///   &filename,
+  /// );
+  /// assert!(data.is_ok());
+  /// ```
+  pub fn read_file_as_string(
+    filename: &str
+  ) -> Result<String, std::io::Error> {
+    let file = File::open(filename);
     match file {
         Ok(_) => {
           let mut data = String::new();
@@ -333,10 +478,34 @@ pub mod codemelted_disk {
     }
   }
 
+  fn _rm(_src: &str) -> Result<String, std::io::Error> {
+    unimplemented!("UNDER DEVELOPMENT!");
+  }
+
+  /// Retrieves the temp path on the host operating system. Useful for
+  /// creating temporary data.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let answer = codemelted_disk::temp_path();
+  /// assert!(answer.len() > 0);
+  /// ```
   pub fn temp_path() -> String {
     std::env::temp_dir().to_str().unwrap().to_string()
   }
 
+  /// Retrieves the logged in user on the host operating system utilizing this
+  /// module.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let answer = codemelted_disk::user();
+  /// assert!(answer.len() > 0);
+  /// ```
   pub fn user() -> String {
     if cfg!(target_os = "windows") {
       crate::codemelted_storage::environment("USERNAME").unwrap()
@@ -345,13 +514,26 @@ pub mod codemelted_disk {
     }
   }
 
+  /// Writes a binary file to the host operating system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let data = Vec::<u8>::from([0x01, 0x02]);
+  /// let filename = format!("{}/test.bin", codemelted_disk::temp_path());
+  /// let result = codemelted_disk::write_file_as_bytes(
+  ///   &filename,
+  ///   &data,
+  ///   false
+  /// );
+  /// assert!(result.is_ok());
+  /// ```
   pub fn write_file_as_bytes(
     filename: &str,
     data: &[u8],
     append: bool,
   ) -> Result<(), std::io::Error> {
-    use std::fs::OpenOptions;
-    use std::io::Write;
     let mut file = if append {
       OpenOptions::new()
         .append(true)
@@ -367,6 +549,20 @@ pub mod codemelted_disk {
     Ok(())
   }
 
+  /// Writes a text file to the host operating system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let filename = format!("{}/test.txt", codemelted_disk::temp_path());
+  /// let result = codemelted_disk::write_file_as_string(
+  ///   &filename,
+  ///   "hello",
+  ///   false
+  /// );
+  /// assert!(result.is_ok());
+  /// ```
   pub fn write_file_as_string(
     filename: &str,
     data: &str,
@@ -380,6 +576,10 @@ pub mod codemelted_disk {
 // [HW Use Case] ==============================================================
 // ============================================================================
 
+mod codemelted_hw {
+  // FUTURE IMPLEMENTATION
+}
+
 // ============================================================================
 // [JSON Use Case] ============================================================
 // ============================================================================
@@ -389,6 +589,7 @@ pub mod codemelted_disk {
 /// stringify, and converting to basic data types. This is based on the
 /// [CObject] which represents rust based JSON data.
 pub mod codemelted_json {
+  /// Use Statements
   use crate::CObject;
   use json::number::Number;
 
@@ -653,6 +854,7 @@ pub mod codemelted_json {
 /// CLoggedEventHandler callback for post processing of a logging event
 /// once logged to STDOUT.
 pub mod codemelted_logger {
+  /// Use Statement
   use std::sync::Mutex;
 
   /// Holds the log level for the logger module.
@@ -827,9 +1029,17 @@ pub mod codemelted_logger {
 // [Monitor Use Case] =========================================================
 // ============================================================================
 
+mod codemelted_monitor {
+  // FUTURE IMPLEMENTATION
+}
+
 // ============================================================================
 // [Network Use Case] =========================================================
 // ============================================================================
+
+mod codemelted_network {
+  // FUTURE IMPLEMENTATION
+}
 
 // ============================================================================
 // [NPU Use Case] =============================================================
@@ -999,9 +1209,9 @@ pub mod codemelted_npu {
     }
   }
 
-  /// TBD - unimplemented!()
-  pub fn compute() {
-    unimplemented!();
+  /// TBD - FUTURE
+  fn _compute() {
+    unimplemented!("FUTURE IMPLEMENTATION!");
   }
 
   /// Function to execute the [CodeMeltedNPU] enumerated formula by specifying
@@ -1051,13 +1261,13 @@ pub mod codemelted_runtime {
   /// ```
   /// use codemelted::codemelted_runtime;
   ///
-  /// let exist = codemelted_runtime::exist("deno");
-  /// println!("{}", exist);
+  /// let answer = codemelted_runtime::exists("deno");
+  /// println!("{}", answer);
   /// ```
   ///
   /// _NOTE: System commands (like dir on windows) will return false. This is
   /// regular executables._
-  pub fn exist(command: &str) -> bool {
+  pub fn exists(command: &str) -> bool {
     let mut proc = if cfg!(target_os = "windows") {
       Command::new("cmd")
         .args(["/c", "where", command])
@@ -1099,16 +1309,19 @@ pub mod codemelted_runtime {
     String::from_utf8(proc.stdout).expect("Should vec<u8> to String")
   }
 
+  /// FUTURE IMPLEMENTATION
   fn _pi_camera() {
-    todo!();
+    unimplemented!("FUTURE IMPLEMENTATION");
   }
 
+  /// FUTURE IMPLEMENTATION
   fn _pi_gps() {
-    todo!();
+    unimplemented!("FUTURE IMPLEMENTATION");
   }
 
+  /// FUTURE IMPLEMENTATION
   fn _pi_video() {
-    todo!();
+    unimplemented!("FUTURE IMPLEMENTATION");
   }
 }
 
@@ -1301,6 +1514,10 @@ pub mod codemelted_storage {
 // ============================================================================
 // [UI Use Case] ==============================================================
 // ============================================================================
+
+mod codemelted_ui {
+  // FUTURE IMPLEMENTATION
+}
 
 // ============================================================================
 // [UNIT TEST DEFINITIONS] ====================================================
