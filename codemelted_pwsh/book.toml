@@ -1,6 +1,12 @@
 [book]
+title = "CodeMelted DEV | pwsh Module"
 authors = ["Mark Shaffer"]
+description = ""
 language = "en"
 multilingual = false
 src = "src"
-title = "CodeMelted DEV | pwsh Module"
+
+[output.html]
+default-theme = "navy"
+git-repository-url = "https://github.com/codemelted/codemelted_developer"
+git-repository-icon = "fa-github"

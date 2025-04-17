@@ -1,7 +1,7 @@
 <center>
   <img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
 </center>
-<h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-design.png" /> CodeMelted DEV Project</h1>
+<h1><img style="height: 35px;" src="https://codemelted.com/assets/favicon/apple-touch-icon.png" /> CodeMelted DEV Project</h1>
 
 The following document will help you setup this repo for local development utilizing PowerShell Core, VS Code, and the installation of the necessary tools to support the `build.ps1` script.
 
@@ -19,6 +19,7 @@ The following document will help you setup this repo for local development utili
 - [Environment Setup](#environment-setup)
   - [GitHub](#github)
   - [Programming Languages](#programming-languages)
+  - [NeoVim](#neovim)
   - [VS Code](#vs-code)
 - [Repo Structure](#repo-structure)
   - [build.ps1 Script](#buildps1-script)
@@ -40,6 +41,10 @@ The following are the items recommended for installation to properly make use of
 - [ ] [NodeJS](https://nodejs.org/en)
 - [ ] [PowerShell Core](https://github.com/PowerShell/PowerShell)
 - [ ] [Rust](https://doc.rust-lang.org/book/ch01-01-installation.html)
+
+### NeoVim
+
+<mark>TBD</mark>
 
 ### VS Code
 
@@ -64,14 +69,16 @@ The following are the items recommended for installation to properly make use of
 
 ### build.ps1 Script
 
-The `build.ps1 --build` script provides the ability to build, test, and document the `codemelted_developer` repo modules. The `build.ps1 --deploy` deploys the [CodeMelted DEV](https://developer.codemelted.com) website. The `build.ps1 --test` will test any changes to the repo modules.
+The `build.ps1 --build` script provides the ability to build, test, and document the `codemelted_developer` repo modules. The `build.ps1 --deploy` deploys the [CodeMelted DEV](https://codemelted.com/developer) website. The `build.ps1 --test` will test any changes to the repo modules.
 
 ### Module Directories
 
 The following are the individual source module project folders. They are setup to work with both the CLI tools of that particular language SDK and the `build.ps1` script. For an understanding what these modules are about see the `design-notes.drawio.html` file or the individual `README.md` file of each project.
 
-- [codemelted_flutter](codemelted_flutter/README.md)
-- [codemelted_js](codemelted_js/README.md)
-- [codemelted_pi](codemelted_pi/README.md)
-- [codemelted_pwsh](codemelted_pwsh/README.md)
-- [codemelted_rust](codemelted_rust/README.md)
+- [codemelted_dev](codemelted_dev): An `mdbook` project documenting what the *CodeMelted DEV Project* is all about.
+- [codemelted_flutter](codemelted_flutter/): The development of the `codemelted.dart` module and supporting project definitions for targeting Flutter Web targets. Supports both SDK deployment to the `codemelted.com` domain and `pub.dev` for discoverability by flutter developers.
+- [codemelted_js](codemelted_js/): The development of the `codemelted.js` ES6 module for usage in Deno, NodeJS, and static Web page deployments. Supports SDK deployment to the `codemelted.com` domain with support via the `codemelted` CLI when starting new web projects.
+- [codemelted_pi](codemelted_pi/): An `mdbook` project documenting the CodeMelted PI project. It will contain all the design artifacts and instructions for how to setup such a system for photography fun.
+- [codemelted_pwsh](codemelted_pwsh/): An `mdbook` project documenting the `codemelted.ps1` module that represents the `codemelted` CLI. Supports both SDK deployment to the `codemelted.com` domain and the Microsoft PSGallery for script installation.
+- [codemelted_rust](codemelted_rust/): The development of the `codemelted.rs` cargo project to support native app / service development. Supports both SDK deployment to the `codemelted.com` domain and the `crates.io` Rust repository.
+- `index.html`: Static page for the `codemelted.com/developer` domain to access the above SDK documents.
