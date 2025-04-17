@@ -25,121 +25,29 @@
 
 [string]$GEN_HTML_PERL_SCRIPT = "/ProgramData/chocolatey/lib/lcov/tools/bin/genhtml"
 
-[string]$ogTemplate = @"
- <!-- Open Graph Settings -->
-<meta property="og:type" content="website">
-<meta property="og:title" content="[TITLE]">
-<meta property="og:site_name" content="CodeMelted DEV">
-<meta property="og:image" content="https://codemelted.com/assets/images/logo-codemelted-developer.png">
-<meta property="og:image:height" content="100px">
-<meta property="og:image:width" content="100px">
-"@
-
-[string]$footerTemplate = @"
-<!-- Links to main domain assets for embedding this widget code into different configurations -->
-<codemelted-navigation></codemelted-navigation>
-<script src="https://codemelted.com/assets/js/codemelted_navigation.js" defer></script>
-<style>
-    .content-container {
-      overflow: auto;
-      position: fixed;
-      top: 0px;
-      left: 0px;
-      right: 0px;
-      bottom: 75px;
-    }
-    footer {
-      margin-bottom: 75px;
-    }
-
-    /* Specific to rust updates for footer */
-    .sidebar {
-      margin-bottom: 75px;
-    }
-
-    main {
-      margin-bottom: 75px;
-    }
-
-    @media print {
-      .content-container {
-        position: relative;
-      }
-      header {
-        display: none;
-      }
-      footer {
-        display: none;
-      }
-    }
-</style>
-"@
-
-[string]$htmlTemplate = @"
-<!DOCTYPE html>
-<html lang="en"><head>
-  <title>[TITLE]</title>
-  <meta charset="UTF-8">
-  <meta name="description" content="[DESCRIPTION]">
-  <meta name="keywords" content="[KEYWORDS]">
-  <meta name="author" content="Mark Shaffer">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Open Graph Settings -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="[TITLE]">
-  <meta property="og:description" content="[DESCRIPTION]">
-  <meta property="og:site_name" content="CodeMelted DEV">
-  <meta property="og:image" content="https://codemelted.com/assets/images/logo-codemelted-developer.png">
-  <meta property="og:image:height" content="100px">
-  <meta property="og:image:width" content="100px">
-  <link rel="stylesheet" href="https://codemelted.com/assets/css/developer-theme.css">
-  <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png">
-  <style>
-    .content-container {
-      overflow: auto;
-      position: fixed;
-      top: 0px;
-      left: 0px;
-      right: 0px;
-      bottom: 75px;
-    }
-    .content-main {
-      max-width: 47em;
-      margin: auto;
-      padding: 0.6250em;
-    }
-
-    @media print {
-      .content-container {
-        position: relative;
-      }
-    }
-  </style>
-</head><body>
-  <div class="content-container">
-    <div class="content-main">
-      [CONTENT]
-    </div>
-  </div>
-
-  [FOOTER_TEMPLATE]
-</body></html>
-"@
-
 function build([string[]]$params) {
-  # Utility method to support extracting information from the markdown
-  # to populate the templates.
-  function extract([string]$key, [string]$data) {
-    [string]$value = $data.Split($key)[1]
-    $value = $value.Split("`n")[0].Trim()
-    return $value
-  }
-
   # Helper function to format message output from the build script.
   function message([string]$msg) {
     Write-Host
     Write-Host "MESSAGE: $msg"
     Write-Host
+  }
+
+  # Build / test the codemelted.ps1 module.
+  function build_dev([bool]$isTestOnly = $false) {
+    # Now go build the codemelted_ps1 documentation.
+    Set-Location $PSScriptRoot/codemelted_dev
+
+    mdbook clean
+
+    message "Now building the codemelted_dev module documentation."
+
+    if (-not $isTestOnly) {
+      mdbook build
+    }
+
+    Set-Location $PSScriptRoot
+    message "codemelted_dev module completed."
   }
 
   # Build / test the codemelted.dart module.
@@ -161,21 +69,13 @@ function build([string[]]$params) {
       dart doc --output "docs"
       Copy-Item -Path CHANGELOG.md -Destination docs -Force
 
-      # Fix the title
-      [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | Flutter Module")
       [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
-      $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
-      $htmlData = $htmlData.Replace("#", "../index.html")
-      $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
-      $htmlData = $htmlData.Replace("margin-bottom: 75px;", "margin-bottom: 0;")
       $htmlData = $htmlData.Replace('<a href="codemelted">','<a href="codemelted/index.html">')
       $htmlData | Out-File docs/index.html -Force
 
       $files = Get-ChildItem -Path docs/codemelted/*.html, docs/codemelted/*/*.html -Exclude "*sidebar*"
       foreach ($file in $files) {
         [string]$htmlData = Get-Content -Path $file.FullName -Raw
-        $htmlData = $htmlData.Replace("</footer>", "</footer>`n$footerTemplate")
-        $htmlData = $htmlData.Replace("margin-bottom: 75px;", "margin-bottom: 0;")
         $htmlData = $htmlData.Replace('<a href="../codemelted">','<a href="../codemelted/index.html">')
         $htmlData = $htmlData.Replace('<a href="../codemelted">codemelted.dart</a>','<a href="../codemelted/index.html">codemelted.dart</a>')
         $htmlData | Out-File $file.FullName -Force
@@ -213,20 +113,9 @@ function build([string[]]$params) {
     }
     Move-Item -Path coverage -Destination docs -Force
 
-
     if (-not $isTestOnly) {
       message "Now generating the jsdoc"
       jsdoc ./codemelted.js --readme ./README.md --destination docs
-
-      [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | JS Module")
-      $files = Get-ChildItem -Path docs/*.html
-      foreach ($file in $files) {
-        [string]$htmlData = Get-Content -Path $file.FullName -Raw
-        $htmlData = $htmlData.Replace("#", "../index.html")
-        $htmlData = $htmlData.Replace("</body>", "`n$footerTemplate</body>")
-        $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
-        $htmlData | Out-File $file.FullName -Force
-      }
 
       # Some final moves to complete the module documentation.
       Copy-Item jsdoc-default.css -Destination docs/styles
@@ -245,22 +134,11 @@ function build([string[]]$params) {
     Set-Location $PSScriptRoot/codemelted_pi
     message "Now building the Raspberry Pi Project documentation."
 
-    Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
-    New-Item -Path docs -ItemType Directory -ErrorAction Ignore
-    Copy-Item -Path assets -Destination docs -Recurse -ErrorAction Ignore
+    mdbook clean
 
-    $readme = ConvertFrom-Markdown -Path README.md
-    $title = extract "TITLE:" $readme.Html
-    $keywords = extract "KEYWORDS:" $readme.Html
-    $description = extract "DESCRIPTION:" $readme.Html
-    $html = $htmlTemplate
-    $html = $html.Replace("[TITLE]", $title)
-    $html = $html.Replace("[DESCRIPTION]", $description)
-    $html = $html.Replace("[KEYWORDS]", $keywords)
-    $html = $html.Replace("[CONTENT]", $readme.Html)
-    $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
-    $html = $html.Replace("#", "../index.html")
-    $html | Out-File docs/index.html -Force
+    if (-not $isTestOnly) {
+      mdbook build
+    }
 
     Set-Location $PSScriptRoot
     message "Raspberry Pi Project module documentation completed."
@@ -270,24 +148,14 @@ function build([string[]]$params) {
   function build_pwsh([bool]$isTestOnly = $false) {
     # Now go build the codemelted_ps1 documentation.
     Set-Location $PSScriptRoot/codemelted_pwsh
+
+    mdbook clean
+
     message "Now building the codemelted.ps1 module documentation."
 
-    Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
-    New-Item -Path docs -ItemType Directory -ErrorAction Ignore
-    Copy-Item -Path assets -Destination docs -Recurse -ErrorAction Ignore
-
-    $readme = ConvertFrom-Markdown -Path README.md
-    $title = extract "TITLE:" $readme.Html
-    $keywords = extract "KEYWORDS:" $readme.Html
-    $description = extract "DESCRIPTION:" $readme.Html
-    $html = $htmlTemplate
-    $html = $html.Replace("[TITLE]", $title)
-    $html = $html.Replace("[DESCRIPTION]", $description)
-    $html = $html.Replace("[KEYWORDS]", $keywords)
-    $html = $html.Replace("[CONTENT]", $readme.Html)
-    $html = $html.Replace("[FOOTER_TEMPLATE]", $footerTemplate)
-    $html = $html.Replace("#", "../index.html")
-    $html | Out-File docs/index.html -Force
+    if (-not $isTestOnly) {
+      mdbook build
+    }
 
     Set-Location $PSScriptRoot
     message "codemelted.ps1 module completed."
@@ -303,21 +171,6 @@ function build([string[]]$params) {
       message "Now building the codemelted.rs documentation"
       cargo clean
       cargo doc --no-deps
-      Set-Location $PSScriptRoot/codemelted_rust/target/doc
-      $files = Get-ChildItem -Path codemelted/*.html, `
-        codemelted/codemelted_console/*.html, `
-        codemelted/codemelted_json/*.html, `
-        codemelted/codemelted_logger/*.html, `
-        codemelted/codemelted_npu/*.html, `
-        src/codemelted/*.html
-      foreach ($file in $files) {
-        [string]$ogData = $ogTemplate.Replace("[TITLE]", "CodeMelted DEV | Rust Module")
-        [string]$htmlData = Get-Content -Path $file.FullName -Raw
-        $htmlData = $htmlData.Replace("#", "../../index.html")
-        $htmlData = $htmlData.Replace("</body>", "`n$footerTemplate</body>")
-        $htmlData = $htmlData.Replace("</head>", "$ogData`n</head>")
-        $htmlData | Out-File $file.FullName -Force
-      }
     }
 
     Set-Location $PSScriptRoot
@@ -330,6 +183,7 @@ function build([string[]]$params) {
 
   switch ($params[0]) {
     "--test" {
+      build_dev $true
       build_flutter $true
       build_js $true
       build_pi $true
@@ -338,6 +192,7 @@ function build([string[]]$params) {
     }
     "--build" {
       # Build and test each of the modules.
+      build_dev $false
       build_flutter $false
       build_js $false
       build_pi $false
@@ -345,16 +200,18 @@ function build([string[]]$params) {
       build_rust $false
 
       # Now go move all the resources
-      Remove-Item -Path docs -Force -Recurse
+      Remove-Item -Path docs -Force -Recurse -ErrorAction SilentlyContinue
+      New-Item -Path docs/codemelted_dev -ItemType Directory
       New-Item -Path docs/codemelted_flutter -ItemType Directory
       New-Item -Path docs/codemelted_js -ItemType Directory
       New-Item -Path docs/codemelted_pi -ItemType Directory
       New-Item -Path docs/codemelted_pwsh -ItemType Directory
       New-Item -Path docs/codemelted_rust -ItemType Directory
+      Copy-Item -Path codemelted_dev/book/* -Destination docs/codemelted_dev -Force -Recurse
       Copy-Item -Path codemelted_flutter/docs/* -Destination docs/codemelted_flutter -Force -Recurse
       Copy-Item -Path codemelted_js/docs/* -Destination docs/codemelted_js -Force -Recurse
-      Copy-Item -Path codemelted_pi/docs/* -Destination docs/codemelted_pi -Force -Recurse
-      Copy-Item -Path codemelted_pwsh/docs/* -Destination docs/codemelted_pwsh -Force -Recurse
+      Copy-Item -Path codemelted_pi/book/* -Destination docs/codemelted_pi -Force -Recurse
+      Copy-Item -Path codemelted_pwsh/book/* -Destination docs/codemelted_pwsh -Force -Recurse
       Copy-Item -Path codemelted_rust/target/doc/* -Destination docs/codemelted_rust -Force -Recurse
       Copy-Item -Path index.html -Destination docs -Force -Recurse
     }

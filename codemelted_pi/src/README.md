@@ -1,5 +1,5 @@
 <center>
-  <a title="Back To Developer Main" href="#"><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /></a><br />
+  <img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /><br />
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-raspberry-pi.png" /> CodeMelted DEV | Pi Project</h1>
 

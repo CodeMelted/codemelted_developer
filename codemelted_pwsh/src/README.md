@@ -16,7 +16,7 @@ The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facil
   <p>Hope you enjoy the content. Any support is greatly appreciated. Thank you! 🙇</p>
 </center>
 
-<center>**Revision History**</center>
+<center><b>Revision History</b></center>
 
 DATE | BY WHOM | DESCRIPTION
 -- | -- | --
