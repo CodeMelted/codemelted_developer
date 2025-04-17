@@ -20,11 +20,6 @@
   <link rel="stylesheet" href="https://codemelted.com/assets/css/services.css">
   <script src="https://codemelted.com/assets/js/codemelted_navigation.js" defer></script>
   <style>
-    /* .content-main {
-      max-width: 100em;
-      padding: 0;
-      margin: auto;
-    } */
     .feed-header div {
       margin-left: 125px;
     }
@@ -38,26 +33,43 @@
   <header class="feed-header">
     <img src="https://codemelted.com/assets/images/logo-codemelted-developer.png" />
     <div></div>
-    <select id="optSDKs">
-      <option selected value="">Select CodeMelted DEV SDK</option>
-      <option value="codemelted_flutter">codemelted.dart</option>
-      <option value="codemelted_js">codemelted.js</option>
-      <option value="codemelted_pi">codemelted-pi</option>
-      <option value="codemelted_pwsh">codemelted.ps1</option>
-      <option value="codemelted_rust/codemelted">codemelted.rs</option>
+    <select id="cmbOptions">
+      <option selected value="codemelted_dev">CodeMelted DEV Project</option>
+      <option value="codemelted_flutter">Flutter Module</option>
+      <option value="codemelted_js">JS Module</option>
+      <option value="codemelted_pwsh">pwsh Core Module</option>
+      <option value="codemelted_rust/codemelted">Rust Module</option>
+      <option value="codemelted_pi">Raspberry Pi</option>
     </select>
   </header>
   <div class="content-container">
-    <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vTcYvDmYmgYC43UtADz9QFHBjBMzCfsIJDoNzgXWSpcX1bCvKT7DmrHg7zj0-HyVziK6Vcvk_UiSoN3/pubembed?start=false&loop=false&delayms=3000" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+    <iframe id="frmContent" src="codemelted_dev/index.html" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
   </div>
   <codemelted-navigation></codemelted-navigation>
   <script>
-    const optSDKs = document.getElementById("optSDKs");
+    // Handle the changing of content.
+    const optSDKs = document.getElementById("cmbOptions");
+    const frmContent = document.getElementById("frmContent");
     optSDKs.onchange = (evt) => {
       if (evt.target.value != "") {
         let rand = Math.random();
-        window.open(`${evt.target.value}/index.html?rand=${rand}`, "_self");
+        frmContent.src = `${evt.target.value}/index.html?rand=${rand}`;
       }
     };
+
+    // Handle the override of codemelted_navigation.js click actions.
+    setTimeout(() => {
+      window.onPrintPageClicked = () => {
+        alert("Override Print Page Clicked!");
+      }
+
+      window.onReadPageClicked = () => {
+        alert("Override Read Page Clicked!");
+      }
+
+      window.onSharePageClicked = () => {
+        alert("Override Share Page Clicked");
+      }
+    }, 250);
   </script>
 </body></html>

@@ -33,6 +33,23 @@ DEALINGS IN THE SOFTWARE.
 // [MODULE DATA DEFINITION] ===================================================
 // ============================================================================
 
+/// Defines a callback for handling received messages of a given specified
+/// type. This is mainly to support the [CProtocolHandler] trait.
+pub type CMessageRxHandler<T> = fn(data: T);
+
+/// Defines a trait for the "rules" of objects that will not block the main
+/// thread's processing in whatever form or fashion. The methods attached to
+/// this trait give the rules the given "protocol" must follow along with
+/// defining the data it will be utilizing as part of the protocol.
+pub trait CProtocolHandler<T> {
+  /// Signals if the protocol is running or not.
+  fn is_running(&self) -> bool;
+  /// Handles the sending of the message to the protocol for processing.
+  fn post_message(&self, data: T);
+  /// Signals for the protocol to terminate.
+  fn terminate(&self);
+}
+
 /// Defines a trait to attach to the [CObject] providing utility function
 /// definitions to make a bool based on a series of strings that can be
 /// considered true in nature.
@@ -81,8 +98,318 @@ impl IsTruthyString for CObject {
 // [Async Use Case] ===========================================================
 // ============================================================================
 
-mod codemelted_async {
-  // FUTURE IMPLEMENTATION
+pub mod codemelted_async {
+  // Use Statements
+  use crate::{CMessageRxHandler, CObject, CProtocolHandler};
+  use std::{sync::mpsc::Receiver, thread::{self, JoinHandle}, time};
+  use std::sync::mpsc::{channel, Sender};
+
+  /// The task that runs as part of the [CAsyncTaskResult] internal thread.
+  pub type CAsyncTask = fn(Option<CObject>) -> Option<CObject>;
+
+  /// The result of a [task] call. This holds an internal thread that will
+  /// call the [CAsyncTask] to process specified data and return the result.
+  /// The [CAsyncTaskResult::has_completed] will let you know when the thread
+  /// has completed so you can then call [CAsyncTaskResult::value] for the
+  /// processed value.
+  pub struct CAsyncTaskResult {
+    /// Holds the the handle for the internal thread.
+    handle: JoinHandle<()>,
+
+    /// Holds the receiver to wait for the process result from the [CAsyncTask].
+    recv: Receiver<Option<CObject>>,
+  }
+  impl CAsyncTaskResult {
+    /// Private constructor to support the [task] function.
+    fn new(task: CAsyncTask, data: Option<CObject>, delay: u64) -> CAsyncTaskResult {
+      // Setup our message channel.
+      let (tx, rx) = channel::<Option<CObject>>();
+
+      // Kick-off the thread to process the task.
+      let handle = thread::spawn(move || {
+        sleep(delay);
+        let result = task(data);
+        let _ = tx.send(result);
+      });
+
+      // Return the constructed object.
+      CAsyncTaskResult { handle, recv: rx }
+    }
+
+    /// Indicator to whether the task thread has completed the [CAsyncTask]
+    pub fn has_completed(&self) -> bool {
+      self.handle.is_finished()
+    }
+
+    /// Retrieves the value processed by this task. Will block if the
+    /// task thread has not completed.
+    pub fn value(&self) -> Option<CObject> {
+      let result = self.recv.recv();
+      match result {
+        Ok(v) => v,
+        Err(_) => None,
+      }
+    }
+  }
+
+  /// TBD
+  pub struct CProcessProtocol {
+    // on_message_rx: CMessageRxHandler<String>
+  }
+  impl CProcessProtocol {
+    // fn new(on_message_rx: CMessageRxHandler<String>) -> CProcessProtocol {
+    //   CProcessProtocol { on_message_rx }
+    // }
+  }
+  impl CProtocolHandler<String> for CProcessProtocol {
+    fn is_running(&self) -> bool {
+      todo!();
+    }
+
+    fn post_message(&self, data: String) {
+      todo!()
+    }
+
+    fn terminate(&self) {
+      todo!()
+    }
+  }
+
+  /// The task that runs within the [CTimerResult] thread.
+  pub type CTimerTask = fn();
+
+  /// The result of a [timer] function call. This holds the internals of the
+  /// thread running the [CTimerTask] until the [CTimerResult::stop] is
+  /// called.
+  pub struct CTimerResult {
+    /// The handle to the internally spawned thread.
+    handle: JoinHandle<()>,
+    /// The sender to support the [CTimerResult::stop] call to terminate
+    /// the thread.
+    sender: Sender<bool>
+  }
+  impl CTimerResult {
+    /// Private function to create the object via the [timer] function.
+    fn new(task: CTimerTask, interval: u64) -> CTimerResult {
+      // Setup our channel
+      let (tx, rx) = channel::<bool>();
+
+      // Kick-off the internal thread loop.
+      let handle = thread::spawn(move || {
+        loop {
+          sleep(interval);
+          task();
+          let result = rx.try_recv();
+          if result.is_ok() {
+            let stop_thread = result.ok().unwrap();
+            if stop_thread {
+              break;
+            }
+          }
+        }
+      });
+
+      // Return the result object.
+      CTimerResult { handle, sender: tx }
+    }
+
+    /// Indicates if the timer is running (true) or not (false).
+    pub fn is_running(&self) -> bool {
+      !self.handle.is_finished()
+    }
+
+    /// Terminates the internal timer thread. This blocks until fully
+    /// stopped.
+    pub fn stop(&self) {
+      self.sender.send(true).unwrap();
+      loop {
+        sleep(100);
+        if !self.is_running() {
+          break;
+        }
+      }
+    }
+  }
+
+  /// The task that runs within the [CWorkerProtocol] thread.
+  pub type CWorkerTask = fn(CObject) -> Option<CObject>;
+
+  /// The result of a [worker] call. This holds a dedicated thread that is
+  /// waiting for data via the [CWorkerProtocol::post_message]. This will
+  /// queue of data for processing and the internal thread will process that
+  /// data in accordance with the [CWorkerTask]. Any data meant for return
+  /// processing is handled via the [CMessageRxHandler<CObject>] specified on
+  /// the worker call.
+  pub struct CWorkerProtocol {
+    handle: JoinHandle<()>,
+    sender: Sender<CObject>
+  }
+  impl CWorkerProtocol {
+    /// Private constructor to construct that dedicated background worker.
+    fn new(task: CWorkerTask, on_message_rx: CMessageRxHandler<CObject>) -> CWorkerProtocol {
+      // Setup our message channel.
+      let (tx, rx) = channel::<CObject>();
+
+      // Kick-off the loop to wait for messages to process.
+      let handle = thread::spawn(move || {
+        loop {
+          let data = rx.recv().unwrap();
+          if data.as_str().unwrap() == "terminate_protocol" {
+            break;
+          }
+          let result = task(data);
+          if result.is_some() {
+            on_message_rx(result.unwrap());
+          }
+        }
+      });
+
+      // Create and return the object.
+      CWorkerProtocol { handle, sender: tx }
+    }
+  }
+  impl CProtocolHandler<CObject> for CWorkerProtocol {
+    fn is_running(&self) -> bool {
+      !self.handle.is_finished()
+    }
+
+    fn post_message(&self, data: CObject) {
+      let _ = self.sender.send(data);
+    }
+
+    fn terminate(&self) {
+      self.post_message(CObject::from("terminate_protocol"));
+      loop {
+        sleep(100);
+        if !self.is_running() {
+          break;
+        }
+      }
+    }
+  }
+
+  /// Retrieves the available of CPUs can support asynchronous background
+  /// processing.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_async;
+  ///
+  /// let count = codemelted_async::cpu_count();
+  /// assert!(count >= 1);
+  /// ```
+  pub fn cpu_count() -> usize {
+    let result = thread::available_parallelism();
+    match result {
+      Ok(v) => v.into(),
+      Err(_) => 1,
+    }
+  }
+
+  /// Will put a currently running thread (main or background) for a specified
+  /// delay in milliseconds.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_async;
+  ///
+  /// let now = std::time::Instant::now();
+  /// codemelted_async::sleep(2000);
+  /// assert!(now.elapsed() >= std::time::Duration::from_millis(2000));
+  /// ```
+  pub fn sleep(delay: u64) {
+    let delay = time::Duration::from_millis(delay);
+    thread::sleep(delay);
+  }
+
+  /// Creates a [CAsyncTaskResult] which runs a background thread to
+  /// eventually retrieve the value of the task. The data is a
+  /// [Option<CObject>] to represent the optional data for the task and
+  /// optional data returned.
+  ///
+  /// **Example (No Data):**
+  /// ```
+  /// use codemelted::CObject;
+  /// use codemelted::codemelted_async;
+  ///
+  /// fn async_task_cb(data: Option<CObject>) -> Option<CObject> {
+  ///   codemelted_async::sleep(1000);
+  ///   println!("Hello");
+  ///   None
+  /// }
+  ///
+  /// let async_task = codemelted_async::task(async_task_cb, None, 250);
+  /// assert!(!async_task.has_completed());
+  /// let answer = async_task.value();
+  /// assert!(async_task.has_completed());
+  /// assert!(answer.is_none());
+  /// ```
+  ///
+  /// **Example (With Data):**
+  /// ```
+  /// use codemelted::codemelted_async;
+  /// use codemelted::codemelted_json;
+  /// use codemelted::CObject;
+  ///
+  /// fn async_task_cb(data: Option<CObject>) -> Option<CObject> {
+  ///   codemelted_async::sleep(1000);
+  ///   let data_to_process = match data {
+  ///       Some(v) => v.as_i64().unwrap(),
+  ///       None => panic!("Why did this fail!"),
+  ///   };
+  ///
+  ///   let answer = data_to_process + 42;
+  ///   Some(CObject::from(answer))
+  /// }
+  ///
+  /// let async_task = codemelted_async::task(
+  ///   async_task_cb,
+  ///   Some(CObject::from(24)),
+  ///   250
+  /// );
+  /// assert!(!async_task.has_completed());
+  /// let answer = async_task.value();
+  /// assert!(async_task.has_completed());
+  /// assert!(answer.is_some());
+  /// ```
+  pub fn task(
+    task: CAsyncTask,
+    data: Option<CObject>,
+    delay: u64
+  ) -> CAsyncTaskResult {
+    CAsyncTaskResult::new(task, data, delay)
+  }
+
+  /// Creates a repeating [CTimerTask] on the specified interval
+  /// (in milliseconds). The task is completed when the [CTimerResult::stop]
+  /// is called.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_async;
+  ///
+  /// fn timer_task_cb() {
+  ///   println!("Hello");
+  /// }
+  ///
+  /// let timer_task = codemelted_async::timer( timer_task_cb, 250);
+  /// codemelted_async::sleep(100);
+  /// assert!(timer_task.is_running());
+  /// codemelted_async::sleep(1000);
+  /// timer_task.stop();
+  /// assert!(!timer_task.is_running());
+  /// ```
+  pub fn timer(task: CTimerTask, interval: u64) -> CTimerResult {
+    CTimerResult::new(task, interval)
+  }
+
+  /// TBD
+  pub fn worker(
+    task: CWorkerTask,
+    on_message_rx: CMessageRxHandler<CObject>
+  ) -> CWorkerProtocol {
+    CWorkerProtocol::new(task, on_message_rx)
+  }
 }
 
 // ============================================================================
@@ -466,15 +793,15 @@ pub mod codemelted_disk {
   ) -> Result<String, std::io::Error> {
     let file = File::open(filename);
     match file {
-        Ok(_) => {
-          let mut data = String::new();
-          let result = file?.read_to_string(&mut data);
-          match result {
-            Ok(_) => Ok(data),
-            Err(err) => Err(err),
-          }
-        },
-        Err(err) => Err(err),
+      Ok(_) => {
+        let mut data = String::new();
+        let result = file?.read_to_string(&mut data);
+        match result {
+          Ok(_) => Ok(data),
+          Err(err) => Err(err),
+        }
+      },
+      Err(err) => Err(err),
     }
   }
 
@@ -1403,8 +1730,8 @@ pub mod codemelted_storage {
   /// ```
   pub fn environment(key: &str) -> Option<String> {
     match std::env::var(key) {
-        Ok(val) => Some(val),
-        Err(_e) => None,
+      Ok(val) => Some(val),
+      Err(_e) => None,
     }
   }
 
@@ -1536,11 +1863,5 @@ mod tests {
 // Only used for testing out modules that can't have a unit test derived.
 // Comment out when ready to deliver module to crate.
 pub fn main() {
-  use crate::codemelted_storage;
-  codemelted_storage::init();
-  codemelted_storage::set("test", "test");
-  let result = codemelted_storage::get("test");
-  assert!(result.is_some());
-  let result = codemelted_storage::get("test2");
-  assert!(result.is_none());
+
 }

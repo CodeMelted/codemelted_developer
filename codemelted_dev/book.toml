@@ -1,0 +1,12 @@
+[book]
+title = "CodeMelted DEV Project"
+authors = ["Mark Shaffer"]
+description = ""
+language = "en"
+multilingual = false
+src = "src"
+
+[output.html]
+default-theme = "navy"
+git-repository-url = "https://github.com/codemelted/codemelted_developer"
+git-repository-icon = "fa-github"
