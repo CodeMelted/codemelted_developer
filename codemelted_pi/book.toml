@@ -1,6 +1,10 @@
 [book]
+title = "CodeMelted DEV | Pi Project"
 authors = ["Mark Shaffer"]
+description = ""
 language = "en"
 multilingual = false
 src = "src"
-title = "CodeMelted DEV | Pi Project"
+
+[output.html]
+default-theme = "navy"
