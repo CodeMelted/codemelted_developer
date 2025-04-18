@@ -2956,6 +2956,9 @@ Future<T?> codemelted_dialog<T>({
       );
     } else if (action == "browser") {
       sheetActions = [closeButton];
+      if (actions != null) {
+        sheetActions.insertAll(0, actions);
+      }
       sheetContent = codemelted_ui(
         widget: CUiWebViewWidget(
           controller: CWebViewController(
