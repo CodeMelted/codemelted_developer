@@ -98,30 +98,42 @@ impl IsTruthyString for CObject {
 // [Async Use Case] ===========================================================
 // ============================================================================
 
+/// Implements the CodeMelted DEV Async use case. Provides the ability to
+/// process items in the background utilizing different methodologies. There
+/// is the one off [crate::codemelted_async::task]. There is a repeating
+/// [crate::codemelted_async::timer]. Then there is the ability to have a
+/// dedicated [crate::codemelted_async::worker] with a FIFO queue or working
+/// with external [crate::codemelted_async::process] run in a separate
+/// operating system service / application.
 pub mod codemelted_async {
   // Use Statements
   use crate::{CMessageRxHandler, CObject, CProtocolHandler};
-  use std::{sync::mpsc::Receiver, thread::{self, JoinHandle}, time};
-  use std::sync::mpsc::{channel, Sender};
+  use std::{
+    io::{Read, Write},
+    process::{Child, Command, Stdio},
+    sync::mpsc::{channel, Receiver, Sender},
+    thread::{self, JoinHandle},
+    time
+  };
 
-  /// The task that runs as part of the [CAsyncTaskResult] internal thread.
-  pub type CAsyncTask = fn(Option<CObject>) -> Option<CObject>;
+  /// The task that runs as part of the [CTaskResult] internal thread.
+  pub type CTaskCB = fn(Option<CObject>) -> Option<CObject>;
 
   /// The result of a [task] call. This holds an internal thread that will
-  /// call the [CAsyncTask] to process specified data and return the result.
-  /// The [CAsyncTaskResult::has_completed] will let you know when the thread
-  /// has completed so you can then call [CAsyncTaskResult::value] for the
+  /// call the [CTaskCB] to process specified data and return the result.
+  /// The [CTaskResult::has_completed] will let you know when the thread
+  /// has completed so you can then call [CTaskResult::value] for the
   /// processed value.
-  pub struct CAsyncTaskResult {
+  pub struct CTaskResult {
     /// Holds the the handle for the internal thread.
     handle: JoinHandle<()>,
 
-    /// Holds the receiver to wait for the process result from the [CAsyncTask].
+    /// Holds the receiver to wait for the process result from the [CTaskCB].
     recv: Receiver<Option<CObject>>,
   }
-  impl CAsyncTaskResult {
+  impl CTaskResult {
     /// Private constructor to support the [task] function.
-    fn new(task: CAsyncTask, data: Option<CObject>, delay: u64) -> CAsyncTaskResult {
+    fn new(task: CTaskCB, data: Option<CObject>, delay: u64) -> CTaskResult {
       // Setup our message channel.
       let (tx, rx) = channel::<Option<CObject>>();
 
@@ -133,10 +145,10 @@ pub mod codemelted_async {
       });
 
       // Return the constructed object.
-      CAsyncTaskResult { handle, recv: rx }
+      CTaskResult { handle, recv: rx }
     }
 
-    /// Indicator to whether the task thread has completed the [CAsyncTask]
+    /// Indicator to whether the task thread has completed the [CTaskCB]
     pub fn has_completed(&self) -> bool {
       self.handle.is_finished()
     }
@@ -152,34 +164,95 @@ pub mod codemelted_async {
     }
   }
 
-  /// TBD
-  pub struct CProcessProtocol {
-    // on_message_rx: CMessageRxHandler<String>
+  /// The result of a [process] call. This holds an internal thread that will
+  /// call the [CTaskCB] to process specified data and return the result.
+  /// The [CTaskResult::has_completed] will let you know when the thread
+  /// has completed so you can then call [CTaskResult::value] for the
+  /// processed value.
+  pub struct CProcessResult {
+    process: Child,
   }
-  impl CProcessProtocol {
-    // fn new(on_message_rx: CMessageRxHandler<String>) -> CProcessProtocol {
-    //   CProcessProtocol { on_message_rx }
-    // }
-  }
-  impl CProtocolHandler<String> for CProcessProtocol {
-    fn is_running(&self) -> bool {
-      todo!();
+  impl CProcessResult {
+    fn new(command: &str, args: &str) -> CProcessResult {
+      let cmd = format!("{} {}", command, args);
+      let proc = if cfg!(target_os = "windows") {
+        Command::new("cmd").args(["/c", &cmd])
+          .stdin(Stdio::piped())
+          .stdout(Stdio::piped())
+          .stderr(Stdio::piped())
+          .spawn()
+      } else {
+        Command::new("sh").args(["-c", &cmd])
+          .stdin(Stdio::piped())
+          .stdout(Stdio::piped())
+          .stderr(Stdio::piped())
+          .spawn()
+      };
+
+      let process = match proc {
+        Ok(v) => v,
+        Err(why) => panic!("Failed to create CProcessPr{}", why),
+      };
+
+      CProcessResult { process }
     }
 
-    fn post_message(&self, data: String) {
-      todo!()
+    /// Retrieves the id associated with the held process running.
+    pub fn id(&self) -> u32 {
+      self.process.id()
     }
 
-    fn terminate(&self) {
-      todo!()
+    /// Kills the currently held process signaling an error if the process
+    /// could not be killed.
+    pub fn kill(&mut self) -> Result<(), std::io::Error> {
+      self.process.kill()
+    }
+
+    /// Reads the currently available stdout to a String. You must read this
+    /// often enough so the stdout is not overrun. You get to decided how to
+    /// read this.
+    pub fn read_stdout(&mut self) -> Result<String, std::io::Error> {
+      let obj = self.process.stdout.as_mut().unwrap();
+      let mut data = String::new();
+      let result = obj.read_to_string(&mut data);
+      match result {
+        Ok(_) => Ok(data),
+        Err(why) => Err(why),
+      }
+    }
+
+    /// Reads the currently available stderr to a String. You must read this
+    /// often enough so the stderr is not overrun. You get to decided how to
+    /// read this.
+    pub fn read_stderr(&mut self) -> Result<String, std::io::Error> {
+      let obj = self.process.stderr.as_mut().unwrap();
+      let mut data = String::new();
+      let result = obj.read_to_string(&mut data);
+      match result {
+        Ok(_) => Ok(data),
+        Err(why) => Err(why),
+      }
+    }
+
+    /// Writes and flushes the string data to stdout. If the held process is
+    /// waiting for a carriage return or line feed to proceed, you need to
+    /// include those as part of the string.
+    pub fn write(&self, data: &str) -> Result<(), std::io::Error> {
+      let mut obj = self.process.stdin.as_ref().unwrap();
+      let result = obj.write_all(data.as_bytes());
+      match result {
+        Ok(_) => obj.flush(),
+        Err(why) => Err(why),
+      }
     }
   }
+
 
   /// The task that runs within the [CTimerResult] thread.
-  pub type CTimerTask = fn();
+  pub type CTimerCB = fn();
 
   /// The result of a [timer] function call. This holds the internals of the
-  /// thread running the [CTimerTask] until the [CTimerResult::stop] is
+  /// thread running the [CTimerCB] until the [CTimerResult::stop] is
   /// called.
   pub struct CTimerResult {
     /// The handle to the internally spawned thread.
@@ -190,7 +263,7 @@ pub mod codemelted_async {
   }
   impl CTimerResult {
     /// Private function to create the object via the [timer] function.
-    fn new(task: CTimerTask, interval: u64) -> CTimerResult {
+    fn new(task: CTimerCB, interval: u64) -> CTimerResult {
       // Setup our channel
       let (tx, rx) = channel::<bool>();
 
@@ -232,13 +305,13 @@ pub mod codemelted_async {
   }
 
   /// The task that runs within the [CWorkerProtocol] thread.
-  pub type CWorkerTask = fn(CObject) -> Option<CObject>;
+  pub type CWorkerCB = fn(CObject) -> Option<CObject>;
 
   /// The result of a [worker] call. This holds a dedicated thread that is
   /// waiting for data via the [CWorkerProtocol::post_message]. This will
   /// queue of data for processing and the internal thread will process that
-  /// data in accordance with the [CWorkerTask]. Any data meant for return
-  /// processing is handled via the [CMessageRxHandler<CObject>] specified on
+  /// data in accordance with the [CWorkerCB]. Any data meant for return
+  /// processing is handled via the [`CMessageRxHandler<CObject>`] specified on
   /// the worker call.
   pub struct CWorkerProtocol {
     handle: JoinHandle<()>,
@@ -246,7 +319,7 @@ pub mod codemelted_async {
   }
   impl CWorkerProtocol {
     /// Private constructor to construct that dedicated background worker.
-    fn new(task: CWorkerTask, on_message_rx: CMessageRxHandler<CObject>) -> CWorkerProtocol {
+    fn new(task: CWorkerCB, on_message_rx: CMessageRxHandler<CObject>) -> CWorkerProtocol {
       // Setup our message channel.
       let (tx, rx) = channel::<CObject>();
 
@@ -254,9 +327,13 @@ pub mod codemelted_async {
       let handle = thread::spawn(move || {
         loop {
           let data = rx.recv().unwrap();
-          if data.as_str().unwrap() == "terminate_protocol" {
-            break;
+
+          if data.is_string() {
+            if data.as_str().unwrap() == "terminate_protocol" {
+              break;
+            }
           }
+
           let result = task(data);
           if result.is_some() {
             on_message_rx(result.unwrap());
@@ -306,6 +383,11 @@ pub mod codemelted_async {
     }
   }
 
+  /// !!!!TODO: NEED TESTING!!!!
+  pub fn process(command: &str, args: &str) -> CProcessResult {
+    CProcessResult::new(command, args)
+  }
+
   /// Will put a currently running thread (main or background) for a specified
   /// delay in milliseconds.
   ///
@@ -322,9 +404,9 @@ pub mod codemelted_async {
     thread::sleep(delay);
   }
 
-  /// Creates a [CAsyncTaskResult] which runs a background thread to
+  /// Creates a [CTaskResult] which runs a background thread to
   /// eventually retrieve the value of the task. The data is a
-  /// [Option<CObject>] to represent the optional data for the task and
+  /// [`Option<CObject>`] to represent the optional data for the task and
   /// optional data returned.
   ///
   /// **Example (No Data):**
@@ -332,13 +414,13 @@ pub mod codemelted_async {
   /// use codemelted::CObject;
   /// use codemelted::codemelted_async;
   ///
-  /// fn async_task_cb(data: Option<CObject>) -> Option<CObject> {
+  /// fn task_cb(data: Option<CObject>) -> Option<CObject> {
   ///   codemelted_async::sleep(1000);
   ///   println!("Hello");
   ///   None
   /// }
   ///
-  /// let async_task = codemelted_async::task(async_task_cb, None, 250);
+  /// let async_task = codemelted_async::task(task_cb, None, 250);
   /// assert!(!async_task.has_completed());
   /// let answer = async_task.value();
   /// assert!(async_task.has_completed());
@@ -351,7 +433,7 @@ pub mod codemelted_async {
   /// use codemelted::codemelted_json;
   /// use codemelted::CObject;
   ///
-  /// fn async_task_cb(data: Option<CObject>) -> Option<CObject> {
+  /// fn task_cb(data: Option<CObject>) -> Option<CObject> {
   ///   codemelted_async::sleep(1000);
   ///   let data_to_process = match data {
   ///       Some(v) => v.as_i64().unwrap(),
@@ -363,7 +445,7 @@ pub mod codemelted_async {
   /// }
   ///
   /// let async_task = codemelted_async::task(
-  ///   async_task_cb,
+  ///   task_cb,
   ///   Some(CObject::from(24)),
   ///   250
   /// );
@@ -373,14 +455,14 @@ pub mod codemelted_async {
   /// assert!(answer.is_some());
   /// ```
   pub fn task(
-    task: CAsyncTask,
+    task: CTaskCB,
     data: Option<CObject>,
     delay: u64
-  ) -> CAsyncTaskResult {
-    CAsyncTaskResult::new(task, data, delay)
+  ) -> CTaskResult {
+    CTaskResult::new(task, data, delay)
   }
 
-  /// Creates a repeating [CTimerTask] on the specified interval
+  /// Creates a repeating [CTimerCB] on the specified interval
   /// (in milliseconds). The task is completed when the [CTimerResult::stop]
   /// is called.
   ///
@@ -388,24 +470,64 @@ pub mod codemelted_async {
   /// ```
   /// use codemelted::codemelted_async;
   ///
-  /// fn timer_task_cb() {
+  /// fn timer_cb() {
   ///   println!("Hello");
   /// }
   ///
-  /// let timer_task = codemelted_async::timer( timer_task_cb, 250);
+  /// let timer_task = codemelted_async::timer( timer_cb, 250);
   /// codemelted_async::sleep(100);
   /// assert!(timer_task.is_running());
   /// codemelted_async::sleep(1000);
   /// timer_task.stop();
   /// assert!(!timer_task.is_running());
   /// ```
-  pub fn timer(task: CTimerTask, interval: u64) -> CTimerResult {
+  pub fn timer(task: CTimerCB, interval: u64) -> CTimerResult {
     CTimerResult::new(task, interval)
   }
 
-  /// TBD
+  /// Creates a [CWorkerProtocol] object that has a dedicated background
+  /// thread for processing [CObject] data within a given specified
+  /// [CWorkerCB] loop. The task is ran when data is received via the
+  /// [CWorkerProtocol::post_message] call. Messages are processed in the
+  /// order received (First In First Out). The thread is blocked
+  /// (i.e. no data, not doing anything) until the protocol receives a
+  /// message.
+  ///
+  /// *NOTE: This is more efficient then constant creations of [task] calls
+  /// so use this construct when you know you need a dedicated thread vs. a
+  /// one off task that is not frequent.*
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_async;
+  /// use codemelted::CObject;
+  /// use codemelted::CProtocolHandler;
+  ///
+  /// static mut IS_MESSAGE_RX: bool = false;
+  /// fn on_message_received(_data: CObject) {
+  ///   // DO SOMETHING POST PROCESSING
+  ///   unsafe { IS_MESSAGE_RX = true };
+  /// }
+  ///
+  /// fn worker_cb(_data: CObject) -> Option<CObject> {
+  ///   // DO SOMETHING IN THE BACKGROUND
+  ///   Some(CObject::Null)
+  /// }
+  ///
+  /// let worker = codemelted_async::worker(
+  ///   worker_cb,
+  ///   on_message_received,
+  /// );
+  ///
+  /// assert!(worker.is_running());
+  /// worker.post_message(CObject::new_object());
+  /// assert!(worker.is_running());
+  /// worker.terminate();
+  /// assert!(!worker.is_running());
+  /// assert!(unsafe {IS_MESSAGE_RX});
+  /// ```
   pub fn worker(
-    task: CWorkerTask,
+    task: CWorkerCB,
     on_message_rx: CMessageRxHandler<CObject>
   ) -> CWorkerProtocol {
     CWorkerProtocol::new(task, on_message_rx)
@@ -614,7 +736,7 @@ mod codemelted_db {
 pub mod codemelted_disk {
   /// Use Statements
   use std::io::{Read, Write};
-  use std::fs::{File, Metadata, OpenOptions};
+  use std::fs::{self, File, Metadata, OpenOptions};
   use std::path::Path;
 
   /// Identifies the type of src on the disk when attempting to see if it
@@ -628,8 +750,36 @@ pub mod codemelted_disk {
     File,
   }
 
-  fn _cp(_src: &str, _dest: &str) -> Result<(), std::io::Error> {
-    unimplemented!("UNDER DEVELOPMENT!");
+  /// Will copy a file / directory from one location on the host operating
+  /// system disk to the other.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let temp_filename = format!(
+  ///   "{}/test.txt",
+  ///   codemelted_disk::temp_path()
+  /// );
+  /// let home_filename = format!(
+  ///   "{}/test.txt",
+  ///   codemelted_disk::home_path()
+  /// );
+  ///
+  /// let _ = codemelted_disk::write_file_as_string(
+  ///   &home_filename,
+  ///   "Hello",
+  ///   false
+  /// );
+  /// let result = codemelted_disk::cp(&home_filename, &temp_filename);
+  /// assert!(result.is_ok());
+  /// ```
+  pub fn cp(src: &str, dest: &str) -> Result<(), std::io::Error> {
+    let result = fs::copy(src, dest);
+    match result {
+      Ok(_) => Ok(()),
+      Err(why) => Err(why),
+    }
   }
 
   /// Determines if a directory or file exists on the host operating system
@@ -647,10 +797,10 @@ pub mod codemelted_disk {
   /// ```
   pub fn exists(src: &str, disk_type: CDiskType) -> bool {
     match disk_type {
-        CDiskType::Either => Path::new(src).is_dir()
-          || Path::new(src).is_file(),
-        CDiskType::Directory => Path::new(src).is_dir(),
-        CDiskType::File => Path::new(src).is_file(),
+      CDiskType::Either => Path::new(src).is_dir()
+        || Path::new(src).is_file(),
+      CDiskType::Directory => Path::new(src).is_dir(),
+      CDiskType::File => Path::new(src).is_file(),
     }
   }
 
@@ -672,8 +822,19 @@ pub mod codemelted_disk {
     }
   }
 
-  fn _ls(_src: &str) {
-    unimplemented!("UNDER DEVELOPMENT!");
+  /// Will list the files / directories in a given location on the host
+  /// operating system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let temp_path = codemelted_disk::temp_path();
+  /// let result = codemelted_disk::ls(&temp_path);
+  /// assert!(result.is_ok());
+  /// ```
+  pub fn ls(src: &str) -> Result<fs::ReadDir, std::io::Error> {
+    fs::read_dir(src)
   }
 
   /// Retrieves metadata about the specified directory or stored on the
@@ -691,12 +852,51 @@ pub mod codemelted_disk {
     Path::new(src).metadata()
   }
 
-  fn _mkdir(_src: &str) -> Result<(), std::io::Error> {
-    unimplemented!("UNDER DEVELOPMENT!");
+  /// Will create a directory and sub-directories in a given location on the
+  /// host operating system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let temp_path = codemelted_disk::temp_path();
+  /// let new_path = format!("{}/1/2/ready/go", temp_path);
+  /// let result = codemelted_disk::mkdir(&new_path);
+  /// assert!(result.is_ok());
+  pub fn mkdir(src: &str) -> Result<(), std::io::Error> {
+    fs::create_dir_all(src)
   }
 
-  fn _mv(_src: &str, _dest: &str) -> Result<(), std::io::Error> {
-    unimplemented!("UNDER DEVELOPMENT!");
+  /// Will move a file / directory from one location on the host operating
+  /// system disk to the other.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let temp_filename = format!(
+  ///   "{}/test.txt",
+  ///   codemelted_disk::temp_path()
+  /// );
+  /// let new_filename = format!(
+  ///   "{}/test_new.txt",
+  ///   codemelted_disk::temp_path()
+  /// );
+  ///
+  /// let _ = codemelted_disk::write_file_as_string(
+  ///   &temp_filename,
+  ///   "Hello",
+  ///   false
+  /// );
+  /// let result = codemelted_disk::mv(&temp_filename, &new_filename);
+  /// assert!(result.is_ok());
+  /// ```
+  pub fn mv(src: &str, dest: &str) -> Result<(), std::io::Error> {
+    let result = fs::rename(src, dest);
+    match result {
+      Ok(_) => Ok(()),
+      Err(why) => Err(why),
+    }
   }
 
   /// Retrieves the newline character for the host operating system.
@@ -805,8 +1005,43 @@ pub mod codemelted_disk {
     }
   }
 
-  fn _rm(_src: &str) -> Result<String, std::io::Error> {
-    unimplemented!("UNDER DEVELOPMENT!");
+  /// Will remove a file / directory from one location on the host operating
+  /// system disk to the other.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let temp_filename = format!(
+  ///   "{}/test.txt",
+  ///   codemelted_disk::temp_path()
+  /// );
+  ///
+  /// let _ = codemelted_disk::write_file_as_string(
+  ///   &temp_filename,
+  ///   "Hello",
+  ///   false
+  /// );
+  /// let result = codemelted_disk::rm(&temp_filename);
+  /// assert!(result.is_ok());
+  /// ```
+  pub fn rm(src: &str) -> Result<(), std::io::Error> {
+    let is_file = exists(src, CDiskType::File);
+    let is_dir = exists(src, CDiskType::Directory);
+    if is_file {
+      let result = fs::remove_file(src);
+      match result {
+        Ok(_) => return Ok(()),
+        Err(why) => return Err(why),
+      }
+    } else if is_dir {
+      let result = fs::remove_dir_all(src,);
+      match result {
+        Ok(_) => return Ok(()),
+        Err(why) => return Err(why),
+      }
+    }
+    panic!("codemelted_disk::rm - Specified src was not found!");
   }
 
   /// Retrieves the temp path on the host operating system. Useful for
@@ -1863,5 +2098,28 @@ mod tests {
 // Only used for testing out modules that can't have a unit test derived.
 // Comment out when ready to deliver module to crate.
 pub fn main() {
+  use crate::codemelted_async;
 
+  static mut IS_MESSAGE_RX: bool = false;
+  fn on_message_received(_data: CObject) {
+    // DO SOMETHING POST PROCESSING
+    unsafe { IS_MESSAGE_RX = true };
+  }
+
+  fn worker_cb(_data: CObject) -> Option<CObject> {
+    // DO SOMETHING IN THE BACKGROUND
+    Some(CObject::Null)
+  }
+
+  let worker = codemelted_async::worker(
+    worker_cb,
+    on_message_received,
+  );
+
+  assert!(worker.is_running());
+  worker.post_message(CObject::new_object());
+  assert!(worker.is_running());
+  worker.terminate();
+  assert!(!worker.is_running());
+  assert!(unsafe {IS_MESSAGE_RX});
 }

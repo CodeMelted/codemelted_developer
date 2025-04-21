@@ -12,7 +12,7 @@ DESCRIPTION: The codemelted.rs module will be an installable crate that provides
 
 The codemelted.rs module will be an installable crate that provides the full native speed of a C/C++ application but with modern language constructs and memory safety. While C/C++ still have their place in application development, memory safety proves to be the #1 attack vector of hackers. Rust was designed to address those shortcomings and is an ideal choice for new developers.
 
-*BY: Mark Shaffer / LAST UPDATED: 2025-Apr-17*
+*BY: Mark Shaffer / LAST UPDATED: 2025-Apr-21*
 
 <center>
   <br />
