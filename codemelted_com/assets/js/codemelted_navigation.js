@@ -5,7 +5,7 @@
  * widget between each of the domains and the main layout of the overall
  * navigation.
  * @copyright © 2025 Mark Shaffer. All Rights Reserved
- * @version 2.4.1 <br />
+ * @version 2.5.0 <br />
  * - 2.4.0 [2025-04-17]: Adding labels to nav bar and removed services.
  * - 2.3.0 [2025-04-16]: Back to the footer driving the menu. Also made it to
  * where the main domains are the nav bar. Better navigation that way. Lastly
@@ -226,33 +226,6 @@ function onDisqusClicked() {
 }
 
 /**
- * Provides the two-way communication between the PWA and our domain pages.
- * @type {BroadcastChannel}
- */
-let _isPWA = false;
-let _channel = new BroadcastChannel("codemelted_channel");
-_channel.onmessage = (evt) => {
-  let data = evt.data;
-  if (data === "is_pwa") {
-    _isPWA = true;
-  }
-};
-
-/**
- * Will open either the codemelted_navigation menu or the PWA if we are under
- * it.
- * @returns {void}
- */
-function onOpenMenuClicked() {
-  if (_isPWA) {
-    _channel.postMessage("open_drawer");
-  } else {
-    let url = globalThis.location.href;
-    window.open(`https://codemelted.com/index.html?open=${url}`, "_self");
-  }
-}
-
-/**
  * Handles opening domain navigation link forcing a fresh pool from net to
  * avoid cache.
  * @param {string} url The url to navigate to.
@@ -261,6 +234,43 @@ function onOpenMenuClicked() {
 function onDomainNavClicked(url) {
   const navUrl = `${url}?rand=${Math.random()}`;
   window.open(navUrl, "_self");
+}
+
+/**
+ * Handles the opening of the social links in a new window.
+ * @param {string} url The URL to open the social link as a new window.
+ * @returns {void}
+ */
+function onOpenLinkClicked(url) {
+  const w = 900;
+  const h = 600;
+  const top = (window.screen.height - h) / 2;
+  const left = (window.screen.width - w) / 2;
+  const settings = `toolbar=no, location=no, ` +
+    `directories=no, status=no, menubar=no, ` +
+    `scrollbars=no, resizable=yes, copyhistory=no, ` +
+    `width=${w}, height=${h}, top=${top}, left=${left}`;
+  window.open(
+    `https://${url}`,
+    "_blank",
+    settings,
+  );
+}
+
+/**
+ * Will open either the codemelted_navigation menu or the PWA if we are under
+ * it.
+ * @returns {void}
+ */
+function onOpenMenuClicked() {
+  const divDrawer = document.getElementById("divDrawer");
+  const divOverlay = document.getElementById("divOverlay");
+  divOverlay.onclick = () => {
+    divDrawer.style.display = "none";
+    divOverlay.style.display = "none";
+  }
+  divDrawer.style.display = "block";
+  divOverlay.style.display = "block";
 }
 
 // ============================================================================
@@ -351,7 +361,7 @@ const _htmlTemplate = `
       color: white;
       font-size: smaller;
     }
-    .codemelted-footer-socials-layout a:nth-child(5) {
+    .codemelted-footer-socials-layout a:nth-child(4) {
       border: none;
     }
     .codemelted-footer-socials-layout a:hover {
@@ -402,7 +412,7 @@ const _htmlTemplate = `
       width: 140px;
       color: white;
       right: 5px;
-      bottom: 90px;
+      bottom: 115px;
       margin-left: -5px;
       border-width: 5px;
       border-style: solid;
@@ -412,7 +422,63 @@ const _htmlTemplate = `
       opacity: 0.8;
       z-index: 9999999;
     }
+
+    #divDrawer {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 225px;
+      background-color: #161E27;
+      color: white;
+      z-index: 2147483647;
+    }
+
+    #divDrawer ul {
+      display: block;
+      margin-left: 5px;
+      padding: 0;
+      list-style: none;
+    }
+
+    #divDrawer li {
+      padding: 5px;
+      font-size: larger;
+    }
+
+    #divDrawer a {
+      cursor: pointer;
+      text-decoration: none;
+      color: white;
+    }
+
+    #divOverlay {
+      position: fixed;
+      display: none;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 2147483646;
+      cursor: pointer;
+    }
   </style>
+
+  <!-- Our Page Drawer -->
+  <div id="divDrawer">
+    <img style="width: 100%; height: 75px;" src="https://codemelted.com/assets/images/logo-codemelted-twitter.png" />
+    <ul>
+      <li><a href="https://codemelted.com/blog/index.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-blog.png" />&nbsp;&nbsp;&nbsp;Blog</li></a>
+      <li><a href="https://codemelted.com/developer/index.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-code.png" />&nbsp;&nbsp;&nbsp;Developer</li></a>
+      <li><a href="https://codemelted.com/photography/index.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-camera.png" />&nbsp;&nbsp;&nbsp;Photography</li></a>
+      <li><a onclick="onOpenPWAClicked(); return false;"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-logo.png" />&nbsp;&nbsp;&nbsp;Open PWA</li></a>
+    </ul>
+  </div>
+  <div id="divOverlay"></div>
 
   <!-- Footer for all codemelted.com domain content -->
   <div id="divTooltip" class="codemelted-tooltip">URL Copied!</div>
@@ -471,10 +537,6 @@ async function main() {
     // Setup our Text-To-Speech
     const source = document.body.innerText;
     _ttsPlayer = new CTextToSpeechPlayer(0, source);
-
-    // Tell the PWA we are here. It will respond back ensuring bi-directional
-    // communication.
-    _channel.postMessage("hello");
 
     // Highlight the "active" button
     let aList = [

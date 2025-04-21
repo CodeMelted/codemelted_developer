@@ -16,12 +16,9 @@
   <meta property="og:image:height" content="100px">
   <meta property="og:image:width" content="100px">
   <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png">
-  <link rel="stylesheet" href="https://codemelted.com/assets/css/scrollbars.css">
-  <script>
-    function printPage() {
-      window.print();
-    }
-  </script>
+  <link rel="stylesheet" href="..//assets/css/scrollbars.css">
+  <script src="../assets/js/codemelted_navigation.js" defer></script>
+
   <style>
     /*
     ---------------------------------------------------------------------------
@@ -98,7 +95,7 @@
       padding: 0;
       margin: 0;
       top: 50px;
-      bottom: 42px;
+      bottom: 138px;
       width: 100%;
       overflow: auto;
       background-color: darkblue;
@@ -139,7 +136,7 @@
 
     footer {
       position: fixed;
-      bottom: 0;
+      bottom: 95px;
       left: 0;
       right: 0;
       background-color: darkblue;
@@ -154,7 +151,6 @@
       padding: 10px;
     }
   </style>
-  <script src="../js/main.js" defer></script>
 </head><body>
   <header>
     <img src="https://codemelted.com/assets/images/icon-uml.png" />
@@ -203,6 +199,7 @@
       btnCancel.onclick = (e) => {dlgSaveFile.close(null); };
     </script>
   </dialog>
+  <codemelted-navigation></codemelted-navigation>
   <script type="module">
     // ------------------------------------------------------------------------
     // [Setup Script] ---------------------------------------------------------

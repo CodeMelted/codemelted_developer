@@ -16,13 +16,10 @@
   <meta property="og:image:height" content="100px">
   <meta property="og:image:width" content="100px">
   <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png">
-  <link rel="stylesheet" href="https://codemelted.com/assets/css/developer-theme.css">
-  <link rel="stylesheet" href="https://codemelted.com/assets/css/scrollbars.css">
-  <script>
-    function printPage() {
-      window.print();
-    }
-  </script>
+  <link rel="stylesheet" href="../assets/css/services.css">
+  <link rel="stylesheet" href="../assets/css/developer-theme.css">
+  <link rel="stylesheet" href="../assets/css/scrollbars.css">
+  <script src="../assets/js/codemelted_navigation.js" defer></script>
   <style>
     .custom-select {
       background-color: black;
@@ -30,8 +27,12 @@
       font-size: large;
       width: 275px;
     }
-    h1 img {
+    /* h1 img {
       height: 50px;
+    } */
+
+    .content-container {
+      top: 0;
     }
 
     @media print {
@@ -40,18 +41,18 @@
       }
     }
   </style>
-</head><body>
+</head><body><div class="content-container">
   <div class="content-main">
-    <p>
-      <center>
-        <select id="cmbPresentation" class="custom-select">
-          <option selected value="presentation1">Chasing the Mythical Unicorn</option>
-          <option value="presentation2">Bringing an Idea to a Minimum Viable Product</option>
-          <option value="presentation3">Building a Pi Camera Based System</option>
-        </select>
-      </center>
-    </p>
-    <div id="presentation1">
+    <center>
+      <img style="height: 35px;" src="../assets/images/icon-education.png" />
+      <select id="cmbPresentation" class="custom-select">
+        <option selected value="presentation3">Building a Pi Camera Based System</option>
+        <option value="presentation2">Bringing an Idea to a Minimum Viable Product</option>
+        <option value="presentation1">Chasing the Mythical Unicorn</option>
+      </select>
+    </center>
+    <br />
+    <div style="display: none;" id="presentation1">
       <center>
         <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vRJsjQEhQCHAtjsSTHX_n1rg27CqQPqsje1dGT6XFgX2LcOXg6CSE2Ls786_sfaYVR_uBi1d_UY8XAj/embed?start=false&loop=false&delayms=3000" frameborder="0" width="100%" height="325" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
       </center>
@@ -79,29 +80,31 @@
         Unfortunately we all know what happened with that. But the idea spurned a fun project I did for work
         that is carrying over into a new design with a hopeful new trip in 2023 or 2024 time frame.
       </p>
-  </div>
+    </div>
 
-  <div style="display: none;" id="presentation3">
-    <center>
-      <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vT1Pm12TGRuFZmWc_9gtpqWGtdgx2x1cRpBUGmYwV37Y3CpdavvPYvyhgmaK0HKyd7kj1ilP-5uMnpO/embed?start=false&loop=false&delayms=3000" frameborder="0" width="100%" height="325" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
-    </center>
-    <br />
-    <p>
-      From the <i>Bringing an Idea to an MVP</i> slide presentation implemented before COVID, I built a
-      MVP prototype of a Raspberry Pi touch screen system for my 2006 Jeep Wrangler. The goal was to eventually
-      one day go travel to Prudhoe Bay, Alaska. Well I have a newer Jeep and the technology has gotten faster.
-      This is the upgrade and evolution of this initial idea. This is Raspberry Pi build out. Further slides will
-      follow for each of the steps of the build.
-    </p>
-  </div>
+    <div id="presentation3">
+      <center>
+        <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vT1Pm12TGRuFZmWc_9gtpqWGtdgx2x1cRpBUGmYwV37Y3CpdavvPYvyhgmaK0HKyd7kj1ilP-5uMnpO/embed?start=false&loop=false&delayms=3000" frameborder="0" width="100%" height="325" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+      </center>
+      <br />
+      <p>
+        From the <i>Bringing an Idea to an MVP</i> slide presentation implemented before COVID, I built a
+        MVP prototype of a Raspberry Pi touch screen system for my 2006 Jeep Wrangler. The goal was to eventually
+        one day go travel to Prudhoe Bay, Alaska. Well I have a newer Jeep and the technology has gotten faster.
+        This is the upgrade and evolution of this initial idea. This is Raspberry Pi build out. Further slides will
+        follow for each of the steps of the build.
+      </p>
+    </div>
 
-  <script>
-    let cmbPresentation = document.getElementById("cmbPresentation");
-    cmbPresentation.onchange = (evt) => {
-        for (let x = 0; x < cmbPresentation.length; x++) {
-            document.getElementById(cmbPresentation[x].value).style.display = 'none';
-        }
-        document.getElementById(evt.target.value).style.display = 'block';
-    };
-  </script>
-</body></html>
+    <script>
+      let cmbPresentation = document.getElementById("cmbPresentation");
+      cmbPresentation.onchange = (evt) => {
+          for (let x = 0; x < cmbPresentation.length; x++) {
+              document.getElementById(cmbPresentation[x].value).style.display = 'none';
+          }
+          document.getElementById(evt.target.value).style.display = 'block';
+      };
+    </script>
+  </div>
+  <codemelted-navigation></codemelted-navigation>
+</div></body></html>
