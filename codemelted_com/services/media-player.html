@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <title>CodeMelted | Media Player</title>
+  <meta charset="UTF-8">
+  <meta name="description" content="A feed of the @codemelted podcast and video content for the CodeMelted PWA and DEV projects.">
+  <meta name="keywords" content="YouTube, Feed, CodeMelted, CodeMelted DEV, CodeMelted PWA">
+  <meta name="author" content="Mark Shaffer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="CodeMelted | Media Player">
+  <meta property="og:description" content="A feed of the @codemelted podcast and video content for the CodeMelted PWA and DEV projects.">
+  <meta property="og:url" content="https://codemelted.com/services/spa/youtube.html">
+  <meta property="og:site_name" content="CodeMelted PWA">
+  <meta property="og:image" content="https://codemelted.com/assets/images/icon-media.png">
+  <meta property="og:image:height" content="100px">
+  <meta property="og:image:width" content="100px">
+  <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png">
+  <link rel="stylesheet" href="https://codemelted.com/assets/css/services.css">
+  <script>
+    function printPage() {
+      window.print();
+    }
+  </script>
+  <style>
+    .content-container {
+      background-image: url("https://codemelted.com/assets/images/background-gemini-tv.png");
+      background-repeat: no-repeat;
+      background-attachment: center;
+      background-size: 100% 100%;
+      top: 0;
+      bottom: 0;
+    }
+
+    #tvContent {
+      position: fixed;
+      top: 7.5vh;
+      left: 7.5vw;
+      width: 70.0%;
+      height: 60.0%;
+      background-color: black;
+      background-image: url("https://codemelted.com/assets/images/background-gemini-tv-snow.png");
+    }
+
+
+    .channel-selection-container {
+      text-align: center;
+      position: fixed;
+      bottom: 17vh;
+      left: 0;
+      right: 0;
+    }
+
+    #tvChannelSelection {
+      background-color: black;
+      color: white;
+      font-size: large;
+      width: 275px;
+    }
+
+  </style>
+</head><body>
+  <div class="content-container">
+    <iframe id="tvContent" src="" title="Vintage TV" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen;" referrerpolicy="strict-origin-when-cross-origin"  referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </div>
+
+  <div class="channel-selection-container">
+    <select id="tvChannelSelection">
+      <option selected value="">Change the Channel</option>
+      <option value="https://www.youtube.com/embed/videoseries?si=LUmcyB7lNAs3N5ZW&amp;list=PLxnavV3INH6ODRxPVQeXc2TYI_fsw3Vqc">An Introduction to Cocoapods</option>
+    </select>
+  </div>
+
+
+  <script>
+    // Go access the controls of the SPA.
+    const tvContent = document.getElementById("tvContent");
+    const tvChannelSelection = document.getElementById("tvChannelSelection");
+    if (tvContent == null || tvChannelSelection == null) {
+        console.error("You did not bind the properties properly");
+    }
+
+    // Now go hook it up so you can change channels.
+    tvChannelSelection.onchange = (evt) => {
+        tvContent.src = evt.target.value;
+    };
+  </script>
+</body></html>

@@ -1,0 +1,30 @@
+/*
+===============================================================================
+@file Provides the basic scrollbar for iframe content.
+@author mark.shaffer@codemelted.com
+@copyright 2025 Mark Shaffer. All Rights Reserved.
+@version 1.0.0
+- 1.0.0 [Last Update: 2025-Mar-14]: Initial release of style sheet.
+===============================================================================
+*/
+
+/* width */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 3px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: black;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

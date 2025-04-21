@@ -1,0 +1,91 @@
+/*
+===============================================================================
+@file Sets up the basic layout of the navigation *.html files so they render
+  consistently.
+@author mark.shaffer@codemelted.com
+@copyright 2025 Mark Shaffer. All Rights Reserved.
+@version 1.1.0
+- 1.1.0 [Last Update: 2025-Mar-18]: Some fixes to color and consolidation
+  to styles.
+- 1.0.0 [Last Update: 2025-Mar-14]: Initial release of style sheet with the
+  new dedicated pages for the bottom navigation.
+===============================================================================
+*/
+
+/*
+-------------------------------------------------------------------------------
+[OVERALL SETUP] ---------------------------------------------------------------
+-------------------------------------------------------------------------------
+*/
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #222222;
+  background-image: url(https://codemelted.com/assets/images/background-codemelted.png);
+  background-position: center center;
+  background-repeat: repeat;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+/*
+-------------------------------------------------------------------------------
+[FIXED HEADER SETUP] ----------------------------------------------------------
+-------------------------------------------------------------------------------
+*/
+.feed-header {
+  background-color: black;
+  display: grid;
+  grid-template-columns: 50px auto auto;
+  color: white;
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 50px;
+  z-index: 99999;
+}
+.feed-header a {
+  cursor: pointer;
+}
+.feed-header img {
+  margin-left: 5px;
+  padding: 5px;
+  height: 35px;
+}
+.feed-header div {
+  font-weight: bold;
+  font-size: larger;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  /* margin-left: 25px; */
+}
+.feed-header select {
+  border: none;
+  margin: 5px;
+  font-size: large;
+  cursor: pointer;
+  background-color: darkblue;
+  color: white;
+}
+.feed-header select:focus {
+  outline: none;
+}
+
+/*
+-------------------------------------------------------------------------------
+[MAIN CONTENT SETUP] ----------------------------------------------------------
+-------------------------------------------------------------------------------
+*/
+.content-container {
+  display: flex;
+  overflow: auto;
+  position: fixed;
+  top: 50px;
+  left: 0px;
+  right: 0px;
+  bottom: 75px;
+}
+.content-container iframe {
+  flex-grow: 1;
+}
