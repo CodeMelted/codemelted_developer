@@ -47,7 +47,7 @@ pub trait CProtocolHandler<T> {
   /// Handles the sending of the message to the protocol for processing.
   fn post_message(&self, data: T);
   /// Signals for the protocol to terminate.
-  fn terminate(&self);
+  fn terminate(&mut self);
 }
 
 /// Defines a trait to attach to the [CObject] providing utility function
@@ -107,7 +107,7 @@ impl IsTruthyString for CObject {
 /// operating system service / application.
 pub mod codemelted_async {
   // Use Statements
-  use crate::{CMessageRxHandler, CObject, CProtocolHandler};
+  use crate::{CMessageRxHandler, CProtocolHandler};
   use std::{
     io::{Read, Write},
     process::{Child, Command, Stdio},
@@ -117,25 +117,25 @@ pub mod codemelted_async {
   };
 
   /// The task that runs as part of the [CTaskResult] internal thread.
-  pub type CTaskCB = fn(Option<CObject>) -> Option<CObject>;
+  pub type CTaskCB<T> = fn(Option<T>) -> Option<T>;
 
   /// The result of a [task] call. This holds an internal thread that will
   /// call the [CTaskCB] to process specified data and return the result.
   /// The [CTaskResult::has_completed] will let you know when the thread
   /// has completed so you can then call [CTaskResult::value] for the
   /// processed value.
-  pub struct CTaskResult {
+  pub struct CTaskResult<T> {
     /// Holds the the handle for the internal thread.
     handle: JoinHandle<()>,
 
     /// Holds the receiver to wait for the process result from the [CTaskCB].
-    recv: Receiver<Option<CObject>>,
+    recv: Receiver<Option<T>>,
   }
-  impl CTaskResult {
+  impl<T: std::marker::Send + 'static> CTaskResult<T> {
     /// Private constructor to support the [task] function.
-    fn new(task: CTaskCB, data: Option<CObject>, delay: u64) -> CTaskResult {
+    fn new(task: CTaskCB<T>, data: Option<T>, delay: u64) -> CTaskResult<T> {
       // Setup our message channel.
-      let (tx, rx) = channel::<Option<CObject>>();
+      let (tx, rx) = channel::<Option<T>>();
 
       // Kick-off the thread to process the task.
       let handle = thread::spawn(move || {
@@ -155,7 +155,7 @@ pub mod codemelted_async {
 
     /// Retrieves the value processed by this task. Will block if the
     /// task thread has not completed.
-    pub fn value(&self) -> Option<CObject> {
+    pub fn value(&self) -> Option<T> {
       let result = self.recv.recv();
       match result {
         Ok(v) => v,
@@ -305,7 +305,7 @@ pub mod codemelted_async {
   }
 
   /// The task that runs within the [CWorkerProtocol] thread.
-  pub type CWorkerCB = fn(CObject) -> Option<CObject>;
+  pub type CWorkerCB<T> = fn(T) -> Option<T>;
 
   /// The result of a [worker] call. This holds a dedicated thread that is
   /// waiting for data via the [CWorkerProtocol::post_message]. This will
@@ -313,49 +313,61 @@ pub mod codemelted_async {
   /// data in accordance with the [CWorkerCB]. Any data meant for return
   /// processing is handled via the [`CMessageRxHandler<CObject>`] specified on
   /// the worker call.
-  pub struct CWorkerProtocol {
-    handle: JoinHandle<()>,
-    sender: Sender<CObject>
+  pub struct CWorkerProtocol<T> {
+    handle: Option<JoinHandle<()>>,
+    sender: Option<Sender<T>>,
+    task: CWorkerCB<T>,
   }
-  impl CWorkerProtocol {
-    /// Private constructor to construct that dedicated background worker.
-    fn new(task: CWorkerCB, on_message_rx: CMessageRxHandler<CObject>) -> CWorkerProtocol {
-      // Setup our message channel.
-      let (tx, rx) = channel::<CObject>();
+  impl<T: std::marker::Send + 'static> CWorkerProtocol<T> {
+    fn new(task: CWorkerCB<T>, on_message_rx: CMessageRxHandler<T>) -> CWorkerProtocol<T> {
+      let (tx, rx) = channel::<T>();
+      let mut protocol = CWorkerProtocol::<T> {
+        handle: None,
+        sender: Some(tx),
+        task
+      };
 
-      // Kick-off the loop to wait for messages to process.
       let handle = thread::spawn(move || {
         loop {
-          let data = rx.recv().unwrap();
+          let mut is_running = true;
+          let data = rx.recv();
+          let result = match data {
+            Ok(v) => (protocol.task)(v),
+            Err(_) => {
+              is_running = false;
+              None
+            },
+          };
 
-          if data.is_string() {
-            if data.as_str().unwrap() == "terminate_protocol" {
-              break;
-            }
-          }
-
-          let result = task(data);
           if result.is_some() {
             on_message_rx(result.unwrap());
+          }
+
+          if !is_running {
+            break;
           }
         }
       });
 
-      // Create and return the object.
-      CWorkerProtocol { handle, sender: tx }
+      protocol.handle = Some(handle);
+      protocol
     }
   }
-  impl CProtocolHandler<CObject> for CWorkerProtocol {
+  impl<T> CProtocolHandler<T> for CWorkerProtocol<T> {
     fn is_running(&self) -> bool {
-      !self.handle.is_finished()
+      let result = &self.handle;
+      match result {
+        Some(v) => !v.is_finished(),
+        None => false,
+      }
     }
 
-    fn post_message(&self, data: CObject) {
-      let _ = self.sender.send(data);
+    fn post_message(&self, data: T) {
+      let _ = self.sender.as_ref().unwrap().send(data);
     }
 
-    fn terminate(&self) {
-      self.post_message(CObject::from("terminate_protocol"));
+    fn terminate(&mut self) {
+      self.sender = None;
       loop {
         sleep(100);
         if !self.is_running() {
@@ -405,9 +417,10 @@ pub mod codemelted_async {
   }
 
   /// Creates a [CTaskResult] which runs a background thread to
-  /// eventually retrieve the value of the task. The data is a
-  /// [`Option<CObject>`] to represent the optional data for the task and
-  /// optional data returned.
+  /// eventually retrieve the value of the task. The data in the examples
+  /// are [`Option<CObject>`] to represent the optional data for the task and
+  /// optional data returned. The function is templated so you can use any
+  /// data type.
   ///
   /// **Example (No Data):**
   /// ```
@@ -454,11 +467,11 @@ pub mod codemelted_async {
   /// assert!(async_task.has_completed());
   /// assert!(answer.is_some());
   /// ```
-  pub fn task(
-    task: CTaskCB,
-    data: Option<CObject>,
+  pub fn task<T: std::marker::Send + 'static>(
+    task: CTaskCB<T>,
+    data: Option<T>,
     delay: u64
-  ) -> CTaskResult {
+  ) -> CTaskResult<T> {
     CTaskResult::new(task, data, delay)
   }
 
@@ -486,8 +499,8 @@ pub mod codemelted_async {
   }
 
   /// Creates a [CWorkerProtocol] object that has a dedicated background
-  /// thread for processing [CObject] data within a given specified
-  /// [CWorkerCB] loop. The task is ran when data is received via the
+  /// thread for processing any data type you specify for the [CWorkerCB]
+  /// loop. The task is ran when data is received via the
   /// [CWorkerProtocol::post_message] call. Messages are processed in the
   /// order received (First In First Out). The thread is blocked
   /// (i.e. no data, not doing anything) until the protocol receives a
@@ -514,7 +527,7 @@ pub mod codemelted_async {
   ///   Some(CObject::Null)
   /// }
   ///
-  /// let worker = codemelted_async::worker(
+  /// let mut worker = codemelted_async::worker(
   ///   worker_cb,
   ///   on_message_received,
   /// );
@@ -526,10 +539,10 @@ pub mod codemelted_async {
   /// assert!(!worker.is_running());
   /// assert!(unsafe {IS_MESSAGE_RX});
   /// ```
-  pub fn worker(
-    task: CWorkerCB,
-    on_message_rx: CMessageRxHandler<CObject>
-  ) -> CWorkerProtocol {
+  pub fn worker<T: std::marker::Send + 'static>(
+    task: CWorkerCB<T>,
+    on_message_rx: CMessageRxHandler<T>
+  ) -> CWorkerProtocol<T> {
     CWorkerProtocol::new(task, on_message_rx)
   }
 }
@@ -2099,6 +2112,8 @@ mod tests {
 // Comment out when ready to deliver module to crate.
 pub fn main() {
   use crate::codemelted_async;
+  use crate::CObject;
+  use crate::CProtocolHandler;
 
   static mut IS_MESSAGE_RX: bool = false;
   fn on_message_received(_data: CObject) {
@@ -2111,7 +2126,7 @@ pub fn main() {
     Some(CObject::Null)
   }
 
-  let worker = codemelted_async::worker(
+  let mut worker = codemelted_async::worker(
     worker_cb,
     on_message_received,
   );
