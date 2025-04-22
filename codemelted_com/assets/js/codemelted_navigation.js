@@ -6,6 +6,7 @@
  * navigation.
  * @copyright © 2025 Mark Shaffer. All Rights Reserved
  * @version 2.5.0 <br />
+ * - 2.5.0 [2025-04-21]: Cleaned up for using Word Press.
  * - 2.4.0 [2025-04-17]: Adding labels to nav bar and removed services.
  * - 2.3.0 [2025-04-16]: Back to the footer driving the menu. Also made it to
  * where the main domains are the nav bar. Better navigation that way. Lastly
@@ -355,6 +356,7 @@ const _htmlTemplate = `
       grid-template-columns: auto auto auto auto;
     }
     .codemelted-footer-socials-layout a {
+      text-decoration: none;
       padding-top: 5px;
       padding-bottom: 5px;
       border-right: 1px solid red;
@@ -472,10 +474,11 @@ const _htmlTemplate = `
   <div id="divDrawer">
     <img style="width: 100%; height: 75px;" src="https://codemelted.com/assets/images/logo-codemelted-twitter.png" />
     <ul>
-      <li><a href="https://codemelted.com/blog/index.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-blog.png" />&nbsp;&nbsp;&nbsp;Blog</li></a>
-      <li><a href="https://codemelted.com/developer/index.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-code.png" />&nbsp;&nbsp;&nbsp;Developer</li></a>
-      <li><a href="https://codemelted.com/photography/index.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-camera.png" />&nbsp;&nbsp;&nbsp;Photography</li></a>
-      <li><a onclick="onOpenPWAClicked(); return false;"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-logo.png" />&nbsp;&nbsp;&nbsp;Open PWA</li></a>
+      <li><a href="https://codemelted.com/services/about-me.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-me.jpg" />&nbsp;&nbsp;&nbsp;About Me</li></a>
+      <li><a href="https://codemelted.com/services/github-gists.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-github.png" />&nbsp;&nbsp;&nbsp;GitHub Gists</li></a>
+      <li><a href="https://codemelted.com/services/media-player.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-media.png" />&nbsp;&nbsp;&nbsp;Media Player</li></a>
+      <li><a href="https://codemelted.com/services/presentations.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-education.png" />&nbsp;&nbsp;&nbsp;Presentations</li></a>
+      <li><a href="https://codemelted.com/services/uml-modeler.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-uml.png" />&nbsp;&nbsp;&nbsp;UML Modeler</li></a>
     </ul>
   </div>
   <div id="divOverlay"></div>
