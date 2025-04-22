@@ -35,7 +35,7 @@ docs/
 developer/
 README.html
 .DS_Store
-developer.zip
+*.zip
 codemelted_flutter/.flutter-plugins-dependencies
 codemelted_flutter/.flutter-plugins
 test/codemelted.wasm
