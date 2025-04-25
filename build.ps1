@@ -231,13 +231,10 @@ function build([string[]]$params) {
       Write-Host "MESSAGE: Now deploying codemelted_com support items."
       Set-Location $PSScriptRoot/codemelted_com
       Compress-Archive -Path assets -DestinationPath assets.zip -Force
-      Compress-Archive -Path services -DestinationPath services.zip -Force
       $hostService = $env:CODEMELTED_USER_AND_IP + $env:CODEMELTED_HOME
       scp assets.zip $hostService
-      scp services.zip $hostService
       ssh $env:CODEMELTED_USER_AND_IP
       Remove-Item -Path assets.zip
-      Remove-Item -Path services.zip
       Set-Location $PSScriptRoot
       Write-Host "MESSAGE: codemelted_com upload completed.";
     }

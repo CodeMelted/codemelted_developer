@@ -1,0 +1,85 @@
+<style>
+  .custom-select {
+    background-color: black;
+    color: white;
+    font-size: large;
+  }
+  h1 img {
+    height: 50px;
+  }
+
+  iframe {
+    max-width: 564px;
+  }
+
+  @media print {
+    .content-container {
+      position: relative;
+    }
+  }
+</style>
+<div class="content-main">
+  <p>
+    <center>
+      <img style="height: 35px;" src="https://codemelted.com/assets/images/icon-education.png" />
+      <select id="cmbPresentation" class="custom-select">
+        <option selected value="presentation3">Building a Pi Camera Based System</option>
+        <option value="presentation2">Bringing an Idea to a Minimum Viable Product</option>
+        <option value="presentation1">Chasing the Mythical Unicorn</option>
+      </select>
+    </center>
+  </p><br />
+
+  <div id="presentation3">
+    <center>
+      <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vT1Pm12TGRuFZmWc_9gtpqWGtdgx2x1cRpBUGmYwV37Y3CpdavvPYvyhgmaK0HKyd7kj1ilP-5uMnpO/embed?start=false&loop=false&delayms=3000" frameborder="0" width="100%" height="325" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+    </center>
+    <br />
+    <p>
+      From the <i>Bringing an Idea to an MVP</i> slide presentation implemented before COVID, I built a
+      MVP prototype of a Raspberry Pi touch screen system for my 2006 Jeep Wrangler. The goal was to eventually
+      one day go travel to Prudhoe Bay, Alaska. Well I have a newer Jeep and the technology has gotten faster.
+      This is the upgrade and evolution of this initial idea. This is Raspberry Pi build out. Further slides will
+      follow for each of the steps of the build.
+    </p>
+  </div>
+
+  <div style="display: none;" id="presentation2">
+    <center>
+      <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vS6N1g9YNIu6dEPWKKemcQkUg9K5o8QWsFPD5O7zLch9NMrduZMu-_vYJ92-5j1GYQ0vD6I3U6owpiH/embed?start=false&loop=false&delayms=3000" frameborder="0" width="100%" height="325" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+    </center>
+    <br />
+    <p>
+      Before COVID I had a plan with my 2005 Jeep TJ to make a trip to Prudhoe Bay, Alaska.
+      Unfortunately we all know what happened with that. But the idea spurned a fun project I did for work
+      that is carrying over into a new design with a hopeful new trip in 2023 or 2024 time frame.
+    </p>
+  </div>
+
+  <div style="display: none;" id="presentation1">
+    <center>
+      <iframe src="https://docs.google.com/presentation/d/e/2PACX-1vRJsjQEhQCHAtjsSTHX_n1rg27CqQPqsje1dGT6XFgX2LcOXg6CSE2Ls786_sfaYVR_uBi1d_UY8XAj/embed?start=false&loop=false&delayms=3000" frameborder="0" width="100%" height="325" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+    </center>
+    <br />
+    <p>
+      In every software engineering career you will encounter a job that leaves a lasting
+      impression because things went well or you had good teammates. You will also encounter
+      jobs where nothing goes right, the manager is a pain, and nobody on the team pulls their wait.
+      Then there is the mythical unicorn. A beast that does not exist in software engineering but
+      I got to experience one time. Where the project was delivered ahead of time, hit all
+      quality metrics established by the contract, and under budget. You never get all three.
+      You typically on a good project will get two out of the three. The presentation below is
+      a presentation I gave at one of my jobs documenting this unicorn and the things I believed
+      were the reason for this encounter.  Enjoy.
+    </p>
+  </div>
+</div>
+<script>
+  let cmbPresentation = document.getElementById("cmbPresentation");
+  cmbPresentation.onchange = (evt) => {
+      for (let x = 0; x < cmbPresentation.length; x++) {
+          document.getElementById(cmbPresentation[x].value).style.display = 'none';
+      }
+      document.getElementById(evt.target.value).style.display = 'block';
+  };
+</script>

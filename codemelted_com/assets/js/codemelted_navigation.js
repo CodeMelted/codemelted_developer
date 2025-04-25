@@ -5,7 +5,8 @@
  * widget between each of the domains and the main layout of the overall
  * navigation.
  * @copyright © 2025 Mark Shaffer. All Rights Reserved
- * @version 2.5.0 <br />
+ * @version 2.6.0 <br />
+ * - 2.6.0 [2025-04-24]: Removed slider. Went with dedicated nav at bottom.
  * - 2.5.0 [2025-04-21]: Cleaned up for using Word Press.
  * - 2.4.0 [2025-04-17]: Adding labels to nav bar and removed services.
  * - 2.3.0 [2025-04-16]: Back to the footer driving the menu. Also made it to
@@ -424,64 +425,7 @@ const _htmlTemplate = `
       opacity: 0.8;
       z-index: 9999999;
     }
-
-    #divDrawer {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      width: 225px;
-      background-color: #161E27;
-      color: white;
-      z-index: 2147483647;
-    }
-
-    #divDrawer ul {
-      display: block;
-      margin-left: 5px;
-      padding: 0;
-      list-style: none;
-    }
-
-    #divDrawer li {
-      padding: 5px;
-      font-size: larger;
-    }
-
-    #divDrawer a {
-      cursor: pointer;
-      text-decoration: none;
-      color: white;
-    }
-
-    #divOverlay {
-      position: fixed;
-      display: none;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0,0,0,0.5);
-      z-index: 2147483646;
-      cursor: pointer;
-    }
   </style>
-
-  <!-- Our Page Drawer -->
-  <div id="divDrawer">
-    <img style="width: 100%; height: 75px;" src="https://codemelted.com/assets/images/logo-codemelted-twitter.png" />
-    <ul>
-      <li><a href="https://codemelted.com/services/about-me.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-me.jpg" />&nbsp;&nbsp;&nbsp;About Me</li></a>
-      <li><a href="https://codemelted.com/services/github-gists.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-github.png" />&nbsp;&nbsp;&nbsp;GitHub Gists</li></a>
-      <li><a href="https://codemelted.com/services/media-player.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-media.png" />&nbsp;&nbsp;&nbsp;Media Player</li></a>
-      <li><a href="https://codemelted.com/services/presentations.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-education.png" />&nbsp;&nbsp;&nbsp;Presentations</li></a>
-      <li><a href="https://codemelted.com/services/uml-modeler.html"><img style="height: 25px;" src="https://codemelted.com/assets/images/icon-uml.png" />&nbsp;&nbsp;&nbsp;UML Modeler</li></a>
-    </ul>
-  </div>
-  <div id="divOverlay"></div>
 
   <!-- Footer for all codemelted.com domain content -->
   <div id="divTooltip" class="codemelted-tooltip">URL Copied!</div>
@@ -496,10 +440,10 @@ const _htmlTemplate = `
       </div>
     </div>
     <div id="divFeatures" class="codemelted-footer-socials-layout">
-      <a class="codemelted-nav-control" id="aOpenPWA"     title="Open Menu"               onclick="onOpenMenuClicked(); return false;" ><img src="https://codemelted.com/assets/favicon/apple-touch-icon.png" /><br />START</a>
       <a class="codemelted-nav-control" id="aBlog"        title="Blog"                    onclick="onDomainNavClicked('https://codemelted.com/blog/index.html'); return false;"><img src="https://codemelted.com/assets/images/icon-blog.png" /><br />BLOG</a>
-      <a class="codemelted-nav-control" id="aDeveloper"   title="CodeMelted DEV Project"  onclick="onDomainNavClicked('https://codemelted.com/developer/index.html'); return false;"><img src="https://codemelted.com/assets/images/icon-code.png" /><br />DEV</a>
+      <a class="codemelted-nav-control" id="aDeveloper"   title="CodeMelted DEV"  onclick="onDomainNavClicked('https://codemelted.com/developer/index.html'); return false;"><img src="https://codemelted.com/assets/images/icon-code.png" /><br />DEV</a>
       <a class="codemelted-nav-control" id="aPhotography" title="Photography"             onclick="onDomainNavClicked('https://codemelted.com/photography/index.html'); return false;"><img src="https://codemelted.com/assets/images/icon-camera.png" /><br />PHOTOS</a>
+      <a class="codemelted-nav-control" id="aServices" title="Services"             onclick="onDomainNavClicked('https://codemelted.com/services/index.html'); return false;"><img src="https://codemelted.com/assets/images/icon-services.png" /><br />SERVICES</a>
     </div>
   </div>
 `;
@@ -543,18 +487,19 @@ async function main() {
 
     // Highlight the "active" button
     let aList = [
+      document.getElementById("aBlog"),
       document.getElementById("aDeveloper"),
       document.getElementById("aPhotography"),
-      document.getElementById("aBlog"),
+      document.getElementById("aServices"),
     ];
     if (window.location.href.includes("/developer/")) {
-      aList[0].style.backgroundColor = "maroon";
-    } else if (window.location.href.includes("/photography/")) {
       aList[1].style.backgroundColor = "maroon";
-    } else if (window.location.href.includes("/blog/")) {
+    } else if (window.location.href.includes("/photography/")) {
       aList[2].style.backgroundColor = "maroon";
+    } else if (window.location.href.includes("/services/")) {
+      aList[3].style.backgroundColor = "maroon";
     } else {
-      console.warn("aList did not have an active bottom navigation!");
+      aList[0].style.backgroundColor = "maroon";
     }
 
     // Setup disqus comment registration
