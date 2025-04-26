@@ -37,39 +37,40 @@
     <img src="https://codemelted.com/assets/images/logo-codemelted-developer.png" />
     <div></div>
     <select id="cmbOptions">
-      <option selected value="codemelted_dev">CodeMelted DEV Project</option>
-      <option value="codemelted_flutter">Flutter Module</option>
-      <option value="codemelted_js">JS Module</option>
-      <option value="codemelted_pwsh">pwsh Core Module</option>
-      <option value="codemelted_rust/codemelted">Rust Module</option>
-      <option value="codemelted_pi">Raspberry Pi</option>
+      <option selected value="design-notes.drawio.html">Design Notes</option>
+      <!-- <option value="codemelted_dev">Rosetta Stone</option>
+      <option value="codemelted_flutter">Flutter</option>
+      <option value="codemelted_js">JS</option>
+      <option value="codemelted_pwsh">pwsh Core</option>
+      <option value="codemelted_rust/codemelted">Rust</option>
+      <option value="codemelted_pi">Raspberry Pi</option> -->
     </select>
   </header>
   <div class="content-container">
-    <iframe id="frmContent" src="codemelted_dev/index.html" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+    <iframe id="frmContent" src="design-notes.drawio.html" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
   </div>
   <codemelted-navigation></codemelted-navigation>
   <script>
+    // Check for loading different content based on a share
+    // TBD
+
     // Handle the changing of content.
     const optSDKs = document.getElementById("cmbOptions");
     const frmContent = document.getElementById("frmContent");
     optSDKs.onchange = (evt) => {
       if (evt.target.value != "") {
-        let rand = Math.random();
-        frmContent.src = `${evt.target.value}/index.html?rand=${rand}`;
+        if (evt.target.value.includes("design-notes")) {
+          frmContent.src = "design-notes.drawio.html"
+        } else {
+          frmContent.src = `${evt.target.value}/index.html?rand=${Math.random()}`;
+        }
       }
     };
 
     // Handle the override of codemelted_navigation.js click actions.
     setTimeout(() => {
-      window.onPrintPageClicked = () => {
-        alert("Override Print Page Clicked!");
-      }
-
-      window.onReadPageClicked = () => {
-        alert("Override Read Page Clicked!");
-      }
-
+      document.getElementById("btnPrintPage").style.display = "none";
+      document.getElementById("btnReadPage").style.display = "none";
       window.onSharePageClicked = () => {
         alert("Override Share Page Clicked");
       }
