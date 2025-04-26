@@ -5,7 +5,8 @@
  * widget between each of the domains and the main layout of the overall
  * navigation.
  * @copyright © 2025 Mark Shaffer. All Rights Reserved
- * @version 2.6.1 <br />
+ * @version 2.6.2 <br />
+ * - 2.6.2 [2025-04-26]: Fix navigation to blog.
  * - 2.6.1 [2025-04-25]: Removed services. Will make app as separate
  * installable item from main domain.
  * - 2.6.0 [2025-04-24]: Removed slider. Went with dedicated nav at bottom.
@@ -442,7 +443,7 @@ const _htmlTemplate = `
       </div>
     </div>
     <div id="divFeatures" class="codemelted-footer-socials-layout">
-      <a class="codemelted-nav-control" id="aBlog"        title="Blog"                    onclick="onDomainNavClicked('https://codemelted.com/index.html'); return false;"><img src="https://codemelted.com/assets/images/icon-blog.png" /><br />BLOG</a>
+      <a class="codemelted-nav-control" id="aBlog"        title="Blog"                    onclick="onDomainNavClicked('https://codemelted.com'); return false;"><img src="https://codemelted.com/assets/images/icon-blog.png" /><br />BLOG</a>
       <a class="codemelted-nav-control" id="aDeveloper"   title="CodeMelted DEV"  onclick="onDomainNavClicked('https://codemelted.com/developer/index.html'); return false;"><img src="https://codemelted.com/assets/images/icon-code.png" /><br />DEV</a>
       <a class="codemelted-nav-control" id="aPhotography" title="Photography"             onclick="onDomainNavClicked('https://codemelted.com/photography/index.html'); return false;"><img src="https://codemelted.com/assets/images/icon-camera.png" /><br />PHOTOS</a>
     </div>
