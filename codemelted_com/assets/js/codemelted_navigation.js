@@ -442,7 +442,7 @@ const _htmlTemplate = `
       </div>
     </div>
     <div id="divFeatures" class="codemelted-footer-socials-layout">
-      <a class="codemelted-nav-control" id="aBlog"        title="Blog"                    onclick="onDomainNavClicked('https://codemelted.com/blog/index.html'); return false;"><img src="https://codemelted.com/assets/images/icon-blog.png" /><br />BLOG</a>
+      <a class="codemelted-nav-control" id="aBlog"        title="Blog"                    onclick="onDomainNavClicked('https://codemelted.com/index.html'); return false;"><img src="https://codemelted.com/assets/images/icon-blog.png" /><br />BLOG</a>
       <a class="codemelted-nav-control" id="aDeveloper"   title="CodeMelted DEV"  onclick="onDomainNavClicked('https://codemelted.com/developer/index.html'); return false;"><img src="https://codemelted.com/assets/images/icon-code.png" /><br />DEV</a>
       <a class="codemelted-nav-control" id="aPhotography" title="Photography"             onclick="onDomainNavClicked('https://codemelted.com/photography/index.html'); return false;"><img src="https://codemelted.com/assets/images/icon-camera.png" /><br />PHOTOS</a>
     </div>
