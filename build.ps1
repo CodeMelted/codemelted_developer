@@ -170,7 +170,7 @@ function build([string[]]$params) {
     if (-not $isTestingOnly) {
       message "Now building the codemelted.rs documentation"
       cargo clean
-      cargo doc --no-deps
+      cargo doc --no-deps --lib
     }
 
     Set-Location $PSScriptRoot
@@ -214,6 +214,7 @@ function build([string[]]$params) {
       Copy-Item -Path codemelted_pwsh/book/* -Destination docs/codemelted_pwsh -Force -Recurse
       Copy-Item -Path codemelted_rust/target/doc/* -Destination docs/codemelted_rust -Force -Recurse
       Copy-Item -Path index.html -Destination docs -Force -Recurse
+      Copy-Item -Path design-notes.drawio.html -Destination docs -Force -Recurse
     }
     "--deploy" {
       Write-Host "MESSAGE: Now uploading codemelted.com/developer content.";

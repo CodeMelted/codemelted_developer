@@ -1894,6 +1894,7 @@ pub mod codemelted_storage {
 // [System Use Case] ==========================================================
 // ============================================================================
 
+/// UNDER ACTIVE DEVELOPMENT / TESTING
 pub mod codemelted_system {
   // Use Statements
   use std::process::Command;
@@ -2373,7 +2374,7 @@ pub mod codemelted_system {
   /// ```
   /// use codemelted::codemelted_system;
   ///
-  /// let output = codemelted_system::system("dir");
+  /// let output = codemelted_system::command_run("dir");
   /// println!("{}", output);
   /// ```
   pub fn command_run(command: &str) -> String {

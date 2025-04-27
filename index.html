@@ -16,8 +16,8 @@
   <meta property="og:image:height" content="100px">
   <meta property="og:image:width" content="100px">
   <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png">
-  <link rel="stylesheet" href="https://codemelted.com/assets/css/developer-theme.css">
   <link rel="stylesheet" href="https://codemelted.com/assets/css/services.css">
+  <link rel="stylesheet" href="https://codemelted.com/assets/css/developer-theme.css">
   <script src="https://codemelted.com/assets/js/codemelted_navigation.js" defer></script>
   <style>
     .feed-header div {
@@ -41,9 +41,9 @@
       <!-- <option value="codemelted_dev">Rosetta Stone</option>
       <option value="codemelted_flutter">Flutter</option>
       <option value="codemelted_js">JS</option>
-      <option value="codemelted_pwsh">pwsh Core</option>
+      <option value="codemelted_pwsh">pwsh Core</option> -->
       <option value="codemelted_rust/codemelted">Rust</option>
-      <option value="codemelted_pi">Raspberry Pi</option> -->
+      <!-- <option value="codemelted_pi">Raspberry Pi</option> -->
     </select>
   </header>
   <div class="content-container">
@@ -51,13 +51,12 @@
   </div>
   <codemelted-navigation></codemelted-navigation>
   <script>
-    // Check for loading different content based on a share
-    // TBD
-
-    // Handle the changing of content.
-    const optSDKs = document.getElementById("cmbOptions");
+    // Setup access to our page elements.
+    const cmbOptions = document.getElementById("cmbOptions");
     const frmContent = document.getElementById("frmContent");
-    optSDKs.onchange = (evt) => {
+
+    // Setup to handle our change in content
+    cmbOptions.onchange = (evt) => {
       if (evt.target.value != "") {
         if (evt.target.value.includes("design-notes")) {
           frmContent.src = "design-notes.drawio.html"
@@ -67,12 +66,53 @@
       }
     };
 
+    // Check for loading different content based on a share
+    const url = new URL(window.location.href);
+    const params = new URLSearchParams(url.search);
+    if (params.has("src")) {
+      const src = params.get("src");
+      frmContent.src = src;
+      let options = cmbOptions.options;
+      options[0].selected = false;
+      for (let x = 0; x < options.length; x++) {
+        if (src.includes(options[x].value)) {
+          options[x].selected = true;
+          break;
+        }
+      }
+    }
+
     // Handle the override of codemelted_navigation.js click actions.
     setTimeout(() => {
+      // Hide the controls not applicable to this page.
       document.getElementById("btnPrintPage").style.display = "none";
-      document.getElementById("btnReadPage").style.display = "none";
-      window.onSharePageClicked = () => {
-        alert("Override Share Page Clicked");
+      document.getElementById("btnTTS").style.display = "none";
+
+      // Override our share page clicked action to properly get the iframe
+      // source for sharing.
+      window.onSharePageClicked = async () => {
+        try {
+          // Override to prep for loading proper content when share occurs.
+          const isMobile = 'ontouchstart' in window ||
+            navigator.maxTouchPoints > 0 ||
+            navigator.msMaxTouchPoints > 0
+          const tooltip = globalThis.document.getElementById("divTooltip");
+          let href = window.location.href.replaceAll("www.", "");
+          href += `?src=${frmContent.src}`;
+          await globalThis.navigator.clipboard.writeText(href);
+          if (!isMobile) {
+            tooltip.style.display = "inline-block";
+            setTimeout(() => { tooltip.style.display = "none"; }, 750);
+          }
+        } catch (err) {
+          // Something failed, go report it.
+          let msg = Object.hasOwn(err, "message")
+            ? err.message
+            : "unable to perform share";
+          console.error("onSharePageClicked()", msg);
+          alert(msg);
+          return false;
+        }
       }
     }, 250);
   </script>
