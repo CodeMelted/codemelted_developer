@@ -41,11 +41,13 @@ pub trait CCsvFormat {
   fn as_csv(&self) -> String;
 }
 
-/// Defines a trait for the "rules" of objects that will not block the main
-/// thread's processing in whatever form or fashion. The methods attached to
-/// this trait give the rules the given "protocol" must follow along with
-/// defining the data it will be utilizing as part of the protocol.
+/// Defines a trait for the "rules" of objects that will setup a protocol that
+/// directly exchanges data with an external item, will continuously run until
+/// terminated, requires the ability to know it is running and get any errors
+/// that have occurred during it run.
 pub trait CProtocolHandler<T> {
+  /// Retrieves any currently processed errors.
+  fn get_error(&mut self) -> Option<T>;
   /// Retrieves any currently processed messages.
   fn get_message(&mut self) -> Option<T>;
   /// Signals if the protocol is running or not.
@@ -184,23 +186,23 @@ pub mod codemelted_async {
     is_running: bool,
   }
   impl CProtocolHandler<String> for CProcessProtocol {
+    fn get_error(&mut self) -> Option<String> {
+      let obj = self.process.stderr.as_mut().unwrap();
+      let mut stderr_data = String::new();
+      let stderr_result = obj.read_to_string(&mut stderr_data);
+      match stderr_result {
+        Ok(_) => Some(stderr_data),
+        Err(_) => None,
+      }
+    }
+
     fn get_message(&mut self) -> Option<String> {
       let obj = self.process.stdout.as_mut().unwrap();
       let mut stdout_data = String::new();
       let stdout_result = obj.read_to_string(&mut stdout_data);
-
-      let obj = self.process.stderr.as_mut().unwrap();
-      let mut stderr_data = String::new();
-      let stderr_result = obj.read_to_string(&mut stderr_data);
-
-      if stdout_result.is_ok() && stderr_result.is_ok() {
-        Some(format!("{}{}", stdout_data, stderr_data))
-      } else if stdout_result.is_ok() && stderr_result.is_err() {
-        Some(stdout_data)
-      } else if stdout_result.is_err() && stderr_result.is_ok() {
-        Some(stderr_data)
-      } else {
-        None
+      match stdout_result {
+        Ok(_) => Some(stdout_data),
+        Err(_) => None,
       }
     }
 
@@ -362,6 +364,10 @@ pub mod codemelted_async {
     }
   }
   impl<T> CProtocolHandler<T> for CWorkerProtocol<T> {
+    fn get_error(&mut self) -> Option<T> {
+      None
+    }
+
     fn get_message(&mut self) -> Option<T> {
       match self.protocol_rx.try_recv() {
         Ok(v) => Some(v),
@@ -397,8 +403,8 @@ pub mod codemelted_async {
     CProcessProtocol::new(command, args)
   }
 
-  /// Will put a currently running thread (main or background) for a specified
-  /// delay in milliseconds.
+  /// Will put a currently running thread (main or background) to sleep for
+  /// a specified delay in milliseconds.
   ///
   /// **Example:**
   /// ```
@@ -415,7 +421,7 @@ pub mod codemelted_async {
 
   /// Creates a [CTaskResult] which runs a background thread to
   /// eventually retrieve the value of the task. The data in the examples
-  /// are [`Option<CObject>`] to represent the optional data for the task and
+  /// are [`Option<T>`] to represent the optional data for the task and
   /// optional data returned. The function is templated so you can use any
   /// data type.
   ///

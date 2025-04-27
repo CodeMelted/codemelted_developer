@@ -5,7 +5,7 @@
 
 The codemelted.dart module provides the power of Flutter to build Single Page Applications (SPA) with an easy setup to install the SPA as a Progressive Web App (PWA). This module only targets the Flutter web implementing Flutter specific code to take full advantage of the widget toolkit and Flutter native code that can be utilized within the web. The remaining use case functionality will take advantage of Flutter's bindings with the JavaScript browser APIs.
 
-*BY: Mark Shaffer / LAST UPDATED: 2025-Apr-17*
+*BY: Mark Shaffer / LAST UPDATED: 2025-Apr-27*
 
 <center>
   <br />
@@ -24,7 +24,6 @@ The codemelted.dart module provides the power of Flutter to build Single Page Ap
 - [MODULE INFORMATION](#module-information)
   - [License](#license)
   - [Versioning](#versioning)
-  - [codemelted.dart Change Log](#codemelteddart-change-log)
 
 # GETTING STARTED
 
@@ -64,7 +63,3 @@ The versioning of the module will be captured via GitHub or the modules document
 - **X:** When the 14 identified use cases are fully functional.
 - **Y:** Use case implemented, documented, tested, and ready for usage by a developer.
 - **Z:** Bug fix or expansion of a use case.
-
-## codemelted.dart Change Log
-
-<iframe style="background-color: white" src="CHANGELOG.md" width="100%" height="350px"></iframe>
