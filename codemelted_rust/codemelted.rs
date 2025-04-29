@@ -110,23 +110,120 @@ impl CTruthyString for CObject {
 /// process items in the background utilizing different methodologies. There
 /// is the one off [crate::codemelted_async::task]. There is a repeating
 /// [crate::codemelted_async::timer]. Then there is the ability to have a
-/// dedicated [crate::codemelted_async::worker] with a FIFO queue or working
-/// with external [crate::codemelted_async::process] run in a separate
-/// operating system service / application.
+/// dedicated [crate::codemelted_async::worker] with a FIFO queue.
 pub mod codemelted_async {
   // Use Statements
   use crate::CProtocolHandler;
   use std::{
-    io::{Read, Write},
-    process::{Child, Command, Stdio},
     sync::mpsc::{channel, Receiver, Sender},
     thread::{self, JoinHandle},
     time
   };
+  use sysinfo::System;
 
   // --------------------------------------------------------------------------
   // [Module Data Definitions] ------------------------------------------------
   // --------------------------------------------------------------------------
+
+  pub struct CPerfData {
+    sys: System
+  }
+  impl CPerfData {
+    fn new() -> CPerfData {
+      let sys = System::new_all();
+      CPerfData { sys }
+    }
+
+    pub fn refresh(&mut self) {
+      self.sys.refresh_memory();
+      self.sys.refresh_cpu_usage();
+    }
+
+    /// Identifies the current CPU % utilization distributed across the whole
+    /// of the available CPUs of the operating system.
+    pub fn cpu_load(&self) -> f32 {
+      let mut count: f32 = 0.0;
+      let mut total: f32 = 0.0;
+      for cpu in self.sys.cpus() {
+        total += cpu.cpu_usage();
+        count += 1.0;
+      }
+      total / count
+    }
+
+    pub fn memory_available_bytes(&self) -> u64 {
+      self.sys.available_memory()
+    }
+
+    pub fn memory_free_bytes(&self) -> u64 {
+      self.sys.free_memory()
+    }
+
+    pub fn memory_used_bytes(&self) -> u64 {
+      self.sys.used_memory()
+    }
+
+    pub fn memory_total_bytes(&self) -> u64 {
+      self.sys.total_memory()
+    }
+
+    pub fn memory_load(&self) -> f32 {
+      let used_bytes = self.memory_used_bytes() as f32;
+      let total_bytes = self.memory_total_bytes() as f32;
+      (used_bytes / total_bytes) * 100.0
+    }
+
+    pub fn swap_free_bytes(&self) -> u64 {
+      self.sys.free_swap()
+    }
+
+    pub fn swap_used_bytes(&self) -> u64 {
+      self.sys.used_swap()
+    }
+
+    pub fn swap_total_bytes(&self) -> u64 {
+      self.sys.total_swap()
+    }
+
+    pub fn swap_load(&self) -> f32 {
+      let used_bytes = self.swap_used_bytes() as f32;
+      let total_bytes = self.swap_total_bytes() as f32;
+      (used_bytes / total_bytes) * 100.0
+    }
+  }
+  impl crate::CCsvFormat for CPerfData {
+    fn csv_header(&self) -> String {
+      format!(
+        "{},{},{},{},{},{},{},{},{},{}",
+        String::from("cpu_load"),
+        String::from("memory_available_bytes"),
+        String::from("memory_free_bytes"),
+        String::from("memory_used_bytes"),
+        String::from("memory_total_bytes"),
+        String::from("memory_load"),
+        String::from("swap_free_bytes"),
+        String::from("swap_used_bytes"),
+        String::from("swap_total_bytes"),
+        String::from("swap_load")
+      )
+    }
+
+    fn as_csv(&self) -> String {
+      format!(
+        "{},{},{},{},{},{},{},{},{},{}",
+        self.cpu_load(),
+        self.memory_available_bytes(),
+        self.memory_free_bytes(),
+        self.memory_used_bytes(),
+        self.memory_total_bytes(),
+        self.memory_load(),
+        self.swap_free_bytes(),
+        self.swap_used_bytes(),
+        self.swap_total_bytes(),
+        self.swap_load()
+      )
+    }
+  }
 
   /// The task that runs as part of the [CTaskResult] internal thread.
   pub type CTaskCB<T> = fn(Option<T>) -> Option<T>;
@@ -173,89 +270,6 @@ pub mod codemelted_async {
         Ok(v) => v,
         Err(_) => None,
       }
-    }
-  }
-
-  /// The result of a [process] call. This holds an internal thread that will
-  /// call the [CTaskCB] to process specified data and return the result.
-  /// The [CTaskResult::has_completed] will let you know when the thread
-  /// has completed so you can then call [CTaskResult::value] for the
-  /// processed value.
-  pub struct CProcessProtocol {
-    process: Child,
-    is_running: bool,
-  }
-  impl CProtocolHandler<String> for CProcessProtocol {
-    fn get_error(&mut self) -> Option<String> {
-      let obj = self.process.stderr.as_mut().unwrap();
-      let mut stderr_data = String::new();
-      let stderr_result = obj.read_to_string(&mut stderr_data);
-      match stderr_result {
-        Ok(_) => Some(stderr_data),
-        Err(_) => None,
-      }
-    }
-
-    fn get_message(&mut self) -> Option<String> {
-      let obj = self.process.stdout.as_mut().unwrap();
-      let mut stdout_data = String::new();
-      let stdout_result = obj.read_to_string(&mut stdout_data);
-      match stdout_result {
-        Ok(_) => Some(stdout_data),
-        Err(_) => None,
-      }
-    }
-
-    fn is_running(&self) -> bool {
-      self.is_running
-    }
-
-    fn post_message(&self, data: String) {
-      let mut obj = self.process.stdin.as_ref().unwrap();
-      let result = obj.write_all(data.as_bytes());
-      match result {
-        Ok(()) => {
-          let _ = obj.flush();
-        },
-        Err(why) => {
-          panic!("CProcessProtocol failed to post message: {}", why);
-        }
-      }
-    }
-
-    fn terminate(&mut self) {
-      self.is_running = false;
-      let _ = self.process.kill();
-    }
-  }
-  impl CProcessProtocol {
-    fn new(command: &str, args: &str) -> CProcessProtocol {
-      let cmd = format!("{} {}", command, args);
-      let proc = if cfg!(target_os = "windows") {
-        Command::new("cmd").args(["/c", &cmd])
-          .stdin(Stdio::piped())
-          .stdout(Stdio::piped())
-          .stderr(Stdio::piped())
-          .spawn()
-      } else {
-        Command::new("sh").args(["-c", &cmd])
-          .stdin(Stdio::piped())
-          .stdout(Stdio::piped())
-          .stderr(Stdio::piped())
-          .spawn()
-      };
-
-      let process = match proc {
-        Ok(v) => v,
-        Err(why) => panic!("Failed to create CProcessProtocol: {}", why),
-      };
-
-      CProcessProtocol { process, is_running: true }
-    }
-
-    /// Retrieves the id associated with the held process running.
-    pub fn id(&self) -> u32 {
-      self.process.id()
     }
   }
 
@@ -398,9 +412,22 @@ pub mod codemelted_async {
   // [Module Function Definitions] --------------------------------------------
   // --------------------------------------------------------------------------
 
-  /// !!!!TODO: NEED TESTING!!!!
-  pub fn process(command: &str, args: &str) -> CProcessProtocol {
-    CProcessProtocol::new(command, args)
+  /// UNDER DEVELOPMENT
+  pub fn cpu_arch() -> String {
+    System::cpu_arch()
+  }
+
+  /// UNDER DEVELOPMENT
+  pub fn cpu_count() -> usize {
+    match System::physical_core_count() {
+      Some(v) => v,
+      None => 1,
+    }
+  }
+
+  /// UNDER DEVELOPMENT
+  pub fn monitor() -> CPerfData {
+    CPerfData::new()
   }
 
   /// Will put a currently running thread (main or background) to sleep for
@@ -546,12 +573,6 @@ pub mod codemelted_async {
     CWorkerProtocol::new(task)
   }
 }
-
-// ============================================================================
-// [Audio Use Case] ===========================================================
-// ============================================================================
-
-// NOT APPLICABLE TO THIS MODULE
 
 // ============================================================================
 // [Console Use Case] =========================================================
@@ -748,9 +769,173 @@ mod codemelted_db {
 /// managing the disk, and reading / writing files.
 pub mod codemelted_disk {
   /// Use Statements
+  use crate::{codemelted_storage, CCsvFormat};
   use std::io::{Read, Write};
   use std::fs::{self, File, Metadata, OpenOptions};
   use std::path::Path;
+  use sysinfo::Disks;
+
+  // --------------------------------------------------------------------------
+  // [Data Definition] --------------------------------------------------------
+  // --------------------------------------------------------------------------
+
+  /// The result of the [disk_data] call provide a view of the host operating
+  /// systems available data disk storage. This is a self contained array of
+  /// disks and their associated information. Any index call beyond the
+  /// available disks will panic your application.
+  pub struct CDiskData {
+    disks: Disks
+  }
+  impl CDiskData {
+    /// Creates a new instance of the [CDiskData] struct.
+    fn new() -> CDiskData {
+      let mut disks = Disks::new_with_refreshed_list();
+      disks.refresh(true);
+      CDiskData { disks }
+    }
+
+    /// Identifies how many disks are attached to the host operating system.
+    pub fn len(&self) -> usize {
+      self.disks.len()
+    }
+
+    /// Refreshes the disk data to get the latest information.
+    pub fn refresh(&mut self) {
+      self.disks.refresh(true);
+    }
+
+    /// Identifies how the disk is known to the host operating system.
+    pub fn name(&self, index: usize) -> String {
+      match self.disks.get(index) {
+        Some(v) => {
+          match v.name().to_str() {
+            Some(v) => String::from(v),
+            None => String::from("UNDETERMINED"),
+          }
+        },
+        None => panic!(""),
+      }
+    }
+
+    /// Identifies the available disk space in bytes.
+    pub fn disk_available_bytes(&self, index: usize) -> u64 {
+      match self.disks.get(index) {
+        Some(v) => v.available_space(),
+        None => panic!(""),
+      }
+    }
+
+    /// Identifies the used space in bytes of the disk.
+    pub fn disk_used_bytes(&self, index: usize) -> u64 {
+      self.disk_total_bytes(index) - self.disk_available_bytes(index)
+    }
+
+    /// Identifies how big the disk is in bytes.
+    pub fn disk_total_bytes(&self, index: usize) -> u64 {
+      match self.disks.get(index) {
+        Some(v) => v.total_space(),
+        None => panic!(""),
+      }
+    }
+
+    /// Identifies how much of the disk is used.
+    pub fn disk_load(&self, index: usize) -> f32 {
+      let used_space = self.disk_used_bytes(index) as f32;
+      let total_space = self.disk_total_bytes(index) as f32;
+      (used_space / total_space) * 100.0
+    }
+
+    /// Identifies how the disk is formatted.
+    pub fn file_system(&self, index: usize) -> String {
+      match self.disks.get(index) {
+        Some(v) => {
+          match v.file_system().to_str() {
+            Some(v) => String::from(v),
+            None => String::from("UNDETERMINED"),
+          }
+        },
+        None => panic!(""),
+      }
+    }
+
+    /// Determines if this disk is readonly or writeable.
+    pub fn is_read_only(&self, index: usize) -> bool {
+      match self.disks.get(index) {
+        Some(v) => v.is_read_only(),
+        None => panic!(""),
+      }
+    }
+
+    /// Determines if this disk is removable or not.
+    pub fn is_removable(&self, index: usize) -> bool {
+      match self.disks.get(index) {
+        Some(v) => v.is_removable(),
+        None => panic!(""),
+      }
+    }
+
+    /// Determines what type of disk this is.
+    pub fn kind(&self, index: usize) -> String {
+      match self.disks.get(index) {
+        Some(v) => v.kind().to_string(),
+        None => panic!(""),
+      }
+    }
+
+    /// Identifies the mount point of the disk.
+    pub fn mount_point(&self, index: usize) -> String {
+      match self.disks.get(index) {
+        Some(v) => {
+          match v.mount_point().to_str() {
+            Some(v) => String::from(v),
+            None => String::from("UNDETERMINED"),
+          }
+        },
+        None => panic!(""),
+      }
+    }
+  }
+  impl CCsvFormat for CDiskData {
+    fn csv_header(&self) -> String {
+      format!(
+        "{},{},{},{},{},{},{},{},{},{}",
+        String::from("name"),
+        String::from("disk_available_bytes"),
+        String::from("disk_used_bytes"),
+        String::from("disk_total_bytes"),
+        String::from("disk_load"),
+        String::from("file_system"),
+        String::from("is_readonly"),
+        String::from("is_removable"),
+        String::from("kind"),
+        String::from("mount_point"),
+      )
+    }
+
+    fn as_csv(&self) -> String {
+      let mut csv_data = String::new();
+      let mut x = 0;
+      while x < self.len() {
+        let data = format!(
+          "{},{},{},{},{},{},{},{},{},{}",
+          self.name(x),
+          self.disk_available_bytes(x),
+          self.disk_used_bytes(x),
+          self.disk_total_bytes(x),
+          self.disk_load(x),
+          self.file_system(x),
+          self.is_read_only(x),
+          self.is_removable(x),
+          self.kind(x),
+          self.mount_point(x)
+        );
+        csv_data.push_str(&data);
+        csv_data.push('\n');
+        x += 1
+      }
+      csv_data
+    }
+  }
 
   /// Identifies the type of src on the disk when attempting to see if it
   /// [exists] or not.
@@ -762,6 +947,10 @@ pub mod codemelted_disk {
     /// Only true if it is a file.
     File,
   }
+
+  // --------------------------------------------------------------------------
+  // [Function Definitions] ---------------------------------------------------
+  // --------------------------------------------------------------------------
 
   /// Will copy a file / directory from one location on the host operating
   /// system disk to the other.
@@ -892,6 +1081,57 @@ pub mod codemelted_disk {
       Ok(_) => Ok(()),
       Err(why) => Err(why),
     }
+  }
+
+  /// UNDER DEVELOPMENT
+  pub fn home_path() -> String {
+    let home_path = if cfg!(target_os = "windows") {
+      codemelted_storage::environment("USERPROFILE")
+    } else {
+      codemelted_storage::environment("HOME")
+    };
+    match home_path {
+      Some(v) => v,
+      None => {
+        panic!("SyntaxError: codemelted_disk::home_path() unable to query.")
+      },
+    }
+  }
+
+  /// UNDER DEVELOPMENT
+  pub fn newline() -> String {
+    if cfg!(target_os = "windows") {
+      String::from("\r\n")
+    } else {
+      String::from("\n")
+    }
+  }
+
+
+  /// UNDER DEVELOPMENT
+  pub fn path_separator() -> String {
+    if cfg!(target_os = "windows") {
+      String::from("\\")
+    } else {
+      String::from("/")
+    }
+  }
+
+  /// UNDER DEVELOPMENT
+  pub fn temp_path() -> String {
+    match std::env::temp_dir().to_str() {
+      Some(v) => String::from(v),
+      None => {
+        panic!("SyntaxError: codemelted_disk::temp_path() unable to query.")
+      }
+    }
+  }
+
+
+
+  /// UNDER DEVELOPMENT
+  pub fn monitor() -> CDiskData {
+    CDiskData::new()
   }
 
   /// Reads a binary file from the host operating system.
@@ -1067,7 +1307,166 @@ pub mod codemelted_disk {
 // ============================================================================
 
 mod codemelted_hw {
-  // FUTURE IMPLEMENTATION
+  // Use Statements
+  use crate::{codemelted_storage, CCsvFormat};
+  use sysinfo::{Components, System};
+
+  // --------------------------------------------------------------------------
+  // [Data Definition] --------------------------------------------------------
+  // --------------------------------------------------------------------------
+
+  /// The result of a [component_data] call providing a view of a system's
+  /// internal components and their current health (i.e. temperature in °C)
+  /// along with their failure points.
+  pub struct CComponentData {
+    components: Components
+  }
+  impl CComponentData {
+    /// Creates a new instance of the [CComponentData] object.
+    fn new() -> CComponentData {
+      let mut components = Components::new_with_refreshed_list();
+      components.refresh(true);
+      CComponentData { components }
+    }
+
+    /// Refreshes the current set of tracked component data.
+    pub fn refresh(&mut self) {
+      self.components.refresh(true);
+    }
+
+    /// The total of components being tracked after a refresh.
+    pub fn len(&self) -> usize {
+      self.components.len()
+    }
+
+    /// The identifier of the given component at the specified index.
+    pub fn label(&self, index: usize) -> String {
+      match self.components.get(index) {
+        Some(v) => {
+          v.label().to_string()
+        },
+        None => panic!("SyntaxError: invalid index specified."),
+      }
+    }
+
+    /// The current temperature °C of the given component at the specified
+    /// index.
+    pub fn temp_current_c(&self, index: usize) -> f32 {
+      match self.components.get(index) {
+        Some(v) => {
+          match v.temperature() {
+            Some(v) => v,
+            None => f32::NAN,
+          }
+        },
+        None => panic!("SyntaxError: invalid index specified."),
+      }
+    }
+
+    /// The max temperature °C of the given component at the specified index.
+    pub fn temp_max_c(&self, index: usize) -> f32 {
+      match self.components.get(index) {
+        Some(v) => {
+          match v.max() {
+            Some(v) => v,
+            None => f32::NAN,
+          }
+        },
+        None => panic!("SyntaxError: invalid index specified."),
+      }
+    }
+
+
+    /// The critical temperature °C of the given component at the specified
+    /// index.
+    pub fn temp_critical_c(&self, index: usize) -> f32 {
+      match self.components.get(index) {
+        Some(v) => {
+          match v.critical() {
+            Some(v) => v,
+            None => f32::NAN,
+          }
+        },
+        None => panic!("SyntaxError: invalid index specified."),
+      }
+    }
+  }
+
+  impl CCsvFormat for CComponentData {
+    fn csv_header(&self) -> String {
+      format!(
+        "{},{},{},{}",
+        String::from("label"),
+        String::from("temp_current_c"),
+        String::from("temp_max_c"),
+        String::from("temp_critical_c"),
+      )
+    }
+
+    fn as_csv(&self) -> String {
+      let mut csv_data = String::new();
+      let mut x = 0;
+      while x < self.len() {
+        let data = format!(
+          "{},{},{},{}",
+          self.label(x),
+          self.temp_current_c(x),
+          self.temp_max_c(x),
+          self.temp_critical_c(x),
+        );
+        csv_data.push_str(&data);
+        csv_data.push('\n');
+        x += 1
+      }
+      csv_data
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // [Module Functions] -------------------------------------------------------
+  // --------------------------------------------------------------------------
+
+  /// UNDER DEVELOPMENT
+  pub fn kernel_version() -> String {
+    match System::kernel_version() {
+      Some(v) => v,
+      None => String::from("UNDETERMINED"),
+    }
+  }
+
+  /// UNDER DEVELOPMENT
+  pub fn os_name() -> String {
+    match System::name() {
+      Some(v) => v,
+      None => String::from("UNDETERMINED"),
+    }
+  }
+
+  /// UNDER DEVELOPMENT
+  pub fn os_version() -> String {
+    match System::os_version() {
+      Some(v) => v,
+      None => String::from("UNDETERMINED"),
+    }
+  }
+
+  /// UNDER DEVELOPMENT
+  pub fn user() -> String {
+    let user = if cfg!(target_os = "windows") {
+      codemelted_storage::environment("USERNAME")
+    } else {
+      codemelted_storage::environment("USER")
+    };
+    match user {
+      Some(v) => v,
+      None => String::from("UNDETERMINED"),
+    }
+  }
+
+  /// UNDER DEVELOPMENT
+  pub fn monitor() -> CComponentData {
+    CComponentData::new()
+  }
 }
 
 // ============================================================================
@@ -1520,7 +1919,154 @@ pub mod codemelted_logger {
 // ============================================================================
 
 mod codemelted_network {
-  // FUTURE IMPLEMENTATION
+  // --------------------------------------------------------------------------
+  // [Use Statements] ---------------------------------------------------------
+  // --------------------------------------------------------------------------
+  use crate::CCsvFormat;
+  use sysinfo::{Networks, System};
+
+  // --------------------------------------------------------------------------
+  // [Data Definitions] -------------------------------------------------------
+  // --------------------------------------------------------------------------
+
+  /// The result of the [network_data] call provide a view of the host operating
+  /// systems available network interfaces. This is a self contained hashtable of
+  /// network interfaces with statistics related to overall received / transmitted
+  /// bytes, packets, and encountered errors.
+  pub struct CNetworkData {
+    networks: Networks
+  }
+  impl CNetworkData {
+    /// Creates the new [CNetworkData] object.
+    fn new() -> CNetworkData {
+      let networks = Networks::new_with_refreshed_list();
+      CNetworkData { networks }
+    }
+
+    /// Refreshes the currently held hashtable of network interfaces.
+    pub fn refresh(&mut self) {
+      self.networks.refresh(true);
+    }
+
+    /// Gets the name of the network interface.
+    pub fn names(&self) -> Vec<String> {
+      let mut names = Vec::<String>::new();
+      for (name, _network) in &self.networks {
+        names.push(name.to_string());
+      }
+      names
+    }
+
+    /// Gets the MAC address associated with the network interface.
+    pub fn mac_address(&self, name: &str) -> String{
+      match self.networks.get(name) {
+        Some(v) => {
+          v.mac_address().to_string()
+        },
+        None => panic!(""),
+      }
+    }
+
+    /// Gets the Maximum Transfer Unit of the network interface.
+    pub fn mtu(&self, name: &str) -> u64{
+      match self.networks.get(name) {
+        Some(v) => {
+          v.mtu()
+        },
+        None => panic!(""),
+      }
+    }
+
+    /// Gets the total received bytes on the network interface.
+    pub fn network_total_rx_bytes(&self, name: &str) -> u64 {
+      match self.networks.get(name) {
+        Some(v) => {
+          v.total_received()
+        },
+        None => panic!(""),
+      }
+    }
+
+    /// Gets the total received errors on the network interface.
+    pub fn network_total_rx_errors(&self, name: &str) -> u64 {
+      match self.networks.get(name) {
+        Some(v) => {
+          v.total_errors_on_received()
+        },
+        None => panic!(""),
+      }
+    }
+
+    /// Gets the total received packets on the network interface.
+    pub fn network_total_rx_packets(&self, name: &str) -> u64 {
+      match self.networks.get(name) {
+        Some(v) => {
+          v.total_packets_received()
+        },
+        None => panic!(""),
+      }
+    }
+
+    /// Gets the total transmitted bytes on the network interface.
+    pub fn network_total_tx_bytes(&self, name: &str) -> u64 {
+      match self.networks.get(name) {
+        Some(v) => {
+          v.total_transmitted()
+        },
+        None => panic!(""),
+      }
+    }
+
+    /// Gets the total transmitted errors on the network interface.
+    pub fn network_total_tx_errors(&self, name: &str) -> u64 {
+      match self.networks.get(name) {
+        Some(v) => {
+          v.total_errors_on_received()
+        },
+        None => panic!(""),
+      }
+    }
+
+    /// Gets the total transmitted packets on the network interface.
+    pub fn network_total_tx_packets(&self, name: &str) -> u64 {
+      match self.networks.get(name) {
+        Some(v) => {
+          v.total_packets_received()
+        },
+        None => panic!(""),
+      }
+    }
+  }
+  impl CCsvFormat for CNetworkData {
+    fn csv_header(&self) -> String {
+        todo!()
+    }
+
+    fn as_csv(&self) -> String {
+        todo!()
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // [Function Definitions] ---------------------------------------------------
+  // --------------------------------------------------------------------------
+
+  /// UNDER DEVELOPMENT
+  pub fn host_name() -> String {
+    match System::host_name() {
+      Some(v) => v,
+      None => String::from("UNDETERMINED"),
+    }
+  }
+
+  pub fn monitor() -> CNetworkData {
+    CNetworkData::new()
+  }
+
+  /// TODO: Something cool
+  fn _online() -> bool {
+    todo!()
+  }
 }
 
 // ============================================================================
@@ -1724,6 +2270,164 @@ pub mod codemelted_npu {
 }
 
 // ============================================================================
+// [Process Use Case] =========================================================
+// ============================================================================
+
+/// UNDER DEVELOPMENT
+pub mod codemelted_process {
+  // Use Statements
+  use std::{
+    io::{Read, Write},
+    process::{Child, Command, Stdio},
+  };
+  use crate::CProtocolHandler;
+
+  /// UNDER DEVELOPMENT
+  pub struct CProcessProtocol {
+    process: Child,
+    is_running: bool,
+  }
+  impl CProtocolHandler<String> for CProcessProtocol {
+    fn get_error(&mut self) -> Option<String> {
+      let obj = self.process.stderr.as_mut().unwrap();
+      let mut stderr_data = String::new();
+      let stderr_result = obj.read_to_string(&mut stderr_data);
+      match stderr_result {
+        Ok(_) => Some(stderr_data),
+        Err(_) => None,
+      }
+    }
+
+    fn get_message(&mut self) -> Option<String> {
+      let obj = self.process.stdout.as_mut().unwrap();
+      let mut stdout_data = String::new();
+      let stdout_result = obj.read_to_string(&mut stdout_data);
+      match stdout_result {
+        Ok(_) => Some(stdout_data),
+        Err(_) => None,
+      }
+    }
+
+    fn is_running(&self) -> bool {
+      self.is_running
+    }
+
+    fn post_message(&self, data: String) {
+      let mut obj = self.process.stdin.as_ref().unwrap();
+      let result = obj.write_all(data.as_bytes());
+      match result {
+        Ok(()) => {
+          let _ = obj.flush();
+        },
+        Err(why) => {
+          panic!("CProcessProtocol failed to post message: {}", why);
+        }
+      }
+    }
+
+    fn terminate(&mut self) {
+      self.is_running = false;
+      let _ = self.process.kill();
+    }
+  }
+  impl CProcessProtocol {
+    fn new(command: &str, args: &str) -> CProcessProtocol {
+      let cmd = format!("{} {}", command, args);
+      let proc = if cfg!(target_os = "windows") {
+        Command::new("cmd").args(["/c", &cmd])
+          .stdin(Stdio::piped())
+          .stdout(Stdio::piped())
+          .stderr(Stdio::piped())
+          .spawn()
+      } else {
+        Command::new("sh").args(["-c", &cmd])
+          .stdin(Stdio::piped())
+          .stdout(Stdio::piped())
+          .stderr(Stdio::piped())
+          .spawn()
+      };
+
+      let process = match proc {
+        Ok(v) => v,
+        Err(why) => panic!("Failed to create CProcessProtocol: {}", why),
+      };
+
+      CProcessProtocol { process, is_running: true }
+    }
+
+    /// Retrieves the id associated with the held process running.
+    pub fn id(&self) -> u32 {
+      self.process.id()
+    }
+  }
+
+  /// Determines if a given executable command exists on the host operating
+  /// system. Indicated with a true / false return.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_process;
+  ///
+  /// let answer = codemelted_process::exists("deno");
+  /// println!("{}", answer);
+  /// ```
+  ///
+  /// _NOTE: System commands (like dir on windows) will return false. This is
+  /// regular executables._
+  pub fn exists(command: &str) -> bool {
+    let mut proc = if cfg!(target_os = "windows") {
+      Command::new("cmd")
+        .args(["/c", "where", command])
+        .spawn()
+        .expect("Expected process to execute.")
+    } else {
+      Command::new("sh")
+        .args(["-c", "which", command])
+        .spawn()
+        .expect("Expected process to execute.")
+    };
+    let rc = proc.wait().expect("Expected process to wait.");
+    rc.success()
+  }
+
+  /// UNDER DEVELOPMENT
+  pub fn kill() {
+    unimplemented!("FUTURE DEVELOPMENT");
+  }
+
+  /// Will execute a command with the host operating system and return its
+  /// reported output. This is a blocking non-interactive call so no
+  /// communicating with the process via STDIN.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_process;
+  ///
+  /// let output = codemelted_process::run("dir");
+  /// println!("{}", output);
+  /// ```
+  pub fn run(command: &str) -> String {
+    let proc = if cfg!(target_os = "windows") {
+      Command::new("cmd")
+        .args(["/c", command])
+        .output()
+        .expect("Expected process to execute.")
+    } else {
+      Command::new("sh")
+        .args(["-c", command])
+        .output()
+        .expect("Expected process to execute.")
+    };
+    String::from_utf8(proc.stdout).expect("Should vec<u8> to String")
+  }
+
+  /// UNDER DEVELOPMENT
+  pub fn spawn(command: &str, args: &str) -> CProcessProtocol {
+    CProcessProtocol::new(command, args)
+  }
+}
+
+// ============================================================================
 // [Storage Use Case] =========================================================
 // ============================================================================
 
@@ -1743,7 +2447,7 @@ pub mod codemelted_storage {
   /// Responsible for saving the storage to a private file on disk anytime
   /// a change is made to the storage.
   fn save_storage(data: &str) {
-    let home_path = crate::codemelted_system::system_data().home_path().to_string();
+    let home_path = codemelted_disk::home_path().to_string();
     let filename = format!("{}/{}",
       home_path,
       ".codemelted_storage"
@@ -1755,6 +2459,23 @@ pub mod codemelted_storage {
     );
     if result.is_err() {
       panic!("codemelted_storage: {}", result.err().unwrap());
+    }
+  }
+
+  /// Provides access to the operating system environment settings. Simply
+  /// specify the key and get the result. If the key is not found then None
+  /// is returned.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_storage;
+  /// let answer = codemelted_storage::environment("PATH").unwrap();
+  /// assert!(answer.len() > 0);
+  /// ```
+  pub fn environment(key: &str) -> Option<String> {
+    match std::env::var(key) {
+      Ok(val) => Some(val),
+      Err(_) => None,
     }
   }
 
@@ -1771,9 +2492,7 @@ pub mod codemelted_storage {
   pub fn init() {
     let mut storage_mutex = STORAGE.lock().unwrap();
     if storage_mutex.is_none() {
-      let home_path = crate::codemelted_system::system_data()
-        .home_path()
-        .to_string();
+      let home_path = codemelted_disk::home_path();
       let filename = format!("{}/{}",
         home_path,
         ".codemelted_storage"
@@ -1897,562 +2616,6 @@ pub mod codemelted_storage {
 }
 
 // ============================================================================
-// [System Use Case] ==========================================================
-// ============================================================================
-
-/// UNDER ACTIVE DEVELOPMENT / TESTING
-pub mod codemelted_system {
-  // Use Statements
-  use std::process::Command;
-  use sysinfo::{
-    Components, Disks, NetworkData, Networks, System
-  };
-  use crate::CCsvFormat;
-
-  // --------------------------------------------------------------------------
-  // [Module Data] ------------------------------------------------------------
-  // --------------------------------------------------------------------------
-
-  pub struct CComponentData {
-    components: Components
-  }
-  impl CComponentData {
-    fn new() -> CComponentData {
-      let mut components = Components::new_with_refreshed_list();
-      components.refresh(true);
-      CComponentData { components }
-    }
-
-    pub fn refresh(&mut self) {
-      self.components.refresh(true);
-    }
-  }
-
-  /// The result of the [disk_data] call provide a view of the host operating
-  /// systems available data storage disks. This is a self contained array of
-  /// disks and their associated information. Any index call beyond the
-  /// available disks will panic your application.
-  pub struct CDiskData {
-    disks: Disks
-  }
-  impl CDiskData {
-    /// Creates a new instance of the [CDiskData] struct.
-    fn new() -> CDiskData {
-      let mut disks = Disks::new_with_refreshed_list();
-      disks.refresh(true);
-      CDiskData { disks }
-    }
-
-    /// Identifies how many disks are attached to the host operating system.
-    pub fn len(&self) -> usize {
-      self.disks.len()
-    }
-
-    /// Refreshes the disk data to get the latest information.
-    pub fn refresh(&mut self) {
-      self.disks.refresh(true);
-    }
-
-    /// Identifies how the disk is known to the host operating system.
-    pub fn name(&self, index: usize) -> String {
-      match self.disks.get(index) {
-        Some(v) => {
-          match v.name().to_str() {
-            Some(v) => String::from(v),
-            None => String::from("UNDETERMINED"),
-          }
-        },
-        None => panic!(""),
-      }
-    }
-
-    /// Identifies the available disk space in bytes.
-    pub fn disk_available_bytes(&self, index: usize) -> u64 {
-      match self.disks.get(index) {
-        Some(v) => v.available_space(),
-        None => panic!(""),
-      }
-    }
-
-    /// Identifies the used space in bytes of the disk.
-    pub fn disk_used_bytes(&self, index: usize) -> u64 {
-      self.disk_total_bytes(index) - self.disk_available_bytes(index)
-    }
-
-    /// Identifies how big the disk is in bytes.
-    pub fn disk_total_bytes(&self, index: usize) -> u64 {
-      match self.disks.get(index) {
-        Some(v) => v.total_space(),
-        None => panic!(""),
-      }
-    }
-
-    /// Identifies how much of the disk is used.
-    pub fn disk_load(&self, index: usize) -> f32 {
-      let used_space = self.disk_used_bytes(index) as f32;
-      let total_space = self.disk_total_bytes(index) as f32;
-      (used_space / total_space) * 100.0
-    }
-
-    /// Identifies how the disk is formatted.
-    pub fn file_system(&self, index: usize) -> String {
-      match self.disks.get(index) {
-        Some(v) => {
-          match v.file_system().to_str() {
-            Some(v) => String::from(v),
-            None => String::from("UNDETERMINED"),
-          }
-        },
-        None => panic!(""),
-      }
-    }
-
-    /// Determines if this disk is readonly or writeable.
-    pub fn is_read_only(&self, index: usize) -> bool {
-      match self.disks.get(index) {
-        Some(v) => v.is_read_only(),
-        None => panic!(""),
-      }
-    }
-
-    /// Determines if this disk is removable or not.
-    pub fn is_removable(&self, index: usize) -> bool {
-      match self.disks.get(index) {
-        Some(v) => v.is_removable(),
-        None => panic!(""),
-      }
-    }
-
-    /// Determines what type of disk this is.
-    pub fn kind(&self, index: usize) -> String {
-      match self.disks.get(index) {
-        Some(v) => v.kind().to_string(),
-        None => panic!(""),
-      }
-    }
-
-    /// Identifies the mount point of the disk.
-    pub fn mount_point(&self, index: usize) -> String {
-      match self.disks.get(index) {
-        Some(v) => {
-          match v.mount_point().to_str() {
-            Some(v) => String::from(v),
-            None => String::from("UNDETERMINED"),
-          }
-        },
-        None => panic!(""),
-      }
-    }
-  }
-  impl CCsvFormat for CDiskData {
-    fn csv_header(&self) -> String {
-      format!(
-        "{},{},{},{},{},{},{},{},{},{}",
-        String::from("name"),
-        String::from("disk_available_bytes"),
-        String::from("disk_used_bytes"),
-        String::from("disk_total_bytes"),
-        String::from("disk_load"),
-        String::from("file_system"),
-        String::from("is_readonly"),
-        String::from("is_removable"),
-        String::from("kind"),
-        String::from("mount_point"),
-      )
-    }
-
-    fn as_csv(&self) -> String {
-      let mut csv_data = String::new();
-      let mut x = 0;
-      while x < self.len() {
-        let data = format!(
-          "{},{},{},{},{},{},{},{},{},{}",
-          self.name(x),
-          self.disk_available_bytes(x),
-          self.disk_used_bytes(x),
-          self.disk_total_bytes(x),
-          self.disk_load(x),
-          self.file_system(x),
-          self.is_read_only(x),
-          self.is_removable(x),
-          self.kind(x),
-          self.mount_point(x)
-        );
-        csv_data.push_str(&data);
-        csv_data.push('\n');
-        x += 1
-      }
-      csv_data
-    }
-  }
-
-  pub struct CNetworkData {
-    networks: Networks
-  }
-  impl CNetworkData {
-    fn new() -> CNetworkData {
-      let networks = Networks::new_with_refreshed_list();
-      CNetworkData { networks }
-    }
-
-    pub fn refresh(&mut self) {
-      self.networks.refresh(true);
-    }
-
-    pub fn names(&self) -> Vec<String> {
-      let mut names = Vec::<String>::new();
-      for (name, _network) in &self.networks {
-        names.push(name.to_string());
-      }
-      names
-    }
-  }
-
-  pub struct CPerfData {
-    sys: System
-  }
-  impl crate::CCsvFormat for CPerfData {
-    fn csv_header(&self) -> String {
-      format!(
-        "{},{},{},{},{},{},{},{},{},{}",
-        String::from("cpu_load"),
-        String::from("memory_available_bytes"),
-        String::from("memory_free_bytes"),
-        String::from("memory_used_bytes"),
-        String::from("memory_total_bytes"),
-        String::from("memory_load"),
-        String::from("swap_free_bytes"),
-        String::from("swap_used_bytes"),
-        String::from("swap_total_bytes"),
-        String::from("swap_load")
-      )
-    }
-
-    fn as_csv(&self) -> String {
-      format!(
-        "{},{},{},{},{},{},{},{},{},{}",
-        self.cpu_load(),
-        self.memory_available_bytes(),
-        self.memory_free_bytes(),
-        self.memory_used_bytes(),
-        self.memory_total_bytes(),
-        self.memory_load(),
-        self.swap_free_bytes(),
-        self.swap_used_bytes(),
-        self.swap_total_bytes(),
-        self.swap_load()
-      )
-    }
-  }
-  impl CPerfData {
-    fn new() -> CPerfData {
-      let sys = System::new_all();
-      CPerfData { sys }
-    }
-
-    pub fn refresh(&mut self) {
-      self.sys.refresh_memory();
-      self.sys.refresh_cpu_usage();
-    }
-
-    /// Identifies the current CPU % utilization distributed across the whole
-    /// of the available CPUs of the operating system.
-    pub fn cpu_load(&self) -> f32 {
-      let mut count: f32 = 0.0;
-      let mut total: f32 = 0.0;
-      for cpu in self.sys.cpus() {
-        total += cpu.cpu_usage();
-        count += 1.0;
-      }
-      total / count
-    }
-
-    pub fn memory_available_bytes(&self) -> u64 {
-      self.sys.available_memory()
-    }
-
-    pub fn memory_free_bytes(&self) -> u64 {
-      self.sys.free_memory()
-    }
-
-    pub fn memory_used_bytes(&self) -> u64 {
-      self.sys.used_memory()
-    }
-
-    pub fn memory_total_bytes(&self) -> u64 {
-      self.sys.total_memory()
-    }
-
-    pub fn memory_load(&self) -> f32 {
-      let used_bytes = self.memory_used_bytes() as f32;
-      let total_bytes = self.memory_total_bytes() as f32;
-      (used_bytes / total_bytes) * 100.0
-    }
-
-    pub fn swap_free_bytes(&self) -> u64 {
-      self.sys.free_swap()
-    }
-
-    pub fn swap_used_bytes(&self) -> u64 {
-      self.sys.used_swap()
-    }
-
-    pub fn swap_total_bytes(&self) -> u64 {
-      self.sys.total_swap()
-    }
-
-    pub fn swap_load(&self) -> f32 {
-      let used_bytes = self.swap_used_bytes() as f32;
-      let total_bytes = self.swap_total_bytes() as f32;
-      (used_bytes / total_bytes) * 100.0
-    }
-  }
-
-  pub struct CSystemData {
-    cpu_arch: String,
-    cpu_count: usize,
-    home_path: String,
-    host_name: String,
-    kernel_version: String,
-    newline: String,
-    os_name: String,
-    os_version: String,
-    path_separator: String,
-    temp_path: String,
-    user: String,
-  }
-  impl CSystemData {
-    fn new() -> CSystemData {
-      let cpu_count = match System::physical_core_count() {
-        Some(v) => v,
-        None => 1,
-      };
-
-      let home_path = if cfg!(target_os = "windows") {
-        environment("USERPROFILE").unwrap()
-      } else {
-        environment("HOME").unwrap()
-      };
-
-      let host_name = match System::host_name() {
-        Some(v) => v,
-        None => String::from("UNDETERMINED"),
-      };
-
-      let kernel_version = match System::kernel_version() {
-        Some(v) => v,
-        None => String::from("UNDETERMINED"),
-      };
-
-      let newline = if cfg!(target_os = "windows") {
-        String::from("\r\n")
-      } else {
-        String::from("\n")
-      };
-
-      let os_name = match System::name() {
-        Some(v) => v,
-        None => String::from("UNDETERMINED"),
-      };
-
-      let os_version = match System::os_version() {
-        Some(v) => v,
-        None => String::from("UNDETERMINED"),
-      };
-
-      let path_separator = if cfg!(target_os = "windows") {
-        String::from("\\")
-      } else {
-        String::from("/")
-      };
-
-      let temp_path = match std::env::temp_dir().to_str() {
-        Some(v) => String::from(v),
-        None => String::from("UNDETERMINED"),
-      };
-
-      let user = if cfg!(target_os = "windows") {
-        environment("USERNAME").unwrap()
-      } else {
-        environment("USER").unwrap()
-      };
-
-      CSystemData {
-        cpu_arch: System::cpu_arch(),
-        cpu_count,
-        home_path,
-        host_name,
-        kernel_version,
-        newline,
-        os_name,
-        os_version,
-        path_separator,
-        temp_path,
-        user
-      }
-    }
-
-    /// Identifies the chip set architecture.
-    pub fn cpu_arch(&self) -> &str {
-      &self.cpu_arch
-    }
-
-    /// Identifies the CPU count to support application threading.
-    pub fn cpu_count(&self) -> usize {
-      self.cpu_count
-    }
-
-    pub fn home_path(&self) -> &str {
-      &self.home_path
-    }
-
-    pub fn host_name(&self) -> &str {
-      &self.host_name
-    }
-
-    pub fn kernel_version(&self) -> &str {
-      &self.kernel_version
-    }
-
-    pub fn newline(&self) -> &str {
-      &self.newline
-    }
-
-    pub fn os_name(&self) -> &str {
-      &self.os_name
-    }
-
-    pub fn os_version(&self) -> &str {
-      &self.os_version
-    }
-
-    pub fn path_separator(&self) -> &str {
-      &self.path_separator
-    }
-
-    pub fn temp_path(&self) -> &str {
-      &self.temp_path
-    }
-
-    pub fn user(&self) -> &str {
-      &self.user
-    }
-  }
-
-  // --------------------------------------------------------------------------
-  // [Module Functions] -------------------------------------------------------
-  // --------------------------------------------------------------------------
-
-  /// Determines if a given executable command exists on the host operating
-  /// system. Indicated with a true / false return.
-  ///
-  /// **Example:**
-  /// ```
-  /// use codemelted::codemelted_system;
-  ///
-  /// let answer = codemelted_system::exists("deno");
-  /// println!("{}", answer);
-  /// ```
-  ///
-  /// _NOTE: System commands (like dir on windows) will return false. This is
-  /// regular executables._
-  pub fn command_exists(command: &str) -> bool {
-    let mut proc = if cfg!(target_os = "windows") {
-      Command::new("cmd")
-        .args(["/c", "where", command])
-        .spawn()
-        .expect("Expected process to execute.")
-    } else {
-      Command::new("sh")
-        .args(["-c", "which", command])
-        .spawn()
-        .expect("Expected process to execute.")
-    };
-    let rc = proc.wait().expect("Expected process to wait.");
-    rc.success()
-  }
-
-  /// Will execute a command with the host operating system and return its
-  /// reported output. This is a blocking non-interactive call so no
-  /// communicating with the process via STDIN.
-  ///
-  /// **Example:**
-  /// ```
-  /// use codemelted::codemelted_system;
-  ///
-  /// let output = codemelted_system::command_run("dir");
-  /// println!("{}", output);
-  /// ```
-  pub fn command_run(command: &str) -> String {
-    let proc = if cfg!(target_os = "windows") {
-      Command::new("cmd")
-        .args(["/c", command])
-        .output()
-        .expect("Expected process to execute.")
-    } else {
-      Command::new("sh")
-        .args(["-c", command])
-        .output()
-        .expect("Expected process to execute.")
-    };
-    String::from_utf8(proc.stdout).expect("Should vec<u8> to String")
-  }
-
-  /// TODO Something
-  pub fn disk_data() -> CDiskData {
-    CDiskData::new()
-  }
-
-  /// Provides access to the operating system environment settings. Simply
-  /// specify the key and get the result. If the key is not found then None
-  /// is returned.
-  ///
-  /// **Example:**
-  /// ```
-  /// use codemelted::codemelted_system;
-  /// let answer = codemelted_system::environment("PATH").unwrap();
-  /// assert!(answer.len() > 0);
-  /// ```
-  pub fn environment(key: &str) -> Option<String> {
-    match std::env::var(key) {
-      Ok(val) => Some(val),
-      Err(_e) => None,
-    }
-  }
-
-  /// TODO Something cool
-  pub fn monitor(
-    count: u16,
-    delay: u16,
-    report_to_stdout: bool,
-    capture_csv_file: bool
-  ) -> Option<String> {
-    todo!()
-  }
-
-  /// TODO: Something cool
-  pub fn network_data() -> CNetworkData {
-    CNetworkData::new()
-  }
-
-  /// TODO: Something cool
-  pub fn online() -> bool {
-    todo!()
-  }
-
-  /// TODO Something cool
-  pub fn perf_data() -> CPerfData {
-    CPerfData::new()
-  }
-
-  /// TODO Something cool
-  pub fn system_data() -> CSystemData {
-    CSystemData::new()
-  }
-}
-
-
-// ============================================================================
 // [UI Use Case] ==============================================================
 // ============================================================================
 
@@ -2474,11 +2637,8 @@ mod tests {
   }
 }
 
-// Only used for testing out modules that can't have a unit test derived.
-// Comment out when ready to deliver module to crate.
+/// Used for prototype purposes. Don't use the executable as this is an
+/// empty function.
 pub fn main() {
-  let components = sysinfo::Components::new_with_refreshed_list();
-  for component in &components {
 
-  }
 }
