@@ -188,6 +188,16 @@ class CWorkerProtocol implements CProtocolHandler {
 /// Both the [CodeMeltedAsync.task] and [CodeMeltedAsync.timer] run in
 /// the main thread but allow for scheduling the code amongst synchronous code.
 class CodeMeltedAsync {
+  /// Identifies the architecture of the host operating system. Always
+  /// UNDETERMINED as we await Browser Web API support.
+  ///
+  /// **See:**
+  /// - https://developer.mozilla.org/en-US/docs/Web/API/Navigator/userAgentData
+  String get cpuArch => "UNDETERMINED";
+
+  /// Identifies how many threads are available with the host operating system.
+  int get cpuCount => web.window.navigator.hardwareConcurrency;
+
   /// Will put a currently running async task to sleep for a specified delay
   /// in milliseconds.
   ///
@@ -304,27 +314,6 @@ class CodeMeltedAsync {
 
 /// Provides the namespace access to the [CodeMeltedAsync] object.
 var codemelted_async = CodeMeltedAsync();
-
-// ============================================================================
-// [Audio Use Case] ===========================================================
-// ============================================================================
-
-/// @nodoc
-class CodeMeltedAudio {
-  /// Gets the single instance of the API.
-  static CodeMeltedAudio? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CodeMeltedAudio() => _instance ?? CodeMeltedAudio._();
-
-  /// Sets up the namespace for the [CodeMeltedAudio] object.
-  CodeMeltedAudio._() {
-    _instance = this;
-  }
-}
-
-/// @nodoc
-var codemelted_audio = CodeMeltedAudio();
 
 // ============================================================================
 // [Console Use Case] =========================================================
@@ -838,6 +827,12 @@ class CodeMeltedNPU {
 var codemelted_npu = CodeMeltedNPU();
 
 // ============================================================================
+// [Process Use Case] =========================================================
+// ============================================================================
+
+// NOT APPLICABLE TO THIS MODULE
+
+// ============================================================================
 // [Storage Use Case] =========================================================
 // ============================================================================
 
@@ -862,143 +857,8 @@ var codemelted_storage = CodeMeltedStorage();
 // [System Use Case] ==========================================================
 // ============================================================================
 
-/// Identifies the schema for usage with the [CodeMeltedSystem.open] function.
-enum CSchemaType {
-  /// Represents the file protocol for accessing a local file.
-  file("file:"),
-
-  /// Represents the HTTP protocol for a web server not secured.
-  http("http://"),
-
-  /// Represents the HTTP protocol for a web server that is secured.
-  https("https://"),
-
-  /// Represents the mailto protocol to open a desktop native service for
-  /// email.
-  mailto("mailto:"),
-
-  /// Represents the SMS protocol opening the app associated with texting.
-  sms("sms:"),
-
-  /// Represents the TEL protocol opening the app for making phone calls.
-  tel("tel:");
-
-  /// Holds the formatted protocol for the [CodeMeltedSystem.open] call.
-  final String schema;
-
-  /// Constructor for the enumeration.
-  const CSchemaType(this.schema);
-
-  /// Utility function to format the [CSchemaType.mailto] parameter url.
-  static String formatMailToParams({
-    List<String> mailto = const [],
-    List<String> cc = const [],
-    List<String> bcc = const [],
-    String subject = "",
-    String body = "",
-  }) {
-    var url = "";
-
-    if (mailto.isNotEmpty) {
-      for (var addr in mailto) {
-        url += "$addr;";
-      }
-      url = url.substring(0, url.length - 1);
-    }
-
-    var delimiter = "?";
-    if (cc.isNotEmpty) {
-      url += "${delimiter}cc=";
-      delimiter = "&";
-      for (var addr in cc) {
-        url += "$addr;";
-      }
-      url = url.substring(0, url.length - 1);
-    }
-
-    if (bcc.isNotEmpty) {
-      url += "${delimiter}bcc=";
-      delimiter = "&";
-      for (var addr in bcc) {
-        url += "$addr;";
-      }
-      url = url.substring(0, url.length - 1);
-    }
-
-    if (subject.trim().isNotEmpty) {
-      url += "${delimiter}subject=${subject.trim()}";
-      delimiter = "&";
-    }
-
-    if (body.trim().isNotEmpty) {
-      url += "${delimiter}body=${body.trim()}";
-      delimiter = "&";
-    }
-
-    return url;
-  }
-}
-
 /// @nodoc
 class CodeMeltedSystem {
-  /// Retrieves the height of the overall browser window.
-  double height(BuildContext context) {
-    return MediaQuery.of(context).size.height;
-  }
-
-  /// Determines if the flutter app is a PWA or not.
-  bool get isPWA {
-    return web.window.matchMedia("(display-mode: standalone)").matches;
-  }
-
-  /// Determines if the browser is a touch interface or not.
-  bool get isTouchEnabled {
-    return web.window.has("touchstart") ||
-        web.window.navigator.maxTouchPoints > 0;
-  }
-
-  /// Opens the specified protocol to a browser window or native app
-  /// configured to handle the given [CSchemaType]. Returns the [web.Window]
-  /// opened for later control.
-  web.Window? open({
-    required CSchemaType schema,
-    bool popupWindow = false,
-    String? mailtoParams,
-    String? url,
-    String target = "_blank",
-    double? width,
-    double? height,
-  }) {
-    var urlToLaunch = schema.schema;
-    if (schema == CSchemaType.file ||
-        schema == CSchemaType.http ||
-        schema == CSchemaType.https ||
-        schema == CSchemaType.sms ||
-        schema == CSchemaType.tel) {
-      urlToLaunch += url!;
-    } else if (schema == CSchemaType.mailto) {
-      urlToLaunch += mailtoParams ?? url!;
-    }
-
-    if (popupWindow) {
-      var w = width ?? 900.0;
-      var h = height ?? 600.0;
-      var top = (web.window.screen.height - h) / 2;
-      var left = (web.window.screen.width - w) / 2;
-      var settings = "toolbar=no, location=no, "
-          "directories=no, status=no, menubar=no, "
-          "scrollbars=no, resizable=yes, copyhistory=no, "
-          "width=$w, height=$h, top=$top, left=$left";
-      return web.window.open(urlToLaunch, "_blank", settings);
-    }
-
-    return web.window.open(urlToLaunch, target);
-  }
-
-  double width(BuildContext context) {
-    return MediaQuery.of(context).size.width;
-  }
-
   /// Gets the single instance of the API.
   static CodeMeltedSystem? _instance;
 
@@ -1010,9 +870,6 @@ class CodeMeltedSystem {
     _instance = this;
   }
 }
-
-/// @nodoc
-var codemelted_system = CodeMeltedSystem();
 
 // ============================================================================
 // [UI Use Case] ==============================================================
@@ -1501,6 +1358,87 @@ enum CDialogAction {
   custom,
   loading,
   prompt;
+}
+
+// ----------------------------------------------------------------------------
+// [Schema Definitions] -------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+/// Identifies the schema for usage with the [CodeMeltedSystem.open] function.
+enum CSchemaType {
+  /// Represents the file protocol for accessing a local file.
+  file("file:"),
+
+  /// Represents the HTTP protocol for a web server not secured.
+  http("http://"),
+
+  /// Represents the HTTP protocol for a web server that is secured.
+  https("https://"),
+
+  /// Represents the mailto protocol to open a desktop native service for
+  /// email.
+  mailto("mailto:"),
+
+  /// Represents the SMS protocol opening the app associated with texting.
+  sms("sms:"),
+
+  /// Represents the TEL protocol opening the app for making phone calls.
+  tel("tel:");
+
+  /// Holds the formatted protocol for the [CodeMeltedSystem.open] call.
+  final String schema;
+
+  /// Constructor for the enumeration.
+  const CSchemaType(this.schema);
+
+  /// Utility function to format the [CSchemaType.mailto] parameter url.
+  static String formatMailToParams({
+    List<String> mailto = const [],
+    List<String> cc = const [],
+    List<String> bcc = const [],
+    String subject = "",
+    String body = "",
+  }) {
+    var url = "";
+
+    if (mailto.isNotEmpty) {
+      for (var addr in mailto) {
+        url += "$addr;";
+      }
+      url = url.substring(0, url.length - 1);
+    }
+
+    var delimiter = "?";
+    if (cc.isNotEmpty) {
+      url += "${delimiter}cc=";
+      delimiter = "&";
+      for (var addr in cc) {
+        url += "$addr;";
+      }
+      url = url.substring(0, url.length - 1);
+    }
+
+    if (bcc.isNotEmpty) {
+      url += "${delimiter}bcc=";
+      delimiter = "&";
+      for (var addr in bcc) {
+        url += "$addr;";
+      }
+      url = url.substring(0, url.length - 1);
+    }
+
+    if (subject.trim().isNotEmpty) {
+      url += "${delimiter}subject=${subject.trim()}";
+      delimiter = "&";
+    }
+
+    if (body.trim().isNotEmpty) {
+      url += "${delimiter}body=${body.trim()}";
+      delimiter = "&";
+    }
+
+    return url;
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -3571,6 +3509,60 @@ class CodeMeltedUI {
     return null;
   }
 
+  /// Retrieves the height of the overall browser window.
+  double height(BuildContext context) {
+    return MediaQuery.of(context).size.height;
+  }
+
+  /// Determines if the flutter app is a PWA or not.
+  bool get isPWA {
+    return web.window.matchMedia("(display-mode: standalone)").matches;
+  }
+
+  /// Determines if the browser is a touch interface or not.
+  bool get isTouchEnabled {
+    return web.window.has("touchstart") ||
+        web.window.navigator.maxTouchPoints > 0;
+  }
+
+  /// Opens the specified protocol to a browser window or native app
+  /// configured to handle the given [CSchemaType]. Returns the [web.Window]
+  /// opened for later control.
+  web.Window? open({
+    required CSchemaType schema,
+    bool popupWindow = false,
+    String? mailtoParams,
+    String? url,
+    String target = "_blank",
+    double? width,
+    double? height,
+  }) {
+    var urlToLaunch = schema.schema;
+    if (schema == CSchemaType.file ||
+        schema == CSchemaType.http ||
+        schema == CSchemaType.https ||
+        schema == CSchemaType.sms ||
+        schema == CSchemaType.tel) {
+      urlToLaunch += url!;
+    } else if (schema == CSchemaType.mailto) {
+      urlToLaunch += mailtoParams ?? url!;
+    }
+
+    if (popupWindow) {
+      var w = width ?? 900.0;
+      var h = height ?? 600.0;
+      var top = (web.window.screen.height - h) / 2;
+      var left = (web.window.screen.width - w) / 2;
+      var settings = "toolbar=no, location=no, "
+          "directories=no, status=no, menubar=no, "
+          "scrollbars=no, resizable=yes, copyhistory=no, "
+          "width=$w, height=$h, top=$top, left=$left";
+      return web.window.open(urlToLaunch, "_blank", settings);
+    }
+
+    return web.window.open(urlToLaunch, target);
+  }
+
   /// Creates a [ThemeData] object but it only exposes the material3 themes so
   /// that any application theming is done with the future in mind.
   ThemeData themeData({
@@ -3714,6 +3706,11 @@ class CodeMeltedUI {
   /// ```
   Widget widget(CUiWidget widget) {
     return widget._build();
+  }
+
+  /// Gets the overall width of the given context.
+  double width(BuildContext context) {
+    return MediaQuery.of(context).size.width;
   }
 
   /// Gets the single instance of the API.
