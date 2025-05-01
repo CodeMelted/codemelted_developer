@@ -35,6 +35,15 @@ DEALINGS IN THE SOFTWARE.
 
 /// Defines a trait to allow a struct to transform its data into a CSV format.
 pub trait CCsvFormat {
+  /// Utility method to get the system id for a given monitor.
+  fn system_id() -> String {
+    format!(
+      "{} / {} / {}",
+      codemelted_hw::os_name(),
+      codemelted_hw::os_version(),
+      codemelted_hw::kernel_version(),
+    )
+  }
   /// Identifies the header associated with the data.
   fn csv_header(&self) -> String;
   /// Transforms the data into a CSV format.
@@ -110,30 +119,45 @@ impl CTruthyString for CObject {
 /// process items in the background utilizing different methodologies. There
 /// is the one off [crate::codemelted_async::task]. There is a repeating
 /// [crate::codemelted_async::timer]. Then there is the ability to have a
-/// dedicated [crate::codemelted_async::worker] with a FIFO queue.
+/// dedicated [crate::codemelted_async::worker] with a FIFO queue. Finally the
+/// module provides a [crate::codemelted_async::CPerformanceMonitor] object
+/// to monitor overall platform performance in terms of cpu / memory
+/// utilization.
+#[doc = mermaid!("models/codemelted_async.mmd")]
 pub mod codemelted_async {
-  // Use Statements
+  // --------------------------------------------------------------------------
+  // [Module Use Statements] --------------------------------------------------
+  // --------------------------------------------------------------------------
   use crate::CProtocolHandler;
   use std::{
     sync::mpsc::{channel, Receiver, Sender},
     thread::{self, JoinHandle},
     time
   };
+  use simple_mermaid::mermaid;
   use sysinfo::System;
 
   // --------------------------------------------------------------------------
   // [Module Data Definitions] ------------------------------------------------
   // --------------------------------------------------------------------------
 
-  pub struct CPerfData {
+  /// Provides a monitoring object to measure the platform's overall CPU /
+  /// memory utilization. This is accomplished by calling the [monitor]
+  /// function to get a reference of the object. From here you have the ability
+  /// to sample the data of interest, refresh to get the latest update, and if
+  /// necessary capture a [crate::CCsvFormat] of the data.
+  pub struct CPerformanceMonitor {
     sys: System
   }
-  impl CPerfData {
-    fn new() -> CPerfData {
+  impl CPerformanceMonitor {
+    /// Creates an instance of the monitor object. Only accessible via the
+    /// [monitor] function.
+    fn new() -> CPerformanceMonitor {
       let sys = System::new_all();
-      CPerfData { sys }
+      CPerformanceMonitor { sys }
     }
 
+    /// Refreshes the CPU and memory statistics.
     pub fn refresh(&mut self) {
       self.sys.refresh_memory();
       self.sys.refresh_cpu_usage();
@@ -151,50 +175,62 @@ pub mod codemelted_async {
       total / count
     }
 
+    /// Identifies the current available memory in bytes.
     pub fn memory_available_bytes(&self) -> u64 {
       self.sys.available_memory()
     }
 
+    /// Identifies the current free memory in bytes.
     pub fn memory_free_bytes(&self) -> u64 {
       self.sys.free_memory()
     }
 
+    /// Identifies the current used memory in bytes.
     pub fn memory_used_bytes(&self) -> u64 {
       self.sys.used_memory()
     }
 
+    /// Identifies the total memory in bytes.
     pub fn memory_total_bytes(&self) -> u64 {
       self.sys.total_memory()
     }
 
+    /// Determines the percentage of used memory vs. total bytes.
     pub fn memory_load(&self) -> f32 {
       let used_bytes = self.memory_used_bytes() as f32;
       let total_bytes = self.memory_total_bytes() as f32;
       (used_bytes / total_bytes) * 100.0
     }
 
+    /// Identifies the swap free space in bytes.
     pub fn swap_free_bytes(&self) -> u64 {
       self.sys.free_swap()
     }
 
+    /// Identifies the swap used space in bytes.
     pub fn swap_used_bytes(&self) -> u64 {
       self.sys.used_swap()
     }
 
+    /// Identifies the swap space total bytes.
     pub fn swap_total_bytes(&self) -> u64 {
       self.sys.total_swap()
     }
 
+    /// Identifies the swap load percentage.
     pub fn swap_load(&self) -> f32 {
       let used_bytes = self.swap_used_bytes() as f32;
       let total_bytes = self.swap_total_bytes() as f32;
       (used_bytes / total_bytes) * 100.0
     }
   }
-  impl crate::CCsvFormat for CPerfData {
+  impl crate::CCsvFormat for CPerformanceMonitor {
     fn csv_header(&self) -> String {
       format!(
-        "{},{},{},{},{},{},{},{},{},{}",
+        "{},{},{},{},{},{},{},{},{},{},{},{},{}",
+        String::from("system_id"),
+        String::from("cpu_arch"),
+        String::from("cpu_count"),
         String::from("cpu_load"),
         String::from("memory_available_bytes"),
         String::from("memory_free_bytes"),
@@ -210,7 +246,10 @@ pub mod codemelted_async {
 
     fn as_csv(&self) -> String {
       format!(
-        "{},{},{},{},{},{},{},{},{},{}",
+        "{},{},{},{},{},{},{},{},{},{},{},{},{}",
+        Self::system_id(),
+        cpu_arch(),
+        cpu_count(),
         self.cpu_load(),
         self.memory_available_bytes(),
         self.memory_free_bytes(),
@@ -335,9 +374,8 @@ pub mod codemelted_async {
   /// The result of a [worker] call. This holds a dedicated thread that is
   /// waiting for data via the [CWorkerProtocol::post_message]. This will
   /// queue of data for processing and the internal thread will process that
-  /// data in accordance with the [CWorkerCB]. Any data meant for return
-  /// processing is handled via the [`CMessageRxHandler<CObject>`] specified on
-  /// the worker call.
+  /// data in accordance with the [CWorkerCB]. Any processed data is available
+  /// via the [CProtocolHandler] bound trait functions.
   pub struct CWorkerProtocol<T> {
     handle: JoinHandle<()>,
     protocol_tx: Option<Sender<T>>,
@@ -412,12 +450,29 @@ pub mod codemelted_async {
   // [Module Function Definitions] --------------------------------------------
   // --------------------------------------------------------------------------
 
-  /// UNDER DEVELOPMENT
+  /// Will identify the current CPU architecture.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_async;
+  ///
+  /// let arch = codemelted_async::cpu_arch();
+  /// assert!(!arch.is_empty());
+  /// ```
   pub fn cpu_arch() -> String {
     System::cpu_arch()
   }
 
-  /// UNDER DEVELOPMENT
+  /// Will identify the number of available CPUs for background thread
+  /// processing. If it can't be determined then 1 is returned.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_async;
+  ///
+  /// let count = codemelted_async::cpu_count();
+  /// assert!(count >= 1);
+  /// ```
   pub fn cpu_count() -> usize {
     match System::physical_core_count() {
       Some(v) => v,
@@ -425,9 +480,22 @@ pub mod codemelted_async {
     }
   }
 
-  /// UNDER DEVELOPMENT
-  pub fn monitor() -> CPerfData {
-    CPerfData::new()
+  /// Constructs a [CPerformanceMonitor] to monitor the overall CPU / memory
+  /// utilization.
+  ///
+  /// ```
+  /// use codemelted::codemelted_async;
+  /// use codemelted::codemelted_async::CPerformanceMonitor;
+  ///
+  /// let mut monitor = codemelted_async::monitor();
+  /// monitor.refresh();
+  /// let cpu_load1 = monitor.cpu_load();
+  /// monitor.refresh();
+  /// let cpu_load2 = monitor.cpu_load();
+  /// assert!(cpu_load1 != cpu_load2);
+  /// ```
+  pub fn monitor() -> CPerformanceMonitor {
+    CPerformanceMonitor::new()
   }
 
   /// Will put a currently running thread (main or background) to sleep for
@@ -452,25 +520,7 @@ pub mod codemelted_async {
   /// optional data returned. The function is templated so you can use any
   /// data type.
   ///
-  /// **Example (No Data):**
-  /// ```
-  /// use codemelted::CObject;
-  /// use codemelted::codemelted_async;
-  ///
-  /// fn task_cb(data: Option<CObject>) -> Option<CObject> {
-  ///   codemelted_async::sleep(1000);
-  ///   println!("Hello");
-  ///   None
-  /// }
-  ///
-  /// let async_task = codemelted_async::task(task_cb, None, 250);
-  /// assert!(!async_task.has_completed());
-  /// let answer = async_task.value();
-  /// assert!(async_task.has_completed());
-  /// assert!(answer.is_none());
-  /// ```
-  ///
-  /// **Example (With Data):**
+  /// **Example:**
   /// ```
   /// use codemelted::codemelted_async;
   /// use codemelted::codemelted_json;
@@ -581,15 +631,27 @@ pub mod codemelted_async {
 /// Implements the CodeMelted DEV Console use case. Provides the ability to
 /// create terminal applications using STDIN / STDOUT to interact with the
 /// user with simple prompts to guide them through a terminal based app.
+#[doc = mermaid!("models/codemelted_console.mmd")]
 pub mod codemelted_console {
+  // --------------------------------------------------------------------------
+  // [Module Use Statements] --------------------------------------------------
+  // --------------------------------------------------------------------------
   use crate::{CObject, CTruthyString};
+  use simple_mermaid::mermaid;
+  use std::io::{stdin, stdout, Write};
+
+  // --------------------------------------------------------------------------
+  // [Module Data Definitions] ------------------------------------------------
+  // --------------------------------------------------------------------------
+
+  // NONE
+
+  // --------------------------------------------------------------------------
+  // [Module Function Definitions] --------------------------------------------
+  // --------------------------------------------------------------------------
 
   /// Utility function to read from stdin with a specified prompt.
   fn read(prompt: &str) -> String {
-    use std::io::stdin;
-    use std::io::stdout;
-    use std::io::Write;
-
     let mut answer = String::new();
     print!("{}", prompt);
     let _ = stdout().flush();
@@ -756,7 +818,8 @@ pub mod codemelted_console {
 // [DB Use Case] ==============================================================
 // ============================================================================
 
-mod codemelted_db {
+/// <center><b><mark>FUTURE IMPLEMENTATION. DOES NOTHING</mark></b></center>
+pub mod codemelted_db {
   // FUTURE IMPLEMENTATION
 }
 
@@ -766,32 +829,37 @@ mod codemelted_db {
 
 /// Implements the CodeMelted DEV Disk use case. Provides the ability to
 /// manage files / directories on disk, query properties associated with
-/// managing the disk, and reading / writing files.
+/// managing the disk, reading / writing files, and the ability to monitor the
+/// disks attached to the host operating system.
+#[doc = mermaid!("models/codemelted_disk.mmd")]
 pub mod codemelted_disk {
-  /// Use Statements
+  // --------------------------------------------------------------------------
+  // [Module Use Statements] --------------------------------------------------
+  // --------------------------------------------------------------------------
   use crate::{codemelted_storage, CCsvFormat};
   use std::io::{Read, Write};
   use std::fs::{self, File, Metadata, OpenOptions};
   use std::path::Path;
+  use simple_mermaid::mermaid;
   use sysinfo::Disks;
 
   // --------------------------------------------------------------------------
-  // [Data Definition] --------------------------------------------------------
+  // [Module Data Definitions] ------------------------------------------------
   // --------------------------------------------------------------------------
 
-  /// The result of the [disk_data] call provide a view of the host operating
+  /// The result of the [monitor] call provide a view of the host operating
   /// systems available data disk storage. This is a self contained array of
   /// disks and their associated information. Any index call beyond the
   /// available disks will panic your application.
-  pub struct CDiskData {
+  pub struct CDiskMonitor {
     disks: Disks
   }
-  impl CDiskData {
-    /// Creates a new instance of the [CDiskData] struct.
-    fn new() -> CDiskData {
+  impl CDiskMonitor {
+    /// Creates a new instance of the [CDiskMonitor] struct.
+    fn new() -> CDiskMonitor {
       let mut disks = Disks::new_with_refreshed_list();
       disks.refresh(true);
-      CDiskData { disks }
+      CDiskMonitor { disks }
     }
 
     /// Identifies how many disks are attached to the host operating system.
@@ -813,7 +881,7 @@ pub mod codemelted_disk {
             None => String::from("UNDETERMINED"),
           }
         },
-        None => panic!(""),
+        None => panic!("SyntaxError: index out of range."),
       }
     }
 
@@ -821,7 +889,7 @@ pub mod codemelted_disk {
     pub fn disk_available_bytes(&self, index: usize) -> u64 {
       match self.disks.get(index) {
         Some(v) => v.available_space(),
-        None => panic!(""),
+        None => panic!("SyntaxError: index out of range."),
       }
     }
 
@@ -834,7 +902,7 @@ pub mod codemelted_disk {
     pub fn disk_total_bytes(&self, index: usize) -> u64 {
       match self.disks.get(index) {
         Some(v) => v.total_space(),
-        None => panic!(""),
+        None => panic!("SyntaxError: index out of range."),
       }
     }
 
@@ -854,7 +922,7 @@ pub mod codemelted_disk {
             None => String::from("UNDETERMINED"),
           }
         },
-        None => panic!(""),
+        None => panic!("SyntaxError: index out of range."),
       }
     }
 
@@ -862,7 +930,7 @@ pub mod codemelted_disk {
     pub fn is_read_only(&self, index: usize) -> bool {
       match self.disks.get(index) {
         Some(v) => v.is_read_only(),
-        None => panic!(""),
+        None => panic!("SyntaxError: index out of range."),
       }
     }
 
@@ -870,7 +938,7 @@ pub mod codemelted_disk {
     pub fn is_removable(&self, index: usize) -> bool {
       match self.disks.get(index) {
         Some(v) => v.is_removable(),
-        None => panic!(""),
+        None => panic!("SyntaxError: index out of range."),
       }
     }
 
@@ -878,7 +946,7 @@ pub mod codemelted_disk {
     pub fn kind(&self, index: usize) -> String {
       match self.disks.get(index) {
         Some(v) => v.kind().to_string(),
-        None => panic!(""),
+        None => panic!("SyntaxError: index out of range."),
       }
     }
 
@@ -891,14 +959,15 @@ pub mod codemelted_disk {
             None => String::from("UNDETERMINED"),
           }
         },
-        None => panic!(""),
+        None => panic!("SyntaxError: index out of range."),
       }
     }
   }
-  impl CCsvFormat for CDiskData {
+  impl CCsvFormat for CDiskMonitor {
     fn csv_header(&self) -> String {
       format!(
-        "{},{},{},{},{},{},{},{},{},{}",
+        "{},{},{},{},{},{},{},{},{},{},{}",
+        String::from("system_id"),
         String::from("name"),
         String::from("disk_available_bytes"),
         String::from("disk_used_bytes"),
@@ -917,7 +986,8 @@ pub mod codemelted_disk {
       let mut x = 0;
       while x < self.len() {
         let data = format!(
-          "{},{},{},{},{},{},{},{},{},{}",
+          "{},{},{},{},{},{},{},{},{},{},{}",
+          Self::system_id(),
           self.name(x),
           self.disk_available_bytes(x),
           self.disk_used_bytes(x),
@@ -949,7 +1019,7 @@ pub mod codemelted_disk {
   }
 
   // --------------------------------------------------------------------------
-  // [Function Definitions] ---------------------------------------------------
+  // [Module Function Definitions] --------------------------------------------
   // --------------------------------------------------------------------------
 
   /// Will copy a file / directory from one location on the host operating
@@ -1006,6 +1076,30 @@ pub mod codemelted_disk {
     }
   }
 
+  /// Gets the home path of the logged in user from the host operating system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  /// use codemelted::codemelted_disk::CDiskType;
+  ///
+  /// let path = codemelted_disk::home_path();
+  /// assert_eq!(codemelted_disk::exists(&path, CDiskType::Directory), true);
+  /// ```
+  pub fn home_path() -> String {
+    let home_path = if cfg!(target_os = "windows") {
+      codemelted_storage::environment("USERPROFILE")
+    } else {
+      codemelted_storage::environment("HOME")
+    };
+    match home_path {
+      Some(v) => v,
+      None => {
+        panic!("SyntaxError: codemelted_disk::home_path() unable to query.")
+      },
+    }
+  }
+
   /// Will list the files / directories in a given location on the host
   /// operating system.
   ///
@@ -1051,6 +1145,25 @@ pub mod codemelted_disk {
     fs::create_dir_all(src)
   }
 
+  /// Constructs a [CDiskMonitor] to monitor the attached disk drives to
+  /// the host operating system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  /// use codemelted::codemelted_disk::CDiskMonitor;
+  ///
+  /// let mut monitor = codemelted_disk::monitor();
+  /// monitor.refresh();
+  /// let len = monitor.len();
+  /// let disk_load = monitor.disk_load(0);
+  /// assert!(len > 0);
+  /// assert!(disk_load > 0.0);
+  /// ```
+  pub fn monitor() -> CDiskMonitor {
+    CDiskMonitor::new()
+  }
+
   /// Will move a file / directory from one location on the host operating
   /// system disk to the other.
   ///
@@ -1083,22 +1196,15 @@ pub mod codemelted_disk {
     }
   }
 
-  /// UNDER DEVELOPMENT
-  pub fn home_path() -> String {
-    let home_path = if cfg!(target_os = "windows") {
-      codemelted_storage::environment("USERPROFILE")
-    } else {
-      codemelted_storage::environment("HOME")
-    };
-    match home_path {
-      Some(v) => v,
-      None => {
-        panic!("SyntaxError: codemelted_disk::home_path() unable to query.")
-      },
-    }
-  }
-
-  /// UNDER DEVELOPMENT
+  /// Retrieves the newline character utilized by the host operating system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let newline = codemelted_disk::newline();
+  /// assert!(newline.len() > 0);
+  /// ```
   pub fn newline() -> String {
     if cfg!(target_os = "windows") {
       String::from("\r\n")
@@ -1107,31 +1213,22 @@ pub mod codemelted_disk {
     }
   }
 
-
-  /// UNDER DEVELOPMENT
+  /// Gets the path separator slash character based on the host operating
+  /// system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let separator = codemelted_disk::path_separator();
+  /// assert!(separator.len() > 0);
+  /// ```
   pub fn path_separator() -> String {
     if cfg!(target_os = "windows") {
       String::from("\\")
     } else {
       String::from("/")
     }
-  }
-
-  /// UNDER DEVELOPMENT
-  pub fn temp_path() -> String {
-    match std::env::temp_dir().to_str() {
-      Some(v) => String::from(v),
-      None => {
-        panic!("SyntaxError: codemelted_disk::temp_path() unable to query.")
-      }
-    }
-  }
-
-
-
-  /// UNDER DEVELOPMENT
-  pub fn monitor() -> CDiskData {
-    CDiskData::new()
   }
 
   /// Reads a binary file from the host operating system.
@@ -1244,6 +1341,25 @@ pub mod codemelted_disk {
     panic!("codemelted_disk::rm - Specified src was not found!");
   }
 
+  /// Retrieves the temporary path for storing data by the host operating
+  /// system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let path = codemelted_disk::temp_path();
+  /// assert!(path.len() > 0);
+  /// ```
+  pub fn temp_path() -> String {
+    match std::env::temp_dir().to_str() {
+      Some(v) => String::from(v),
+      None => {
+        panic!("SyntaxError: codemelted_disk::temp_path() unable to query.")
+      }
+    }
+  }
+
   /// Writes a binary file to the host operating system.
   ///
   /// **Example:**
@@ -1306,27 +1422,31 @@ pub mod codemelted_disk {
 // [HW Use Case] ==============================================================
 // ============================================================================
 
-mod codemelted_hw {
-  // Use Statements
+/// <center><b><mark>IN ACTIVE DEVELOPMENT</mark></b></center>
+pub mod codemelted_hw {
+  // --------------------------------------------------------------------------
+  // [Module Use Statements] --------------------------------------------------
+  // --------------------------------------------------------------------------
+
   use crate::{codemelted_storage, CCsvFormat};
   use sysinfo::{Components, System};
 
   // --------------------------------------------------------------------------
-  // [Data Definition] --------------------------------------------------------
+  // [Module Data Definitions] ------------------------------------------------
   // --------------------------------------------------------------------------
 
-  /// The result of a [component_data] call providing a view of a system's
+  /// The result of a [monitor] call providing a view of a system's
   /// internal components and their current health (i.e. temperature in °C)
   /// along with their failure points.
-  pub struct CComponentData {
+  pub struct CComponentMonitor {
     components: Components
   }
-  impl CComponentData {
-    /// Creates a new instance of the [CComponentData] object.
-    fn new() -> CComponentData {
+  impl CComponentMonitor {
+    /// Creates a new instance of the [CComponentMonitor] object.
+    fn new() -> CComponentMonitor {
       let mut components = Components::new_with_refreshed_list();
       components.refresh(true);
-      CComponentData { components }
+      CComponentMonitor { components }
     }
 
     /// Refreshes the current set of tracked component data.
@@ -1392,10 +1512,11 @@ mod codemelted_hw {
     }
   }
 
-  impl CCsvFormat for CComponentData {
+  impl CCsvFormat for CComponentMonitor {
     fn csv_header(&self) -> String {
       format!(
-        "{},{},{},{}",
+        "{},{},{},{},{}",
+        String::from("system_id"),
         String::from("label"),
         String::from("temp_current_c"),
         String::from("temp_max_c"),
@@ -1408,7 +1529,8 @@ mod codemelted_hw {
       let mut x = 0;
       while x < self.len() {
         let data = format!(
-          "{},{},{},{}",
+          "{},{},{},{},{}",
+          Self::system_id(),
           self.label(x),
           self.temp_current_c(x),
           self.temp_max_c(x),
@@ -1423,10 +1545,19 @@ mod codemelted_hw {
   }
 
   // --------------------------------------------------------------------------
-  // [Module Functions] -------------------------------------------------------
+  // [Module Function Definitions] --------------------------------------------
   // --------------------------------------------------------------------------
 
-  /// UNDER DEVELOPMENT
+  /// Retrieves the kernel version of the host operating system. UNDETERMINED
+  /// is returned if it could not be determined.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_hw;
+  ///
+  /// let version = codemelted_hw::kernel_version();
+  /// assert!(version.len() > 0);
+  /// ```
   pub fn kernel_version() -> String {
     match System::kernel_version() {
       Some(v) => v,
@@ -1434,7 +1565,36 @@ mod codemelted_hw {
     }
   }
 
-  /// UNDER DEVELOPMENT
+  /// Constructs a [CComponentMonitor] to monitor attached hardware component
+  /// temperatures in °C.
+  ///
+  /// _NOTE: Only certain operating systems will support this. If they don't
+  ///        the [CComponentMonitor::len] will always be 0._
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_hw;
+  /// use codemelted::codemelted_hw::CComponentMonitor;
+  ///
+  /// let mut monitor = codemelted_hw::monitor();
+  /// monitor.refresh();
+  /// let len = monitor.len();
+  /// assert!(len >= 0);
+  /// ```
+  pub fn monitor() -> CComponentMonitor {
+    CComponentMonitor::new()
+  }
+
+  /// Retrieves the operating system name of the host operating system.
+  /// UNDETERMINED is returned if it could not be determined.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_hw;
+  ///
+  /// let name = codemelted_hw::os_name();
+  /// assert!(name.len() > 0);
+  /// ```
   pub fn os_name() -> String {
     match System::name() {
       Some(v) => v,
@@ -1442,7 +1602,16 @@ mod codemelted_hw {
     }
   }
 
-  /// UNDER DEVELOPMENT
+  /// Retrieves the operating system version of the host operating system.
+  /// UNDETERMINED is returned if it could not be determined.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_hw;
+  ///
+  /// let version = codemelted_hw::os_version();
+  /// assert!(version.len() > 0);
+  /// ```
   pub fn os_version() -> String {
     match System::os_version() {
       Some(v) => v,
@@ -1450,7 +1619,16 @@ mod codemelted_hw {
     }
   }
 
-  /// UNDER DEVELOPMENT
+  /// Retrieves the logged in user session for the host operating system.
+  /// UNDETERMINED is returned if it could not be determined.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_hw;
+  ///
+  /// let user = codemelted_hw::user();
+  /// assert!(user.len() > 0);
+  /// ```
   pub fn user() -> String {
     let user = if cfg!(target_os = "windows") {
       codemelted_storage::environment("USERNAME")
@@ -1462,11 +1640,6 @@ mod codemelted_hw {
       None => String::from("UNDETERMINED"),
     }
   }
-
-  /// UNDER DEVELOPMENT
-  pub fn monitor() -> CComponentData {
-    CComponentData::new()
-  }
 }
 
 // ============================================================================
@@ -1477,10 +1650,18 @@ mod codemelted_hw {
 /// with JSON based data. This includes performing data validations, parsing,
 /// stringify, and converting to basic data types. This is based on the
 /// [CObject] which represents rust based JSON data.
+#[doc = mermaid!("models/codemelted_json.mmd")]
 pub mod codemelted_json {
-  /// Use Statements
+  // --------------------------------------------------------------------------
+  // [Module Use Statements] --------------------------------------------------
+  // --------------------------------------------------------------------------
   use crate::CObject;
   use json::number::Number;
+  use simple_mermaid::mermaid;
+
+  // --------------------------------------------------------------------------
+  // [Module Data Definitions] ------------------------------------------------
+  // --------------------------------------------------------------------------
 
   /// Enumeration to support the [check_type] function for checking if a
   /// [CObject] holds the specified data type.
@@ -1500,6 +1681,10 @@ pub mod codemelted_json {
     /// Check if the data type is a String type.
     String,
   }
+
+  // --------------------------------------------------------------------------
+  // [Module Function Definitions] --------------------------------------------
+  // --------------------------------------------------------------------------
 
   /// Will convert the given [CObject] to its equivalent bool value. This will
   /// also be false if not a valid value.
@@ -1596,8 +1781,14 @@ pub mod codemelted_json {
   /// use codemelted::codemelted_json::CDataType;
   ///
   /// let obj = codemelted_json::create_object();
-  /// assert_eq!(codemelted_json::check_type(CDataType::Object, &obj, false), true);
-  /// assert_eq!(codemelted_json::check_type(CDataType::Number, &obj, false), false);
+  /// assert_eq!(
+  ///   codemelted_json::check_type(CDataType::Object, &obj, false),
+  ///   true
+  /// );
+  /// assert_eq!(
+  ///   codemelted_json::check_type(CDataType::Number, &obj, false),
+  ///   false
+  /// );
   /// ```
   pub fn check_type(
     data_type: CDataType,
@@ -1629,7 +1820,10 @@ pub mod codemelted_json {
   /// use codemelted::codemelted_json::CDataType;
   ///
   /// let obj = codemelted_json::create_array();
-  /// assert_eq!(codemelted_json::check_type(CDataType::Array, &obj, false), true);
+  /// assert_eq!(
+  ///   codemelted_json::check_type(CDataType::Array, &obj, false),
+  ///   true
+  /// );
   /// ```
   pub fn create_array() -> CObject {
     CObject::new_array()
@@ -1644,7 +1838,10 @@ pub mod codemelted_json {
   /// use codemelted::codemelted_json::CDataType;
   ///
   /// let obj = codemelted_json::create_object();
-  /// assert_eq!(codemelted_json::check_type(CDataType::Object, &obj, false), true);
+  /// assert_eq!(
+  ///   codemelted_json::check_type(CDataType::Object, &obj, false),
+  ///   true
+  /// );
   /// ```
   pub fn create_object() -> CObject {
     CObject::new_object()
@@ -1660,16 +1857,16 @@ pub mod codemelted_json {
   ///
   /// let mut obj = codemelted_json::create_object();
   /// let _ = obj.insert("field1", 42);
-  /// assert_eq!(codemelted_json::has_property(&obj, "field1", false), true);
+  /// assert_eq!(codemelted_json::has_key(&obj, "field1", false), true);
   /// ```
-  pub fn has_property(
+  pub fn has_key(
     data: &CObject,
     key: &str,
     should_panic: bool,
   ) -> bool {
     let answer = data.has_key(key);
     if should_panic && !answer {
-      panic!("ERROR: codemelted_json::has_property() failed.");
+      panic!("ERROR: codemelted_json::has_key() failed.");
     }
     answer
   }
@@ -1718,7 +1915,10 @@ pub mod codemelted_json {
   /// use codemelted::CObject;
   /// use codemelted::codemelted_json;
   ///
-  /// assert_eq!(codemelted_json::valid_url("https://google.com", false), true);
+  /// assert_eq!(
+  ///   codemelted_json::valid_url("https://google.com", false),
+  ///   true
+  /// );
   /// assert_eq!(codemelted_json::valid_url("{230924!!}}|}", false), false);
   /// ```
   pub fn valid_url(
@@ -1742,9 +1942,17 @@ pub mod codemelted_json {
 /// enumeration. It also provides the ability to attach a
 /// CLoggedEventHandler callback for post processing of a logging event
 /// once logged to STDOUT.
+#[doc = mermaid!("models/codemelted_logger.mmd")]
 pub mod codemelted_logger {
-  /// Use Statement
+  // --------------------------------------------------------------------------
+  // [Module Use Statements] --------------------------------------------------
+  // --------------------------------------------------------------------------
   use std::sync::Mutex;
+  use simple_mermaid::mermaid;
+
+  // --------------------------------------------------------------------------
+  // [Module Data Definitions] ------------------------------------------------
+  // --------------------------------------------------------------------------
 
   /// Holds the log level for the logger module.
   static LOG_LEVEL: Mutex<CLogLevel> = Mutex::new(CLogLevel::Warning);
@@ -1796,10 +2004,10 @@ pub mod codemelted_logger {
     log_level: CLogLevel,
     data: String,
   }
-
   /// The attached support functions for the [CLogRecord] struct.
   impl CLogRecord {
-    pub fn new(log_level: CLogLevel, data: &str) -> CLogRecord {
+    /// Creates the [CLogRecord] when a [log] event occurs with the module.
+    fn new(log_level: CLogLevel, data: &str) -> CLogRecord {
       CLogRecord {
         time_stamp: chrono::Utc::now(),
         log_level,
@@ -1836,7 +2044,11 @@ pub mod codemelted_logger {
   /// Function type definition for post processing logged events.
   pub type CLoggedEventHandler = fn(CLogRecord);
 
-  /// Gets / sets the [CLogLevel] for the logging module.
+  // --------------------------------------------------------------------------
+  // [Module Function Definitions] --------------------------------------------
+  // --------------------------------------------------------------------------
+
+  /// Gets the [CLogLevel] for the logging module.
   ///
   /// **Example:**
   /// ```
@@ -1850,12 +2062,23 @@ pub mod codemelted_logger {
     let data = LOG_LEVEL.lock().unwrap();
     data.clone()
   }
+
+  /// Sets the [CLogLevel] for the logging module.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_logger;
+  /// use codemelted::codemelted_logger::CLogLevel;
+  ///
+  /// codemelted_logger::set_log_level(CLogLevel::Debug);
+  /// assert_eq!(codemelted_logger::get_log_level(), CLogLevel::Debug);
+  /// ```
   pub fn set_log_level(log_level: CLogLevel) {
     let mut data = LOG_LEVEL.lock().unwrap();
     *data = log_level;
   }
 
-  /// Gets / sets the [CLoggedEventHandler] for the logging module.
+  /// Gets the [CLoggedEventHandler] for the logging module.
   ///
   /// **Example:**
   /// ```
@@ -1874,6 +2097,22 @@ pub mod codemelted_logger {
     let data = LOG_HANDLER.lock().unwrap();
     *data
   }
+
+  /// Sets the [CLoggedEventHandler] for the logging module.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_logger;
+  /// use codemelted::codemelted_logger::CLogRecord;
+  /// use codemelted::codemelted_logger::CLoggedEventHandler;
+  ///
+  /// fn log_handler(data: CLogRecord) {
+  ///   // Do something
+  /// }
+  ///
+  /// codemelted_logger::set_log_handler(Some(log_handler));
+  /// assert_eq!(codemelted_logger::get_log_handler().is_some(), true);
+  /// ```
   pub fn set_log_handler(handler: Option<CLoggedEventHandler>) {
     let mut data = LOG_HANDLER.lock().unwrap();
     *data = handler;
@@ -1891,7 +2130,6 @@ pub mod codemelted_logger {
   ///
   /// codemelted_logger::log(CLogLevel::Error, "Oh Know!");
   /// ```
-  ///
   pub fn log(level: CLogLevel, data: &str) {
     // See if we are logging this somewhere
     let logger_level = get_log_level();
@@ -1918,29 +2156,30 @@ pub mod codemelted_logger {
 // [Network Use Case] =========================================================
 // ============================================================================
 
-mod codemelted_network {
+/// <center><b><mark>IN ACTIVE DEVELOPMENT</mark></b></center>
+pub mod codemelted_network {
   // --------------------------------------------------------------------------
-  // [Use Statements] ---------------------------------------------------------
+  // [Module Use Statements] --------------------------------------------------
   // --------------------------------------------------------------------------
   use crate::CCsvFormat;
   use sysinfo::{Networks, System};
 
   // --------------------------------------------------------------------------
-  // [Data Definitions] -------------------------------------------------------
+  // [Module Data Definitions] ------------------------------------------------
   // --------------------------------------------------------------------------
 
-  /// The result of the [network_data] call provide a view of the host operating
-  /// systems available network interfaces. This is a self contained hashtable of
-  /// network interfaces with statistics related to overall received / transmitted
-  /// bytes, packets, and encountered errors.
-  pub struct CNetworkData {
+  /// The result of the [monitor] call provide a view of the host
+  /// operating systems available network interfaces. This is a self contained
+  /// hashtable of network interfaces with statistics related to overall
+  /// received / transmitted bytes, packets, and encountered errors.
+  pub struct CNetworkMonitor {
     networks: Networks
   }
-  impl CNetworkData {
-    /// Creates the new [CNetworkData] object.
-    fn new() -> CNetworkData {
+  impl CNetworkMonitor {
+    /// Creates the new [CNetworkMonitor] object.
+    fn new() -> CNetworkMonitor {
       let networks = Networks::new_with_refreshed_list();
-      CNetworkData { networks }
+      CNetworkMonitor { networks }
     }
 
     /// Refreshes the currently held hashtable of network interfaces.
@@ -1963,7 +2202,7 @@ mod codemelted_network {
         Some(v) => {
           v.mac_address().to_string()
         },
-        None => panic!(""),
+        None => panic!("SyntaxError: Unknown name specified."),
       }
     }
 
@@ -1973,7 +2212,7 @@ mod codemelted_network {
         Some(v) => {
           v.mtu()
         },
-        None => panic!(""),
+        None => panic!("SyntaxError: Unknown name specified."),
       }
     }
 
@@ -1983,7 +2222,7 @@ mod codemelted_network {
         Some(v) => {
           v.total_received()
         },
-        None => panic!(""),
+        None => panic!("SyntaxError: Unknown name specified."),
       }
     }
 
@@ -1993,7 +2232,7 @@ mod codemelted_network {
         Some(v) => {
           v.total_errors_on_received()
         },
-        None => panic!(""),
+        None => panic!("SyntaxError: Unknown name specified."),
       }
     }
 
@@ -2003,7 +2242,7 @@ mod codemelted_network {
         Some(v) => {
           v.total_packets_received()
         },
-        None => panic!(""),
+        None => panic!("SyntaxError: Unknown name specified."),
       }
     }
 
@@ -2013,7 +2252,7 @@ mod codemelted_network {
         Some(v) => {
           v.total_transmitted()
         },
-        None => panic!(""),
+        None => panic!("SyntaxError: Unknown name specified."),
       }
     }
 
@@ -2023,7 +2262,7 @@ mod codemelted_network {
         Some(v) => {
           v.total_errors_on_received()
         },
-        None => panic!(""),
+        None => panic!("SyntaxError: Unknown name specified."),
       }
     }
 
@@ -2033,25 +2272,64 @@ mod codemelted_network {
         Some(v) => {
           v.total_packets_received()
         },
-        None => panic!(""),
+        None => panic!("SyntaxError: Unknown name specified."),
       }
     }
   }
-  impl CCsvFormat for CNetworkData {
+  impl CCsvFormat for CNetworkMonitor {
     fn csv_header(&self) -> String {
-        todo!()
+      format!(
+        "{},{},{},{},{},{},{},{},{},{}",
+        String::from("system_id"),
+        String::from("name"),
+        String::from("mac_address"),
+        String::from("mtu"),
+        String::from("network_total_rx_bytes"),
+        String::from("network_total_rx_errors"),
+        String::from("network_total_rx_packets"),
+        String::from("network_total_tx_bytes"),
+        String::from("network_total_tx_errors"),
+        String::from("network_total_tx_packets"),
+      )
     }
-
     fn as_csv(&self) -> String {
-        todo!()
+      let mut csv_data = String::new();
+      let names = self.names();
+      for name in names {
+        let data = format!(
+          "{},{},{},{},{},{},{},{},{},{}",
+          Self::system_id(),
+          name,
+          self.mac_address(&name),
+          self.mtu(&name),
+          self.network_total_rx_bytes(&name),
+          self.network_total_rx_errors(&name),
+          self.network_total_rx_packets(&name),
+          self.network_total_tx_bytes(&name),
+          self.network_total_tx_errors(&name),
+          self.network_total_tx_packets(&name),
+        );
+        csv_data.push_str(&data);
+        csv_data.push('\n');
+      }
+      csv_data
     }
   }
 
   // --------------------------------------------------------------------------
-  // [Function Definitions] ---------------------------------------------------
+  // [Module Function Definitions] --------------------------------------------
   // --------------------------------------------------------------------------
 
-  /// UNDER DEVELOPMENT
+  /// Retrieves the hostname of the given computer on the network. Will return
+  /// UNDETERMINED if it cannot be determined.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_network;
+  ///
+  /// let hostname = codemelted_network::host_name();
+  /// assert!(hostname.len() > 0);
+  /// ```
   pub fn host_name() -> String {
     match System::host_name() {
       Some(v) => v,
@@ -2059,13 +2337,33 @@ mod codemelted_network {
     }
   }
 
-  pub fn monitor() -> CNetworkData {
-    CNetworkData::new()
+  /// Constructs a [CNetworkMonitor] to monitor the network interfaces to the
+  /// host operating system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_network;
+  /// use codemelted::codemelted_network::CNetworkMonitor;
+  ///
+  /// let mut monitor = codemelted_network::monitor();
+  /// monitor.refresh();
+  /// let len = monitor.names().len();
+  /// assert!(len >= 0);
+  /// ```
+  pub fn monitor() -> CNetworkMonitor {
+    CNetworkMonitor::new()
   }
 
-  /// TODO: Something cool
-  fn _online() -> bool {
-    todo!()
+  /// Determines if the host operating system has access to the open Internet.
+  ///
+  /// ```
+  /// use codemelted::codemelted_network;
+  ///
+  /// let online = codemelted_network::online(Some(1));
+  /// assert!(online == true || online == false);
+  /// ```
+  pub fn online(timeout: Option<u64>) -> bool {
+    online::check(timeout).is_ok()
   }
 }
 
@@ -2075,13 +2373,25 @@ mod codemelted_network {
 
 /// Implements the CodeMelted DEV NPU use case. NPU stands for Numerical
 /// Processing Unit. This means this module will hold all mathematical
-/// processing for this module. It is broken into two functions. The compute()
-/// function is for longer processing computations. The math() function will
-/// provide access to the CodeMeltedNPU enumerated formulas.
+/// processing for this module. It is broken into two functions. The
+/// [crate::codemelted_npu::compute] function is for longer processing
+/// computations. The  [crate::codemelted_npu::math] function will provide
+/// access to the  [crate::codemelted_npu::CMathFormula] enumerated formulas.
+#[doc = mermaid!("models/codemelted_npu.mmd")]
 pub mod codemelted_npu {
+  // --------------------------------------------------------------------------
+  // [Module Use Statements] --------------------------------------------------
+  // --------------------------------------------------------------------------
+
+  use simple_mermaid::mermaid;
+
+  // --------------------------------------------------------------------------
+  // [Module Data Definitions] ------------------------------------------------
+  // --------------------------------------------------------------------------
+
   /// Collection of mathematical formulas that support the [math] function.
   /// Simply specify the formula, pass the parameters, and get the answer.
-  pub enum CodeMeltedNPU {
+  pub enum CMathFormula {
     /// Distance in meters between two WGS84 points.
     GeodeticDistance,
     /// Heading in °N true North 0 - 359.
@@ -2104,7 +2414,7 @@ pub mod codemelted_npu {
 
   /// Collection of constants and supporting functions to support executing the
   /// run function which houses the associated formula.
-  impl CodeMeltedNPU {
+  impl CMathFormula {
     /// Holds the constant of PI for working with circles.
     const PI: f64 = std::f64::consts::PI;
 
@@ -2132,11 +2442,11 @@ pub mod codemelted_npu {
     fn geodetic_distance(start_latitude: f64, start_longitude: f64,
         end_latitude: f64, end_longitude: f64) -> f64 {
       // Convert degrees to radians
-      let lat1 = start_latitude * CodeMeltedNPU::PI / 180.0;
-      let lon1 = start_longitude * CodeMeltedNPU::PI / 180.0;
+      let lat1 = start_latitude * CMathFormula::PI / 180.0;
+      let lon1 = start_longitude * CMathFormula::PI / 180.0;
 
-      let lat2 = end_latitude * CodeMeltedNPU::PI / 180.0;
-      let lon2 = end_longitude * CodeMeltedNPU::PI / 180.0;
+      let lat2 = end_latitude * CMathFormula::PI / 180.0;
+      let lon2 = end_longitude * CMathFormula::PI / 180.0;
 
       // radius of earth in metres
       let r = 6378100.0;
@@ -2167,24 +2477,24 @@ pub mod codemelted_npu {
     fn geodetic_heading(start_latitude: f64, start_longitude: f64,
         end_latitude: f64, end_longitude: f64) -> f64 {
       // Get the initial data from our variables:
-      let lat1 = start_latitude * (CodeMeltedNPU::PI / 180.0);
-      let lon1 = start_longitude * (CodeMeltedNPU::PI  / 180.0);
-      let lat2 = end_latitude * (CodeMeltedNPU::PI  / 180.0);
-      let lon2 = end_longitude * (CodeMeltedNPU::PI  / 180.0);
+      let lat1 = start_latitude * (CMathFormula::PI / 180.0);
+      let lon1 = start_longitude * (CMathFormula::PI  / 180.0);
+      let lat2 = end_latitude * (CMathFormula::PI  / 180.0);
+      let lon2 = end_longitude * (CMathFormula::PI  / 180.0);
 
       // Set up our calculations
       let y = (lon2 - lon1).sin() * lat2.cos();
       let x = (lat1.cos() * lat2.sin()) -
         (lat1.sin() * lat2.cos() * (lon2 - lon1).cos());
-      let rtnval = y.atan2(x) * (180.0 / CodeMeltedNPU::PI);
-      CodeMeltedNPU::fmod(rtnval + 360.0, 360.0)
+      let rtnval = y.atan2(x) * (180.0 / CMathFormula::PI);
+      CMathFormula::fmod(rtnval + 360.0, 360.0)
     }
 
     /// Helper function for calculating the geodetic speed between two points.
     fn geodetic_speed(start_milliseconds: f64, start_latitude: f64,
       start_longitude: f64, end_milliseconds: f64, end_latitude: f64,
       end_longitude: f64) -> f64 {
-        let dist_meters = CodeMeltedNPU::geodetic_distance(
+        let dist_meters = CMathFormula::geodetic_distance(
           start_latitude, start_longitude,
           end_latitude, end_longitude
         );
@@ -2197,19 +2507,19 @@ pub mod codemelted_npu {
       use std::panic;
       let result = panic::catch_unwind(|| {
         match self {
-          CodeMeltedNPU::GeodeticDistance => CodeMeltedNPU::geodetic_distance(
+          CMathFormula::GeodeticDistance => CMathFormula::geodetic_distance(
             args[0],
             args[1],
             args[2],
             args[3]
           ),
-          CodeMeltedNPU::GeodeticHeading => CodeMeltedNPU::geodetic_heading(
+          CMathFormula::GeodeticHeading => CMathFormula::geodetic_heading(
             args[0],
             args[1],
             args[2],
             args[3]
           ),
-          CodeMeltedNPU::GeodeticSpeed => CodeMeltedNPU::geodetic_speed(
+          CMathFormula::GeodeticSpeed => CMathFormula::geodetic_speed(
             args[0],
             args[1],
             args[2],
@@ -2217,41 +2527,45 @@ pub mod codemelted_npu {
             args[4],
             args[5]
           ),
-          CodeMeltedNPU::TemperatureCelsiusToFahrenheit =>
+          CMathFormula::TemperatureCelsiusToFahrenheit =>
             (args[0] * 9.0 / 5.0) + 32.0,
-          CodeMeltedNPU::TemperatureCelsiusToKelvin => args[0] + 273.15,
-          CodeMeltedNPU::TemperatureFahrenheitToCelsius =>
+          CMathFormula::TemperatureCelsiusToKelvin => args[0] + 273.15,
+          CMathFormula::TemperatureFahrenheitToCelsius =>
             (args[0] - 32.0) * (5.0 / 9.0),
-          CodeMeltedNPU::TemperatureFahrenheitToKelvin =>
+          CMathFormula::TemperatureFahrenheitToKelvin =>
             (args[0] - 32.0) * (5.0 / 9.0) + 273.15,
-          CodeMeltedNPU::TemperatureKelvinToCelsius => args[0] - 273.15,
-          CodeMeltedNPU::TemperatureKelvinToFahrenheit =>
+          CMathFormula::TemperatureKelvinToCelsius => args[0] - 273.15,
+          CMathFormula::TemperatureKelvinToFahrenheit =>
             (args[0] - 273.15) * (9.0 / 5.0) + 32.0,
         }
       });
 
       Result::expect(
         result,
-        "SyntaxError: codemelted_math args did not match the formula selected."
+        "SyntaxError: args did not match the formula selected."
       )
     }
   }
 
-  /// TBD - FUTURE
-  fn _compute() {
+  // --------------------------------------------------------------------------
+  // [Module Function Definitions] --------------------------------------------
+  // --------------------------------------------------------------------------
+
+  /// <center><b><mark>FUTURE IMPLEMENTATION. DON'T CALL.</mark></b></center>
+  pub fn compute() {
     unimplemented!("FUTURE IMPLEMENTATION!");
   }
 
-  /// Function to execute the [CodeMeltedNPU] enumerated formula by specifying
+  /// Function to execute the [CMathFormula] enumerated formula by specifying
   /// enumerated formula and the arguments for the calculated result.
   ///
   /// **Example:**
   /// ```rust
   /// use codemelted::codemelted_npu;
-  /// use codemelted::codemelted_npu::CodeMeltedNPU;
+  /// use codemelted::codemelted_npu::CMathFormula;
   ///
   /// let fahrenheit = codemelted_npu::math(
-  ///   CodeMeltedNPU::TemperatureCelsiusToFahrenheit,
+  ///   CMathFormula::TemperatureCelsiusToFahrenheit,
   ///   &[0.0]
   /// );
   /// assert_eq!(fahrenheit, 32.0);
@@ -2264,7 +2578,7 @@ pub mod codemelted_npu {
   /// - _NOTE: The args slice of f64 types go left to right in terms of the
   /// associated formula when passing the args._
   ///
-  pub fn math(formula: CodeMeltedNPU, args: &[f64]) -> f64 {
+  pub fn math(formula: CMathFormula, args: &[f64]) -> f64 {
     formula.math(args)
   }
 }
@@ -2273,20 +2587,67 @@ pub mod codemelted_npu {
 // [Process Use Case] =========================================================
 // ============================================================================
 
-/// UNDER DEVELOPMENT
+/// <center><b><mark>IN ACTIVE DEVELOPMENT</mark></b></center>
 pub mod codemelted_process {
-  // Use Statements
+  // --------------------------------------------------------------------------
+  // [Module Use Statements] --------------------------------------------------
+  // --------------------------------------------------------------------------
   use std::{
     io::{Read, Write},
     process::{Child, Command, Stdio},
   };
   use crate::CProtocolHandler;
 
-  /// UNDER DEVELOPMENT
+  // --------------------------------------------------------------------------
+  // [Module Data Definitions] ------------------------------------------------
+  // --------------------------------------------------------------------------
+
+  /// Represents a bi-directional process able to allow a Rust application to
+  /// communicate with a hosted operating system process / command via STDIN /
+  /// STDOUT / STDERR. This continues until the [CProcessProtocol::terminate]
+  /// is called.
   pub struct CProcessProtocol {
     process: Child,
     is_running: bool,
   }
+  impl CProcessProtocol {
+    /// Creates a new [CProcessProtocol] object via the [spawn] call.
+    fn new(command: &str, args: &str) -> CProcessProtocol {
+      let cmd = format!("{} {}", command, args);
+      let proc = if cfg!(target_os = "windows") {
+        Command::new("cmd").args(["/c", &cmd])
+          .stdin(Stdio::piped())
+          .stdout(Stdio::piped())
+          .stderr(Stdio::piped())
+          .spawn()
+      } else {
+        Command::new("sh").args(["-c", &cmd])
+          .stdin(Stdio::piped())
+          .stdout(Stdio::piped())
+          .stderr(Stdio::piped())
+          .spawn()
+      };
+
+      let process = match proc {
+        Ok(v) => v,
+        Err(why) => panic!("Failed to create CProcessProtocol: {}", why),
+      };
+
+      CProcessProtocol { process, is_running: true }
+    }
+
+    /// Retrieves the id associated with the held process running.
+    pub fn id(&self) -> u32 {
+      self.process.id()
+    }
+  }
+
+  /// Implements the [CProtocolHandler] for the [CProcessProtocol]. While the
+  /// process wrapped by the protocol is in its own operating system process
+  /// meaning it won't block your application processing, any call to
+  /// [CProcessProtocol::get_message], [CProcessProtocol::get_error] and
+  /// [CProcessProtocol::post_message] are synchronous calls. No thread is
+  /// implemented as part of this [CProtocolHandler].
   impl CProtocolHandler<String> for CProcessProtocol {
     fn get_error(&mut self) -> Option<String> {
       let obj = self.process.stderr.as_mut().unwrap();
@@ -2330,36 +2691,10 @@ pub mod codemelted_process {
       let _ = self.process.kill();
     }
   }
-  impl CProcessProtocol {
-    fn new(command: &str, args: &str) -> CProcessProtocol {
-      let cmd = format!("{} {}", command, args);
-      let proc = if cfg!(target_os = "windows") {
-        Command::new("cmd").args(["/c", &cmd])
-          .stdin(Stdio::piped())
-          .stdout(Stdio::piped())
-          .stderr(Stdio::piped())
-          .spawn()
-      } else {
-        Command::new("sh").args(["-c", &cmd])
-          .stdin(Stdio::piped())
-          .stdout(Stdio::piped())
-          .stderr(Stdio::piped())
-          .spawn()
-      };
 
-      let process = match proc {
-        Ok(v) => v,
-        Err(why) => panic!("Failed to create CProcessProtocol: {}", why),
-      };
-
-      CProcessProtocol { process, is_running: true }
-    }
-
-    /// Retrieves the id associated with the held process running.
-    pub fn id(&self) -> u32 {
-      self.process.id()
-    }
-  }
+  // --------------------------------------------------------------------------
+  // [Module Function Definitions] --------------------------------------------
+  // --------------------------------------------------------------------------
 
   /// Determines if a given executable command exists on the host operating
   /// system. Indicated with a true / false return.
@@ -2371,7 +2706,6 @@ pub mod codemelted_process {
   /// let answer = codemelted_process::exists("deno");
   /// println!("{}", answer);
   /// ```
-  ///
   /// _NOTE: System commands (like dir on windows) will return false. This is
   /// regular executables._
   pub fn exists(command: &str) -> bool {
@@ -2390,7 +2724,12 @@ pub mod codemelted_process {
     rc.success()
   }
 
-  /// UNDER DEVELOPMENT
+  /// <center><b><mark>FUTURE DEVELOPMENT. DON'T CALL!</mark></b></center>
+  pub fn list() {
+    unimplemented!("FUTURE DEVELOPMENT")
+  }
+
+  /// <center><b><mark>FUTURE DEVELOPMENT. DON'T CALL!</mark></b></center>
   pub fn kill() {
     unimplemented!("FUTURE DEVELOPMENT");
   }
@@ -2403,7 +2742,11 @@ pub mod codemelted_process {
   /// ```
   /// use codemelted::codemelted_process;
   ///
-  /// let output = codemelted_process::run("dir");
+  /// let output = if cfg!(target_os = "windows") {
+  ///   codemelted_process::run("dir")
+  /// } else {
+  ///   codemelted_process::run("ls")
+  /// };
   /// println!("{}", output);
   /// ```
   pub fn run(command: &str) -> String {
@@ -2421,7 +2764,7 @@ pub mod codemelted_process {
     String::from_utf8(proc.stdout).expect("Should vec<u8> to String")
   }
 
-  /// UNDER DEVELOPMENT
+  /// <center><b><mark>FUTURE DEVELOPMENT. DON'T CALL!</mark></b></center>
   pub fn spawn(command: &str, args: &str) -> CProcessProtocol {
     CProcessProtocol::new(command, args)
   }
@@ -2435,14 +2778,26 @@ pub mod codemelted_process {
 /// string key / value storage that is initialized into memory and stored as
 /// file for later running of the application. This means you can set / get
 /// values from this storage between app runs.
+#[doc = mermaid!("models/codemelted_storage.mmd")]
 pub mod codemelted_storage {
-  // Use Statements
+  // --------------------------------------------------------------------------
+  // [Module Use Statements] --------------------------------------------------
+  // --------------------------------------------------------------------------
+  use crate::{codemelted_disk::{self, CDiskType}, CObject};
+  use simple_mermaid::mermaid;
   use std::ops::DerefMut;
   use std::sync::Mutex;
-  use crate::{codemelted_disk, CObject};
+
+  // --------------------------------------------------------------------------
+  // [Module Data Definitions] ------------------------------------------------
+  // --------------------------------------------------------------------------
 
   /// Mutex to hold the storage object for tracking items
   static STORAGE: Mutex<Option<CObject>> = Mutex::new(None);
+
+  // --------------------------------------------------------------------------
+  // [Module Function Definitions] --------------------------------------------
+  // --------------------------------------------------------------------------
 
   /// Responsible for saving the storage to a private file on disk anytime
   /// a change is made to the storage.
@@ -2452,6 +2807,9 @@ pub mod codemelted_storage {
       home_path,
       ".codemelted_storage"
     );
+    if codemelted_disk::exists(&filename, CDiskType::File) {
+      let _ = codemelted_disk::rm(&filename);
+    }
     let result = codemelted_disk::write_file_as_string(
       &filename,
       &data,
@@ -2503,7 +2861,12 @@ pub mod codemelted_storage {
           if v.len() == 0 {
             CObject::new_object()
           } else {
-            crate::codemelted_json::parse(&v).unwrap()
+            match crate::codemelted_json::parse(&v) {
+              Some(v) => v,
+              None => {
+                panic!("SyntaxError: .codemelted_storage file is corrupt.")
+              },
+            }
           }
         },
         Err(_) => CObject::new_object(),
@@ -2619,7 +2982,8 @@ pub mod codemelted_storage {
 // [UI Use Case] ==============================================================
 // ============================================================================
 
-mod codemelted_ui {
+/// <center><b><mark>FUTURE IMPLEMENTATION. DOES NOTHING</mark></b></center>
+pub mod codemelted_ui {
   // FUTURE IMPLEMENTATION
 }
 
@@ -2635,10 +2999,4 @@ mod tests {
   fn test_is_nan() {
     assert_eq!(true, f64::is_nan((-1.0 as f64).sqrt()));
   }
-}
-
-/// Used for prototype purposes. Don't use the executable as this is an
-/// empty function.
-pub fn main() {
-
 }

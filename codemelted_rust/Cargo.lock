@@ -66,10 +66,11 @@ dependencies = [
 
 [[package]]
 name = "codemelted"
-version = "0.0.9"
+version = "0.7.3"
 dependencies = [
  "chrono",
  "json",
+ "online",
  "rpassword",
  "simple-mermaid",
  "sysinfo",
@@ -337,6 +338,12 @@ name = "once_cell"
 version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
+
+[[package]]
+name = "online"
+version = "4.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "644d4b55e7e65885eba895f7958912e86eb04370d858a28779860223a8b5ec43"
 
 [[package]]
 name = "percent-encoding"

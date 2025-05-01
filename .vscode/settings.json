@@ -37,6 +37,7 @@
     "LICENSEURI",
     "mdbook",
     "messageerror",
+    "mpsc",
     "nocheck",
     "nodoc",
     "nread",
@@ -59,6 +60,7 @@
     "sysinfo",
     "touchstart",
     "USERPROFILE",
+    "usize",
     "webrtc",
     "winget"
   ]

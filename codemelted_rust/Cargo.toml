@@ -1,28 +1,24 @@
 [package]
 name = "codemelted"
-version = "0.0.9"
-description = ""
+version = "0.7.3"
+description = "The CodeMelted Rust Crate is an implementation of the CodeMelted DEV twelve identified domain use cases. These domains are areas of study a software engineer should be familiar with regardless of programming language, SDK, or chosen framework. This crate brings these twelve domains to the Rust programming language to aid software engineers in building native applications quickly and securely."
 authors = ["Mark Shaffer <mark.shaffer@codemelted.com>"]
-keywords = []
-categories = []
+keywords = ["console", "json", "logger", "process", "ui"]
+categories = ["Concurrency", "Database implementations", "Filesystem", "Mathematics", "Network programming"]
 readme = "README.md"
 edition = "2024"
-homepage = "https://codemelted.com/developer"
-repository = ""
+homepage = "https://developer.codemelted.com/rust"
+repository = "https://github.com/codemelted/codemelted_developer"
 license = "MIT"
 publish = false
-# rust-version = ""
 
 [lib]
-path = 'codemelted.rs'
-
-[[bin]]
-name = 'codemelted'
 path = 'codemelted.rs'
 
 [dependencies]
 chrono = "0.4.40"
 json = "0.12.4"
+online = "4.0.2"
 rpassword = "7.3.1"
 simple-mermaid = "0.2.0"
 sysinfo = "0.34.2"

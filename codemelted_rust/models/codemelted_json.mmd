@@ -1,0 +1,42 @@
+---
+title: codemelted_json Module
+---
+classDiagram
+  direction LR
+  namespace json {
+    class JsonValue
+  }
+  namespace codemelted {
+    class codemelted_json {
+      +as_bool(CObject) bool
+      +as_number(CObject) Option
+      +as_string(CObject) Option
+      +check_type(CDataType, CObject, should_panic) bool
+      +create_array() CObject
+      +create_object() CObject
+      +has_key(CObject, key, should_panic) bool
+      +parse(data) Option
+      +stringify(CObject) String
+      +valid_url(data, should_panic) bool
+    }
+    class CDataType {
+      +Array
+      +Boolean
+      +Empty
+      +Null
+      +Number
+      +Object
+      +String
+    }
+    class CObject {
+
+    }
+    class CTruthyString {
+      as_truthy(self) bool
+      is_truthy(data) bool
+    }
+  }
+  codemelted_json --> CDataType : uses
+  codemelted_json --> CObject : creates
+  CObject --> CTruthyString : implements
+  CObject --> JsonValue : type alias

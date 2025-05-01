@@ -1,0 +1,36 @@
+---
+title: codemelted_console Module
+---
+classDiagram
+  direction LR
+  namespace codemelted {
+    class codemelted_console {
+      -read(prompt) String
+      -write_stdout(message, is_newline)
+      +alert(message)
+      +confirm(message) bool
+      +choose(message, choices) u32
+      +password(message) String
+      +prompt(message) String
+      +write(message)
+      +writeln(message)
+    }
+    class CObject {
+
+    }
+    class CTruthyString {
+      +is_truthy(String) bool
+    }
+  }
+  namespace std {
+    class stdin {
+      + read_line(String)
+    }
+    class stdout {
+      + flush()
+    }
+  }
+  codemelted_console --> stdin : uses
+  codemelted_console --> stdout : uses
+  CObject --> CTruthyString : implements
+  codemelted_console --> CObject : uses

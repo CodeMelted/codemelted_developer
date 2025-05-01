@@ -1,0 +1,35 @@
+---
+title: codemelted_storage Module
+---
+classDiagram
+  namespace codemelted {
+    class codemelted_storage {
+      -save_storage(data)
+      +environment(key) Option
+      +init()
+      +clear()
+      +get(key) Option
+      +length() usize
+      +remove(key)
+      +set(key, value)
+    }
+
+    class CObject {
+      +clear()
+      +has_key(key) bool
+      +len() usize
+      +dumps() String
+      +insert(key, value)
+      +remove(key)
+      +to_string() String
+    }
+
+    class codemelted_disk {
+      +home_path() String
+      +rm(src) Result
+      +read_file_as_string(src) Result
+      +write_file_as_string(src, data) Result
+    }
+  }
+  codemelted_storage --> CObject : uses with mutex
+  codemelted_storage --> codemelted_disk : uses

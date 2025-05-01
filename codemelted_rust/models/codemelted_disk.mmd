@@ -1,0 +1,76 @@
+---
+title: codemelted_disk Module
+---
+classDiagram
+  direction LR
+  namespace codemelted {
+    class codemelted_disk {
+      +cp(src, dest) Result
+      +exists(src, CDiskType) bool
+      +home_path() String
+      +ls(src) Result
+      +metadata(src) Result
+      +mkdir(src) Result
+      +monitor() CDiskMonitor
+      +mv(src, dest) Result
+      +newline() String
+      +path_separator() String
+      +read_file_as_bytes(filename) Result
+      +read_file_as_string(filename) Result
+      +rm(src) Result
+      +temp_path() String
+      +write_file_as_bytes(filename) Result
+      +write_file_as_string(filename) Result
+    }
+    class CCsvFormat {
+      +csv_header(self) String
+      +as_csv(self) String
+    }
+    class CDiskMonitor {
+      -new() CDiskMonitor
+      +len() usize
+      +refresh()
+      +name(index) String
+      +disk_available_bytes(index) u64
+      +disk_total_bytes(index) u64
+      +disk_load(index) f32
+      +file_system(index) String
+      +is_read_only(index) bool
+      +is_removable(index) bool
+      +kind(index) String
+      +mount_point(index) String
+    }
+    class CDiskType {
+      +Either
+      +Directory
+      +File
+    }
+  }
+  namespace std {
+    class io {
+      +Read
+      +Write
+    }
+    class fs {
+      +File
+      +Metadata
+      +OpenOptions
+    }
+    class path {
+      +Path
+    }
+  }
+  namespace sysinfo {
+    class Disks {
+      + len() usize
+      + refresh()
+      + getters()
+    }
+  }
+  codemelted_disk --> CDiskMonitor : creates
+  codemelted_disk --> CDiskType : uses
+  codemelted_disk --> io : uses
+  codemelted_disk --> fs : uses
+  codemelted_disk --> path : uses
+  CDiskMonitor --> Disks : creates
+  CDiskMonitor --> CCsvFormat : implements

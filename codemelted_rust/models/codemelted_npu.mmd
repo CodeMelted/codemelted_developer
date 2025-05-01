@@ -1,0 +1,23 @@
+---
+title: codemelted_npu Module
+---
+classDiagram
+  direction TB
+  namespace codemelted {
+    class CObject
+    class codemelted_npu {
+      +compute(CObject request) CObject
+      +math(formula, args[]) f64
+    }
+    class CMathFormula {
+      +MathFormulaEnums
+      -PI
+      -fmod(a, b) f64
+      -geodetic_distance() f64
+      -geodetic_heading() f64
+      -geodetic_speed() f64
+      -math(self, args[]) f64
+    }
+  }
+  codemelted_npu --> CMathFormula : uses
+  codemelted_npu --> CObject : uses / creates

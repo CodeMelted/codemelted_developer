@@ -1,0 +1,43 @@
+---
+title: codemelted_json Module
+---
+classDiagram
+  direction LR
+  namespace chrono {
+    class DateTime {
+
+    }
+  }
+  namespace codemelted {
+    class CLogLevel {
+      +Debug
+      +Info
+      +Warning
+      +Error
+      +Off
+    }
+
+    class CLogRecord {
+      +get_time_stamp() DateTime
+      +get_log_level() CLogLevel
+      +get_data() String
+      +as_string() String
+    }
+
+    class CLoggedEventHandler {
+      +fn(CLoggedRecord)
+    }
+
+    class codemelted_logger {
+      +get_log_level() CLogLevel
+      +set_log_level(CLogLevel)
+      +get_log_handler() Option
+      +set_log_handler(Option)
+      +log(CLogLevel, data)
+    }
+  }
+  CLogRecord --> DateTime : uses
+  CLoggedEventHandler --> CLogRecord : processes
+  codemelted_logger --> CLogLevel : uses with Mutex
+  codemelted_logger --> CLoggedEventHandler : uses with Mutex
+  codemelted_logger --> CLogRecord : creates
