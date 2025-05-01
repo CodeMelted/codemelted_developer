@@ -207,6 +207,7 @@ function build([string[]]$params) {
       New-Item -Path docs/codemelted_pi -ItemType Directory
       New-Item -Path docs/codemelted_pwsh -ItemType Directory
       New-Item -Path docs/codemelted_rust -ItemType Directory
+      New-Item -Path docs/design_notes -ItemType Directory
       Copy-Item -Path codemelted_dev/book/* -Destination docs/codemelted_dev -Force -Recurse
       Copy-Item -Path codemelted_flutter/docs/* -Destination docs/codemelted_flutter -Force -Recurse
       Copy-Item -Path codemelted_js/docs/* -Destination docs/codemelted_js -Force -Recurse
@@ -214,7 +215,7 @@ function build([string[]]$params) {
       Copy-Item -Path codemelted_pwsh/book/* -Destination docs/codemelted_pwsh -Force -Recurse
       Copy-Item -Path codemelted_rust/target/doc/* -Destination docs/codemelted_rust -Force -Recurse
       Copy-Item -Path index.html -Destination docs -Force -Recurse
-      Copy-Item -Path design-notes.drawio.html -Destination docs -Force -Recurse
+      Copy-Item -Path design_notes/* -Destination docs/design_notes -Force -Recurse
     }
     "--deploy" {
       Write-Host "MESSAGE: Now uploading codemelted.com/developer content.";

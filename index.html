@@ -11,7 +11,6 @@
   <meta property="og:title" content="CodeMelted DEV">
   <meta property="og:description" content='"Write once, run anywhere (WORA)" was the famous slogan made by Sun Microsystems in 1995. At the time, this technology allowed for easy full stack engineering allowing you to target dedicated workstations and on-premises servers. So long as a Java Runtime Environment existed, you could run your code. Java was unable to keep to their slogan as web browsers became more advanced, mobile devices became ubiquitous, and companies no longer required dedicated servers.'>
   <meta property="og:url" content="https://codemelted.com/developer/index.html">
-  <meta property="og:site_name" content="CodeMelted PWA">
   <meta property="og:image" content="https://codemelted.com/assets/images/logo-codemelted-developer.png">
   <meta property="og:image:height" content="100px">
   <meta property="og:image:width" content="100px">
@@ -37,7 +36,7 @@
     <img src="https://codemelted.com/assets/images/logo-codemelted-developer.png" />
     <div></div>
     <select id="cmbOptions">
-      <option selected value="design-notes.drawio.html">Design Notes</option>
+      <option selected value="design_notes/design-notes.drawio.html">Design Notes</option>
       <!-- <option value="codemelted_dev">Rosetta Stone</option> -->
       <option value="codemelted_flutter">Flutter</option>
       <!-- <option value="codemelted_js">JS</option> -->
@@ -47,7 +46,7 @@
     </select>
   </header>
   <div class="content-container">
-    <iframe id="frmContent" src="design-notes.drawio.html" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+    <iframe id="frmContent" src="design_notes/design-notes.drawio.html" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
   </div>
   <codemelted-navigation></codemelted-navigation>
   <script>
@@ -59,7 +58,7 @@
     cmbOptions.onchange = (evt) => {
       if (evt.target.value != "") {
         if (evt.target.value.includes("design-notes")) {
-          frmContent.src = "design-notes.drawio.html"
+          frmContent.src = evt.target.value;
         } else {
           frmContent.src = `${evt.target.value}/index.html?rand=${Math.random()}`;
         }

@@ -50,10 +50,10 @@ function main {
   # -------------------------------------------------------------------------
   echo "MESSAGE: Now deploying the codemelted.com site."
 
+  deploy_content "app"
   deploy_content "assets"
   deploy_content "developer"
   deploy_content "photography"
-  deploy_content "services"
 
   echo "MESSAGE: codemelted.com site has been deployed."
 }

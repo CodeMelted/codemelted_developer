@@ -3264,6 +3264,7 @@ class CodeMeltedUI {
     String? appName,
     String? appVersion,
     String? appLegalese,
+    Widget? leading,
     List<Widget>? actions,
     List<String>? choices,
     String? title,
@@ -3494,6 +3495,7 @@ class CodeMeltedUI {
           return PointerInterceptor(
             child: Scaffold(
               appBar: AppBar(
+                leading: leading,
                 automaticallyImplyLeading: false,
                 actions: sheetActions,
                 centerTitle: false,
