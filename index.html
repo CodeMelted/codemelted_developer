@@ -60,7 +60,7 @@
     const anchors = {
       "aDesignNotes"   : `design_notes/design-notes.drawio.html?rand=${Math.random()}`,
       "aFlutterModule" : `codemelted_flutter/index.html?rand=${Math.random()}`,
-      "aRustModule"    : `codemelted_rust/codemelted/index/html?rand=${Math.random()}`,
+      "aRustModule"    : `codemelted_rust/codemelted/index.html?rand=${Math.random()}`,
     };
 
     // Setup our initial page state.
@@ -92,8 +92,6 @@
       frmContent.src = anchors[id]
       document.getElementById(id).style.backgroundColor = "#1f1f1f";
     }
-
-
 
     // Handle the override of codemelted_navigation.js click actions.
     setTimeout(() => {

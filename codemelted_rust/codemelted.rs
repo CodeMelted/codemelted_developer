@@ -488,6 +488,7 @@ pub mod codemelted_async {
   /// let mut monitor = codemelted_async::monitor();
   /// monitor.refresh();
   /// let cpu_load1 = monitor.cpu_load();
+  /// codemelted_async::sleep(500);
   /// monitor.refresh();
   /// let cpu_load2 = monitor.cpu_load();
   /// assert!(cpu_load1 != cpu_load2);
@@ -538,7 +539,7 @@ pub mod codemelted_async {
   /// let async_task = codemelted_async::task(
   ///   task_cb,
   ///   Some(CObject::from(24)),
-  ///   250
+  ///   500
   /// );
   /// assert!(!async_task.has_completed());
   /// let answer = async_task.value();
@@ -2589,8 +2590,10 @@ pub mod codemelted_npu {
 /// Implements the CodeMelted DEV Process use case. This module provides all
 /// the functionality necessary to interact with host operating system
 /// processes, applications, and services. This is from checking an
-/// application [exists], [run] one off commands to get the output, [spawn]
-/// a bi-directional process, and the ability [monitor] the overall host
+/// application [crate::codemelted_process::exists],
+/// [crate::codemelted_process::run] one off commands to get the output,
+/// [crate::codemelted_process::spawn] a bi-directional process, and the
+/// ability [crate::codemelted_process::monitor] the overall host
 /// operating system.
 ///
 /// _NOTE: You may need proper administrator privileges to utilize some
