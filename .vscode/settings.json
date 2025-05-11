@@ -42,6 +42,7 @@
     "nodoc",
     "nread",
     "onmessageerror",
+    "pids",
     "PRIVATEDATA",
     "PROJECTURI",
     "pubspec",

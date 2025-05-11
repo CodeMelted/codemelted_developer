@@ -1,0 +1,74 @@
+---
+title: codemelted_process Module
+---
+classDiagram
+  direction TB
+  namespace codemelted {
+    class codemelted_process {
+      +exists(command) bool
+      +monitor() CProcessMonitor
+      +run(command, args) String
+      +spawn(command, args) CProcessProtocol
+    }
+    class CProcessMonitor {
+      -new() CProcessMonitor
+      +refresh()
+      +pids() Vec
+      +cpu_usage(pid) f32
+      +cwd(pid) String
+      +disk_total_read_bytes(pid) u64
+      +disk_total_written_bytes(pid) u64
+      +exe(pid) String
+      +group_id(pid) String
+      +memory_usage_bytes(pid) u64
+      +memory_virtual_bytes(pid) u64
+      +name(pid) String
+      +open_files(pid) u32
+      +parent_pid(pid) u32
+      +root(pid) String
+      +session_id(pid) u32
+      +status(pid) String
+      +time_started_seconds(pid) u64
+      +time_running_seconds(pid) u64
+      +user_id(pid) String
+      +kill(pid) bool
+      +wait(pid) i32
+    }
+    class CProcessProtocol {
+      -new() CProcessProtocol
+      +id()
+    }
+    class CCsvFormat {
+        +as_header() String
+        +as_csv(self) String
+    }
+    class CProtocolHandler {
+      +get_error() T
+      +get_message() T
+      +is_running() bool
+      +post_message(T)
+      +terminate()
+    }
+  }
+  namespace std {
+    class io
+    class process
+    class sync
+    class thread
+  }
+  namespace sysinfo {
+    class Pid
+    class ProcessToUpdate
+    class System
+  }
+  codemelted_process --> CProcessMonitor : creates
+  codemelted_process --> CProcessProtocol : creates
+  CProcessMonitor --> CCsvFormat : implements
+  CProcessMonitor --> Pid : uses
+  CProcessMonitor --> ProcessToUpdate : uses
+  CProcessMonitor --> System : uses
+  CProcessProtocol --> CProtocolHandler : implements
+  CProcessProtocol --> io : uses
+  CProcessProtocol --> process : uses
+  CProcessProtocol --> sync : uses
+  CProcessProtocol --> thread : uses

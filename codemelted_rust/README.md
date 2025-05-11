@@ -28,8 +28,7 @@ The *CodeMelted Rust Crate* is an implementation of the [CodeMelted DEV](https:/
 
 ## Features
 
-TODO: Move this to raw domain of https://codemelted.com/developer/design_notes/rust_model_architecture.drawio.png.
-![](models/rust_module_architecture.drawio.png)
+![]([models/rust_module_architecture.drawio.png](https://codemelted.com/developer/design_notes/models/rust_model_architecture.drawio.png))
 
 1. The `codemelted.rs` is a single file implementing the [CodeMelted DEV](https://developer.codemelted.com/design-notes) domain specific use cases.
 2. These use cases straddle areas of knowledge software engineers should be familiar with regardless of a given programming language, SDK, or chosen framework.

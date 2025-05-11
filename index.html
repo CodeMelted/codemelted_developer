@@ -19,67 +19,81 @@
   <link rel="stylesheet" href="https://codemelted.com/assets/css/developer-theme.css">
   <script src="https://codemelted.com/assets/js/codemelted_navigation.js" defer></script>
   <style>
-    .feed-header div {
-      margin-left: 125px;
+    .content-nav {
+      background-color: black;
+      position: fixed;
+      right: 0;
+      top: 0;
+      bottom: 95px;
+      display: grid;
+      grid-template-rows: auto auto auto;
     }
-    .feed-header img {
-      margin: 0;
+    .content-nav a {
       padding: 5px;
-      height: 40px;
+      cursor: pointer;
+    }
+    .content-nav a:hover {
+      background-color: #1f1f1f;
+    }
+    .content-nav img {
+      height: 45px;
     }
     .content-container {
+      top: 0px;
+      right: 55px;
       bottom: 95px;
     }
   </style>
 </head><body>
-  <header class="feed-header">
-    <img src="https://codemelted.com/assets/images/logo-codemelted-developer.png" />
-    <div></div>
-    <select id="cmbOptions">
-      <option selected value="design_notes/design-notes.drawio.html">Design Notes</option>
-      <!-- <option value="codemelted_dev">Rosetta Stone</option> -->
-      <option value="codemelted_flutter">Flutter</option>
-      <!-- <option value="codemelted_js">JS</option> -->
-      <!-- <option value="codemelted_pwsh">pwsh Core</option> -->
-      <option value="codemelted_rust/codemelted">Rust</option>
-      <!-- <option value="codemelted_pi">Raspberry Pi</option> -->
-    </select>
-  </header>
+  <div class="content-nav">
+    <a id="aDesignNotes"   onclick="onAnchorClicked('aDesignNotes'); return false;" title="Design Notes"><img src="https://codemelted.com/assets/images/icon-design.png" /></a>
+    <a id="aFlutterModule" onclick="onAnchorClicked('aFlutterModule'); return false;" title="Flutter Module"><img src="https://codemelted.com/assets/images/icon-flutter.png" /></a>
+    <a id="aRustModule"    onclick="onAnchorClicked('aRustModule'); return false;" title="Rust Module"><img src="https://codemelted.com/assets/images/icon-rust.png" /></a>
+  </div>
   <div class="content-container">
     <iframe id="frmContent" src="design_notes/design-notes.drawio.html" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
   </div>
   <codemelted-navigation></codemelted-navigation>
   <script>
-    // Setup access to our page elements.
-    const cmbOptions = document.getElementById("cmbOptions");
+    // setup our page controls
     const frmContent = document.getElementById("frmContent");
-
-    // Setup to handle our change in content
-    cmbOptions.onchange = (evt) => {
-      if (evt.target.value != "") {
-        if (evt.target.value.includes("design-notes")) {
-          frmContent.src = evt.target.value;
-        } else {
-          frmContent.src = `${evt.target.value}/index.html?rand=${Math.random()}`;
-        }
-      }
+    const anchors = {
+      "aDesignNotes"   : `design_notes/design-notes.drawio.html?rand=${Math.random()}`,
+      "aFlutterModule" : `codemelted_flutter/index.html?rand=${Math.random()}`,
+      "aRustModule"    : `codemelted_rust/codemelted/index/html?rand=${Math.random()}`,
     };
 
-    // Check for loading different content based on a share
+    // Setup our initial page state.
     const url = new URL(window.location.href);
     const params = new URLSearchParams(url.search);
     if (params.has("src")) {
+      // Set our frame source
       const src = params.get("src");
       frmContent.src = src;
-      let options = cmbOptions.options;
-      options[0].selected = false;
-      for (let x = 0; x < options.length; x++) {
-        if (src.includes(options[x].value)) {
-          options[x].selected = true;
-          break;
+
+      // Go set the active page.
+      for (const [key, value] in Object.entries(anchors)) {
+        if (value.includes(src)) {
+          document.getElementById(key).style.backgroundColor = "#1f1f1f";
+        } else {
+          document.getElementById(key).style.backgroundColor = "black";
         }
       }
+    } else {
+      document.getElementById("aDesignNotes").style.backgroundColor = "#1f1f1f";
     }
+
+    // Setup our anchor click action.
+    function onAnchorClicked(id) {
+      for (const [key, value] of Object.entries(anchors)) {
+        console.log(key);
+        document.getElementById(key).style.backgroundColor = "black";
+      }
+      frmContent.src = anchors[id]
+      document.getElementById(id).style.backgroundColor = "#1f1f1f";
+    }
+
+
 
     // Handle the override of codemelted_navigation.js click actions.
     setTimeout(() => {

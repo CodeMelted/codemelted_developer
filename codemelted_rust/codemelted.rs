@@ -56,13 +56,13 @@ pub trait CCsvFormat {
 /// that have occurred during it run.
 pub trait CProtocolHandler<T> {
   /// Retrieves any currently processed errors.
-  fn get_error(&mut self) -> Option<T>;
+  fn get_error(&mut self) -> T;
   /// Retrieves any currently processed messages.
-  fn get_message(&mut self) -> Option<T>;
+  fn get_message(&mut self) -> T;
   /// Signals if the protocol is running or not.
   fn is_running(&self) -> bool;
   /// Handles the sending of the message to the protocol for processing.
-  fn post_message(&self, data: T);
+  fn post_message(&mut self, data: T);
   /// Signals for the protocol to terminate.
   fn terminate(&mut self);
 }
@@ -369,7 +369,7 @@ pub mod codemelted_async {
   }
 
   /// The task that runs within the [CWorkerProtocol] thread.
-  pub type CWorkerCB<T> = fn(T) -> Option<T>;
+  pub type CWorkerCB<T> = fn(T) -> T;
 
   /// The result of a [worker] call. This holds a dedicated thread that is
   /// waiting for data via the [CWorkerProtocol::post_message]. This will
@@ -395,10 +395,7 @@ pub mod codemelted_async {
           match thread_rx.recv() {
             Ok(v) => {
               let result = task(v);
-              if result.is_some() {
-                let data = result.unwrap();
-                let _ = thread_tx.send(data);
-              }
+              let _ = thread_tx.send(result);
             },
             // The channel was disconnected via terminate.
             // Break thread loop.
@@ -415,14 +412,15 @@ pub mod codemelted_async {
       }
     }
   }
-  impl<T> CProtocolHandler<T> for CWorkerProtocol<T> {
+
+  impl<T> CProtocolHandler<Option<T>> for CWorkerProtocol<Option<T>> {
     fn get_error(&mut self) -> Option<T> {
       None
     }
 
     fn get_message(&mut self) -> Option<T> {
       match self.protocol_rx.try_recv() {
-        Ok(v) => Some(v),
+        Ok(v) => v,
         Err(_) => None,
       }
     }
@@ -431,7 +429,7 @@ pub mod codemelted_async {
       !self.handle.is_finished()
     }
 
-    fn post_message(&self, data: T) {
+    fn post_message(&mut self, data: Option<T>) {
       let _ = self.protocol_tx.as_ref().unwrap().send(data);
     }
 
@@ -596,16 +594,17 @@ pub mod codemelted_async {
   /// use codemelted::CObject;
   /// use codemelted::CProtocolHandler;
   ///
-  /// fn worker_cb(_data: CObject) -> Option<CObject> {
+  /// fn worker_cb(_data: Option<CObject>) -> Option<CObject> {
   ///   // DO SOMETHING IN THE BACKGROUND
   ///   Some(CObject::new_object())
   /// }
   ///
-  /// let mut worker = codemelted_async::worker(
+  /// let mut worker = codemelted_async::worker::<Option<CObject>>(
   ///   worker_cb,
   /// );
+  ///
   /// assert!(worker.is_running());
-  /// worker.post_message(CObject::new_object());
+  /// worker.post_message(Some(CObject::new_object()));
   /// codemelted_async::sleep(100);
   ///
   /// let data = worker.get_message();
@@ -2587,53 +2586,469 @@ pub mod codemelted_npu {
 // [Process Use Case] =========================================================
 // ============================================================================
 
-/// <center><b><mark>IN ACTIVE DEVELOPMENT</mark></b></center>
+/// Implements the CodeMelted DEV Process use case. This module provides all
+/// the functionality necessary to interact with host operating system
+/// processes, applications, and services. This is from checking an
+/// application [exists], [run] one off commands to get the output, [spawn]
+/// a bi-directional process, and the ability [monitor] the overall host
+/// operating system.
+///
+/// _NOTE: You may need proper administrator privileges to utilize some
+/// features of this module.
+#[doc = mermaid!("models/codemelted_process.mmd")]
 pub mod codemelted_process {
   // --------------------------------------------------------------------------
   // [Module Use Statements] --------------------------------------------------
   // --------------------------------------------------------------------------
+  use crate::{codemelted_async, CCsvFormat, CProtocolHandler};
   use std::{
     io::{Read, Write},
-    process::{Child, Command, Stdio},
+    process::{Child, ChildStdin, Command, Stdio},
+    sync::mpsc::{channel, Receiver, Sender},
+    thread::{self, JoinHandle}
   };
-  use crate::CProtocolHandler;
+  use simple_mermaid::mermaid;
+  use sysinfo::{Pid, ProcessesToUpdate, System};
 
   // --------------------------------------------------------------------------
   // [Module Data Definitions] ------------------------------------------------
   // --------------------------------------------------------------------------
+
+  /// The result of the [monitor] call provide a view of the host
+  /// operating systems currently running processes. It allows for gathering
+  /// data about the processes (statistics, originating application, etc.)
+  /// while also providing the ability to know the current run status, the
+  /// ability to kill, and wait for the process to exit.
+  ///
+  /// - _NOTE 1: This level of monitoring may require elevated privileges of
+  /// the user running the application. If a panic occurs that may be the
+  /// reason._
+  /// - _NOTE 2: Any item that can't be determined will either be UNDETERMINED
+  /// if a String return type or 0 if a integer based field._
+  pub struct CProcessMonitor {
+    sys: System
+  }
+  impl CProcessMonitor {
+    /// Function that supports the [monitor] call of the module.
+    fn new() -> CProcessMonitor {
+      let sys = System::new_all();
+      CProcessMonitor { sys }
+    }
+
+    /// Refreshes the held processes by this object removing any processes
+    /// no longer running.
+    pub fn refresh(&mut self) {
+      self.sys.refresh_processes(ProcessesToUpdate::All, true);
+    }
+
+    /// Gets the operating system currently running Process Ids from the host
+    /// operating system.
+    pub fn pids(&self) -> Vec<u32> {
+      let mut pids = Vec::<u32>::new();
+      for (pid, _process) in self.sys.processes() {
+        pids.push(pid.as_u32());
+      }
+      pids
+    }
+
+    /// Gets the CPU% for the running process. This takes into account the
+    /// number of CPUs so the value will be between 0.0 / 100.0%.
+    pub fn cpu_usage(&self, pid: u32) -> f32 {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => {
+          v.cpu_usage() / codemelted_async::cpu_count() as f32
+        },
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// The current working directory of the given pid.
+    pub fn cwd(&self, pid: u32) -> String {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => {
+          match v.cwd() {
+            Some(v) => {
+              match v.to_str() {
+                Some(v) => String::from(v),
+                None => String::from("UNDETERMINED"),
+              }
+            },
+            None => String::from("UNDETERMINED"),
+          }
+        },
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Returns number of bytes read to disk for the given pid.
+    pub fn disk_total_read_bytes(&self, pid: u32) -> u64 {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => v.disk_usage().total_read_bytes,
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Returns number of bytes written to disk for the given pid.
+    pub fn disk_total_written_bytes(&self, pid: u32) -> u64 {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => v.disk_usage().total_written_bytes,
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// The path to the process being run for the given pid.
+    pub fn exe(&self, pid: u32) -> String {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => {
+          match v.exe() {
+            Some(v) => {
+              match v.to_str() {
+                Some(v) => String::from(v),
+                None => String::from("UNDETERMINED"),
+              }
+            },
+            None => String::from("UNDETERMINED"),
+          }
+        },
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Returns the group ID of the process. For Windows this will always
+    /// return UNDETERMINED.
+    pub fn group_id(&self, pid: u32) -> String {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => {
+          match v.group_id() {
+            Some(v) => v.to_string(),
+            None => String::from("UNDETERMINED"),
+          }
+        },
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Returns the memory usage (in bytes) of the specified pid.
+    pub fn memory_usage_bytes(&self, pid: u32) -> u64 {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => v.memory(),
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Returns the virtual memory usage (in bytes) of the specified pid.
+    pub fn memory_virtual_bytes(&self, pid: u32) -> u64 {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => v.virtual_memory(),
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Returns the name of the process of the specified pid.
+    pub fn name(&self, pid: u32) -> String {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => {
+          match v.name().to_str() {
+            Some(v) => String::from(v),
+            None => String::from("UNDETERMINED"),
+          }
+        },
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Returns the number of open files in the current process for
+    /// the given pid.
+    pub fn open_files(&self, pid: u32) -> u32 {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => {
+          match v.open_files() {
+            Some(v) => v,
+            None => 0,
+          }
+        },
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Returns the parent PID of the specified pid.
+    pub fn parent_pid(&self, pid: u32) -> u32 {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => {
+          match v.parent() {
+            Some(v) => v.as_u32(),
+            None => 0,
+          }
+        },
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Returns the path of the root directory for the given pid.
+    pub fn root(&self, pid: u32) -> String {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => {
+          match v.root() {
+            Some(v) => {
+              match v.to_str() {
+                Some(v) => String::from(v),
+                None => String::from("UNDETERMINED"),
+              }
+            },
+            None => String::from("UNDETERMINED"),
+          }
+        },
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Returns the session ID for the current process or 0 if it couldn't
+    /// be retrieved for the given pid.
+    pub fn session_id(&self, pid: u32) -> u32 {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => {
+          match v.session_id() {
+            Some(v) => v.as_u32(),
+            None => 0,
+          }
+        },
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Returns the status of the process for the given pid.
+    pub fn status(&self, pid: u32) -> String {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => v.status().to_string(),
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Returns the time where the process was started (in seconds)
+    /// from epoch of the specified pid.
+    pub fn time_started_seconds(&self, pid: u32) -> u64 {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => v.start_time(),
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Returns for how much time the process has been running (in seconds)
+    /// of the given pid.
+    pub fn time_running_seconds(&self, pid: u32) -> u64 {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => v.run_time(),
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Returns the ID of the owner user of this process or UNDETERMINED
+    /// for the given pid.
+    pub fn user_id(&self, pid: u32) -> String {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => {
+          match v.user_id()  {
+            Some(v) => v.to_string(),
+            None => String::from("UNDETERMINED"),
+          }
+        },
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Kills the specified pid returning true if the signal was sent. This
+    /// does not wait for the given pid to be killed. Call
+    /// [CProcessMonitor::wait] after calling this to wait.
+    pub fn kill(&self, pid: u32) -> bool {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => v.kill(),
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+
+    /// Waits for a given pid to complete and returns its status code from the
+    /// operating system. `-1` is returned if it could not be determined.
+    pub fn wait(&self, pid: u32) -> i32 {
+      match self.sys.process(Pid::from_u32(pid)) {
+        Some(v) => {
+          match v.wait() {
+            Some(v) => {
+              match v.code() {
+                Some(v) => v,
+                None => -1 as i32,
+              }
+            },
+            None => -1 as i32,
+          }
+        },
+        None => panic!("SyntaxError: Unknown pid specified."),
+      }
+    }
+  }
+  impl CCsvFormat for CProcessMonitor {
+    fn csv_header(&self) -> String {
+      format!(
+        "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
+        String::from("system_id"),
+        String::from("pid"),
+        String::from("cpu_usage"),
+        String::from("cwd"),
+        String::from("disk_total_read_bytes"),
+        String::from("disk_total_written_bytes"),
+        String::from("exe"),
+        String::from("group_id"),
+        String::from("memory_usage_bytes"),
+        String::from("memory_virtual_bytes"),
+        String::from("name"),
+        String::from("open_files"),
+        String::from("parent_pid"),
+        String::from("root"),
+        String::from("session_id"),
+        String::from("status"),
+        String::from("time_started_seconds"),
+        String::from("time_running_seconds"),
+        String::from("user_id"),
+      )
+    }
+
+    fn as_csv(&self) -> String {
+      let mut csv_data = String::new();
+      let pids = self.pids();
+      for pid in pids {
+        let data = format!(
+          "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
+          Self::system_id(),
+          pid,
+          self.cpu_usage(pid),
+          self.cwd(pid),
+          self.disk_total_read_bytes(pid),
+          self.disk_total_written_bytes(pid),
+          self.exe(pid),
+          self.group_id(pid),
+          self.memory_usage_bytes(pid),
+          self.memory_virtual_bytes(pid),
+          self.name(pid),
+          self.open_files(pid),
+          self.parent_pid(pid),
+          self.root(pid),
+          self.session_id(pid),
+          self.status(pid),
+          self.time_started_seconds(pid),
+          self.time_running_seconds(pid),
+          self.user_id(pid),
+        );
+        csv_data.push_str(&data);
+        csv_data.push('\n');
+      }
+      csv_data
+    }
+  }
 
   /// Represents a bi-directional process able to allow a Rust application to
   /// communicate with a hosted operating system process / command via STDIN /
   /// STDOUT / STDERR. This continues until the [CProcessProtocol::terminate]
   /// is called.
   pub struct CProcessProtocol {
+    protocol_stderr_rx: Receiver<u8>,
+    protocol_stdout_rx: Receiver<u8>,
+    protocol_rx_thread: JoinHandle<()>,
+    protocol_shutdown_tx: Sender<bool>,
     process: Child,
-    is_running: bool,
+    protocol_stdin: ChildStdin,
   }
   impl CProcessProtocol {
-    /// Creates a new [CProcessProtocol] object via the [spawn] call.
     fn new(command: &str, args: &str) -> CProcessProtocol {
+      // Go setup the process and spawn it.
       let cmd = format!("{} {}", command, args);
-      let proc = if cfg!(target_os = "windows") {
+      let mut process = if cfg!(target_os = "windows") {
         Command::new("cmd").args(["/c", &cmd])
           .stdin(Stdio::piped())
           .stdout(Stdio::piped())
           .stderr(Stdio::piped())
-          .spawn()
+          .spawn().unwrap()
       } else {
         Command::new("sh").args(["-c", &cmd])
           .stdin(Stdio::piped())
           .stdout(Stdio::piped())
           .stderr(Stdio::piped())
-          .spawn()
+          .spawn().unwrap()
       };
 
-      let process = match proc {
-        Ok(v) => v,
-        Err(why) => panic!("Failed to create CProcessProtocol: {}", why),
-      };
+      // Setup our receive pipe thread for data
+      let mut stdout = process.stdout.take().unwrap();
+      let mut stderr = process.stderr.take().unwrap();
+      let (thread_stdout_tx, protocol_stdout_rx) = channel::<u8>();
+      let (thread_stderr_tx, protocol_stderr_rx) = channel::<u8>();
+      let (protocol_shutdown_tx, thread_shutdown_rx) = channel::<bool>();
 
-      CProcessProtocol { process, is_running: true }
+      let protocol_rx_thread = thread::spawn(move || {
+        // The items we need to handle a bi-directional process in Rust.
+        // Sometimes it blocks and sometimes it does not. Observed behavior
+        // suggests we need a buffer of one because if the read pipe cannot
+        // fill the available bytes, it will block. So only a buffer of 1 wil
+        // suffice.
+        let mut backoff_counter = 0;
+        let mut buf = [0x00];
+        loop {
+          // Go read data and see what we have. This may become a blocking read
+          // depending on the operating system. If it does then we are good, if
+          // not then we utilize the backoff_counter to prevent us from
+          // throttling the thread.
+          match stdout.read(&mut buf) {
+            Ok(v) => {
+              if v != 0 {
+                backoff_counter = 0;
+                match thread_stdout_tx.send(buf[0]) {
+                  Ok(_) => continue,
+                  Err(_) => break, // Something bad happened, break thread.
+                }
+              } else {
+                backoff_counter += 1;
+              }
+            },
+            Err(_) => continue,
+          }
+
+          match stderr.read(&mut buf) {
+            Ok(v) => {
+              if v != 0 {
+                backoff_counter = 0;
+                match thread_stderr_tx.send(buf[0]) {
+                  Ok(_) => continue,
+                  Err(_) => break, // Something bad happened, break thread.
+                }
+              } else {
+                backoff_counter += 1;
+              }
+            },
+            Err(_) => continue,
+          }
+
+          // Determine if we have been called to terminate this thread.
+          match thread_shutdown_rx.try_recv() {
+            Ok(_) => break, // We were ordered to shutdown.
+            Err(_) => {
+              // A way to prevent thread throttling if we do not have a blocking
+              // pipe on read.
+              if backoff_counter >= 10 {
+                codemelted_async::sleep(1000);
+              }
+              continue
+            },
+          }
+        }
+      });
+
+      // Return the created protocol
+      let protocol_stdin = process.stdin.take().unwrap();
+      CProcessProtocol {
+        protocol_stderr_rx,
+        protocol_stdout_rx,
+        protocol_rx_thread,
+        protocol_shutdown_tx,
+        process,
+        protocol_stdin,
+      }
     }
 
     /// Retrieves the id associated with the held process running.
@@ -2649,46 +3064,52 @@ pub mod codemelted_process {
   /// [CProcessProtocol::post_message] are synchronous calls. No thread is
   /// implemented as part of this [CProtocolHandler].
   impl CProtocolHandler<String> for CProcessProtocol {
-    fn get_error(&mut self) -> Option<String> {
-      let obj = self.process.stderr.as_mut().unwrap();
-      let mut stderr_data = String::new();
-      let stderr_result = obj.read_to_string(&mut stderr_data);
-      match stderr_result {
-        Ok(_) => Some(stderr_data),
-        Err(_) => None,
+    fn get_error(&mut self) -> String {
+      let mut rx_buf = Vec::<u8>::new();
+      loop {
+        match self.protocol_stderr_rx.try_recv() {
+          Ok(v) => rx_buf.push(v),
+          Err(_) => break,
+        };
+      }
+      match String::from_utf8(rx_buf) {
+        Ok(v) => v,
+        Err(_) => String::from(""),
       }
     }
 
-    fn get_message(&mut self) -> Option<String> {
-      let obj = self.process.stdout.as_mut().unwrap();
-      let mut stdout_data = String::new();
-      let stdout_result = obj.read_to_string(&mut stdout_data);
-      match stdout_result {
-        Ok(_) => Some(stdout_data),
-        Err(_) => None,
+    fn get_message(&mut self) -> String {
+      let mut rx_buf = Vec::<u8>::new();
+      loop {
+        match self.protocol_stdout_rx.try_recv() {
+          Ok(v) => rx_buf.push(v),
+          Err(_) => break,
+        };
+      }
+      match String::from_utf8(rx_buf) {
+        Ok(v) => v,
+        Err(_) => String::from(""),
       }
     }
 
     fn is_running(&self) -> bool {
-      self.is_running
+      !self.protocol_rx_thread.is_finished()
     }
 
-    fn post_message(&self, data: String) {
-      let mut obj = self.process.stdin.as_ref().unwrap();
-      let result = obj.write_all(data.as_bytes());
-      match result {
-        Ok(()) => {
-          let _ = obj.flush();
-        },
-        Err(why) => {
-          panic!("CProcessProtocol failed to post message: {}", why);
-        }
-      }
+    fn post_message(&mut self, data: String) {
+      let _ = self.protocol_stdin.write_all(data.as_bytes());
+      let _ = self.protocol_stdin.flush();
     }
 
     fn terminate(&mut self) {
-      self.is_running = false;
-      let _ = self.process.kill();
+      self.process.kill().expect("Process should have terminated!");
+      let _ = self.protocol_shutdown_tx.send(true);
+      loop {
+        if !self.is_running() {
+          break;
+        }
+        codemelted_async::sleep(100);
+      }
     }
   }
 
@@ -2724,14 +3145,21 @@ pub mod codemelted_process {
     rc.success()
   }
 
-  /// <center><b><mark>FUTURE DEVELOPMENT. DON'T CALL!</mark></b></center>
-  pub fn list() {
-    unimplemented!("FUTURE DEVELOPMENT")
-  }
-
-  /// <center><b><mark>FUTURE DEVELOPMENT. DON'T CALL!</mark></b></center>
-  pub fn kill() {
-    unimplemented!("FUTURE DEVELOPMENT");
+  /// Constructs a [CProcessMonitor] to monitor the the different running
+  /// processes on the host operating system.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_process;
+  /// use codemelted::codemelted_process::CProcessMonitor;
+  ///
+  /// let mut monitor = codemelted_process::monitor();
+  /// monitor.refresh();
+  /// let len = monitor.pids().len();
+  /// assert!(len >= 0);
+  /// ```
+  pub fn monitor() -> CProcessMonitor {
+    CProcessMonitor::new()
   }
 
   /// Will execute a command with the host operating system and return its
@@ -2743,28 +3171,57 @@ pub mod codemelted_process {
   /// use codemelted::codemelted_process;
   ///
   /// let output = if cfg!(target_os = "windows") {
-  ///   codemelted_process::run("dir")
+  ///   codemelted_process::run("dir", "")
   /// } else {
-  ///   codemelted_process::run("ls")
+  ///   codemelted_process::run("ls", "")
   /// };
   /// println!("{}", output);
   /// ```
-  pub fn run(command: &str) -> String {
+  pub fn run(command: &str, args: &str) -> String {
+    let cmd = format!("{} {}", command, args);
     let proc = if cfg!(target_os = "windows") {
       Command::new("cmd")
-        .args(["/c", command])
+        .args(["/c", &cmd])
         .output()
         .expect("Expected process to execute.")
     } else {
       Command::new("sh")
-        .args(["-c", command])
+        .args(["-c", &cmd])
         .output()
         .expect("Expected process to execute.")
     };
     String::from_utf8(proc.stdout).expect("Should vec<u8> to String")
   }
 
-  /// <center><b><mark>FUTURE DEVELOPMENT. DON'T CALL!</mark></b></center>
+  /// Creates a bi-directional [CProcessProtocol] to support communicating
+  /// with other hosted operating system applications / services via STDIN,
+  /// STDOUT, and STDERR. You must call [CProcessProtocol::terminate] to
+  /// properly cleanup the process.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_async;
+  /// use codemelted::codemelted_process;
+  /// use codemelted::CProtocolHandler;
+  /// use codemelted::codemelted_process::CProcessProtocol;
+  ///
+  /// let mut protocol = if cfg!(windows) {
+  ///   codemelted_process::spawn("pause", "")
+  /// } else {
+  ///   codemelted_process::spawn(
+  ///     "echo Press enter to continue; read dummy;",
+  ///     ""
+  ///   )
+  /// };
+  /// assert!(protocol.is_running());
+  /// codemelted_async::sleep(250);
+  /// let data = protocol.get_message();
+  /// assert!(data.len() > 0);
+  /// protocol.post_message("\n".to_owned());
+  /// protocol.post_message("\r".to_owned());
+  /// protocol.terminate();
+  /// assert!(!protocol.is_running());
+  /// ```
   pub fn spawn(command: &str, args: &str) -> CProcessProtocol {
     CProcessProtocol::new(command, args)
   }
@@ -2999,4 +3456,12 @@ mod tests {
   fn test_is_nan() {
     assert_eq!(true, f64::is_nan((-1.0 as f64).sqrt()));
   }
+}
+
+
+/// Used to vet logic in the `codemelted.rs` module, build complicated tests,
+/// or aid in fleshing out documentation. This is only to support the module's
+/// development and nothing more. Don't call this for anything.
+pub fn main() {
+  unimplemented!("FOR TEST PURPOSES ONLY!")
 }
