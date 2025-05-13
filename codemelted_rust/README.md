@@ -28,7 +28,7 @@ The *CodeMelted Rust Crate* is an implementation of the [CodeMelted DEV](https:/
 
 ## Features
 
-![](https://codemelted.com/developer/design_notes/models/codemelted_rust_module_architecture.drawio.png)
+![](https://codemelted.com/developer/design_notes/models/rust/module_architecture.drawio.png)
 
 1. The `codemelted.rs` is a single file implementing the [CodeMelted DEV](https://developer.codemelted.com/design-notes) domain specific use cases.
 2. These use cases straddle areas of knowledge software engineers should be familiar with regardless of a given programming language, SDK, or chosen framework.
@@ -74,6 +74,7 @@ The goal of the `codemelted.rs` is to limit 3rd party items. However, some CodeM
 - *[json](https://crates.io/crates/json):* Forms the entire backbone of the `codemelted_json` module. The main `json::JsonValue` is typed alias as `CObject` to match other CodeMelted DEV module implementations.
 - *[online](https://crates.io/crates/online):* Utilized with the `codemelted_network` module to determine if an app has access to the Internet or not.
 - *[rpassword](https://crates.io/crates/rpassword):* Supports the `codemelted_console` module to allow for getting a user's password from the console without reflecting it to the screen.
+- *[rusqlite](https://crates.io/crates/rusplite):* Supports the `codemelted_db` module providing the ability to have an embedded sqlite database. The crate takes care of "installing" the items necessary to build the sqlite database file.
 - *[simple-mermaid](https://crates.io/crates/simple-mermaid):* Supports the crate documentation for the `codemelted.rs` file to include mermaid models where appropriate to help describe each of the modules.
 - *[sysinfo](https://crates.io/crates/sysinfo):* This provides backbone for the monitoring concept of each of the modules along with providing queryable parameters of given information.
 - *[url](https://crates.io/crates/url):* Supports the url validation of the `codemelted_json` module.

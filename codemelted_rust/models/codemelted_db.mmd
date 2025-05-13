@@ -1,0 +1,21 @@
+---
+title: codemelted_db Module
+---
+classDiagram
+  direction LR
+  namespace codemelted {
+    class codemelted_db {
+      +exists(db_path, should_panic) bool
+      +manage(db_path, create_db, sql)
+      +query(db_path, sql, params, f) Vec
+      +update(db_path, sql, params) usize
+    }
+  }
+  namespace rusqlite {
+    class Connection
+    class Result
+    class Row
+  }
+  codemelted_db --> Connection : uses
+  codemelted_db --> Result : uses
+  codemelted_db --> Row : uses

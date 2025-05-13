@@ -818,9 +818,305 @@ pub mod codemelted_console {
 // [DB Use Case] ==============================================================
 // ============================================================================
 
-/// <center><b><mark>FUTURE IMPLEMENTATION. DOES NOTHING</mark></b></center>
+/// Implements the CodeMelted DEV DB use case. This module provides the
+/// ability to create / manage a database via the
+/// [crate::codemelted_db::manage] function. From here utilization of the
+/// [crate::codemelted_db::exists] function ensures the database file exists
+/// before utilizing the [crate::codemelted_db::query] and
+/// [crate::codemelted_db::update] functions.
+///
+/// _NOTE: Any failure with the database results in a panic as this would be
+/// do to missing database file, SQL syntax error, or a permissions issue._
+#[doc = mermaid!("models/codemelted_db.mmd")]
 pub mod codemelted_db {
-  // FUTURE IMPLEMENTATION
+  // --------------------------------------------------------------------------
+  // [Module Use Statements] --------------------------------------------------
+  // --------------------------------------------------------------------------
+  use crate::codemelted_disk::{self, CDiskType};
+  use rusqlite::{Connection, Result, Row};
+  use simple_mermaid::mermaid;
+
+  // --------------------------------------------------------------------------
+  // [Module Data Definitions] ------------------------------------------------
+  // --------------------------------------------------------------------------
+
+  // NONE
+
+  // --------------------------------------------------------------------------
+  // [Module Function Definitions] --------------------------------------------
+  // --------------------------------------------------------------------------
+
+  /// Ensures a database exists as any of the [query] and [update] functions
+  /// will panic if the specified database does not exist. So this will aid
+  /// in ensuring expected configurations.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_db;
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let db_file = format!("{}/test.db", codemelted_disk::temp_path());
+  /// assert!(!codemelted_db::exists(&db_file, false));
+  /// ```
+  pub fn exists(db_path: &str, should_panic: bool) -> bool {
+    match codemelted_disk::exists(db_path, CDiskType::File) {
+      true => true,
+      false => {
+        if should_panic {
+          panic!("SyntaxError: {} database does not exist!", db_path);
+        }
+        false
+      },
+    }
+  }
+
+  /// Manages the sqlite3 database on disk by creating the initial database
+  /// if it does not already exist along with execute Data Definition Language
+  /// SQL statements to manage the database.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_db;
+  /// use codemelted::codemelted_disk;
+  ///
+  /// let db_file = format!("{}/test.db", codemelted_disk::temp_path());
+  /// assert!(!codemelted_db::exists(&db_file, false));
+  /// codemelted_db::manage(&db_file, true, None);
+  /// assert!(codemelted_db::exists(&db_file, false));
+  /// let _ = codemelted_disk::rm(&db_file);
+  /// ```
+  pub fn manage(db_path: &str, create_db: bool, sql: Option<&str>) {
+    // If not creating the database on connection, check to make sure
+    // it is where we expect.
+    if !create_db {
+      exists(db_path, true);
+    }
+
+    // Alrighty, time to go carry out the DDL statement and panic if
+    // something about it fails.
+    match Connection::open(db_path) {
+      Ok(conn) => {
+        match sql {
+          // Welp, we were asked to perform the DDL statement. Go do it
+          // and see what happens.
+          Some(stmt) => {
+            match conn.execute(stmt, ()) {
+              Ok(_) => {},
+              Err(why) => panic!("SyntaxError: codemelted_db {}", why),
+            }
+          },
+          // The sql was None so it may have been to just create the
+          // database.
+          None => {},
+        }
+      },
+      Err(why) => panic!("SyntaxError: codemelted_db {}", why),
+    };
+  }
+
+  /// Will query a table specified by the db_path to retrieve the data
+  /// as a Vec<T>. This represents the Data Query Language (DQL) SELECT
+  /// statement.
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_db;
+  /// use codemelted::codemelted_disk;
+  ///
+  /// // Create the database file and table.
+  /// let db_file = format!("{}/test.db", codemelted_disk::temp_path());
+  /// assert!(!codemelted_db::exists(&db_file, false));
+  /// let sql = "CREATE TABLE person (
+  ///   id    INTEGER PRIMARY KEY,
+  ///   name  TEXT NOT NULL,
+  ///   data  BLOB
+  /// )";
+  /// codemelted_db::manage(&db_file, true, Some(sql));
+  /// assert!(codemelted_db::exists(&db_file, false));
+  ///
+  /// // Go add a person to the database.
+  /// #[derive(Debug)]
+  /// struct Person {
+  ///   id: i32,
+  ///   name: String,
+  ///   data: Option<Vec<u8>>,
+  /// }
+  ///
+  /// let sql = "INSERT INTO person (name, data) VALUES (?1, ?2)";
+  /// let me = Person {
+  ///    id: 0,
+  ///    name: "Steven".to_string(),
+  ///    data: None,
+  /// };
+  /// let rows = codemelted_db::update(
+  ///   &db_file,
+  ///   sql,
+  ///   (&me.name, &me.data)
+  /// );
+  /// assert!(rows == 1);
+  ///
+  /// // Now lets query the data back
+  /// let sql = "SELECT id, name, data FROM person";
+  /// let row_data = codemelted_db::query(
+  ///   &db_file,
+  ///   sql,
+  ///   [],
+  ///   |row| {
+  ///     Ok(Person {
+  ///       id: row.get(0)?,
+  ///       name: row.get(1)?,
+  ///       data: row.get(2)?,
+  ///     })
+  ///   }
+  /// );
+  /// assert!(row_data.len() == 1);
+  /// let _ = codemelted_disk::rm(&db_file);
+  /// ```
+  pub fn query<
+      P: rusqlite::Params,
+      T,
+      F: FnMut(&Row<'_>) -> Result<T>>(
+        db_path: &str,
+        sql: &str,
+        params: P,
+        f: F
+  ) -> Vec<T> {
+    // Ensure database exists and we can connect to it.
+    exists(db_path, true);
+    match Connection::open(db_path) {
+      Ok(conn) => {
+        // Prepare the SQL statement and binding parameters.
+        match conn.prepare(sql) {
+          Ok(mut stmt) => {
+            // Execute the query based on the params and function binding.
+            match stmt.query_map(params, f) {
+              Ok(rows) => {
+                // Capture the results into from the query to return
+                // to the caller.
+                let mut results = Vec::<T>::new();
+                for row in rows {
+                  match row {
+                    Ok(v) => results.push(v),
+                    // Something happened with the bindings
+                    Err(why) => panic!(
+                      "SyntaxError: codemelted_db {}",
+                      why
+                    ),
+                  }
+                }
+                results
+              },
+              // Unable to do the query.
+              Err(why) => panic!("SyntaxError: codemelted_db {}", why),
+            }
+          },
+          // Unable to prepare the SQL
+          Err(why) => panic!("SyntaxError: codemelted_db {}", why),
+        }
+      },
+      // Failed to make the database connection.
+      Err(why) => panic!("{}", why),
+    }
+  }
+
+  /// Provides the ability Data Manipulation Language (DML) statements
+  /// (i.e. INSERT, DELETE, or UPDATE) with the number of rows updated
+  /// based on the transaction.
+  ///
+  /// **Example:*
+  /// ```no_run
+  /// use codemelted::codemelted_db;
+  /// use codemelted::codemelted_disk;
+  ///
+  /// // Create the database file and table.
+  /// let db_file = format!("{}/test.db", codemelted_disk::temp_path());
+  /// assert!(!codemelted_db::exists(&db_file, false));
+  /// let sql = "CREATE TABLE person (
+  ///   id    INTEGER PRIMARY KEY,
+  ///   name  TEXT NOT NULL,
+  ///   data  BLOB
+  /// )";
+  /// codemelted_db::manage(&db_file, true, Some(sql));
+  /// assert!(codemelted_db::exists(&db_file, false));
+  ///
+  /// // Go add a person to the database.
+  /// #[derive(Debug)]
+  /// struct Person {
+  ///   id: i32,
+  ///   name: String,
+  ///   data: Option<Vec<u8>>,
+  /// }
+  ///
+  /// let sql = "INSERT INTO person (name, data) VALUES (?1, ?2)";
+  /// let me = Person {
+  ///    id: 0,
+  ///    name: "Steven".to_string(),
+  ///    data: None,
+  /// };
+  /// let rows = codemelted_db::update(
+  ///   &db_file,
+  ///   sql,
+  ///   (&me.name, &me.data)
+  /// );
+  /// assert!(rows == 1);
+  ///
+  /// // Now lets query the data back
+  /// let sql = "SELECT id, name, data FROM person";
+  /// let row_data = codemelted_db::query(
+  ///   &db_file,
+  ///   sql,
+  ///   [],
+  ///   |row| {
+  ///     Ok(Person {
+  ///       id: row.get(0)?,
+  ///       name: row.get(1)?,
+  ///       data: row.get(2)?,
+  ///     })
+  ///   }
+  /// );
+  /// assert!(row_data.len() == 1);
+  /// let _ = codemelted_disk::rm(&db_file);
+  /// ```
+  pub fn update<P: rusqlite::Params>(
+    db_path: &str,
+    sql: &str,
+    params: P
+  ) -> usize {
+    // Ensure database exists and connect to it.
+    exists(db_path, true);
+    match Connection::open(db_path) {
+      Ok(conn) => {
+        // Prepare the SQL statement for execution.
+        match conn.prepare(sql) {
+          Ok(mut stmt) => {
+            // Execute the prepared SQL statement and return the #
+            // of rows updated
+            match stmt.execute(params) {
+              Ok(v) => v,
+              // Failed binding of parameters to prepared statement
+              Err(why) => panic!("SyntaxError: codemelted_db {}", why),
+            }
+          },
+          // Failed to prepare the SQL statement
+          Err(why) => panic!("SyntaxError: codemelted_db {}", why),
+        }
+      },
+      // Failed to Connect
+      Err(why) => panic!("SyntaxError: codemelted_db {}", why),
+    }
+  }
+
+  /// Determines the setup version of sqlite supported by the module
+  ///
+  /// **Example:**
+  /// ```
+  /// use codemelted::codemelted_db;
+  ///
+  /// assert!(codemelted_db::version().len() > 0);
+  /// ```
+  pub fn version() -> String {
+    rusqlite::version().to_string()
+  }
 }
 
 // ============================================================================
@@ -1495,7 +1791,6 @@ pub mod codemelted_hw {
         None => panic!("SyntaxError: invalid index specified."),
       }
     }
-
 
     /// The critical temperature °C of the given component at the specified
     /// index.
@@ -3461,10 +3756,9 @@ mod tests {
   }
 }
 
-
 /// Used to vet logic in the `codemelted.rs` module, build complicated tests,
 /// or aid in fleshing out documentation. This is only to support the module's
 /// development and nothing more. Don't call this for anything.
 pub fn main() {
-  unimplemented!("FOR TEST PURPOSES ONLY!")
+  unimplemented!("FOR TEST PURPOSES ONLY!");
 }
