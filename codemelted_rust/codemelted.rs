@@ -55,10 +55,12 @@ pub trait CCsvFormat {
 /// terminated, requires the ability to know it is running and get any errors
 /// that have occurred during it run.
 pub trait CProtocolHandler<T> {
-  /// Retrieves any currently processed errors.
-  fn get_error(&mut self) -> T;
-  /// Retrieves any currently processed messages.
-  fn get_message(&mut self) -> T;
+  /// Used to check if any errors occurred with a given protocol. If None is
+  /// returned, no errors were detected.
+  fn error(&mut self) -> Option<String>;
+  /// Retrieves any currently processed messages. Also provide support for
+  /// string commands to further support the given protocol you build.
+  fn get_message(&mut self, request: Option<&str>) -> T;
   /// Signals if the protocol is running or not.
   fn is_running(&self) -> bool;
   /// Handles the sending of the message to the protocol for processing.
@@ -414,11 +416,14 @@ pub mod codemelted_async {
   }
 
   impl<T> CProtocolHandler<Option<T>> for CWorkerProtocol<Option<T>> {
-    fn get_error(&mut self) -> Option<T> {
+    /// Will always return None. The only Errors one can encounter is
+    /// programmatic errors or improper calling other functions after
+    /// thread shutdown which results in a panic.
+    fn error(&mut self) -> Option<String> {
       None
     }
 
-    fn get_message(&mut self) -> Option<T> {
+    fn get_message(&mut self, _request: Option<&str>) -> Option<T> {
       match self.protocol_rx.try_recv() {
         Ok(v) => v,
         Err(_) => None,
@@ -915,8 +920,8 @@ pub mod codemelted_db {
   }
 
   /// Will query a table specified by the db_path to retrieve the data
-  /// as a Vec<T>. This represents the Data Query Language (DQL) SELECT
-  /// statement.
+  /// as a vector of the given type. This represents the Data Query
+  /// Language (DQL) SELECT statement.
   ///
   /// **Example:**
   /// ```
@@ -1724,7 +1729,17 @@ pub mod codemelted_hw {
   // [Module Use Statements] --------------------------------------------------
   // --------------------------------------------------------------------------
 
-  use crate::{codemelted_storage, CCsvFormat};
+  use std::time::Duration;
+  use crate::{codemelted_storage, CCsvFormat, CProtocolHandler};
+  use serialport::{
+    ClearBuffer,
+    DataBits,
+    FlowControl,
+    Parity,
+    SerialPort,
+    SerialPortInfo,
+    StopBits
+  };
   use sysinfo::{Components, System};
 
   // --------------------------------------------------------------------------
@@ -1839,9 +1854,432 @@ pub mod codemelted_hw {
     }
   }
 
+  /// Provides the [CSerialPort] ability to both [CSerialPort::post_message]
+  /// utilizing the [CSerialPortData] as the data wrapper and as the
+  /// [CSerialPort::get_message] request via the
+  /// [CSerialPortData::get_message_request] function to query the port for
+  /// data.
+  #[derive(Debug)]
+  pub enum CSerialPortData {
+    /// Signals an error was detected with the [CSerialPort] request and the
+    /// [CSerialPort::error] will hold what was wrong.
+    ErrorDetected,
+    /// The name of the open [CSerialPort].
+    Name(Option<String>),
+    /// Configurable [CSerialPort] item.
+    BaudRate(Option<u32>),
+    /// Configurable [CSerialPort] item.
+    DataBits(Option<DataBits>),
+    /// Configurable [CSerialPort] item.
+    FlowControl(Option<FlowControl>),
+    /// Configurable [CSerialPort] item.
+    Parity(Option<Parity>),
+    /// Configurable [CSerialPort] item.
+    StopBits(Option<StopBits>),
+    /// Configurable [CSerialPort] item.
+    Timeout(Option<Duration>),
+    /// Line control status of the [CSerialPort].
+    Break(Option<bool>),
+    /// Line control status of the [CSerialPort].
+    ClearBuffer(Option<ClearBuffer>),
+    /// Line control status of the [CSerialPort].
+    CarrierDetect(Option<bool>),
+    /// Line control status of the [CSerialPort].
+    ClearToSend(Option<bool>),
+    /// Line control status of the [CSerialPort].
+    DataSetReady(Option<bool>),
+    /// Line control status of the [CSerialPort].
+    DataTerminalReady(Option<bool>),
+    /// Line control status of the [CSerialPort].
+    RequestToSend(Option<bool>),
+    /// Line control status of the [CSerialPort].
+    RingIndicator(Option<bool>),
+    /// Reads a buffer from a [CSerialPort].
+    ReadData(Option<Vec<u8>>),
+    /// Writes a buffer from a [CSerialPort].
+    WriteData(Option<Vec<u8>>)
+  }
+  /// Specialization of the [CSerialPortData] to support the two way nature
+  /// of this enumeration as both a request / data write object.
+  impl CSerialPortData {
+    /// Extracts the held Option bool values by those enum types.
+    /// Returns None otherwise.
+    pub fn as_bool(&self) -> Option<bool> {
+      match self {
+        CSerialPortData::Break(v) => *v,
+        CSerialPortData::CarrierDetect(v) => *v,
+        CSerialPortData::ClearToSend(v) => *v,
+        CSerialPortData::DataSetReady(v) => *v,
+        CSerialPortData::DataTerminalReady(v) => *v,
+        CSerialPortData::RequestToSend(v) => *v,
+        CSerialPortData::RingIndicator(v) => *v,
+        _ => None
+      }
+    }
+
+    /// Extracts the held Option Vec u8 values by those enum types.
+    /// Returns None otherwise.
+    pub fn as_bytes(&self) -> Option<Vec<u8>> {
+      match self {
+        CSerialPortData::ReadData(items) => items.clone(),
+        CSerialPortData::WriteData(items) => items.clone(),
+        _ => None,
+      }
+    }
+
+    /// Extracts the held Option DataBits values by those enum types.
+    /// Returns None otherwise.
+    pub fn as_data_bits(&self) -> Option<DataBits> {
+      match self {
+        CSerialPortData::DataBits(data_bits) => *data_bits,
+        _ => None,
+      }
+    }
+
+    /// Extracts the held Option FlowControl values by those enum types.
+    /// Returns None otherwise.
+    pub fn as_flow_control(&self) -> Option<FlowControl> {
+      match self {
+        CSerialPortData::FlowControl(flow_control) => *flow_control,
+        _ => None,
+      }
+    }
+
+    /// Extracts the held Option Parity values by those enum types.
+    /// Returns None otherwise.
+    pub fn as_parity(&self) -> Option<Parity> {
+      match self {
+        CSerialPortData::Parity(parity) => *parity,
+        _ => None,
+      }
+    }
+
+    /// Extracts the held Option StopBits values by those enum types.
+    /// Returns None otherwise.
+    pub fn as_stop_bits(&self) -> Option<StopBits> {
+      match self {
+        CSerialPortData::StopBits(stop_bits) => *stop_bits,
+        _ => None,
+      }
+    }
+
+    /// Extracts the held Option String values by those enum types.
+    /// Returns None otherwise.
+    pub fn as_string(&self) -> Option<String> {
+      match self {
+        CSerialPortData::Name(v) => v.clone(),
+        _ => None,
+      }
+    }
+
+    /// Extracts the held Option Duration values by those enum types.
+    /// Returns None otherwise.
+    pub fn as_timeout(&self) -> Option<Duration> {
+      match self {
+        CSerialPortData::Timeout(v) => *v,
+        _ => None,
+      }
+    }
+
+    /// Extracts the held Option u8 by those enum types.
+    /// Returns None otherwise.
+    pub fn as_u32(&self) -> Option<u32> {
+      match self {
+        CSerialPortData::BaudRate(v) => *v,
+        _ => None,
+      }
+    }
+
+    /// Provides the string representation to support the
+    /// [CSerialPort::get_message] request string to get specific types of
+    /// data from an open port.
+    pub fn get_message_request(&self) -> Option<&str> {
+      match self {
+        CSerialPortData::Name(_) => Some("name"),
+        CSerialPortData::BaudRate(_) => Some("baud_rate"),
+        CSerialPortData::DataBits(_) => Some("data_bits"),
+        CSerialPortData::FlowControl(_) => Some("flow_control"),
+        CSerialPortData::Parity(_) => Some("parity"),
+        CSerialPortData::StopBits(_) => Some("stop_bits"),
+        CSerialPortData::Timeout(_) => Some("duration"),
+        CSerialPortData::CarrierDetect(_) => Some("carrier_detect"),
+        CSerialPortData::ClearToSend(_) => Some("clear_to_send"),
+        CSerialPortData::DataSetReady(_) => Some("data_set_ready"),
+        CSerialPortData::RingIndicator(_) => Some("ring_indicator"),
+        CSerialPortData::ReadData(_) => Some("read_data"),
+        _ => None,
+      }
+    }
+  }
+
+  /// Created via the [open_serial_port] function of the module. This
+  /// implements [CProtocolHandler] to support a bi-directional communication
+  /// with an attached device via a serial port.
+  pub struct CSerialPort {
+    /// Holds the wrapped [SerialPort] of the module until closed.
+    port: Option<Box<dyn SerialPort>>,
+    /// Holds the latest error message encountered.
+    error: Option<String>
+  }
+
+  /// Implements a series of helper functions for the [CSerialPort].
+  impl CSerialPort {
+    /// Opens a [CSerialPort] with a default baud rate of 9600. A failure
+    /// will result in a panic.
+    fn new(port_info: &SerialPortInfo) -> CSerialPort {
+      let port = serialport::new(
+        port_info.port_name.to_string(),
+        9600
+      ).open().expect("CSerialPort: Failed to open!");
+      CSerialPort { port: Some(port), error: None }
+    }
+
+    /// Helper function to unwrap the port for access of the
+    /// [CProtocolHandler] implemented functions. Will panic once
+    /// the protocol is terminated.
+    fn port_ref(&mut self) -> &mut Box<dyn SerialPort + 'static> {
+      self.port.as_mut().unwrap()
+    }
+  }
+  /// The [CSerialPort] implementation of the [CProtocolHandler] utilizing
+  /// the [CSerialPortData] enumeration as the bi-directional read / write
+  /// method of the protocol definition rules.
+  impl CProtocolHandler<CSerialPortData> for CSerialPort {
+    /// Will hold the last error encountered via the
+    /// [CSerialPort::get_message] or [CSerialPort::post_message]. Returns
+    /// None if no error has occurred.
+    fn error(&mut self) -> Option<String> {
+      if self.error.is_none() {
+        return None;
+      }
+      let rtnval = self.error.clone();
+      self.error = None;
+      rtnval
+    }
+
+    /// Will query the [CSerialPort] for the latest status / data associated
+    /// via the request. Utilize the [CSerialPortData::get_message_request] to
+    /// utilize the proper string. The [CSerialPortData] will either hold the
+    /// particular result or [CSerialPortData::ErrorDetected] if an error
+    /// occurred.
+    ///
+    /// Will panic if an invalid request is received.
+    fn get_message(&mut self, request: Option<&str>) -> CSerialPortData {
+      if request.unwrap() == "name" {
+        match self.port_ref().name() {
+            Some(v) => CSerialPortData::Name(Some(v)),
+            None => CSerialPortData::Name(Some(String::from(""))),
+        }
+      } else if request.unwrap() == "baud_rate" {
+        match self.port_ref().baud_rate() {
+          Ok(v) => CSerialPortData::BaudRate(Some(v)),
+          Err(why) => {
+            self.error = Some(why.to_string());
+            CSerialPortData::ErrorDetected
+          },
+        }
+      } else if request.unwrap() == "data_bits" {
+        match self.port_ref().baud_rate() {
+          Ok(v) => CSerialPortData::BaudRate(Some(v)),
+          Err(why) => {
+            self.error = Some(why.to_string());
+            CSerialPortData::ErrorDetected
+          },
+        }
+      } else if request.unwrap() == "flow_control" {
+        match self.port_ref().flow_control() {
+          Ok(v) => CSerialPortData::FlowControl(Some(v)),
+          Err(why) => {
+            self.error = Some(why.to_string());
+            CSerialPortData::ErrorDetected
+          },
+        }
+      } else if request.unwrap() == "parity" {
+        match self.port_ref().parity() {
+          Ok(v) => CSerialPortData::Parity(Some(v)),
+          Err(why) => {
+            self.error = Some(why.to_string());
+            CSerialPortData::ErrorDetected
+          },
+        }
+      } else if request.unwrap() == "stop_bits" {
+        match self.port_ref().stop_bits() {
+          Ok(v) => CSerialPortData::StopBits(Some(v)),
+          Err(why) => {
+            self.error = Some(why.to_string());
+            CSerialPortData::ErrorDetected
+          },
+        }
+      } else if request.unwrap() == "timeout" {
+        CSerialPortData::Timeout(Some(self.port_ref().timeout()))
+      } else if request.unwrap() == "carrier_detect" {
+        match self.port_ref().read_carrier_detect() {
+          Ok(v) => CSerialPortData::CarrierDetect(Some(v)),
+          Err(why) => {
+            self.error = Some(why.to_string());
+            CSerialPortData::ErrorDetected
+          },
+        }
+      } else if request.unwrap() == "clear_to_send" {
+        match self.port_ref().read_clear_to_send() {
+          Ok(v) => CSerialPortData::ClearToSend(Some(v)),
+          Err(why) => {
+            self.error = Some(why.to_string());
+            CSerialPortData::ErrorDetected
+          },
+        }
+      } else if request.unwrap() == "data_set_ready" {
+        match self.port_ref().read_data_set_ready() {
+          Ok(v) => CSerialPortData::DataSetReady(Some(v)),
+          Err(why) => {
+            self.error = Some(why.to_string());
+            CSerialPortData::ErrorDetected
+          },
+        }
+      } else if request.unwrap() == "ring_indicator" {
+        match self.port_ref().read_ring_indicator() {
+          Ok(v) => CSerialPortData::RingIndicator(Some(v)),
+          Err(why) => {
+            self.error = Some(why.to_string());
+            CSerialPortData::ErrorDetected
+          },
+        }
+      } else if request.unwrap() == "read_data" {
+        match self.port_ref().bytes_to_read() {
+          Ok(buffer_size) => {
+            let mut buffer = vec![0; buffer_size as usize];
+            match self.port_ref().read_exact(&mut buffer) {
+              Ok(_) => CSerialPortData::ReadData(Some(buffer)),
+              Err(why) => {
+                self.error = Some(why.to_string());
+                CSerialPortData::ErrorDetected
+              },
+            }
+          },
+          Err(why) => {
+            self.error = Some(why.to_string());
+            CSerialPortData::ErrorDetected
+          },
+        }
+      } else {
+        panic!("CSerialPort::get_message() received an invalid request!");
+      }
+    }
+
+    /// Signals the [CSerialPort::terminate] has not been called.
+    fn is_running(&self) -> bool {
+      self.port.is_some()
+    }
+
+    /// Will write the [CSerialPortData] to the open serial port. Check with
+    /// the [CSerialPort::error()] for success / failure of transaction. Will
+    /// panic if a [CSerialPortData] not writable is specified or the port has
+    /// been terminated.
+    fn post_message(&mut self, data: CSerialPortData) {
+      // Go carry out the post_message request.
+      let result = match data {
+        CSerialPortData::BaudRate(v) => {
+          self.port_ref().set_baud_rate(v.unwrap())
+        },
+        CSerialPortData::DataBits(data_bits) => {
+          self.port_ref().set_data_bits(data_bits.unwrap())
+        },
+        CSerialPortData::FlowControl(flow_control) => {
+          self.port_ref().set_flow_control(flow_control.unwrap())
+        },
+        CSerialPortData::Parity(parity) => {
+          self.port_ref().set_parity(parity.unwrap())
+        },
+        CSerialPortData::StopBits(stop_bits) => {
+          self.port_ref().set_stop_bits(stop_bits.unwrap())
+        },
+        CSerialPortData::Timeout(duration) => {
+          self.port_ref().set_timeout(duration.unwrap())
+        },
+        CSerialPortData::DataTerminalReady(v) => {
+          self.port_ref().write_data_terminal_ready(v.unwrap())
+        },
+        CSerialPortData::RequestToSend(v) => {
+          self.port_ref().write_request_to_send(v.unwrap())
+        },
+        CSerialPortData::WriteData(data) => {
+          match self.port_ref().write_all(&data.unwrap()) {
+            Ok(_) => {
+              match self.port_ref().flush() {
+                Ok(_) => Ok(()),
+                Err(why) => {
+                  Err(serialport::Error::new(
+                    serialport::ErrorKind::Io(why.kind()),
+                    why.to_string())
+                  )
+                }
+              }
+            },
+            Err(why) => {
+              Err(serialport::Error::new(
+                serialport::ErrorKind::Io(why.kind()),
+                why.to_string())
+              )
+            }
+          }
+        },
+        CSerialPortData::Break(v) =>{
+          if v.unwrap() {
+            self.port_ref().set_break()
+          } else {
+            self.port_ref().clear_break()
+          }
+        },
+        CSerialPortData::ClearBuffer(v) => {
+          self.port_ref().clear(v.unwrap())
+        },
+        // All other enumerations do no support post_message
+        _ => {
+          panic!("CSerialPort::post_message(): received invalid data!");
+        }
+      };
+
+      // If we have an error, signal it.
+      if result.is_err() {
+        let err = result.err().unwrap();
+        self.error = Some(err.to_string());
+      }
+    }
+
+    /// Closes the port connection. All transaction with the [CSerialPort]
+    /// object will panic after this is performed.
+    fn terminate(&mut self) {
+      self.port = None;
+    }
+  }
+
   // --------------------------------------------------------------------------
   // [Module Function Definitions] --------------------------------------------
   // --------------------------------------------------------------------------
+
+  /// Scans for available serial ports returning a Vector of [SerialPortInfo]
+  /// objects that can be utilized with [open_serial_port] function for a
+  /// selected port.
+  ///
+  /// **Example:**
+  /// ```no_run
+  /// use codemelted::codemelted_hw;
+  ///
+  /// match codemelted_hw::available_serial_ports() {
+  ///   Ok(v) => {
+  ///     println!("Available Ports = {}", v.len());
+  ///     for el in v {
+  ///       println!("{} / {:?}", el.port_name, el.port_type);
+  ///     }
+  ///   },
+  ///   Err(why) => println!("{:?}", why),
+  /// }
+  /// ```
+  pub fn available_serial_ports() -> Result<
+      Vec<SerialPortInfo>, serialport::Error> {
+    serialport::available_ports()
+  }
+
 
   /// Retrieves the kernel version of the host operating system. UNDETERMINED
   /// is returned if it could not be determined.
@@ -1912,6 +2350,47 @@ pub mod codemelted_hw {
       Some(v) => v,
       None => String::from("UNDETERMINED"),
     }
+  }
+
+  /// Takes a [SerialPortInfo] object to create a [CSerialPort] to interact
+  /// with a device attached to the host operating system.
+  ///
+  /// **Example:**
+  /// ```no_run
+  /// use crate::codemelted_hw;
+  /// use crate::codemelted_hw::{CSerialPortData};
+  ///
+  /// // Open and configure the port
+  /// let port_info = &codemelted_hw::available_serial_ports().unwrap()[0];
+  /// let mut port = codemelted_hw::open_serial_port(port_info);
+  /// port.post_message(CSerialPortData::BaudRate(Some(115200)));
+  /// port.post_message(CSerialPortData::DataTerminalReady(Some(true)));
+  /// port.post_message(CSerialPortData::RequestToSend(Some(true)));
+  /// port.post_message(CSerialPortData::DataBits(Some(serialport::DataBits::Eight)));
+  /// port.post_message(CSerialPortData::StopBits(Some(serialport::StopBits::One)));
+  /// port.post_message(CSerialPortData::Parity(Some(serialport::Parity::None)));
+  ///
+  /// // Get the name of the port and process the data.
+  /// let name = port.get_message(
+  ///   CSerialPortData::Name(None).get_message_request()
+  /// ).as_string().unwrap();
+  /// println!("{} is {}", name, port.is_running());
+  ///
+  /// // Read and print buffer until <ctrl>+c is hit.
+  /// loop {
+  ///   let buffer = port.get_message(
+  ///     CSerialPortData::ReadData(None).get_message_request()
+  ///   ).as_bytes().unwrap();
+  ///   println!("buffer len = {}", buffer.len());
+  ///   let data = String::from_utf8(buffer);
+  ///   if data.is_ok() {
+  ///     println!("{}", data.unwrap());
+  ///   }
+  ///   codemelted_async::sleep(1000);
+  /// }
+  /// ```
+  pub fn open_serial_port(port_info: &SerialPortInfo) -> CSerialPort {
+    CSerialPort::new(port_info)
   }
 
   /// Retrieves the logged in user session for the host operating system.
@@ -3358,11 +3837,13 @@ pub mod codemelted_process {
   /// Implements the [CProtocolHandler] for the [CProcessProtocol]. While the
   /// process wrapped by the protocol is in its own operating system process
   /// meaning it won't block your application processing, any call to
-  /// [CProcessProtocol::get_message], [CProcessProtocol::get_error] and
+  /// [CProcessProtocol::get_message], [CProcessProtocol::error] and
   /// [CProcessProtocol::post_message] are synchronous calls. No thread is
   /// implemented as part of this [CProtocolHandler].
   impl CProtocolHandler<String> for CProcessProtocol {
-    fn get_error(&mut self) -> String {
+    /// Reads STDERR of the process to see if anything is wrong with the
+    /// process you are interacting.
+    fn error(&mut self) -> Option<String> {
       let mut rx_buf = Vec::<u8>::new();
       loop {
         match self.protocol_stderr_rx.try_recv() {
@@ -3371,12 +3852,12 @@ pub mod codemelted_process {
         };
       }
       match String::from_utf8(rx_buf) {
-        Ok(v) => v,
-        Err(_) => String::from(""),
+        Ok(v) => Some(v),
+        Err(_) => None,
       }
     }
 
-    fn get_message(&mut self) -> String {
+    fn get_message(&mut self, _request: Option<&str>) -> String {
       let mut rx_buf = Vec::<u8>::new();
       loop {
         match self.protocol_stdout_rx.try_recv() {
@@ -3513,7 +3994,7 @@ pub mod codemelted_process {
   /// };
   /// assert!(protocol.is_running());
   /// codemelted_async::sleep(250);
-  /// let data = protocol.get_message();
+  /// let data = protocol.get_message(None);
   /// assert!(data.len() > 0);
   /// protocol.post_message("\n".to_owned());
   /// protocol.post_message("\r".to_owned());
