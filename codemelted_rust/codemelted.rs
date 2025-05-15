@@ -55,6 +55,8 @@ pub trait CCsvFormat {
 /// terminated, requires the ability to know it is running and get any errors
 /// that have occurred during it run.
 pub trait CProtocolHandler<T> {
+  /// Identifies the protocol for debugging / reporting purposes.
+  fn id(&mut self) -> String;
   /// Used to check if any errors occurred with a given protocol. If None is
   /// returned, no errors were detected.
   fn error(&mut self) -> Option<String>;
@@ -379,6 +381,7 @@ pub mod codemelted_async {
   /// data in accordance with the [CWorkerCB]. Any processed data is available
   /// via the [CProtocolHandler] bound trait functions.
   pub struct CWorkerProtocol<T> {
+    id: String,
     handle: JoinHandle<()>,
     protocol_tx: Option<Sender<T>>,
     protocol_rx: Receiver<T>,
@@ -386,7 +389,7 @@ pub mod codemelted_async {
   impl<T: std::marker::Send + 'static> CWorkerProtocol<T> {
     /// Constructs the new [CWorkerProtocol] implementing bi-directional
     /// communication with the background thread.
-    fn new(task: CWorkerCB<T>) -> CWorkerProtocol<T> {
+    fn new(id: &str, task: CWorkerCB<T>) -> CWorkerProtocol<T> {
       let (protocol_tx, thread_rx) = channel::<T>();
       let (thread_tx, protocol_rx) = channel::<T>();
 
@@ -408,6 +411,7 @@ pub mod codemelted_async {
 
       // Return the worker protocol.
       CWorkerProtocol::<T> {
+        id: id.to_string(),
         handle,
         protocol_tx: Some(protocol_tx),
         protocol_rx,
@@ -416,6 +420,10 @@ pub mod codemelted_async {
   }
 
   impl<T> CProtocolHandler<Option<T>> for CWorkerProtocol<Option<T>> {
+    fn id(&mut self) -> String {
+      self.id.to_string()
+    }
+
     /// Will always return None. The only Errors one can encounter is
     /// programmatic errors or improper calling other functions after
     /// thread shutdown which results in a panic.
@@ -606,6 +614,7 @@ pub mod codemelted_async {
   /// }
   ///
   /// let mut worker = codemelted_async::worker::<Option<CObject>>(
+  ///   "test_worker",
   ///   worker_cb,
   /// );
   ///
@@ -613,19 +622,20 @@ pub mod codemelted_async {
   /// worker.post_message(Some(CObject::new_object()));
   /// codemelted_async::sleep(100);
   ///
-  /// let data = worker.get_message();
+  /// let data = worker.get_message(None);
   /// assert!(data.is_some());
   ///
-  /// let data = worker.get_message();
+  /// let data = worker.get_message(None);
   /// assert!(data.is_none());
   ///
   /// worker.terminate();
   /// assert!(!worker.is_running());
   /// ```
   pub fn worker<T: std::marker::Send + 'static>(
+    id: &str,
     task: CWorkerCB<T>,
   ) -> CWorkerProtocol<T> {
-    CWorkerProtocol::new(task)
+    CWorkerProtocol::new(id, task)
   }
 }
 
@@ -1723,14 +1733,38 @@ pub mod codemelted_disk {
 // [HW Use Case] ==============================================================
 // ============================================================================
 
-/// <center><b><mark>IN ACTIVE DEVELOPMENT</mark></b></center>
+/// Implements the CodeMelted DEV HW use case. Provides the ability to scan
+/// for [crate::codemelted_hw::available_bluetooth_devices] and
+/// [crate::codemelted_hw::available_serial_ports]. Once determined the
+/// developer can [crate::codemelted_hw::open_bluetooth_device] or
+/// [crate::codemelted_hw::open_serial_port] to interact with the hardware
+/// attached to the host operating system. This module also provides the
+/// ability to [crate::codemelted_hw::monitor] via the created
+/// [crate::codemelted_hw::CComponentMonitor] struct. This will report
+/// hardware component temperatures and failure points. Finally the user can
+/// query hardware aspects about the computer to include
+/// [crate::codemelted_hw::kernel_version] / [crate::codemelted_hw::os_name]
+/// [crate::codemelted_hw::os_version] / [crate::codemelted_hw::user].
+#[doc = mermaid!("models/codemelted_hw.mmd")]
 pub mod codemelted_hw {
   // --------------------------------------------------------------------------
   // [Module Use Statements] --------------------------------------------------
   // --------------------------------------------------------------------------
 
   use std::time::Duration;
-  use crate::{codemelted_storage, CCsvFormat, CProtocolHandler};
+  use crate::{
+    codemelted_async,
+    codemelted_storage,
+    CCsvFormat,
+    CProtocolHandler
+  };
+  use btleplug::api::{
+    Central,
+    Manager as _,
+    Peripheral as _,
+    ScanFilter,
+  };
+  use btleplug::platform::{Manager, Peripheral};
   use serialport::{
     ClearBuffer,
     DataBits,
@@ -1740,11 +1774,34 @@ pub mod codemelted_hw {
     SerialPortInfo,
     StopBits
   };
+  use simple_mermaid::mermaid;
   use sysinfo::{Components, System};
 
   // --------------------------------------------------------------------------
   // [Module Data Definitions] ------------------------------------------------
   // --------------------------------------------------------------------------
+
+  /// Result of the [available_bluetooth_devices] call identified devices one
+  /// can open to exchange data via the [open_bluetooth_device] call.
+  pub struct CBluetoothInfo {
+    peripheral: Peripheral,
+  }
+  impl CBluetoothInfo {
+    /// Helper function to facilitate creating this object.
+    fn new(peripheral: Peripheral) -> CBluetoothInfo {
+      CBluetoothInfo { peripheral }
+    }
+
+    /// Identifies the MAC address of the device.
+    pub fn address(&self) -> String {
+      self.peripheral.address().to_string()
+    }
+
+    /// Identifies the id of the device.
+    pub fn id(&self) -> String {
+      self.peripheral.id().to_string()
+    }
+  }
 
   /// The result of a [monitor] call providing a view of a system's
   /// internal components and their current health (i.e. temperature in °C)
@@ -1864,8 +1921,6 @@ pub mod codemelted_hw {
     /// Signals an error was detected with the [CSerialPort] request and the
     /// [CSerialPort::error] will hold what was wrong.
     ErrorDetected,
-    /// The name of the open [CSerialPort].
-    Name(Option<String>),
     /// Configurable [CSerialPort] item.
     BaudRate(Option<u32>),
     /// Configurable [CSerialPort] item.
@@ -1963,15 +2018,6 @@ pub mod codemelted_hw {
       }
     }
 
-    /// Extracts the held Option String values by those enum types.
-    /// Returns None otherwise.
-    pub fn as_string(&self) -> Option<String> {
-      match self {
-        CSerialPortData::Name(v) => v.clone(),
-        _ => None,
-      }
-    }
-
     /// Extracts the held Option Duration values by those enum types.
     /// Returns None otherwise.
     pub fn as_timeout(&self) -> Option<Duration> {
@@ -1995,7 +2041,6 @@ pub mod codemelted_hw {
     /// data from an open port.
     pub fn get_message_request(&self) -> Option<&str> {
       match self {
-        CSerialPortData::Name(_) => Some("name"),
         CSerialPortData::BaudRate(_) => Some("baud_rate"),
         CSerialPortData::DataBits(_) => Some("data_bits"),
         CSerialPortData::FlowControl(_) => Some("flow_control"),
@@ -2045,6 +2090,13 @@ pub mod codemelted_hw {
   /// the [CSerialPortData] enumeration as the bi-directional read / write
   /// method of the protocol definition rules.
   impl CProtocolHandler<CSerialPortData> for CSerialPort {
+    fn id(&mut self) -> String {
+      match self.port_ref().name() {
+        Some(v) => v,
+        None => String::from(""),
+      }
+    }
+
     /// Will hold the last error encountered via the
     /// [CSerialPort::get_message] or [CSerialPort::post_message]. Returns
     /// None if no error has occurred.
@@ -2065,12 +2117,7 @@ pub mod codemelted_hw {
     ///
     /// Will panic if an invalid request is received.
     fn get_message(&mut self, request: Option<&str>) -> CSerialPortData {
-      if request.unwrap() == "name" {
-        match self.port_ref().name() {
-            Some(v) => CSerialPortData::Name(Some(v)),
-            None => CSerialPortData::Name(Some(String::from(""))),
-        }
-      } else if request.unwrap() == "baud_rate" {
+      if request.unwrap() == "baud_rate" {
         match self.port_ref().baud_rate() {
           Ok(v) => CSerialPortData::BaudRate(Some(v)),
           Err(why) => {
@@ -2257,6 +2304,55 @@ pub mod codemelted_hw {
   // [Module Function Definitions] --------------------------------------------
   // --------------------------------------------------------------------------
 
+  /// Scans for available bluetooth devices in the area to allow for later
+  /// connection via the [open_bluetooth_device] function.
+  ///
+  /// **Example:**
+  /// ```no_run
+  /// use codemelted::codemelted_hw;
+  ///
+  /// println!("Now scanning for available bluetooth devices...");
+  /// match codemelted_hw::available_bluetooth_devices(5000) {
+  ///   Ok(devices) => {
+  ///     println!("Found {} devices...", devices.len());
+  ///     for device in devices {
+  ///       println!("{} / {}", device.id(), device.address());
+  ///     }
+  ///   },
+  ///   Err(why) => println!("Error Detected = {}", why),
+  /// }
+  /// ```
+  pub fn available_bluetooth_devices(scan_time_milliseconds: u64)
+      -> Result<Vec<CBluetoothInfo>, btleplug::Error> {
+    // Create the runtime
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    let devices: Result<Vec<CBluetoothInfo>, btleplug::Error> =
+        rt.block_on(async {
+      // Grab the operating system adapter to sus out bluetooth devices.
+      let manager = Manager::new().await?;
+      let adapters = manager.adapters().await?;
+      let mut devices = Vec::<CBluetoothInfo>::new();
+      let central = adapters.into_iter().nth(0);
+      if central.is_none() {
+        return Ok(devices);
+      }
+
+      // Start scan for the devices and add them to our list.
+      let adapter = central.unwrap();
+      adapter.start_scan(ScanFilter::default()).await?;
+
+      // Give some time for the scan to find devices.
+      codemelted_async::sleep(scan_time_milliseconds);
+      let peripherals = adapter.peripherals().await?;
+      for p in peripherals {
+        devices.push(CBluetoothInfo::new(p));
+      }
+      adapter.stop_scan().await?;
+      Ok(devices)
+    });
+    devices
+  }
+
   /// Scans for available serial ports returning a Vector of [SerialPortInfo]
   /// objects that can be utilized with [open_serial_port] function for a
   /// selected port.
@@ -2279,7 +2375,6 @@ pub mod codemelted_hw {
       Vec<SerialPortInfo>, serialport::Error> {
     serialport::available_ports()
   }
-
 
   /// Retrieves the kernel version of the host operating system. UNDETERMINED
   /// is returned if it could not be determined.
@@ -2318,6 +2413,52 @@ pub mod codemelted_hw {
     CComponentMonitor::new()
   }
 
+  /// <center><b><mark>FUTURE IMPLEMENTATION. DON'T USE</mark></b></center>
+  pub fn open_bluetooth_device() {
+    unimplemented!("FUTURE IMPLEMENTATION");
+  }
+
+  /// Takes a [SerialPortInfo] object to create a [CSerialPort] to interact
+  /// with a device attached to the host operating system.
+  ///
+  /// **Example:**
+  /// ```no_run
+  /// use codemelted::CProtocolHandler;
+  /// use codemelted::codemelted_async;
+  /// use codemelted::codemelted_hw;
+  /// use codemelted::codemelted_hw::{CSerialPortData};
+  ///
+  /// // Open and configure the port
+  /// let port_info = &codemelted_hw::available_serial_ports().unwrap()[0];
+  /// let mut port = codemelted_hw::open_serial_port(port_info);
+  /// port.post_message(CSerialPortData::BaudRate(Some(115200)));
+  /// port.post_message(CSerialPortData::DataTerminalReady(Some(true)));
+  /// port.post_message(CSerialPortData::RequestToSend(Some(true)));
+  /// port.post_message(CSerialPortData::DataBits(Some(serialport::DataBits::Eight)));
+  /// port.post_message(CSerialPortData::StopBits(Some(serialport::StopBits::One)));
+  /// port.post_message(CSerialPortData::Parity(Some(serialport::Parity::None)));
+  ///
+  /// // Get the name of the port and process the data.
+  /// let name = port.id();
+  /// println!("{} is {}", name, port.is_running());
+  ///
+  /// // Read and print buffer until <ctrl>+c is hit.
+  /// loop {
+  ///   let buffer = port.get_message(
+  ///     CSerialPortData::ReadData(None).get_message_request()
+  ///   ).as_bytes().unwrap();
+  ///   println!("buffer len = {}", buffer.len());
+  ///   let data = String::from_utf8(buffer);
+  ///   if data.is_ok() {
+  ///     println!("{}", data.unwrap());
+  ///   }
+  ///   codemelted_async::sleep(1000);
+  /// }
+  /// ```
+  pub fn open_serial_port(port_info: &SerialPortInfo) -> CSerialPort {
+    CSerialPort::new(port_info)
+  }
+
   /// Retrieves the operating system name of the host operating system.
   /// UNDETERMINED is returned if it could not be determined.
   ///
@@ -2350,47 +2491,6 @@ pub mod codemelted_hw {
       Some(v) => v,
       None => String::from("UNDETERMINED"),
     }
-  }
-
-  /// Takes a [SerialPortInfo] object to create a [CSerialPort] to interact
-  /// with a device attached to the host operating system.
-  ///
-  /// **Example:**
-  /// ```no_run
-  /// use crate::codemelted_hw;
-  /// use crate::codemelted_hw::{CSerialPortData};
-  ///
-  /// // Open and configure the port
-  /// let port_info = &codemelted_hw::available_serial_ports().unwrap()[0];
-  /// let mut port = codemelted_hw::open_serial_port(port_info);
-  /// port.post_message(CSerialPortData::BaudRate(Some(115200)));
-  /// port.post_message(CSerialPortData::DataTerminalReady(Some(true)));
-  /// port.post_message(CSerialPortData::RequestToSend(Some(true)));
-  /// port.post_message(CSerialPortData::DataBits(Some(serialport::DataBits::Eight)));
-  /// port.post_message(CSerialPortData::StopBits(Some(serialport::StopBits::One)));
-  /// port.post_message(CSerialPortData::Parity(Some(serialport::Parity::None)));
-  ///
-  /// // Get the name of the port and process the data.
-  /// let name = port.get_message(
-  ///   CSerialPortData::Name(None).get_message_request()
-  /// ).as_string().unwrap();
-  /// println!("{} is {}", name, port.is_running());
-  ///
-  /// // Read and print buffer until <ctrl>+c is hit.
-  /// loop {
-  ///   let buffer = port.get_message(
-  ///     CSerialPortData::ReadData(None).get_message_request()
-  ///   ).as_bytes().unwrap();
-  ///   println!("buffer len = {}", buffer.len());
-  ///   let data = String::from_utf8(buffer);
-  ///   if data.is_ok() {
-  ///     println!("{}", data.unwrap());
-  ///   }
-  ///   codemelted_async::sleep(1000);
-  /// }
-  /// ```
-  pub fn open_serial_port(port_info: &SerialPortInfo) -> CSerialPort {
-    CSerialPort::new(port_info)
   }
 
   /// Retrieves the logged in user session for the host operating system.
@@ -3827,11 +3927,6 @@ pub mod codemelted_process {
         protocol_stdin,
       }
     }
-
-    /// Retrieves the id associated with the held process running.
-    pub fn id(&self) -> u32 {
-      self.process.id()
-    }
   }
 
   /// Implements the [CProtocolHandler] for the [CProcessProtocol]. While the
@@ -3841,6 +3936,10 @@ pub mod codemelted_process {
   /// [CProcessProtocol::post_message] are synchronous calls. No thread is
   /// implemented as part of this [CProtocolHandler].
   impl CProtocolHandler<String> for CProcessProtocol {
+    fn id(&mut self) -> String {
+      self.process.id().to_string()
+    }
+
     /// Reads STDERR of the process to see if anything is wrong with the
     /// process you are interacting.
     fn error(&mut self) -> Option<String> {
@@ -4237,9 +4336,9 @@ mod tests {
   }
 }
 
-/// Used to vet logic in the `codemelted.rs` module, build complicated tests,
-/// or aid in fleshing out documentation. This is only to support the module's
-/// development and nothing more. Don't call this for anything.
-pub fn main() {
-  unimplemented!("FOR TEST PURPOSES ONLY!");
-}
+// /// Used to vet logic in the `codemelted.rs` module, build complicated tests,
+// /// or aid in fleshing out documentation. This is only to support the module's
+// /// development and nothing more. Don't call this for anything.
+// pub fn main() {
+//   unimplemented!("TEST PURPOSES ONLY!");
+// }

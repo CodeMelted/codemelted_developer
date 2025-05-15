@@ -36,15 +36,15 @@ classDiagram
     }
     class CProcessProtocol {
       -new() CProcessProtocol
-      +id()
     }
     class CCsvFormat {
-        +as_header() String
-        +as_csv(self) String
+      +as_header() String
+      +as_csv(self) String
     }
     class CProtocolHandler {
-      +get_error() T
+      +error() Option
       +get_message() T
+      +id() String
       +is_running() bool
       +post_message(T)
       +terminate()

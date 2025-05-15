@@ -1,6 +1,6 @@
 <!--
 TITLE: CodeMelted Rust Crate
-PUBLISH_DATE: 2025-May-01
+PUBLISH_DATE: 2025-May-15
 AUTHOR: Mark Shaffer
 KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-javascript, flutter-apps, pwsh, pwsh-lib, js-module, flutter-library, deno-module, pwsh-scripts, pwsh-module, rust, rust-lib
 DESCRIPTION: The *CodeMelted Rust Crate* is an implementation of the CodeMelted DEV twelve identified domain use cases. These domains are areas a software engineer should be familiar with regardless of programming language, SDK, or chosen framework. This crate brings these twelve domains to the Rust programming language to aid software engineers in building native applications quickly and securely.
@@ -10,16 +10,16 @@ DESCRIPTION: The *CodeMelted Rust Crate* is an implementation of the CodeMelted 
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-rust.png" /> CodeMelted Rust Crate</h1>
 
-*LAST UPDATED: 2025-May-01*
+*LAST UPDATED: 2025-May-15*
 
-The *CodeMelted Rust Crate* is an implementation of the [CodeMelted DEV](https://codemelted.com/developer/design_notes/design-notes.drawio.html) twelve identified domain use cases. These domains are areas of study a software engineer should be familiar with regardless of programming language, SDK, or chosen framework. This crate brings these twelve domains to the Rust programming language to aid software engineers in building native applications quickly and securely.
+The *CodeMelted Rust Crate* is an implementation of the [CodeMelted DEV](https://codemelted.com/developer/codemelted_dev/models/design-notes.drawio.html) twelve identified domain use cases. These domains are areas of study a software engineer should be familiar with regardless of programming language, SDK, or chosen framework. This crate brings these twelve domains to the Rust programming language to aid software engineers in building native applications quickly and securely.
 
 **Table of Contents**
 
 - [GETTING STARTED](#getting-started)
   - [Features](#features)
   - [Usage](#usage)
-  - [Notes on Async Processing in Module](#notes-on-async-processing-in-module)
+  - [Async I/O Module Notes](#async-io-module-notes)
 - [MODULE INFORMATION](#module-information)
   - [Crate Dependencies](#crate-dependencies)
   - [License](#license)
@@ -31,7 +31,7 @@ The *CodeMelted Rust Crate* is an implementation of the [CodeMelted DEV](https:/
 
 ![](https://codemelted.com/developer/design_notes/models/rust/module_architecture.drawio.png)
 
-1. The `codemelted.rs` is a single file implementing the [CodeMelted DEV](https://codemelted.com/developer/design_notes/design-notes.drawio.html) domain specific use cases.
+1. The `codemelted.rs` is a single file implementing the [CodeMelted DEV](https://codemelted.com/developer/codemelted_dev/models/design-notes.drawio.html) domain specific use cases.
 2. These use cases straddle areas of knowledge software engineers should be familiar with regardless of a given programming language, SDK, or chosen framework.
 3. Rust has a module system. Each of the use cases are implemented as a module module as shown in the diagram above.
 4. Each module is divided into a "Module Use Statements", "Module Data Definitions", and "Module Function Definitions" if you are viewing the source code.
@@ -63,7 +63,7 @@ codemelted_logger::log(CLogLevel::Error, "Oh Know!");
 
 The above is a basic example. All modules are fully documented with examples as you use the *codemelted* crate.
 
-## Notes on Async Processing in Module
+## Async I/O Module Notes
 
 1. The `codemelted` crate does not utilize `async` / `await` / `future` syntax.
 2. The `codemelted_async` module utilizes threads and messaging passing for its given threading architecture.
@@ -79,13 +79,18 @@ The following sub-sections cover various aspects the `codemelted.rs` module info
 
 The goal of the `codemelted.rs` is to limit 3rd party items. However, some CodeMelted DEV use cases, thanks to the hard work of the developers who maintain the crates below, would not have been possible.
 
+- NEW ONES
+
+- *<a href="https://crates.io/crates/btleplug" target="_blank">btleplug:</a>* Supports the `codemelted_hw` module providing the necessary interface to Bluetooth devices.
 - *<a href="https://crates.io/crates/chrono" target="_blank">chrono:</a>* Utilized to support the time formatting utilized in the `codemelted_logger` module.
 - *<a href="https://crates.io/crates/json" target="_blank">json:</a>* Forms the entire backbone of the `codemelted_json` module. The main `json::JsonValue` is typed alias as `CObject` to match other CodeMelted DEV module implementations.
 - *<a href="https://crates.io/crates/online" target="_blank">online:</a>* Utilized with the `codemelted_network` module to determine if an app has access to the Internet or not.
 - *<a href="https://crates.io/crates/rpassword" target="_blank">rpassword:</a>* Supports the `codemelted_console` module to allow for getting a user's password from the console without reflecting it to the screen.
 - *<a href="https://crates.io/crates/rusqlite" target="_blank">rusqlite:</a>* Supports the `codemelted_db` module providing the ability to have an embedded sqlite database. The crate takes care of "installing" the items necessary to build the sqlite database file.
 - *<a href="https://crates.io/crates/simple-mermaid" target="_blank">simple-mermaid:</a>* Supports the crate documentation for the `codemelted.rs` file to include mermaid models where appropriate to help describe each of the modules.
+- *<a href="https://crates.io/crates/serialport" target="_blank">serialport:</a>* Supports the `codemelted_hw` module providing the necessary interface to Serial ports.
 - *<a href="https://crates.io/crates/sysinfo" target="_blank">sysinfo:</a>* This provides backbone for the monitoring concept of each of the modules along with providing queryable parameters of given information.
+- *<a href="https://crates.io/crates/tokio" target="_blank">tokio:</a>* Utilized to allow for the consumption of asynchronous crates and turn them into the `codemelted` crate synchronous design.
 - *<a href="https://crates.io/crates/url" target="_blank">url:</a>* Supports the url validation of the `codemelted_json` module.
 
 ## License

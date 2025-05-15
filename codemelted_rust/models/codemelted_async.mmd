@@ -11,7 +11,7 @@ classDiagram
       +sleep(delay)
       +task(task, data, delay) CTaskResult
       +timer(task, interval) CTimerResult
-      +worker(task) CWorkerProtocol
+      +worker(id, task) CWorkerProtocol
     }
     class CCsvFormat {
       +csv_header(self) String
@@ -32,8 +32,9 @@ classDiagram
       +swap_load() f32
     }
     class CProtocolHandler {
-      + get_error(self) T
+      + error(self) Option
       + get_message(self) T
+      + id(self) String
       + is_running(self) bool
       + post_message(self, T)
       + terminate(self)

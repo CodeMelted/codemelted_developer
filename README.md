@@ -19,7 +19,6 @@ The following document will help you setup this repo for local development utili
 - [Environment Setup](#environment-setup)
   - [GitHub](#github)
   - [Programming Languages](#programming-languages)
-  - [NeoVim](#neovim)
   - [VS Code](#vs-code)
 - [Repo Structure](#repo-structure)
   - [build.ps1 Script](#buildps1-script)
@@ -41,10 +40,6 @@ The following are the items recommended for installation to properly make use of
 - [ ] [NodeJS](https://nodejs.org/en)
 - [ ] [PowerShell Core](https://github.com/PowerShell/PowerShell)
 - [ ] [Rust](https://doc.rust-lang.org/book/ch01-01-installation.html)
-
-### NeoVim
-
-<mark>TBD</mark>
 
 ### VS Code
 
