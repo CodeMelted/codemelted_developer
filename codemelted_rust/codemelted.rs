@@ -1776,6 +1776,7 @@ pub mod codemelted_hw {
   };
   use simple_mermaid::mermaid;
   use sysinfo::{Components, System};
+  use tokio::runtime::Runtime;
 
   // --------------------------------------------------------------------------
   // [Module Data Definitions] ------------------------------------------------
@@ -2325,7 +2326,7 @@ pub mod codemelted_hw {
   pub fn available_bluetooth_devices(scan_time_milliseconds: u64)
       -> Result<Vec<CBluetoothInfo>, btleplug::Error> {
     // Create the runtime
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = Runtime::new().unwrap();
     let devices: Result<Vec<CBluetoothInfo>, btleplug::Error> =
         rt.block_on(async {
       // Grab the operating system adapter to sus out bluetooth devices.
@@ -3035,12 +3036,207 @@ pub mod codemelted_network {
   // --------------------------------------------------------------------------
   // [Module Use Statements] --------------------------------------------------
   // --------------------------------------------------------------------------
-  use crate::CCsvFormat;
+
+  use crate::{codemelted_json, CCsvFormat, CObject};
+  use reqwest::{Client, RequestBuilder};
+  use std::collections::HashMap;
   use sysinfo::{Networks, System};
+  use tokio::runtime::Runtime;
 
   // --------------------------------------------------------------------------
   // [Module Data Definitions] ------------------------------------------------
   // --------------------------------------------------------------------------
+
+  /// Supports the [CFetchRequest::new] object construction in order to set
+  /// the appropriate action to take with the URL specified.
+  pub enum CFetchAction {
+    /// Performs a DELETE (as stated 🙂)request to a backend REST API.
+    Delete,
+    /// Performs a GET (query) request to a backend REST API.
+    Get,
+    /// Performs a POST (update) request to a backend REST API.
+    Post,
+    /// Performs a PUT (add) request to a backend REST API.
+    Put,
+  }
+
+  /// Object utilized with the [fetch] function to configure the request to be
+  /// made to a backend server REST API.
+  pub struct CFetchRequest {
+    /// Wrapped request builder to support our object API.
+    client: RequestBuilder
+  }
+  impl CFetchRequest {
+    /// Creates a new [CFetchRequest] object for the [fetch] function
+    /// specifying the [CFetchAction] along with the URL endpoint of the
+    /// REST API.
+    pub fn new(action: CFetchAction, url: &str) -> CFetchRequest {
+      let client = match action {
+        CFetchAction::Delete => Client::new().delete(url),
+        CFetchAction::Get => Client::new().get(url),
+        CFetchAction::Post => Client::new().post(url),
+        CFetchAction::Put => Client::new().put(url),
+      };
+      CFetchRequest { client }
+    }
+
+    /// Sets the basic auth for the request.
+    pub fn basic_auth(self, username: &str, password: Option<&str>) {
+      let _ = self.client.basic_auth(username, password);
+    }
+
+    /// Sets a bearer token for the request.
+    pub fn bearer_auth(self, token: &str) {
+      let _ = self.client.bearer_auth(token);
+    }
+
+    /// Sets the JSON body of the request.
+    pub fn body(self, data: CObject) {
+      let serialized = match codemelted_json::as_string(&data) {
+        Some(v) => v,
+        None => panic!("CFetchRequest::body(): data was not valid CObject!"),
+      };
+      let _ = self.client.body(serialized);
+    }
+
+    /// Sets the form body of the request.
+    pub fn form(self, params: HashMap::<String, String>) {
+      let _ = self.client.form(&params);
+    }
+
+    /// Sets a header parameter for the request. Call this multiple times
+    /// to set multiple values.
+    pub fn header(self, key: &str, value: &str) {
+      let _ = self.client.header(key, value);
+    }
+
+    /// Handles the async call of the request to get the server
+    /// [CFetchResponse] with the results of the call.
+    async fn send(self) -> CFetchResponse {
+      // Await for the response send to the API
+      match self.client.send().await {
+        // It says it is ok. Double check the status code.
+        Ok(resp) => {
+          // Make sure we are in the 200 range of HTTP status codes.
+          let status = resp.status().as_u16();
+          if status >= 200 || status <= 299 {
+            // We are, go get the content type to determine what data was
+            // received.
+            println!("We got a {}", status);
+            println!("Headers are {:?}", resp.headers());
+            let content_type = match resp.headers().get("Content-Type") {
+              Some(v) =>  {
+                match v.to_str() {
+                  Ok(v) => v.to_string(),
+                  Err(_) => String::from(""),
+                }
+              },
+              None => String::from(""),
+            };
+
+            // Was the data a byte array or blob?
+            if content_type.to_lowercase().contains("application/octet-stream") ||
+               content_type.to_lowercase().contains("image/") {
+              let data_as_bytes = match resp.bytes().await {
+                Ok(v) => Some(v.to_vec()),
+                Err(_) => None,
+              };
+               CFetchResponse::new(status, "OK", data_as_bytes, None, None)
+            // Was it JSON data?
+            } else if content_type.to_lowercase().contains("application/json") {
+              let data_as_json = match resp.text().await {
+                Ok(data_as_string) => {
+                  match codemelted_json::parse(&data_as_string) {
+                    Some(v) => Some(v),
+                    None => None,
+                  }
+                }
+                Err(_) => None,
+              };
+              CFetchResponse::new(status, "OK", None, data_as_json, None)
+            // Welp was not JSON or bytes, assume it is text then.
+            } else {
+              let data_as_string = match resp.text().await {
+                Ok(v) => Some(v),
+                Err(_) => None,
+              };
+              CFetchResponse::new(status, "OK", None, None, data_as_string)
+            }
+          } else {
+            // We might have had an OK but the status code returned was not 2XX range.
+            CFetchResponse::new(status, "UNDETERMINED", None, None, None)
+          }
+        },
+        // We had an error, go determine what the issue was.
+        Err(why) => {
+          let status = match why.status() {
+            Some(v) => v.as_u16(),
+            None => 418,
+          };
+          let status_text = why.without_url().to_string();
+          CFetchResponse::new(status, &status_text, None, None, None)
+        },
+      }
+    }
+  }
+
+  /// The response of the [fetch] call holding the result and associated data
+  /// of the request.
+  pub struct CFetchResponse {
+    status: u16,
+    status_text: String,
+    data_as_bytes: Option<Vec<u8>>,
+    data_as_json: Option<CObject>,
+    data_as_string: Option<String>,
+  }
+  impl CFetchResponse {
+    /// Creates a new [CFetchResponse] from the [CFetchRequest::send] call.
+    fn new(
+      status: u16,
+      status_text: &str,
+      data_as_bytes: Option<Vec<u8>>,
+      data_as_json: Option<CObject>,
+      data_as_string: Option<String>
+    ) -> CFetchResponse {
+      CFetchResponse {
+        status,
+        status_text:
+        status_text.to_string(),
+        data_as_bytes,
+        data_as_json,
+        data_as_string,
+      }
+    }
+
+    /// The final HTTP Status Code associated with the request. 2XX good,
+    /// 4XX - 5XX bad.
+    pub fn status(&self) -> u16 {
+      self.status
+    }
+
+    /// Any associated text with the status code if it was provided.
+    pub fn status_text(&self) -> String {
+      self.status_text.to_string()
+    }
+
+    /// The data as bytes if the request results in a blob / byte array
+    /// data. None returned if not.
+    pub fn data_as_bytes(&self) -> Option<Vec<u8>> {
+      self.data_as_bytes.clone()
+    }
+
+    /// The data as JSON if the request results in a JSON return type
+    /// data. None returned if not.
+    pub fn data_as_json(&self) -> Option<CObject> {
+      self.data_as_json.clone()
+    }
+
+    /// The data as string if the request results in a string return type
+    /// data. None returned if not.
+    pub fn data_as_string(&self) -> Option<String> {
+      self.data_as_string.clone()
+    }
+  }
 
   /// The result of the [monitor] call provide a view of the host
   /// operating systems available network interfaces. This is a self contained
@@ -3193,6 +3389,30 @@ pub mod codemelted_network {
   // --------------------------------------------------------------------------
   // [Module Function Definitions] --------------------------------------------
   // --------------------------------------------------------------------------
+
+  /// Executes a [CFetchRequest] to a REST API endpoint resulting in a
+  /// [CFetchResponse] from that given server endpoint.
+  ///
+  /// **Example:*
+  /// ```
+  /// use codemelted::codemelted_network;
+  /// use codemelted::codemelted_network::{CFetchRequest, CFetchAction};
+  ///
+  /// let resp = codemelted_network::fetch(
+  ///   CFetchRequest::new(
+  ///     CFetchAction::Get,
+  ///     "https://codemelted.com/favicon.png"
+  ///   )
+  /// );
+  /// assert!(resp.status() == 200);
+  /// assert!(resp.data_as_bytes().is_some());
+  /// ```
+  pub fn fetch(request: CFetchRequest) -> CFetchResponse {
+    let rt = Runtime::new().unwrap();
+    rt.block_on(async {
+      request.send().await
+    })
+  }
 
   /// Retrieves the hostname of the given computer on the network. Will return
   /// UNDETERMINED if it cannot be determined.

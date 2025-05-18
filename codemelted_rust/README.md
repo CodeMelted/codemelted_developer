@@ -10,7 +10,7 @@ DESCRIPTION: The *CodeMelted Rust Crate* is an implementation of the CodeMelted 
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-rust.png" /> CodeMelted Rust Crate</h1>
 
-*LAST UPDATED: 2025-May-15*
+*LAST UPDATED: 2025-May-18*
 
 The *CodeMelted Rust Crate* is an implementation of the [CodeMelted DEV](https://codemelted.com/developer/codemelted_dev/models/design-notes.drawio.html) twelve identified domain use cases. These domains are areas of study a software engineer should be familiar with regardless of programming language, SDK, or chosen framework. This crate brings these twelve domains to the Rust programming language to aid software engineers in building native applications quickly and securely.
 
@@ -85,6 +85,7 @@ The goal of the `codemelted.rs` is to limit 3rd party items. However, some CodeM
 - *<a href="https://crates.io/crates/chrono" target="_blank">chrono:</a>* Utilized to support the time formatting utilized in the `codemelted_logger` module.
 - *<a href="https://crates.io/crates/json" target="_blank">json:</a>* Forms the entire backbone of the `codemelted_json` module. The main `json::JsonValue` is typed alias as `CObject` to match other CodeMelted DEV module implementations.
 - *<a href="https://crates.io/crates/online" target="_blank">online:</a>* Utilized with the `codemelted_network` module to determine if an app has access to the Internet or not.
+- *<a href="https://crates.io/crates/reqwest" target="_blank">reqwest:</a>* Supports the `codemelted_network` fetch call forming the basis for both the request and response to a server REST API call.
 - *<a href="https://crates.io/crates/rpassword" target="_blank">rpassword:</a>* Supports the `codemelted_console` module to allow for getting a user's password from the console without reflecting it to the screen.
 - *<a href="https://crates.io/crates/rusqlite" target="_blank">rusqlite:</a>* Supports the `codemelted_db` module providing the ability to have an embedded sqlite database. The crate takes care of "installing" the items necessary to build the sqlite database file.
 - *<a href="https://crates.io/crates/simple-mermaid" target="_blank">simple-mermaid:</a>* Supports the crate documentation for the `codemelted.rs` file to include mermaid models where appropriate to help describe each of the modules.

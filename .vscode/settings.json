@@ -51,6 +51,7 @@
     "pwsh",
     "RELEASENOTES",
     "REQUIREDSCRIPTS",
+    "reqwest",
     "rtnval",
     "RUNTIMES",
     "rusqlite",
