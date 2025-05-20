@@ -55,10 +55,10 @@ classDiagram
       +as_timeout(self) Option
       +get_message_request(self) Option
     }
-    class CSerialPort {
+    class CSerialPortProtocol {
       -port SerialPort
       -error Option
-      -new() CSerialPort
+      -new() CSerialPortProtocol
       -port_ref() SerialPort
     }
     class CCsvFormat {

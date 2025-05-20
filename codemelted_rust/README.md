@@ -10,7 +10,7 @@ DESCRIPTION: The *CodeMelted Rust Crate* is an implementation of the CodeMelted 
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-rust.png" /> CodeMelted Rust Crate</h1>
 
-*LAST UPDATED: 2025-May-18*
+*LAST UPDATED: 2025-May-19*
 
 The *CodeMelted Rust Crate* is an implementation of the [CodeMelted DEV](https://codemelted.com/developer/codemelted_dev/models/design-notes.drawio.html) twelve identified domain use cases. These domains are areas of study a software engineer should be familiar with regardless of programming language, SDK, or chosen framework. This crate brings these twelve domains to the Rust programming language to aid software engineers in building native applications quickly and securely.
 
@@ -79,13 +79,14 @@ The following sub-sections cover various aspects the `codemelted.rs` module info
 
 The goal of the `codemelted.rs` is to limit 3rd party items. However, some CodeMelted DEV use cases, thanks to the hard work of the developers who maintain the crates below, would not have been possible.
 
-- NEW ONES
-
 - *<a href="https://crates.io/crates/btleplug" target="_blank">btleplug:</a>* Supports the `codemelted_hw` module providing the necessary interface to Bluetooth devices.
 - *<a href="https://crates.io/crates/chrono" target="_blank">chrono:</a>* Utilized to support the time formatting utilized in the `codemelted_logger` module.
 - *<a href="https://crates.io/crates/json" target="_blank">json:</a>* Forms the entire backbone of the `codemelted_json` module. The main `json::JsonValue` is typed alias as `CObject` to match other CodeMelted DEV module implementations.
 - *<a href="https://crates.io/crates/online" target="_blank">online:</a>* Utilized with the `codemelted_network` module to determine if an app has access to the Internet or not.
 - *<a href="https://crates.io/crates/reqwest" target="_blank">reqwest:</a>* Supports the `codemelted_network` fetch call forming the basis for both the request and response to a server REST API call.
+- *<a href="https://crates.io/crates/rouille" target="_blank">rouille:</a>* Supports the `codemelted_network::serve` and `codemelted_network::upgrade_web_socket` calls forming the basis to upgrade a HTTP request wanting to upgrade to a bi-directional web socket. This will create a `CWebSocketProtocol` that represents a bi-directional server socket. *FYI: The following  warning occurs with this crate. Will keep an eye out on updates with this crate, see if an assist can be made to the owner, or look for a new crate to utilize with the completed `codemelted.rs` module design.*
+  > warning: the following packages contain code that will be rejected by a future version of Rust: buf_redux v0.8.4, multipart v0.18.0
+  > note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
 - *<a href="https://crates.io/crates/rpassword" target="_blank">rpassword:</a>* Supports the `codemelted_console` module to allow for getting a user's password from the console without reflecting it to the screen.
 - *<a href="https://crates.io/crates/rusqlite" target="_blank">rusqlite:</a>* Supports the `codemelted_db` module providing the ability to have an embedded sqlite database. The crate takes care of "installing" the items necessary to build the sqlite database file.
 - *<a href="https://crates.io/crates/simple-mermaid" target="_blank">simple-mermaid:</a>* Supports the crate documentation for the `codemelted.rs` file to include mermaid models where appropriate to help describe each of the modules.

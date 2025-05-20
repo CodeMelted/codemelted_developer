@@ -1912,47 +1912,47 @@ pub mod codemelted_hw {
     }
   }
 
-  /// Provides the [CSerialPort] ability to both [CSerialPort::post_message]
-  /// utilizing the [CSerialPortData] as the data wrapper and as the
-  /// [CSerialPort::get_message] request via the
-  /// [CSerialPortData::get_message_request] function to query the port for
-  /// data.
+  /// Provides the [CSerialPortProtocol] ability to both
+  /// [CSerialPortProtocol::post_message] utilizing the [CSerialPortData]
+  /// as the data wrapper and as the [CSerialPortProtocol::get_message]
+  /// request via the [CSerialPortData::get_message_request] function to
+  /// query the port for data.
   #[derive(Debug)]
   pub enum CSerialPortData {
-    /// Signals an error was detected with the [CSerialPort] request and the
-    /// [CSerialPort::error] will hold what was wrong.
+    /// Signals an error was detected with the [CSerialPortProtocol] request
+    /// and the [CSerialPortProtocol::error] will hold what was wrong.
     ErrorDetected,
-    /// Configurable [CSerialPort] item.
+    /// Configurable [CSerialPortProtocol] item.
     BaudRate(Option<u32>),
-    /// Configurable [CSerialPort] item.
+    /// Configurable [CSerialPortProtocol] item.
     DataBits(Option<DataBits>),
-    /// Configurable [CSerialPort] item.
+    /// Configurable [CSerialPortProtocol] item.
     FlowControl(Option<FlowControl>),
-    /// Configurable [CSerialPort] item.
+    /// Configurable [CSerialPortProtocol] item.
     Parity(Option<Parity>),
-    /// Configurable [CSerialPort] item.
+    /// Configurable [CSerialPortProtocol] item.
     StopBits(Option<StopBits>),
-    /// Configurable [CSerialPort] item.
+    /// Configurable [CSerialPortProtocol] item.
     Timeout(Option<Duration>),
-    /// Line control status of the [CSerialPort].
+    /// Line control status of the [CSerialPortProtocol].
     Break(Option<bool>),
-    /// Line control status of the [CSerialPort].
+    /// Line control status of the [CSerialPortProtocol].
     ClearBuffer(Option<ClearBuffer>),
-    /// Line control status of the [CSerialPort].
+    /// Line control status of the [CSerialPortProtocol].
     CarrierDetect(Option<bool>),
-    /// Line control status of the [CSerialPort].
+    /// Line control status of the [CSerialPortProtocol].
     ClearToSend(Option<bool>),
-    /// Line control status of the [CSerialPort].
+    /// Line control status of the [CSerialPortProtocol].
     DataSetReady(Option<bool>),
-    /// Line control status of the [CSerialPort].
+    /// Line control status of the [CSerialPortProtocol].
     DataTerminalReady(Option<bool>),
-    /// Line control status of the [CSerialPort].
+    /// Line control status of the [CSerialPortProtocol].
     RequestToSend(Option<bool>),
-    /// Line control status of the [CSerialPort].
+    /// Line control status of the [CSerialPortProtocol].
     RingIndicator(Option<bool>),
-    /// Reads a buffer from a [CSerialPort].
+    /// Reads a buffer from a [CSerialPortProtocol].
     ReadData(Option<Vec<u8>>),
-    /// Writes a buffer from a [CSerialPort].
+    /// Writes a buffer from a [CSerialPortProtocol].
     WriteData(Option<Vec<u8>>)
   }
   /// Specialization of the [CSerialPortData] to support the two way nature
@@ -2038,8 +2038,8 @@ pub mod codemelted_hw {
     }
 
     /// Provides the string representation to support the
-    /// [CSerialPort::get_message] request string to get specific types of
-    /// data from an open port.
+    /// [CSerialPortProtocol::get_message] request string to get specific
+    /// types of data from an open port.
     pub fn get_message_request(&self) -> Option<&str> {
       match self {
         CSerialPortData::BaudRate(_) => Some("baud_rate"),
@@ -2061,23 +2061,23 @@ pub mod codemelted_hw {
   /// Created via the [open_serial_port] function of the module. This
   /// implements [CProtocolHandler] to support a bi-directional communication
   /// with an attached device via a serial port.
-  pub struct CSerialPort {
+  pub struct CSerialPortProtocol {
     /// Holds the wrapped [SerialPort] of the module until closed.
     port: Option<Box<dyn SerialPort>>,
     /// Holds the latest error message encountered.
     error: Option<String>
   }
 
-  /// Implements a series of helper functions for the [CSerialPort].
-  impl CSerialPort {
-    /// Opens a [CSerialPort] with a default baud rate of 9600. A failure
+  /// Implements a series of helper functions for the [CSerialPortProtocol].
+  impl CSerialPortProtocol {
+    /// Opens a [CSerialPortProtocol] with a default baud rate of 9600. A failure
     /// will result in a panic.
-    fn new(port_info: &SerialPortInfo) -> CSerialPort {
+    fn new(port_info: &SerialPortInfo) -> CSerialPortProtocol {
       let port = serialport::new(
         port_info.port_name.to_string(),
         9600
-      ).open().expect("CSerialPort: Failed to open!");
-      CSerialPort { port: Some(port), error: None }
+      ).open().expect("CSerialPortProtocol: Failed to open!");
+      CSerialPortProtocol { port: Some(port), error: None }
     }
 
     /// Helper function to unwrap the port for access of the
@@ -2087,10 +2087,10 @@ pub mod codemelted_hw {
       self.port.as_mut().unwrap()
     }
   }
-  /// The [CSerialPort] implementation of the [CProtocolHandler] utilizing
+  /// The [CSerialPortProtocol] implementation of the [CProtocolHandler] utilizing
   /// the [CSerialPortData] enumeration as the bi-directional read / write
   /// method of the protocol definition rules.
-  impl CProtocolHandler<CSerialPortData> for CSerialPort {
+  impl CProtocolHandler<CSerialPortData> for CSerialPortProtocol {
     fn id(&mut self) -> String {
       match self.port_ref().name() {
         Some(v) => v,
@@ -2099,8 +2099,9 @@ pub mod codemelted_hw {
     }
 
     /// Will hold the last error encountered via the
-    /// [CSerialPort::get_message] or [CSerialPort::post_message]. Returns
-    /// None if no error has occurred.
+    /// [CSerialPortProtocol::get_message] or
+    /// [CSerialPortProtocol::post_message]. Returns None if no error has
+    /// occurred.
     fn error(&mut self) -> Option<String> {
       if self.error.is_none() {
         return None;
@@ -2110,7 +2111,7 @@ pub mod codemelted_hw {
       rtnval
     }
 
-    /// Will query the [CSerialPort] for the latest status / data associated
+    /// Will query the [CSerialPortProtocol] for the latest status / data associated
     /// via the request. Utilize the [CSerialPortData::get_message_request] to
     /// utilize the proper string. The [CSerialPortData] will either hold the
     /// particular result or [CSerialPortData::ErrorDetected] if an error
@@ -2210,17 +2211,19 @@ pub mod codemelted_hw {
           },
         }
       } else {
-        panic!("CSerialPort::get_message() received an invalid request!");
+        panic!(
+          "CSerialPortProtocol::get_message() received an invalid request!"
+        );
       }
     }
 
-    /// Signals the [CSerialPort::terminate] has not been called.
+    /// Signals the [CSerialPortProtocol::terminate] has not been called.
     fn is_running(&self) -> bool {
       self.port.is_some()
     }
 
     /// Will write the [CSerialPortData] to the open serial port. Check with
-    /// the [CSerialPort::error()] for success / failure of transaction. Will
+    /// the [CSerialPortProtocol::error()] for success / failure of transaction. Will
     /// panic if a [CSerialPortData] not writable is specified or the port has
     /// been terminated.
     fn post_message(&mut self, data: CSerialPortData) {
@@ -2283,7 +2286,9 @@ pub mod codemelted_hw {
         },
         // All other enumerations do no support post_message
         _ => {
-          panic!("CSerialPort::post_message(): received invalid data!");
+          panic!(
+            "CSerialPortProtocol::post_message(): received invalid data!"
+          );
         }
       };
 
@@ -2294,8 +2299,8 @@ pub mod codemelted_hw {
       }
     }
 
-    /// Closes the port connection. All transaction with the [CSerialPort]
-    /// object will panic after this is performed.
+    /// Closes the port connection. All transaction with the
+    /// [CSerialPortProtocol] object will panic after this is performed.
     fn terminate(&mut self) {
       self.port = None;
     }
@@ -2416,11 +2421,11 @@ pub mod codemelted_hw {
 
   /// <center><b><mark>FUTURE IMPLEMENTATION. DON'T USE</mark></b></center>
   pub fn open_bluetooth_device() {
-    unimplemented!("FUTURE IMPLEMENTATION");
+    unimplemented!("FUTURE IMPLEMENTATION!");
   }
 
-  /// Takes a [SerialPortInfo] object to create a [CSerialPort] to interact
-  /// with a device attached to the host operating system.
+  /// Takes a [SerialPortInfo] object to create a [CSerialPortProtocol] to
+  /// interact with a device attached to the host operating system.
   ///
   /// **Example:**
   /// ```no_run
@@ -2456,8 +2461,10 @@ pub mod codemelted_hw {
   ///   codemelted_async::sleep(1000);
   /// }
   /// ```
-  pub fn open_serial_port(port_info: &SerialPortInfo) -> CSerialPort {
-    CSerialPort::new(port_info)
+  pub fn open_serial_port(
+    port_info: &SerialPortInfo
+  ) -> CSerialPortProtocol {
+    CSerialPortProtocol::new(port_info)
   }
 
   /// Retrieves the operating system name of the host operating system.
@@ -3031,14 +3038,35 @@ pub mod codemelted_logger {
 // [Network Use Case] =========================================================
 // ============================================================================
 
-/// <center><b><mark>IN ACTIVE DEVELOPMENT</mark></b></center>
+/// Implements the CodeMelted DEV Network use case. Provides the ability to
+/// [crate::codemelted_network::monitor] a network stack of the host operating
+/// system via the [crate::codemelted_network::CNetworkMonitor] struct, query
+/// aspects about the network whether [crate::codemelted_network::online] or
+/// the [crate::codemelted_network::host_name] of the network stack. Finally
+/// provides the either [crate::codemelted_network::fetch] data from a
+/// server REST API or to [crate::codemelted_network::serve] a REST API as a
+/// server along with supporting the
+/// [crate::codemelted_network::upgrade_web_socket] creating a bi-directional
+/// [crate::codemelted_network::CWebSocketProtocol] struct serving as a
+/// bi-directional websocket server. Finally this module will also support
+/// the [crate::codemelted_network::web_rtc] to facilitate peer-connections
+/// between clients as an orchestration server to facilitate the protocol
+/// between clients.
+#[doc = mermaid!("models/codemelted_network.mmd")]
 pub mod codemelted_network {
   // --------------------------------------------------------------------------
   // [Module Use Statements] --------------------------------------------------
   // --------------------------------------------------------------------------
-
-  use crate::{codemelted_json, CCsvFormat, CObject};
+  use crate::{codemelted_json, CCsvFormat, CObject, CProtocolHandler};
   use reqwest::{Client, RequestBuilder};
+  use rouille::{
+    start_server,
+    websocket::{
+      self, Message, SendError, WebsocketError
+    },
+    Request,
+  };
+  use simple_mermaid::mermaid;
   use std::collections::HashMap;
   use sysinfo::{Networks, System};
   use tokio::runtime::Runtime;
@@ -3386,6 +3414,195 @@ pub mod codemelted_network {
     }
   }
 
+  /// Wrapper over the rouille::Request struct to prevent name collisions.
+  pub type CServerRequest = rouille::Request;
+
+  /// Wrapper over the rouille::Response struct to prevent name collisions.
+  pub type CServerResponse = rouille::Response;
+
+  /// Supports the [CWebSocketProtocol::post_message] to hold data of an
+  /// appropriate type along with the [CWebSocketProtocol::get_message] to
+  /// get read messages if available.
+  pub enum CWebSocketData {
+    /// Signals no data was available on the [CWebSocketProtocol::get_message]
+    /// call.
+    NoData,
+    /// General signal indicating the socket is no longer usable.
+    SocketClosed,
+    /// Signals an error occurred when attempting to call
+    /// [CWebSocketProtocol::post_message].
+    IoError(String),
+    /// Holds byte data from either message posting / getting.
+    Bytes(Vec<u8>),
+    /// Holds byte data from either message posting / getting.
+    String(String),
+  }
+  impl CWebSocketData {
+    /// Retrieves the bytes held by the [CWebSocketData::Bytes] or None
+    /// if not that enumerated type.
+    pub fn data_as_bytes(&self) -> Option<Vec<u8>> {
+      match self {
+        CWebSocketData::Bytes(items) => Some(items.to_owned()),
+        _ => None,
+      }
+    }
+
+    /// Retrieves the bytes held by the [CWebSocketData::String] or None
+    /// if not that enumerated type.
+    pub fn data_as_string(&self) -> Option<String> {
+      match self {
+        CWebSocketData::String(v) => Some(v.to_owned()),
+        _ => None,
+      }
+    }
+
+    /// Retrieves the bytes held by the [CWebSocketData::IoError] or None
+    /// if not that enumerated type.
+    pub fn io_error_as_string(&self) -> Option<String> {
+      match self {
+        CWebSocketData::IoError(v) => Some(v.to_owned()),
+        _ => None,
+      }
+    }
+  }
+
+  /// Object created from the [upgrade_web_socket] call when a web socket
+  /// client request is handled in the [serve] function call of http
+  /// requests.
+  pub struct CWebSocketProtocol {
+    id: String,
+    socket: Option<websocket::Websocket>,
+    error: Option<String>
+  }
+  impl CWebSocketProtocol {
+    /// Supports the [upgrade_web_socket] in creating a bi-directional
+    /// server-side web socket.
+    fn new(id: &str, socket: websocket::Websocket) -> CWebSocketProtocol {
+      CWebSocketProtocol {
+        id: id.to_string(),
+        socket: Some(socket),
+        error: None
+      }
+    }
+  }
+  /// Implementation of the [CProtocolHandler] to wrap the
+  /// rouille::websocket::Websocket into this modules protocol rules. There
+  /// usage further explained.
+  impl CProtocolHandler<CWebSocketData> for CWebSocketProtocol {
+    /// id given as part of the [upgrade_web_socket] function call.
+    fn id(&mut self) -> String {
+      self.id.to_string()
+    }
+
+    /// Will hold any errors from the [CWebSocketProtocol::post_message]
+    /// call if an error is encountered at that time.
+    fn error(&mut self) -> Option<String> {
+      if self.error.is_none() {
+        return None;
+      }
+      let rtnval = self.error.clone();
+      self.error = None;
+      rtnval
+    }
+
+    /// Peeks to see if a message is available on the socket and then reads
+    /// it if one is available. The [CWebSocketData] will hold the given data
+    /// if available.
+    fn get_message(&mut self, _request: Option<&str>) -> CWebSocketData {
+      // If socket closed by terminate, return socket closed.
+      if self.socket.is_none() {
+        return CWebSocketData::SocketClosed;
+      }
+
+      // Nope we still have socket, go see if we have data.
+      let socket = self.socket.as_mut().unwrap();
+      if socket.by_ref().peekable().peek().is_some() {
+        match socket.by_ref().next() {
+          // We have something, go get it.
+          Some(data) => {
+            match data {
+              Message::Text(v) => CWebSocketData::String(
+                v.to_owned()
+              ),
+              Message::Binary(items) => CWebSocketData::Bytes(
+                items.to_owned()
+              ),
+            }
+          },
+          // No data available, signal as such.
+          None => CWebSocketData::NoData,
+        }
+      } else {
+        // We have nothing, signal as such.
+        CWebSocketData::NoData
+      }
+    }
+
+    /// Returns true if socket is not closed, once closed, the socket is
+    /// considered dead from a server perspective.
+    fn is_running(&self) -> bool {
+      if self.socket.is_none() {
+        return false;
+      }
+      self.socket.as_ref().unwrap().is_closed()
+    }
+
+    /// Post a message to a client from the server. Check the
+    /// [CWebSocketProtocol::error] is_none() to ensure post success.
+    fn post_message(&mut self, data: CWebSocketData) {
+      // If server terminated connection, signal as such.
+      if self.socket.is_none() {
+        self.error = Some(String::from("socket is closed!"));
+        return;
+      }
+
+      // We still have connection, go post message and check the result.
+      let socket = self.socket.as_mut().unwrap();
+      let result = match data {
+        // We are transmitting bytes.
+        CWebSocketData::Bytes(data) => {
+          socket.send_binary(&data)
+        },
+        // We are transmitting string.
+        CWebSocketData::String(data) =>{
+          socket.send_text(&data)
+        },
+        // An invalid enumerated value used, panic to flag how to use this object
+        // properly
+        _ => {
+          panic!(
+            "CWebSocketProtocol::post_message(): Invalid data received"
+          );
+        }
+      };
+
+      // See if we have an error to handle or not.
+      match result {
+        Ok(_) => {},
+        Err(why) => {
+          match why {
+            SendError::IoError(error) => {
+              let msg = format!("I/O Error: {}", error.to_string());
+              self.error = Some(msg);
+            },
+            SendError::Closed => {
+              self.error = Some(String::from("socket is closed!"));
+            },
+          }
+        },
+      }
+    }
+
+    /// Sets the internal socket reference to None thereby no longer being
+    /// able to use the socket.
+    ///
+    /// _NOTE: Make sure when implementing this, properly shutdown sockets
+    /// from client side._
+    fn terminate(&mut self) {
+      self.socket = None;
+    }
+  }
+
   // --------------------------------------------------------------------------
   // [Module Function Definitions] --------------------------------------------
   // --------------------------------------------------------------------------
@@ -3458,6 +3675,95 @@ pub mod codemelted_network {
   /// ```
   pub fn online(timeout: Option<u64>) -> bool {
     online::check(timeout).is_ok()
+  }
+
+  /// Starts a http server listener to service http socket requests via the
+  /// passed to the function. This function is a light wrapper around the
+  /// <a href="https://docs.rs/rouille/latest/rouille/index.html" target="_blank">
+  /// rouille crate
+  /// </a> building a similar API as other CodeMelted DEV modules for serving
+  /// HTTP endpoints. This is also a blocking call so once started, it blocks
+  /// until quit so setup appropriate threading if your app is doing other
+  /// things besides acting as a REST API endpoint.
+  ///
+  /// **Example:**
+  /// ```no_run
+  /// use codemelted::codemelted_network;
+  /// use codemelted::codemelted_network::{
+  ///   CServerRequest,
+  ///   CServerResponse
+  /// };
+  ///
+  /// // Setup the handler
+  /// fn http_server_handler(_request: &CServerRequest) -> CServerResponse {
+  ///   // Handle the request and return a response.
+  ///   CServerResponse::text("Hello World")
+  /// }
+  ///
+  /// // Serve it up, this is a blocking call.
+  /// codemelted_network::serve("127.0.0.1:80", &http_server_handler);
+  /// ```
+  pub fn serve<F>(bind_addr: &str, handler: F)
+  where
+    F: Send + Sync + 'static + Fn(&CServerRequest) -> CServerResponse,
+  {
+    start_server(bind_addr, move |request| {
+      handler(request)
+    });
+  }
+
+  /// Provides the mechanism for upgrading a to a web socket from the [serve]
+  /// function call. The result will either Websocket with response or an
+  /// error if the upgrade could not be carried out. The Receiver is held open
+  /// until the server closes the connection or the connection is lost meaning
+  /// the client must re-connect.
+  ///
+  /// **Example (NOT TESTED):**
+  /// ```no_run
+  /// use codemelted::codemelted_network;
+  /// use codemelted::codemelted_network::{
+  ///   CServerRequest,
+  ///   CServerResponse
+  /// };
+  ///
+  /// // Setup the handler
+  /// fn http_server_handler(request: &CServerRequest) -> CServerResponse {
+  ///   // Determine you have a web socket request...
+  ///   match codemelted_network::upgrade_web_socket(
+  ///       "web_socket", request, None) {
+  ///     Ok(socket) => {
+  ///       // Do something with the socket. This is bi-directional socket
+  ///       // usable until the socket is terminated or closed by the client.
+  ///     },
+  ///     Err(why) => {
+  ///       // However you are handling error handling.
+  ///     }
+  ///   }
+  ///   // Remember, you always must return a response after you get the
+  ///   // socket.
+  ///   CServerResponse::text("Hello World")
+  /// }
+  ///
+  /// // Serve it up, this is a blocking call.
+  /// codemelted_network::serve("127.0.0.1:80", &http_server_handler);
+  /// ```
+  pub fn upgrade_web_socket(
+    id: &str,
+    request: &Request,
+    subprotocol: Option<&'static str>
+  ) -> Result<CWebSocketProtocol, WebsocketError> {
+    match websocket::start(request, subprotocol) {
+      Ok(v) => {
+        let socket = v.1.recv().unwrap();
+        Ok(CWebSocketProtocol::new(id, socket))
+      },
+      Err(why) => Err(why),
+    }
+  }
+
+  /// <center><b><mark>FUTURE IMPLEMENTATION. DON'T CALL.</mark></b></center>
+  pub fn web_rtc() {
+    unimplemented!("FUTURE IMPLEMENTATION!");
   }
 }
 
