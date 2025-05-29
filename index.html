@@ -48,27 +48,27 @@
   </style>
 </head><body>
   <div class="content-nav">
-    <a id="aDesignNotes"   onclick="onAnchorClicked('aDesignNotes'); return false;" title="Rosetta Stone"><img src="https://codemelted.com/assets/favicon/apple-touch-icon.png" /></a>
-    <!-- <a id="aFlutterModule" onclick="onAnchorClicked('aFlutterModule'); return false;" title="Flutter Module"><img src="https://codemelted.com/assets/images/icon-flutter.png" /></a> -->
-    <!-- <a id="aJsModule"      onclick="onAnchorClicked('aJsModule'); return false;" title="JS Module"><img src="https://codemelted.com/assets/images/icon-js.png" /></a> -->
-    <!-- <a id="aPiProject"     onclick="onAnchorClicked('aPiProject'); return false;" title="Pi Project"><img src="https://codemelted.com/assets/images/icon-raspberry-pi.png" /></a> -->
-    <!-- <a id="aPwshModule"    onclick="onAnchorClicked('aPwshModule'); return false;" title="pwsh Module"><img src="https://codemelted.com/assets/images/icon-pwsh.png" /></a> -->
-    <a id="aRustModule"    onclick="onAnchorClicked('aRustModule'); return false;" title="Rust Module"><img src="https://codemelted.com/assets/images/icon-rust.png" /></a>
+    <a id="codemelted_dev"   onclick="onAnchorClicked('codemelted_dev'); return false;" title="Rosetta Stone"><img src="https://codemelted.com/assets/favicon/apple-touch-icon.png" /></a>
+    <!-- <a id="codemelted_flutter" onclick="onAnchorClicked('codemelted_flutter'); return false;" title="Flutter Module"><img src="https://codemelted.com/assets/images/icon-flutter.png" /></a> -->
+    <!-- <a id="codemelted_js"      onclick="onAnchorClicked('codemelted_js'); return false;" title="JS Module"><img src="https://codemelted.com/assets/images/icon-js.png" /></a> -->
+    <!-- <a id="codemelted_pi"     onclick="onAnchorClicked('codemelted_pi'); return false;" title="Pi Project"><img src="https://codemelted.com/assets/images/icon-raspberry-pi.png" /></a> -->
+    <!-- <a id="codemelted_pwsh"    onclick="onAnchorClicked('codemelted_pwsh'); return false;" title="pwsh Module"><img src="https://codemelted.com/assets/images/icon-pwsh.png" /></a> -->
+    <a id="codemelted_rust"    onclick="onAnchorClicked('codemelted_rust'); return false;" title="Rust Module"><img src="https://codemelted.com/assets/images/icon-rust.png" /></a>
   </div>
   <div class="content-container">
-    <iframe id="frmContent" src="codemelted_dev/models/design-notes.drawio.html" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+    <iframe id="frmContent" src="codemelted_dev/index.html" frameborder="0" width="100%" height="100%" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
   </div>
   <codemelted-navigation></codemelted-navigation>
   <script>
     // setup our page controls
     const frmContent = document.getElementById("frmContent");
     const anchors = {
-      "aDesignNotes"   : `codemelted_dev/models/design-notes.drawio.html?rand=${Math.random()}`,
-      "aFlutterModule" : `codemelted_flutter/index.html?rand=${Math.random()}`,
-      "aJsModule"      : `codemelted_js/index.html?rand=${Math.random()}`,
-      "aPiProject"     : `codemelted_pi/codemelted/index.html?rand=${Math.random()}`,
-      "aPwshModule"    : `codemelted_pwsh/index.html?rand=${Math.random()}`,
-      "aRustModule"    : `codemelted_rust/codemelted/index.html?rand=${Math.random()}`,
+      "codemelted_dev"   : `codemelted_dev/index.html?rand=${Math.random()}`,
+      // "codemelted_flutter" : `codemelted_flutter/index.html?rand=${Math.random()}`,
+      // "codemelted_js"      : `codemelted_js/index.html?rand=${Math.random()}`,
+      // "codemelted_pi"     : `codemelted_pi/codemelted/index.html?rand=${Math.random()}`,
+      // "codemelted_pwsh"    : `codemelted_pwsh/index.html?rand=${Math.random()}`,
+      "codemelted_rust"    : `codemelted_rust/codemelted/index.html?rand=${Math.random()}`,
     };
 
     // Setup our initial page state.
@@ -80,15 +80,15 @@
       frmContent.src = src;
 
       // Go set the active page.
-      for (const [key, value] in Object.entries(anchors)) {
-        if (value.includes(src)) {
+      for (const [key, value] of Object.entries(anchors)) {
+        if (src.includes(key)) {
           document.getElementById(key).style.backgroundColor = "#1f1f1f";
         } else {
           document.getElementById(key).style.backgroundColor = "black";
         }
       }
     } else {
-      document.getElementById("aDesignNotes").style.backgroundColor = "#1f1f1f";
+      document.getElementById("codemelted_dev").style.backgroundColor = "#1f1f1f";
     }
 
     // Setup our anchor click action.
@@ -116,7 +116,7 @@
             navigator.msMaxTouchPoints > 0
           const tooltip = globalThis.document.getElementById("divTooltip");
           let href = window.location.href.replaceAll("www.", "");
-          href += `?src=${frmContent.src}`;
+          href += `&src=${frmContent.src}`;
           await globalThis.navigator.clipboard.writeText(href);
           if (!isMobile) {
             tooltip.style.display = "inline-block";

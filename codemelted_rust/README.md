@@ -6,7 +6,7 @@ KEYWORDS: CodeMeltedDEV, raspberry-pi, modules, cross-platform, gps, html-css-ja
 DESCRIPTION: The *CodeMelted Rust Crate* is an implementation of the CodeMelted DEV 14 identified domain use cases. These domains are areas a software engineer should be familiar with regardless of programming language, SDK, or chosen framework. This crate brings those use cases to the Rust programming language to aid software engineers in building native applications quickly and securely.
 -->
 <center>
-  <img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /><br />
+  <br /><img style="width: 100%; max-width: 375px;" src="https://codemelted.com/assets/images/logo-codemelted-developer.png" /><br />
 </center>
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/images/icon-rust.png" /> CodeMelted Rust Crate</h1>
 
@@ -28,7 +28,7 @@ The *CodeMelted Rust Crate* is an implementation of the [CodeMelted DEV](https:/
 
 ## Features
 
-<center><img src="https://codemetled.com/develoepr/codemelted_dev/models/all/use-case-model.drawio.png" /></center>
+<center><img src="https://codemelted.com/developer/codemelted_dev/models/all/use-case-model.drawio.png" /></center>
 
 1. The `codemelted.rs` is a single file implementing the [CodeMelted DEV](https://codemelted.com/developer/codemelted_dev/index.html) domain specific use cases.
 2. These use cases straddle areas of knowledge software engineers should be familiar with regardless of a given programming language, SDK, or chosen framework.
