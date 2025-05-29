@@ -1,24 +1,9 @@
 ---
-title: codemelted_json Module
+title: JSON Use Case Object Hierarchy
 ---
 classDiagram
   direction LR
-  namespace json {
-    class JsonValue
-  }
   namespace codemelted {
-    class codemelted_json {
-      +as_bool(CObject) bool
-      +as_number(CObject) Option
-      +as_string(CObject) Option
-      +check_type(CDataType, CObject, should_panic) bool
-      +create_array() CObject
-      +create_object() CObject
-      +has_key(CObject, key, should_panic) bool
-      +parse(data) Option
-      +stringify(CObject) String
-      +valid_url(data, should_panic) bool
-    }
     class CDataType {
       +Array
       +Boolean
@@ -28,15 +13,34 @@ classDiagram
       +Object
       +String
     }
-    class CObject {
-
-    }
     class CTruthyString {
-      as_truthy(self) bool
-      is_truthy(data) bool
+      +as_truthy(self) bool
+      +is_truthy(String) bool
     }
+    class CObject
+    class json_as_bool
+    class json_as_number
+    class json_as_string
+    class json_check_type
+    class json_create_array
+    class json_create_object
+    class json_has_key
+    class json_parse
+    class json_stringify
+    class json_valid_url
   }
-  codemelted_json --> CDataType : uses
-  codemelted_json --> CObject : creates
-  CObject --> CTruthyString : implements
-  CObject --> JsonValue : type alias
+  namespace json {
+    class JsonValue
+  }
+  CObject --> CTruthyString: implements
+  CObject --> JsonValue: typed as
+  json_as_bool --> CObject: uses
+  json_as_number --> CObject: uses
+  json_as_string --> CObject: uses
+  json_check_type --> CDataType: uses
+  json_check_type --> CObject: uses
+  json_create_array --> CObject: creates
+  json_create_object --> CObject: creates
+  json_has_key --> CObject: uses
+  json_parse --> CObject: uses
+  json_stringify --> CObject: uses

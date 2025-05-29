@@ -1,0 +1,113 @@
+---
+title: Monitor Use Case Object Hierarchy
+---
+classDiagram
+  direction LR
+  namespace codemelted {
+    class CCsvFormat {
+      +system_id() String
+      +csv_header(self) String
+      +as_csv(self) String
+    }
+    class CComponentMonitor {
+      -new() CComponentMonitor
+      +refresh()
+      +len() usize
+      +label(index) String
+      +temp_current_c(index) f32
+      +temp_max_c(index) f32
+      +temp_critical_c(index) f32
+    }
+    class CDiskMonitor {
+      -new() CDiskMonitor
+      +refresh()
+      +len() usize
+      +name(index) String
+      +disk_available_bytes(index) u64
+      +disk_used_bytes(index) u64
+      +disk_total_bytes(index) u64
+      +disk_load(index) f32
+      +file_system(index) String
+      +is_read_only(index) bool
+      +is_removable(index) bool
+      +kind(index) String
+      +mount_point(index) String
+    }
+    class CNetworkMonitor {
+      -new() CNetworkMonitor
+      +refresh()
+      +names() Vec
+      +mac_address(name) String
+      +mtu(name) u64
+      +network_total_rx_bytes(name) u64
+      +network_total_rx_errors(name) u64
+      +network_total_rx_packets(name) u64
+      +network_total_tx_bytes(name) u64
+      +network_total_tx_errors(name) u64
+      +network_total_tx_packets(name) u64
+    }
+    class CPerformanceMonitor {
+      -new() CPerformanceMonitor
+      +refresh()
+      +cpu_load() f32
+      +memory_available_bytes() u64
+      +memory_free_bytes() u64
+      +memory_used_bytes() u64
+      +memory_total_bytes() u64
+      +memory_load() f32
+      +swap_free_bytes() u64
+      +swap_used_bytes() u64
+      +swap_total_bytes() u64
+      +swap_load() f32
+    }
+    class CProcessMonitor {
+      -new() CProcessMonitor
+      +refresh()
+      +pids() Vec
+      +cpu_usage(pid) f32
+      +cwd(pid) String
+      +disk_total_read_bytes(pid) u64
+      +disk_total_written_bytes(pid) u64
+      +exe(pid) String
+      +group_id(pid) String
+      +memory_usage_bytes(pid) u64
+      +memory_virtual_bytes(pid) u64
+      +name(pid) String
+      +open_files(pid) u32
+      +parent_pid(pid) u32
+      +root(pid) String
+      +session_id(pid) u32
+      +status(pid) String
+      +time_started_seconds(pid) u64
+      +time_running_seconds(pid) u64
+      +user_id(pid) String
+      +kill(pid) bool
+      +wait(pid) i32
+    }
+    class monitor_components
+    class monitor_disk
+    class monitor_network
+    class monitor_performance
+    class monitor_processes
+  }
+  namespace SystemInfo {
+    class Components
+    class Disks
+    class Networks
+    class System
+  }
+  CComponentMonitor --> Components: uses
+  CComponentMonitor --> CCsvFormat: implements
+  CDiskMonitor --> Disks: uses
+  CDiskMonitor --> CCsvFormat: implements
+  CNetworkMonitor --> Networks: uses
+  CNetworkMonitor --> CCsvFormat: implements
+  CPerformanceMonitor --> System: uses
+  CPerformanceMonitor --> CCsvFormat: implements
+  CProcessMonitor --> System: uses
+  CProcessMonitor --> CCsvFormat: implements
+  monitor_components --> CComponentMonitor: creates
+  monitor_disk --> CDiskMonitor: creates
+  monitor_network --> CNetworkMonitor: creates
+  monitor_performance --> CPerformanceMonitor: creates
+  monitor_processes --> CProcessMonitor: creates

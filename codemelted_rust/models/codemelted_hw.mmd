@@ -1,85 +1,58 @@
 ---
-title: codemelted_hw Module
+title: HW Use Case Object Hierarchy
 ---
 classDiagram
-  direction TB
+  direction LR
   namespace codemelted {
-    class codemelted_hw {
-      +available_bluetooth_devices() Vec
-      +available_serial_ports() Vec
-      +kernel_version() String
-      +monitor() CComponentMonitor
-      +open_bluetooth_device(CBluetoothInfo) CBluetoothDevice
-      +open_serial_port(SerialPortInfo) CSerialPort
-      +os_name() String
-      +os_version() String
-      +user() String
-    }
-    class CBluetoothDevice {
-
-    }
     class CBluetoothInfo {
-      +id() String
       +address() String
-    }
-    class CComponentMonitor {
-      -new() CComponentMonitor
-      +refresh()
-      +len() usize
-      +label(index) String
-      +temp_current_c(index) f32
-      +temp_max_c(index) f32
-      +temp_critical_c(index) f32
+      +id() String
     }
     class CSerialPortData {
-      +ErrorDetected
       +BaudRate
       +DataBits
       +FlowControl
       +Parity
       +StopBits
       +Timeout
+      +Break
       +ClearBuffer
       +CarrierDetect
       +ClearToSend
       +DataSetReady
+      +DataTerminalReady
       +RequestToSend
-      +RindIndicator
-      +ReadData
-      +WriteData
-      +as_bool(self) Option
-      +as_bytes(self) Option
-      +as_data_bis(self) Option
-      +as_flow_control(self) Option
-      +as_parity(self) Option
-      +as_timeout(self) Option
-      +get_message_request(self) Option
+      +RingIndicator
+      +DataBytes
+      +as_bool(self) bool
+      +as_bytes(self) Vec
+      +as_data_bits(self) DataBits
+      +as_flow_control(self) FlowControl
+      +as_parity(self) Parity
+      +as_stop_bits(self) StopBits
+      +as_timeout(self) Duration
+      +as_u32(self) u32
+      +get_message_request(self) String
     }
     class CSerialPortProtocol {
       -port SerialPort
-      -error Option
-      -new() CSerialPortProtocol
-      -port_ref() SerialPort
-    }
-    class CCsvFormat {
-      +csv_header() String
-      +as_csv() String
     }
     class CProtocolHandler {
-      +error() Option
-      +get_message(request) T
       +id() String
       +is_running() bool
-      +post_message(data)
+      +get_message() Result
+      +post_message(T) Result
       +terminate()
     }
+    class hw_available_bluetooth_devices
+    class hw_available_serial_ports
+    class hw_open_bluetooth_device
+    class hw_open_serial_port
   }
   namespace btleplug {
-    class Manager
     class Peripheral
   }
   namespace serialport {
-    class ClearBuffer
     class DataBits
     class FlowControl
     class Parity
@@ -87,24 +60,13 @@ classDiagram
     class SerialPortInfo
     class StopBits
   }
-  namespace sysinfo {
-    class Components
-    class System
-  }
-  codemelted_hw --> CBluetoothInfo: creates
-  codemelted_hw --> CBluetoothDevice: creates
-  codemelted_hw --> CComponentMonitor: creates
-  codemelted_hw --> CSerialPort: creates
-  codemelted_hw --> Manager: uses
   CBluetoothInfo --> Peripheral: uses
-  CSerialPort --> CSerialPortData: uses / crates
-  CSerialPortData --> ClearBuffer: uses
   CSerialPortData --> DataBits: uses
   CSerialPortData --> FlowControl: uses
+  CSerialPortData --> Parity: uses
   CSerialPortData --> StopBits: uses
-  CSerialPort --> CProtocolHandler: implements
-  CSerialPort --> SerialPort: uses
-  codemelted_hw --> SerialPortInfo: uses
-  CComponentMonitor --> CCsvFormat: implements
-  CComponentMonitor --> Components: uses
-  CComponentMonitor --> System: uses
+  CSerialPortProtocol --> CProtocolHandler: implements
+  CSerialPortProtocol --> CSerialPortData: reads / writes
+  hw_available_bluetooth_devices --> CBluetoothInfo: creates
+  hw_available_serial_ports --> SerialPortInfo: uses
+  hw_open_serial_port --> CSerialPortProtocol: creates

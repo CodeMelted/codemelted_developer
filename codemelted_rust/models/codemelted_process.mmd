@@ -1,74 +1,35 @@
 ---
-title: codemelted_process Module
+title: Process Use Case Object Hierarchy
 ---
 classDiagram
-  direction TB
+  direction LR
   namespace codemelted {
-    class codemelted_process {
-      +exists(command) bool
-      +monitor() CProcessMonitor
-      +run(command, args) String
-      +spawn(command, args) CProcessProtocol
-    }
-    class CProcessMonitor {
-      -new() CProcessMonitor
-      +refresh()
-      +pids() Vec
-      +cpu_usage(pid) f32
-      +cwd(pid) String
-      +disk_total_read_bytes(pid) u64
-      +disk_total_written_bytes(pid) u64
-      +exe(pid) String
-      +group_id(pid) String
-      +memory_usage_bytes(pid) u64
-      +memory_virtual_bytes(pid) u64
-      +name(pid) String
-      +open_files(pid) u32
-      +parent_pid(pid) u32
-      +root(pid) String
-      +session_id(pid) u32
-      +status(pid) String
-      +time_started_seconds(pid) u64
-      +time_running_seconds(pid) u64
-      +user_id(pid) String
-      +kill(pid) bool
-      +wait(pid) i32
-    }
-    class CProcessProtocol {
-      -new() CProcessProtocol
-    }
-    class CCsvFormat {
-      +as_header() String
-      +as_csv(self) String
-    }
     class CProtocolHandler {
-      +error() Option
-      +get_message() T
       +id() String
       +is_running() bool
-      +post_message(T)
+      +get_message() Result
+      +post_message(T) Result
       +terminate()
     }
+    class CProcessProtocol
+    class process_exists
+    class process_run
+    class process_spawn
   }
-  namespace std {
-    class io
-    class process
-    class sync
-    class thread
+  namespace std_process {
+    class Command
+    class Child
+    class ChildStdin
+    class ChildStdout
   }
-  namespace sysinfo {
-    class Pid
-    class ProcessToUpdate
-    class System
+  namespace std_thread {
+    class JoinHandle
   }
-  codemelted_process --> CProcessMonitor : creates
-  codemelted_process --> CProcessProtocol : creates
-  CProcessMonitor --> CCsvFormat : implements
-  CProcessMonitor --> Pid : uses
-  CProcessMonitor --> ProcessToUpdate : uses
-  CProcessMonitor --> System : uses
-  CProcessProtocol --> CProtocolHandler : implements
-  CProcessProtocol --> io : uses
-  CProcessProtocol --> process : uses
-  CProcessProtocol --> sync : uses
-  CProcessProtocol --> thread : uses
+  CProcessProtocol --> JoinHandle: uses
+  CProcessProtocol --> Child: uses
+  CProcessProtocol --> ChildStdin: uses
+  CProcessProtocol --> ChildStdout: uses
+  CProcessProtocol --> CProtocolHandler: implements
+  process_exists --> Command: uses
+  process_run --> Command: uses
+  process_spawn --> CProcessProtocol: creates

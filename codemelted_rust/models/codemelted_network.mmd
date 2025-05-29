@@ -1,123 +1,76 @@
 ---
-title: codemelted_network Module
+title: Network Use Case Object Hierarchy
 ---
 classDiagram
-  direction TB
+  direction LR
   namespace codemelted {
-    class codemelted_network {
-      +fetch(CFetchRequest) CFetchResponse
-      +host_name() String
-      +monitor() CNetworkMonitor
-      +online() bool
-      +serve(bind_addr, handler)
-      +upgrade_web_socket(request) CWebSocketProtocol
-      +web_rtc()
-    }
     class CFetchAction {
       +Delete
       +Get
-      +Post
       +Put
+      +Post
     }
     class CFetchRequest {
-      +new(CFetchAction, url) CFetchRequest
+      +new(CFetchAction, String) CFetchRequest
       +basic_auth(username, password)
       +bearer_auth(token)
       +body(CObject)
       +form(HashMap)
       +header(key, value)
-      -send(self) CFetchResponse
+      -send() Future
     }
     class CFetchResponse {
-      -new(status, status_text, data_as_bytes, data_as_json, stat_as_string) CFetchResponse
       +status() u16
       +status_text() String
       +data_as_bytes() Option
       +data_as_json() Option
       +data_as_string() Option
     }
-    class CNetworkMonitor {
-      -new() CNetworkMonitor
-      +refresh()
-      +names() Vec
-      +mac_address(name) String
-      +mtu(name) u64
-      +network_total_rx_bytes(name) -> u64
-      +network_total_rx_errors(name) -> u64
-      +network_total_rx_packets(name) -> u64
-      +network_total_tx_bytes(name) -> u64
-      +network_total_tx_errors(name) -> u64
-      +network_total_tx_packets(name) -> u64
-    }
     class CServerRequest
     class CServerResponse
-    class CWebSocketData {
-      +NoData
-      +SocketClosed
-      +IoError
-      +Bytes
-      +String
-      +data_as_bytes(self) Option
-      +data_as_string(self) Option
-      +io_error_as_string(self) Option
+    class CNetworkServeHandler {
+      +fn(CServerRequest) CServerResponse
     }
-    class CWebSocketProtocol {
-      -id String
-      -socket Websocket
-      -error Option
-    }
-    class CCsvFormat {
-      +csv_header() String
-      +as_csv() String
-    }
+    class CWebSocketProtocol
     class CProtocolHandler {
-      +error() Option
-      +get_message(request) T
       +id() String
       +is_running() bool
-      +post_message(data)
+      +get_message() Result
+      +post_message(T) Result
       +terminate()
     }
-  }
-  namespace rouille {
-    class start_server
-    class websocket {
-      +Message
-      +SendError
-      +WebsocketError
-    }
-    class Request
-    class Response
+    class network_fetch
+    class network_serve
+    class network_upgrade_websocket
   }
   namespace reqwest {
-    class Client
     class RequestBuilder
   }
-  namespace sysinfo {
-    class Networks
-    class System
+  namespace rouille {
+    class Request
+    class Response
+    class Websocket
   }
   namespace tokio {
-    class runtime {
-      +Runtime
+    class Runtime {
+      +block_on(Future) T
     }
   }
-  codemelted_network --> CFetchRequest: uses
-  codemelted_network --> CFetchResponse: creates
-  codemelted_network --> CNetworkMonitor: creates
-  codemelted_network --> CServerRequest: uses
-  codemelted_network --> CServerResponse: creates
-  codemelted_network --> CWebSocketProtocol: creates
-  codemelted_network --> start_server: uses
-  codemelted_network --> runtime: uses
-  CServerRequest --> Request: maps to
-  CServerResponse --> Response: maps to
   CFetchRequest --> CFetchAction: uses
-  CFetchRequest --> Client: uses
   CFetchRequest --> RequestBuilder: uses
-  CNetworkMonitor --> CCsvFormat: implements
-  CNetworkMonitor --> Networks: uses
-  CNetworkMonitor --> System: uses
+  CFetchRequest --> CFetchResponse: creates
+  CServerRequest --> Request: typed as
+  CServerResponse --> Response: typed as
+  CNetworkServeHandler --> CServerRequest: receives
+  CNetworkServeHandler --> CServerResponse: creates
+  CNetworkServeHandler --> network_upgrade_websocket: calls
   CWebSocketProtocol --> CProtocolHandler: implements
-  CWebSocketProtocol --> CWebSocketData: creates / uses
-  CWebSocketProtocol --> websocket: uses
+  CWebSocketProtocol --> Websocket: uses
+  network_fetch --> CFetchRequest: takes
+  network_fetch --> CFetchResponse: returns
+  network_fetch --> Runtime: uses
+  network_serve --> CNetworkServeHandler: calls
+  network_upgrade_websocket --> CServerRequest: processes
+  network_upgrade_websocket --> CWebSocketProtocol: creates
+
+

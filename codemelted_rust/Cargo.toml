@@ -1,6 +1,6 @@
 [package]
 name = "codemelted"
-version = "0.11.0"
+version = "0.74.0"
 description = "The CodeMelted Rust Crate is an implementation of the CodeMelted DEV twelve identified domain use cases. These domains are areas of study a software engineer should be familiar with regardless of programming language, SDK, or chosen framework. This crate brings these twelve domains to the Rust programming language to aid software engineers in building native applications quickly and securely."
 authors = ["Mark Shaffer <mark.shaffer@codemelted.com>"]
 keywords = ["console", "json", "logger", "process", "ui"]

@@ -1,87 +1,48 @@
 ---
-title: codemelted_async Module
+title: Async Use Case Object Hierarchy
 ---
 classDiagram
-  direction TB
+  direction LR
   namespace codemelted {
-    class codemelted_async {
-      +cpu_arch() string
-      +cpu_count() number
-      +monitor() CPerformanceMonitor
-      +sleep(delay)
-      +task(task, data, delay) CTaskResult
-      +timer(task, interval) CTimerResult
-      +worker(id, task) CWorkerProtocol
-    }
-    class CCsvFormat {
-      +csv_header(self) String
-      +as_csv(self) String
-    }
-    class CPerformanceMonitor {
-      -new() CPerformanceMonitor
-      +refresh()
-      +cpu_load() f32
-      +memory_available_bytes() u64
-      +memory_free_bytes() u64
-      +memory_used_bytes() u64
-      +memory_total_bytes() u64
-      +memory_load() f32
-      +swap_free_bytes() u64
-      +swap_used_bytes() u64
-      +swap_total_bytes() u64
-      +swap_load() f32
-    }
     class CProtocolHandler {
-      + error(self) Option
-      + get_message(self) T
-      + id(self) String
-      + is_running(self) bool
-      + post_message(self, T)
-      + terminate(self)
+      +id() String
+      +is_running() bool
+      +get_message() Result
+      +post_message(T) Result
+      +terminate()
+    }
+    class CTaskCB {
+      +fn(Option) Option
     }
     class CTaskResult {
-      -thread
-      +value() Option
       +has_completed() bool
+      +value() Option
+    }
+    class CTimerCB {
+      +fn()
     }
     class CTimerResult {
-      -thread
+      +has_completed() bool
       +stop()
     }
-    class CWorkerProtocol {
-      - thread_handle
-      - protocol_tx
-      - protocol_rx
+    class CWorkerCB {
+      +fn(T) T
     }
+    class CWorkerProtocol
+    class async_task
+    class async_timer
+    class async_worker
   }
   namespace std {
-      class sync_mpsc_channel_Sender {
-        +send(T) Result
-      }
-      class sync_mpsc_channel_Receiver {
-        +recv() Result
-      }
-
-    class thread {
-      + JoinHandle
-    }
+    class thread
   }
-  namespace sysinfo {
-    class System {
-      +refresh_memory()
-      +refresh_cpu_usage()
-      +getters_for_cpu_and_memory()
-    }
-  }
-  codemelted_async --> CPerformanceMonitor : creates
-  codemelted_async --> CWorkerProtocol : creates
-  codemelted_async --> CTaskResult : creates
-  codemelted_async --> CTimerResult : creates
-  CPerformanceMonitor --> CCsvFormat : implements
-  CPerformanceMonitor --> System : creates
-  CTaskResult --> thread : uses
-  CTimerResult --> thread : uses
-  CWorkerProtocol --> CProtocolHandler : implements
-  CWorkerProtocol --> thread : uses
-  CWorkerProtocol --> sync_mpsc_channel_Sender : uses
-  CWorkerProtocol --> sync_mpsc_channel_Receiver : uses
+  CTaskResult --> CTaskCB: calls
+  CTaskResult --> thread: uses
+  CTimerResult --> CTimerCB: calls
+  CTimerResult --> thread: uses
+  CWorkerProtocol --> CWorkerCB: calls
+  CWorkerProtocol --> CProtocolHandler: implements
+  CWorkerProtocol --> thread: uses
+  async_task --> CTaskResult: creates
+  async_timer --> CTimerResult: creates
+  async_worker --> CWorkerProtocol: creates

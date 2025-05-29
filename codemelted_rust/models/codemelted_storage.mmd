@@ -1,35 +1,26 @@
 ---
-title: codemelted_storage Module
+title: Storage Use Case Object Hierarchy
 ---
 classDiagram
+  direction TB
   namespace codemelted {
-    class codemelted_storage {
-      -save_storage(data)
-      +environment(key) Option
-      +init()
-      +clear()
-      +get(key) Option
-      +length() usize
-      +remove(key)
-      +set(key, value)
-    }
-
-    class CObject {
-      +clear()
-      +has_key(key) bool
-      +len() usize
-      +dumps() String
-      +insert(key, value)
-      +remove(key)
-      +to_string() String
-    }
-
-    class codemelted_disk {
-      +home_path() String
-      +rm(src) Result
-      +read_file_as_string(src) Result
-      +write_file_as_string(src, data) Result
-    }
+    class CObject
+    class disk_write_file
+    class disk_read_file
+    class storage_save_file
+    class storage_init
+    class storage_clear
+    class storage_get
+    class storage_length
+    class storage_remove
+    class storage_set
   }
-  codemelted_storage --> CObject : uses with mutex
-  codemelted_storage --> codemelted_disk : uses
+  storage_init --> disk_read_file: calls
+  storage_init --> CObject: initializes
+  storage_save_file --> CObject: reads from
+  storage_save_file --> disk_write_file: calls
+  storage_clear --> storage_save_file: updates
+  storage_get --> CObject: reads from
+  storage_length --> CObject: reads from
+  storage_remove --> storage_save_file: updates
+  storage_set --> storage_save_file: updates

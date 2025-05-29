@@ -1,13 +1,8 @@
 ---
-title: codemelted_json Module
+title: Logger Use Case Object Hierarchy
 ---
 classDiagram
   direction LR
-  namespace chrono {
-    class DateTime {
-
-    }
-  }
   namespace codemelted {
     class CLogLevel {
       +Debug
@@ -15,29 +10,33 @@ classDiagram
       +Warning
       +Error
       +Off
+      +as_string(self) String
+      +as_int(self) u8
     }
-
     class CLogRecord {
-      +get_time_stamp() DateTime
-      +get_log_level() CLogLevel
-      +get_data() String
-      +as_string() String
+      +get_time_stamp(): DateTime
+      +get_log_level(): CLogLevel
+      +get_data(): String
+      +as_string(): String
     }
-
-    class CLoggedEventHandler {
-      +fn(CLoggedRecord)
+    class CLogEventHandler {
+      +fn(CLogRecord)
     }
-
-    class codemelted_logger {
-      +get_log_level() CLogLevel
-      +set_log_level(CLogLevel)
-      +get_log_handler() Option
-      +set_log_handler(Option)
-      +log(CLogLevel, data)
-    }
+    class logger_get_log_level
+    class logger_set_log_level
+    class logger_get_log_handler
+    class logger_set_log_handler
+    class logger_log
   }
-  CLogRecord --> DateTime : uses
-  CLoggedEventHandler --> CLogRecord : processes
-  codemelted_logger --> CLogLevel : uses with Mutex
-  codemelted_logger --> CLoggedEventHandler : uses with Mutex
-  codemelted_logger --> CLogRecord : creates
+  namespace chrono {
+    class DateTime
+  }
+  CLogRecord --> CLogLevel: uses
+  CLogRecord --> DateTime: uses
+  logger_get_log_level --> CLogLevel: uses
+  logger_set_log_level --> CLogLevel: uses
+  logger_get_log_handler --> CLogEventHandler: uses
+  logger_set_log_handler --> CLogEventHandler: uses
+  logger_log --> CLogRecord: creates
+  logger_log --> CLogLevel: uses
+  logger_log --> CLogEventHandler: calls

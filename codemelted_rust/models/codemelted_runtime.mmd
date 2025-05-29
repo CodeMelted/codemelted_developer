@@ -1,0 +1,41 @@
+---
+title: Runtime Use Case Object Hierarchy
+---
+classDiagram
+  direction LR
+  namespace codemelted {
+    class runtime_cpu_arch
+    class runtime_cpu_count
+    class runtime_environment
+    class runtime_home_path
+    class runtime_hostname
+    class runtime_kernel_version
+    class runtime_newline
+    class runtime_online
+    class runtime_os_name
+    class runtime_os_version
+    class runtime_path_separator
+    class runtime_temp_path
+    class runtime_user
+  }
+  namespace online {
+    class check
+  }
+  namespace std {
+    class env
+    class temp_dir
+  }
+  namespace sysinfo {
+    class System
+  }
+  runtime_cpu_arch --> System: uses
+  runtime_cpu_count --> System: uses
+  runtime_environment --> env: uses
+  runtime_home_path --> runtime_environment: uses
+  runtime_hostname --> System: uses
+  runtime_kernel_version --> System: uses
+  runtime_online --> check: uses
+  runtime_os_name --> System: uses
+  runtime_os_version --> System: uses
+  runtime_temp_path --> temp_dir: uses
+  runtime_user --> runtime_environment: uses

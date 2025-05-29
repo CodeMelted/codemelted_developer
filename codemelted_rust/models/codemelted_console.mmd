@@ -1,36 +1,36 @@
 ---
-title: codemelted_console Module
+title: Console Use Case Object Hierarchy
 ---
 classDiagram
   direction LR
   namespace codemelted {
-    class codemelted_console {
-      -read(prompt) String
-      -write_stdout(message, is_newline)
-      +alert(message)
-      +confirm(message) bool
-      +choose(message, choices) u32
-      +password(message) String
-      +prompt(message) String
-      +write(message)
-      +writeln(message)
-    }
+    class console_read
+    class console_write_stdout
+    class console_alert
+    class console_confirm
+    class console_choose
+    class console_password
+    class console_prompt
+    class console_write
+    class console_writeln
     class CObject {
-
-    }
-    class CTruthyString {
       +is_truthy(String) bool
     }
   }
-  namespace std {
-    class stdin {
-      + read_line(String)
-    }
-    class stdout {
-      + flush()
-    }
+  namespace rpassword {
+    class prompt_password
   }
-  codemelted_console --> stdin : uses
-  codemelted_console --> stdout : uses
-  CObject --> CTruthyString : implements
-  codemelted_console --> CObject : uses
+  namespace std {
+    class stdio
+    class stdout
+  }
+  console_read --> stdio: uses
+  console_write_stdout --> stdout: uses
+  console_alert --> console_read: uses
+  console_confirm --> console_read: uses
+  console_choose --> console_read: uses
+  console_password --> prompt_password: uses
+  console_password --> CObject: uses
+  console_prompt --> console_read: uses
+  console_write --> console_write_stdout: uses
+  console_writeln --> console_write_stdout: uses

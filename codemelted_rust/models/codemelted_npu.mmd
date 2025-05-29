@@ -1,23 +1,15 @@
 ---
-title: codemelted_npu Module
+title: NPU Use Case Object Hierarchy
 ---
 classDiagram
   direction TB
   namespace codemelted {
-    class CObject
-    class codemelted_npu {
-      +compute(CObject request) CObject
-      +math(formula, args[]) f64
-    }
     class CMathFormula {
-      +MathFormulaEnums
-      -PI
-      -fmod(a, b) f64
-      -geodetic_distance() f64
-      -geodetic_heading() f64
-      -geodetic_speed() f64
-      -math(self, args[]) f64
+      -math(self, Vector) f64
     }
+    class npu_compute
+    class npu_math
+    class CObject
   }
-  codemelted_npu --> CMathFormula : uses
-  codemelted_npu --> CObject : uses / creates
+  npu_compute --> CObject: consumes / creates
+  npu_math --> CMathFormula: uses
