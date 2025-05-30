@@ -21,12 +21,10 @@
 
 ## 1.2 Chosen SDK Languages
 
-SDK | Description
---- | ---
-<img src="https://codemelted.com/assets/images/icon-flutter.png" style="height: 25px;" /> | The `codemelted.dart` module provides the power of Flutter to build Single Page Applications (SPA) with an easy setup to install the SPA as a Progressive Web App (PWA). This module only targets the Flutter web implementing Flutter specific code to take full advantage of the widget toolkit and Flutter native code that can be utilized within the web. The remaining use case functionality will take advantage of Flutter's bindings with the JavaScript browser APIs.
-<img src="https://codemelted.com/assets/images/icon-js.png" style="height: 25px;" /> | The `codemelted.js` module will be an ES6 module that supports its usage within Deno / NodeJS V8 runtimes for backend services along with Web browsers to support regular HTML / CSS / JS Single Page Application (SPA) development. The module will make heavy usage of JSDoc typing to ensure it works with available TypeScript type checkers within a software engineers chosen development platform. This module serves as the one that can provide a singular language for the full stack solution. The others provide enhancements where this may not be applicable.
-<img src="https://codemelted.com/assets/images/icon-pwsh.png" style="height: 25px;" /> | The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed, the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in ps1 scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text-based user interface. Lastly it will facilitate in developing applications utilizing the CodeMelted DEV Modules.
-<img src="https://codemelted.com/assets/images/icon-rust.png" style="height: 25px;" /> | The `codemelted.rs` module will be an installable crate that provides the full native speed of a C/C++ application but with modern language constructs and memory safety. While C/C++ still have their place in application development, memory safety proves to be the #1 attack vector of hackers. Rust was designed to address those shortcomings and is an ideal choice to address that attack vector.
+- <img src="https://codemelted.com/assets/images/icon-flutter.png" style="height: 25px;" />: The `codemelted.dart` module provides the power of Flutter to build Single Page Applications (SPA) with an easy setup to install the SPA as a Progressive Web App (PWA). This module only targets the Flutter web implementing Flutter specific code to take full advantage of the widget toolkit and Flutter native code that can be utilized within the web. The remaining use case functionality will take advantage of Flutter's bindings with the JavaScript browser APIs.
+- <img src="https://codemelted.com/assets/images/icon-js.png" style="height: 25px;" />: The `codemelted.js` module will be an ES6 module that supports its usage within Deno / NodeJS V8 runtimes for backend services along with Web browsers to support regular HTML / CSS / JS Single Page Application (SPA) development. The module will make heavy usage of JSDoc typing to ensure it works with available TypeScript type checkers within a software engineers chosen development platform. This module serves as the one that can provide a singular language for the full stack solution. The others provide enhancements where this may not be applicable.
+- <img src="https://codemelted.com/assets/images/icon-pwsh.png" style="height: 25px;" />: The `codemelted.ps1` script will provide a Command Line Interface (CLI) to facilitate common developer use cases on Mac, Linux, or Windows systems. When installed, the CLI will provide the `codemelted` command that can be accessed in a pwsh terminal or in ps1 scripts that facilitate a set of automated tasks. A developer may also build a Terminal User Interface (TUI) for a text-based user interface. Lastly it will facilitate in developing applications utilizing the CodeMelted DEV Modules.
+- <img src="https://codemelted.com/assets/images/icon-rust.png" style="height: 25px;" />: The `codemelted.rs` module will be an installable crate that provides the full native speed of a C/C++ application but with modern language constructs and memory safety. While C/C++ still have their place in application development, memory safety proves to be the #1 attack vector of hackers. Rust was designed to address those shortcomings and is an ideal choice to address that attack vector.
 
 ## 1.3 General Design Notes
 
@@ -39,10 +37,10 @@ title: Protocol Handlers
 classDiagram
   direction BT
   class CProtocolHandler {
-    error() String
-    get_message() T
+    id() String
+    get_message(request String) Result
     is_running() bool
-    post_message(T) bool
+    post_message(T) Result
     terminate()
   }
   class CWorkerProtocol
@@ -81,13 +79,11 @@ Function names will identify the use case followed by the action being taken. So
 
 ### 1.3.3 Module Versioning
 
-The versioning of each `codemelted` module will be captured via the languages SDK versioning method. It will utilize semantic versioning `X.Y.Z` with the following rules for the numbering scheme this project.
+The versioning of each `codemelted` module will be captured via the languages SDK versioning method. It will utilize a modified semantic versioning `X.Y.Z` with the following rules for the numbering scheme this project.
 
-- **X:** When the 14 identified use cases are fully functional.
-- **Y:** Use case function is implemented, documented, tested, and ready for usage by a developer.
-- **Z:** Bug fix or expansion of a use case.
-
-*NOTE: The 14 identified use cases represent the core use cases for the CodeMelted DEV Rosetta Stone project. Other use case unique to a given module will be documented with that module and not reflected within this main document. Those will be versioned with the `Y` component. A `2.Y.Z` will only apply if a module receives a new set of use cases adding more significant functionality.*
+- **X:** Year of release. Each new year resets the `Y.Z` values to `1`
+- **Y:** Breaking change to one of the use case functions or upgrade of dependencies requiring considerations within an app. A change in this value resets `.Z` to `1`.
+- **Z:** Bug fix, new use case function implemented, or expansion of a use case function. Continuously updated by adding one with each new release unless reset by `X.Y` changes.
 
 ### 1.3.4 Error Handling
 

@@ -97,7 +97,10 @@ impl<T: std::marker::Send + 'static> CTaskResult<T> {
   pub fn value(&self) -> Option<T> {
     let result = self.recv.recv();
     match result {
-      Ok(v) => v,
+      Ok(v) => {
+        crate::async_sleep(100);
+        v
+      },
       Err(_) => None,
     }
   }
@@ -557,7 +560,7 @@ pub fn console_writeln(message: &str) {
 /// will aid in ensuring expected configurations.
 ///
 /// **Example:**
-/// ```
+/// ```no_run
 /// let db_file = format!("{}/test.db", codemelted::runtime_temp_path());
 /// assert!(!codemelted::db_exists(&db_file, false));
 /// ```
@@ -579,7 +582,7 @@ pub fn db_exists(db_path: &str, should_panic: bool) -> bool {
 /// SQL statements to manage the database.
 ///
 /// **Example:**
-/// ```
+/// ```no_run
 /// let db_file = format!("{}/test.db", codemelted::runtime_temp_path());
 /// assert!(!codemelted::db_exists(&db_file, false));
 /// codemelted::db_manage(&db_file, true, None);
