@@ -41,8 +41,11 @@
   .header-search-options-layout {
     border-top: 5px solid #161E27;
     display: grid;
-    grid-template-columns: auto 50px;
+    grid-template-columns: auto 50px 50px 50px 50px;
     padding: 1px;
+  }
+  .header-search-options-layout a {
+    cursor: pointer;
   }
   .header-search-options-layout input {
     border: none;
@@ -57,7 +60,6 @@
   .header-search-options-layout a {
     text-decoration: none;
   }
-
 
   .header-socials {
     display: grid;
@@ -82,6 +84,9 @@
     <div class="header-search-options-layout">
       <input id="txtSearch" type="search" placeholder="Search Blog..."/>
       <a id="btnSearch">🔎</a>
+      <a title="Get the App" onclick="onOpenLinkClicked('app.codemelted.com'); return false;">💻</a>
+      <a title="Newsletter" onclick="onOpenLinkClicked('newsletter.codemelted.com'); return false;">📬</a>
+      <a title="CodeMelted DEV" onclick="onOpenLinkClicked('developer.codemelted.com'); return false;">🧑‍💻</a>
     </div>
     <div class="header-socials">
       <a title="Support My Work / Services" onclick="onOpenLinkClicked('buymeacoffee.com/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icon-buy-me-a-coffee.png" /></a>
