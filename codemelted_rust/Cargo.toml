@@ -10,7 +10,7 @@ edition = "2024"
 homepage = "https://codemelted.com/developer"
 repository = "https://github.com/codemelted/codemelted_developer"
 license = "MIT"
-publish = false
+publish = true
 
 [lib]
 path = 'codemelted.rs'
