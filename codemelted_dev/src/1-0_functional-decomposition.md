@@ -79,7 +79,7 @@ Function names will identify the use case followed by the action being taken. So
 
 ### 1.3.3 Module Versioning
 
-The versioning of each `codemelted` module will be captured via the languages SDK versioning method. It will utilize a modified semantic versioning `X.Y.Z` with the following rules for the numbering scheme this project.
+The versioning of each `codemelted` module will be captured via the languages SDK versioning method. It will utilize a modified semantic versioning `X.Y.Z` with the following rules for the numbering scheme for the module.
 
 - **X:** Year of release. Each new year resets the `Y.Z` values to `1`
 - **Y:** Breaking change to one of the use case functions or upgrade of dependencies requiring considerations within an app. A change in this value resets `.Z` to `1`.

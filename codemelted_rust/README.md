@@ -92,6 +92,14 @@ The goal of the `codemelted.rs` is to limit 3rd party items. However, some CodeM
 - *<a href="https://crates.io/crates/tokio" target="_blank">tokio:</a>* Utilized to allow for the consumption of asynchronous crates and turn them into the `codemelted` crate synchronous design.
 - *<a href="https://crates.io/crates/url" target="_blank">url:</a>* Supports url validation as part of the *JSON Domain Use Case*.
 
+## Crate Versioning
+
+The versioning of the `codemelted` crate will utilize a modified semantic versioning `X.Y.Z` with the following rules for the numbering scheme.
+
+- **X:** Year of release. Each new year resets the `Y.Z` values to `1`
+- **Y:** Breaking change to one of the use case functions or upgrade of dependencies requiring considerations within an app. A change in this value resets `.Z` to `1`.
+- **Z:** Bug fix, new use case function implemented, or expansion of a use case function. Continuously updated by adding one with each new release unless reset by `X.Y` changes.
+
 ## License
 
 MIT License
