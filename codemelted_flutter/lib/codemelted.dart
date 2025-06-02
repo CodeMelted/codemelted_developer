@@ -1,10 +1,8 @@
-// ignore_for_file: camel_case_types, constant_identifier_names
-
 /*
 ===============================================================================
 MIT License
 
-© 2024 Mark Shaffer. All Rights Reserved.
+© 2025 Mark Shaffer. All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -26,7 +24,7 @@ DEALINGS IN THE SOFTWARE.
 ===============================================================================
 */
 
-/// The codemelted.dart module provides the power of Flutter to build Single
+/// The `codemelted.dart` module provides the power of Flutter to build Single
 /// Page Applications (SPA) with an easy setup to install the SPA as a
 /// Progressive Web App (PWA). This module only targets the Flutter web
 /// implementing Flutter specific code to take full advantage of the widget
@@ -48,41 +46,75 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import "package:web/web.dart" as web;
 
 // ============================================================================
-// [DATA DEFINITION] ==========================================================
+// [MODULE DATA DEFINITION] ===================================================
 // ============================================================================
+
+/// Support object for the [CProtocolHandler] and any other object to provide
+/// a result where either the value or the error can be signaled for later
+/// checking by a user.
+class CResult<T> {
+  /// Hold the value of the given result or nothing if the [CResult] is being
+  /// used to signal there was no error.
+  final T? value;
+
+  /// The error encountered that requires an action by the user.
+  final String? error;
+
+  /// Stack trace associated with the handled error.
+  final StackTrace? st;
+
+  /// Signals the transaction completed with no errors.
+  bool get isOk => error == null;
+
+  /// Signals whether an error was captured or not.
+  bool get isError => error != null && error!.isNotEmpty;
+
+  /// Constructor for the object.
+  CResult({
+    this.value,
+    this.error,
+    this.st,
+  }) {
+    assert(
+      value != null && error == null,
+      "SyntaxError: Only value or error can be set. Not both!",
+    );
+    assert(
+      value == null && error != null,
+      "SyntaxError: Only value or error can be set. Not both!",
+    );
+  }
+}
 
 /// Defines the "rules" for objects that will setup a protocol that directly
 /// exchanges data with an external item, will continuously run until
 /// terminated, requires the ability to know it is running, and get any errors
 /// that have occurred during its run.
-abstract class CProtocolHandler {
-  /// Retrieves any currently processed errors.
-  Future<dynamic> getError();
-
+abstract class CProtocolHandler<T> {
   /// Retrieves any currently processed messages.
-  Future<dynamic> getMessage();
+  Future<CResult<T>> getMessage([String? request]);
 
   /// Signals if the protocol is running or not.
   bool get isRunning;
 
   /// Handles the sending od data to the protocol for processing.
-  void postMessage(dynamic data);
+  CResult<void> postMessage(T data);
 
   /// Signal for the protocol to terminate.
   void terminate();
 }
 
 // ============================================================================
-// [Async Use Case] ===========================================================
+// [ASYNC UC IMPLEMENTATION] ==================================================
 // ============================================================================
 
-/// The task to run as part of the [CodeMeltedAsync.task] call.
-typedef CTaskCB = Future<dynamic> Function([dynamic]);
+/// The task to run as part of the [asyncTask] call.
+typedef CTaskCB<T> = Future<CResult<T>> Function([dynamic]);
 
-/// The task to run as part of the [CodeMeltedAsync.timer] call.
+/// The task to run as part of the [asyncTimer] call.
 typedef CTimerCB = void Function();
 
-/// The result object from the [CodeMeltedAsync.timer] call to allow for
+/// The result object from the [asyncTimer] call to allow for
 /// stopping the running timer in the future.
 class CTimerResult {
   /// Holds the constructed flutter timer.
@@ -108,284 +140,242 @@ class CTimerResult {
 /// [web.MessageEvent] objects from the worker while the
 /// [CWorkerProtocol.getError] will retrieve either [web.MessageEvent] or
 /// [web.Event] objects. If no data is retrieved, then null is returned. The
-/// [codemelted_async] namespace accesses this object.
+/// [asyncWorker] function.
 ///
 /// **See:**
 /// - https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API)
 ///
-class CWorkerProtocol implements CProtocolHandler {
+class CWorkerProtocol implements CProtocolHandler<Object> {
+  /// Holds the processed errors by the worker.
+  final _errors = <CResult<Object>>[];
+
   /// The reference to the held worker.
   late web.Worker _worker;
 
-  /// Holds the processed errors by the worker.
-  final _errors = <dynamic>[];
-
   /// Holds the received messages by the worker.
-  final _messages = <dynamic>[];
+  final _messages = <Object>[];
 
   /// Determines if the worker has been terminated or not.
   bool _isRunning = true;
 
   @override
-  Future<dynamic> getError() async {
-    assert(isRunning, "CWorkerProtocol should be running!");
-    if (_errors.isNotEmpty) {
-      return _errors.removeAt(0);
-    }
-    return null;
-  }
+  Future<CResult<Object>> getMessage([String? request]) async {
+    assert(isRunning, "SyntaxError: CWorkerProtocol should be running!");
 
-  @override
-  Future<dynamic> getMessage() async {
-    assert(isRunning, "CWorkerProtocol should be running!");
-    if (_messages.isNotEmpty) {
-      return _messages.removeAt(0);
+    if (_errors.isNotEmpty) {
+      // We have errors, return those first.
+      return _errors.removeAt(0);
+    } else if (_messages.isNotEmpty) {
+      // We got data, go retrieve and return that.
+      return CResult(value: _messages.removeAt(0));
     }
-    return null;
+    // No messages, signal OK but with no data.
+    return CResult();
   }
 
   @override
   bool get isRunning => _isRunning;
 
   @override
-  void postMessage(dynamic data) {
-    assert(isRunning, "CWorkerProtocol should be running!");
-    _worker.postMessage(data.jsify());
+  CResult<void> postMessage(Object data) {
+    assert(isRunning, "SyntaxError: CWorkerProtocol should be running!");
+
+    // If there are any errors, return that instead of trying transaction.
+    // Something may need handling before attempting to perform the
+    // transaction.
+    if (_errors.isNotEmpty) {
+      return _errors.removeAt(0);
+    }
+
+    // Attempt the transaction but if something does not serialize, return the
+    // error.
+    try {
+      _worker.postMessage(data.jsify());
+    } catch (err, st) {
+      return CResult(error: err.toString(), st: st);
+    }
+
+    // Everything did as we expected.
+    return CResult();
   }
 
   @override
   void terminate() {
-    assert(isRunning, "CWorkerProtocol should be running!");
+    assert(isRunning, "SyntaxError: CWorkerProtocol should be running!");
     _isRunning = false;
     _worker.terminate();
   }
 
-  /// Constructor invoked via the [CodeMeltedAsync.worker] method.
+  /// Constructor invoked via the [asyncWorker] function.
   CWorkerProtocol._(String workerUrl, bool isModule) {
     web.WorkerOptions workerOptions = web.WorkerOptions();
     workerOptions["type"] = isModule ? "module".toJS : "classic".toJS;
     _worker = web.Worker(workerUrl.toJS, workerOptions);
     _worker.onmessage = (web.MessageEvent evt) {
       Future.delayed(Duration.zero, () {
-        _messages.add(evt);
+        var data = evt.data.dartify();
+        if (data != null) {
+          _messages.add(data);
+        }
       });
     }.toJS;
     _worker.onmessageerror = (web.MessageEvent evt) {
       Future.delayed(Duration.zero, () {
-        _errors.add(evt);
+        _errors.add(CResult(error: evt.toString(), st: StackTrace.current));
       });
     }.toJS;
     _worker.onerror = (web.Event evt) {
       Future.delayed(Duration.zero, () {
-        _errors.add(evt);
+        _errors.add(CResult(error: evt.toString(), st: StackTrace.current));
       });
     }.toJS;
   }
 }
 
-/// Implements the CodeMelted DEV Async use case. Provides the ability to
-/// asynchronously run tasks on the main thread by time slicing that thread.
-/// Both the [CodeMeltedAsync.task] and [CodeMeltedAsync.timer] run in
-/// the main thread but allow for scheduling the code amongst synchronous code.
-class CodeMeltedAsync {
-  /// Identifies the architecture of the host operating system. Always
-  /// UNDETERMINED as we await Browser Web API support.
-  ///
-  /// **See:**
-  /// - https://developer.mozilla.org/en-US/docs/Web/API/Navigator/userAgentData
-  String get cpuArch => "UNDETERMINED";
-
-  /// Identifies how many threads are available with the host operating system.
-  int get cpuCount => web.window.navigator.hardwareConcurrency;
-
-  /// Will put a currently running async task to sleep for a specified delay
-  /// in milliseconds.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// /// Sleeps an asynchronous task for 1 second.
-  /// await codemelted_async.sleep(1000);
-  /// ```
-  Future<void> sleep(int delay) async {
-    return Future.delayed(Duration(milliseconds: delay));
-  }
-
-  /// Schedules an asynchronous [CTaskCB] for a given delay in milliseconds
-  /// into the future with the ability to process the specified data and return
-  /// a result.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// // Schedule a task to run a calculation in the future to learn about
-  /// // the answer to life.
-  /// let answer = await codemelted_async.task(
-  ///   task: ([data]) {
-  ///     return data + 5;
-  ///   },
-  ///   data: 37,
-  ///   delay: 100,
-  /// );
-  /// ```
-  Future<dynamic> task({
-    required CTaskCB task,
-    dynamic data,
-    int delay = 0,
-  }) async {
-    return Future.delayed(
-      Duration(milliseconds: delay),
-      () => task(data),
-    );
-  }
-
-  /// Creates a repeating [CTimerCB] on the specified interval in milliseconds.
-  /// You top the task by calling the [CTimerResult.stop] returned by the
-  /// call.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// // Do some repeating task on a 1 second boundary.
-  /// let result = codemelted_async.timer(
-  ///   task: () {
-  ///     // Do a repeating task.
-  ///   },
-  ///   interval: 1000,
-  /// );
-  ///
-  /// // Sometime later after the repeating task is no longer needed.
-  /// result.stop();
-  /// ```
-  CTimerResult timer({required CTimerCB task, required int interval}) {
-    return CTimerResult(
-      Timer.periodic(
-        Duration(milliseconds: interval),
-        (timer) {
-          task();
-        },
-      ),
-    );
-  }
-
-  /// Creates a [CWorkerProtocol] object that has a dedicated background
-  /// thread for processing data types supported by Web Workers. The
-  /// [CWorkerProtocol] backend processing is implemented in JavaScript.
-  /// The backend JavaScript is a First In First Out (FIFO) message channel.
-  /// Calling [CWorkerProtocol.postMessage] will schedule data for processing.
-  /// Any received messages or errors are accessed via the
-  /// [CWorkerProtocol.getMessage] and [CWorkerProtocol.getError] respectively.
-  ///
-  /// *Example:*
-  /// ```
-  /// // Setup a worker where the worker.js is implemented as a module.
-  /// let worker = codemelted_async.worker(
-  ///   workerUrl: "worker.js",
-  ///   isModule: true,
-  /// );
-  ///
-  /// // To schedule work with the module. This example utilizes an object
-  /// // as the serialized work. NOTE: The work must support JavaScript
-  /// // Message Channel serialization.
-  /// worker.postMessage({
-  ///   "task": 1,
-  ///   "data": 42
-  /// });
-  ///
-  /// // To retrieve any messages or errors.
-  /// var rxData = await worker.getMessage();
-  /// var rxError = await worker.getError();
-  ///
-  /// // And when the worker is no longer needed.
-  /// worker.terminate();
-  /// ```
-  CWorkerProtocol worker({required String workerUrl, bool isModule = false}) {
-    return CWorkerProtocol._(workerUrl = workerUrl, isModule = isModule);
-  }
-
-  /// Gets the single instance of the API.
-  static CodeMeltedAsync? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CodeMeltedAsync() => _instance ?? CodeMeltedAsync._();
-
-  /// Sets up the namespace for the [CodeMeltedAsync] object.
-  CodeMeltedAsync._() {
-    _instance = this;
-  }
+/// Will put a currently running async task to sleep for a specified delay
+/// in milliseconds.
+///
+/// **Example:**
+/// ```dart
+/// /// Sleeps an asynchronous task for 1 second.
+/// await asyncSleep(1000);
+/// ```
+Future<void> asyncSleep(int delay) async {
+  return Future.delayed(Duration(milliseconds: delay));
 }
 
-/// Provides the namespace access to the [CodeMeltedAsync] object.
-var codemelted_async = CodeMeltedAsync();
+/// Schedules an asynchronous [CTaskCB] for a given delay in milliseconds
+/// into the future with the ability to process the specified data and return
+/// a result.
+///
+/// **Example:**
+/// ```dart
+/// // Schedule a task to run a calculation in the future to learn about
+/// // the answer to life.
+/// var result = await asyncTask<int>(
+///   task: ([data]) {
+///     return data + 5;
+///   },
+///   data: 37,
+/// );
+/// if (result.isOk) {
+///   print(result.value);
+/// } else {
+///   print("${result.error}\n${result.st}");
+/// }
+/// ```
+Future<CResult<T>> asyncTask<T>({
+  required CTaskCB<T> task,
+  dynamic data,
+  int delay = 0,
+}) async {
+  return Future.delayed(
+    Duration(milliseconds: delay),
+    () {
+      try {
+        return task(data);
+      } catch (err, st) {
+        return CResult(error: err.toString(), st: st);
+      }
+    },
+  );
+}
+
+/// Creates a repeating [CTimerCB] on the specified interval in milliseconds.
+/// You top the task by calling the [CTimerResult.stop] returned by the
+/// call.
+///
+/// **Example:**
+/// ```dart
+/// // Do some repeating task on a 1 second boundary.
+/// var timer = asyncTimer(
+///   task: () {
+///     // Do a repeating task.
+///   },
+///   interval: 1000,
+/// );
+///
+/// // Sometime later after the repeating task is no longer needed.
+/// timer.stop();
+/// ```
+CTimerResult asyncTimer({required CTimerCB task, required int interval}) {
+  return CTimerResult(
+    Timer.periodic(
+      Duration(milliseconds: interval),
+      (timer) {
+        task();
+      },
+    ),
+  );
+}
+
+/// Creates a [CWorkerProtocol] object that has a dedicated background
+/// thread for processing data types supported by Web Workers. The
+/// [CWorkerProtocol] backend processing is implemented in JavaScript.
+/// The backend JavaScript is a First In First Out (FIFO) message channel.
+/// Calling [CWorkerProtocol.postMessage] will schedule data for processing.
+/// Any received messages are accessed via the [CWorkerProtocol.getMessage].
+///
+/// *Example:*
+/// ```
+/// // Setup a worker where the worker.js is implemented as a module.
+/// let worker = asyncWorker(
+///   workerUrl: "worker.js",
+///   isModule: true,
+/// );
+///
+/// // To schedule work with the module. This example utilizes an object
+/// // as the serialized work. NOTE: The work must support JavaScript
+/// // Message Channel serialization.
+/// var success = worker.postMessage({
+///   "task": 1,
+///   "data": 42
+/// }).isOk;
+///
+/// // To retrieve and process any messages
+/// var result = await worker.getMessage();
+/// if (result.isOk) {
+///   print(result.value);
+/// } else {
+///   print("${result.error}\n${result.st}");
+/// }
+///
+/// // And when the worker is no longer needed.
+/// worker.terminate();
+/// ```
+CWorkerProtocol asyncWorker({
+  required String workerUrl,
+  bool isModule = false,
+}) {
+  return CWorkerProtocol._(workerUrl = workerUrl, isModule = isModule);
+}
 
 // ============================================================================
-// [Console Use Case] =========================================================
+// [CONSOLE UC IMPLEMENTATION] ================================================
 // ============================================================================
 
 // NOT APPLICABLE TO THIS MODULE.
 
 // ============================================================================
-// [DB Use Case] ==============================================================
+// [DB UC IMPLEMENTATION] =====================================================
 // ============================================================================
 
-/// @nodoc
-class CodeMeltedDB {
-  /// Gets the single instance of the API.
-  static CodeMeltedDB? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CodeMeltedDB() => _instance ?? CodeMeltedDB._();
-
-  /// Sets up the namespace for the [CodeMeltedDB] object.
-  CodeMeltedDB._() {
-    _instance = this;
-  }
-}
-
-/// @nodoc
-var codemelted_db = CodeMeltedDB();
+// TBD
 
 // ============================================================================
-// [Disk Use Case] ============================================================
+// [DISK UC IMPLEMENTATION] ===================================================
 // ============================================================================
 
-/// @nodoc
-class CodeMeltedDisk {
-  /// Gets the single instance of the API.
-  static CodeMeltedDisk? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CodeMeltedDisk() => _instance ?? CodeMeltedDisk._();
-
-  /// Sets up the namespace for the [CodeMeltedDiskAPI] object.
-  CodeMeltedDisk._() {
-    _instance = this;
-  }
-}
-
-/// @nodoc
-var codemelted_disk = CodeMeltedDisk();
+// TBD
 
 // ============================================================================
-// [HW Use Case] ==============================================================
+// [HW UC IMPLEMENTATION] =====================================================
 // ============================================================================
 
-/// @nodoc
-class CodeMeltedHW {
-  /// Gets the single instance of the API.
-  static CodeMeltedHW? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CodeMeltedHW() => _instance ?? CodeMeltedHW._();
-
-  /// Sets up the namespace for the [CodeMeltedHW] object.
-  CodeMeltedHW._() {
-    _instance = this;
-  }
-}
-
-/// @nodoc
-var codemelted_hw = CodeMeltedHW();
+// TBD
 
 // ============================================================================
-// [JSON Use Case] ============================================================
+// [JSON UC IMPLEMENTATION] ===================================================
 // ============================================================================
 
 /// Defines an array definition to match JSON Array construct.
@@ -530,7 +520,7 @@ extension CStringExtension on String {
   /// Will attempt to convert to a bool from a series of strings that can
   /// represent a true value.
   bool asBool() {
-    List<String> trueStrings = [
+    List<String> truthyStrings = [
       "true",
       "1",
       "t",
@@ -541,7 +531,7 @@ extension CStringExtension on String {
       "certainly",
       "uh-huh"
     ];
-    return trueStrings.contains(toLowerCase());
+    return truthyStrings.contains(toLowerCase());
   }
 
   /// Will attempt to return a double from the string value or null if it
@@ -567,320 +557,368 @@ extension CStringExtension on String {
   bool equalsIgnoreCase(String v) => toLowerCase() == v.toLowerCase();
 }
 
-/// Implements the CodeMelted DEV JSON use case. Provides the ability to work
-/// with JSON based data. This includes performing dat validations, parsing,
-/// stringify, and converting to basic data types. This is based on utilizing
-/// the [CArray] and [CObject] object along with the [CArrayExtension],
-/// [CObjectExtension], and [CStringExtension] extensions that facilitate
-/// this use case implementation. The [codemelted_json] is the namespace to
-/// access this object.
-class CodeMeltedJSON {
-  /// Checks the type of the dynamic data to ensure it is of an expected type
-  /// with an option to throw rather then checking the returned bool.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// // Some random data received somehow that is dynamic and you would not
-  /// // know the type.
-  /// var data = "duh";
-  ///
-  /// // Go perform a check of the type. Remember you can specify to throw
-  /// // vs. checking this way.
-  /// var isExpectedType = codemelted_json.checkType<bool>(data: data);
-  /// if (!isExpectedType) {
-  ///   // Handle that it is not what you expected.
-  /// }
-  /// ```
-  bool checkType<T>({required dynamic data, bool shouldThrow = false}) {
-    var result = data is T;
-    if (shouldThrow && !result) {
-      throw "data was not an expected type.";
-    }
-    return result;
+/// Checks the type of the dynamic data to ensure it is of an expected type
+/// with an option to throw rather then checking the returned bool.
+///
+/// **Example:**
+/// ```dart
+/// // Some random data received somehow that is dynamic and you would not
+/// // know the type.
+/// var data = "duh";
+///
+/// // Go perform a check of the type. Remember you can specify to throw
+/// // vs. checking this way.
+/// var isExpectedType = jsonCheckType<bool>(data: data);
+/// if (!isExpectedType) {
+///   // Handle that it is not what you expected.
+/// }
+/// ```
+bool jsonCheckType<T>({required dynamic data, bool shouldThrow = false}) {
+  var result = data is T;
+  if (shouldThrow && !result) {
+    throw "data was not an expected type.";
   }
-
-  /// Creates a JSON compliant [CArray] object.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// // To get a new CArray
-  /// var data = codemelted_json.createArray();
-  ///
-  /// // To get a copy of a CArray
-  /// var data = <CArray>[1, true, "false", 42.2, null];
-  /// var copy = codemelted_json.createArray(data);
-  /// ```
-  CArray createArray([CArray? data]) {
-    return data != null ? data.copy() : [];
-  }
-
-  /// Creates a JSON compliant [CObject] object.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// // To create a new CObject
-  /// var obj = codemelted_json.createObject();
-  ///
-  /// // To copy an existing object to a new object
-  /// var obj = <CObject>{
-  ///   "field1": 1,
-  ///   "field2": true,
-  ///   "field3": "duh",
-  ///   "field4": [1, 2, null, 4, false],
-  ///   "field5": {
-  ///     "life_answer": 42.2,
-  ///     "other_answers": null,
-  ///   }
-  /// };
-  /// var copy = codemelted_json.createObject(obj);
-  /// ```
-  CObject createObject([CObject? data]) {
-    return data != null ? CObject.from(data) : CObject();
-  }
-
-  /// Determines if a particular [CObject] has an expected key.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// // Given some data
-  /// var obj = <CObject>{
-  ///   "field1": 1,
-  ///   "field2": true,
-  ///   "field3": "duh",
-  ///   "field4": [1, 2, null, 4, false],
-  ///   "field5": {
-  ///     "life_answer": 42.2,
-  ///     "other_answers": null,
-  ///   }
-  /// };
-  ///
-  /// // Do what you will with the check
-  /// // You can also throw
-  /// var hasProperty = codemelted_json.hasProperty(
-  ///   data: obj,
-  ///   key: "field6"
-  /// );
-  /// ```
-  bool hasProperty({
-    required CObject data,
-    required String key,
-    bool shouldThrow = false,
-  }) {
-    var result = data.containsKey(key);
-    if (shouldThrow && !result) {
-      throw "data did not contain expected key.";
-    }
-    return result;
-  }
-
-  /// Will parse the given string data into a JSON compliant data type.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// // Given some string data
-  /// var data = "duh";
-  /// var parsed = codemelted_json.parse<int>(data);
-  /// if (parsed != null) {
-  ///   // Do what you will if valid
-  /// } else {
-  ///   // Do something else if it is not.
-  /// }
-  /// ```
-  T? parse<T>(String data) {
-    if (T is CArray) {
-      return data.asArray() as T?;
-    } else if (T is bool) {
-      return data.asBool() as T?;
-    } else if (T is double) {
-      return data.asDouble() as T?;
-    } else if (T is int) {
-      return data.asInt() as T?;
-    } else if (T is CObject) {
-      return data.asObject() as T?;
-    }
-    throw "SyntaxError: T was not a compliant JSON type.";
-  }
-
-  /// Will stringify either [CArray] or [CObject] data to a JSON compliant
-  /// string. Null is returned if it cannot be stringified.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// // Given some data
-  /// var obj = <CObject>{
-  ///   "field1": 1,
-  ///   "field2": true,
-  ///   "field3": "duh",
-  ///   "field4": [1, 2, null, 4, false],
-  ///   "field5": {
-  ///     "life_answer": 42.2,
-  ///     "other_answers": null,
-  ///   }
-  /// };
-  ///
-  /// var stringified = codemelted_json.stringify(obj);
-  /// ```
-  String? stringify(dynamic data) {
-    assert(
-      data is CArray || data is CObject,
-      "data must be CArray or CObject types",
-    );
-    return data.stringify();
-  }
-
-  /// Validates that a given string URL is valid with an option to throw vs
-  /// checking the return bool.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// // Given some url.
-  /// var url = "https://something.com";
-  /// codemelted_json.validUrl(
-  ///   url: url,
-  ///   shouldThrow: true, // Throw because we never expect it to be bad.
-  /// )
-  /// ```
-  bool validUrl({required String url, bool shouldThrow = false}) {
-    var valid = Uri.tryParse(url) != null;
-    if (shouldThrow && !valid) {
-      throw "url was not valid.";
-    }
-    return valid;
-  }
-
-  /// Gets the single instance of the API.
-  static CodeMeltedJSON? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CodeMeltedJSON() => _instance ?? CodeMeltedJSON._();
-
-  /// Sets up the namespace for the [CodeMeltedJSON] object.
-  CodeMeltedJSON._() {
-    _instance = this;
-  }
+  return result;
 }
 
-/// Provides the namespace access to the [CodeMeltedJSON] object.
-var codemelted_json = CodeMeltedJSON();
-
-// ============================================================================
-// [Logger Use Case] ==========================================================
-// ============================================================================
-
-/// @nodoc
-class CodeMeltedLogger {
-  /// Gets the single instance of the API.
-  static CodeMeltedLogger? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CodeMeltedLogger() => _instance ?? CodeMeltedLogger._();
-
-  /// Sets up the namespace for the [CodeMeltedLogger] object.
-  CodeMeltedLogger._() {
-    _instance = this;
-  }
+/// Creates a JSON compliant [CArray] object.
+///
+/// **Example:**
+/// ```dart
+/// // To get a new CArray
+/// var data = jsonCreateArray();
+///
+/// // To get a copy of a CArray
+/// var data2 = <CArray>[1, true, "false", 42.2, null];
+/// var copy = jsonCreateArray(data2);
+/// ```
+CArray jsonCreateArray([CArray? data]) {
+  return data != null ? data.copy() : [];
 }
 
-/// @nodoc
-var codemelted_logger = CodeMeltedLogger();
-
-// ============================================================================
-// [Network Use Case] =========================================================
-// ============================================================================
-
-/// @nodoc
-class CodeMeltedNetwork {
-  /// Gets the single instance of the API.
-  static CodeMeltedNetwork? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CodeMeltedNetwork() => _instance ?? CodeMeltedNetwork._();
-
-  /// Sets up the namespace for the [CodeMeltedNetwork] object.
-  CodeMeltedNetwork._() {
-    _instance = this;
-  }
+/// Creates a JSON compliant [CObject] object.
+///
+/// **Example:**
+/// ```dart
+/// // To create a new CObject
+/// var obj = jsonCreateObject();
+///
+/// // To copy an existing object to a new object
+/// var obj2 = <CObject>{
+///   "field1": 1,
+///   "field2": true,
+///   "field3": "duh",
+///   "field4": [1, 2, null, 4, false],
+///   "field5": {
+///     "life_answer": 42.2,
+///     "other_answers": null,
+///   }
+/// };
+/// var copy = jsonCreateObject(obj2);
+/// ```
+CObject jsonCreateObject([CObject? data]) {
+  return data != null ? CObject.from(data) : CObject();
 }
 
-/// @nodoc
-var codemelted_network = CodeMeltedNetwork();
+/// Determines if a particular [CObject] has an expected key.
+///
+/// **Example:**
+/// ```dart
+/// // Given some data
+/// var obj = <CObject>{
+///   "field1": 1,
+///   "field2": true,
+///   "field3": "duh",
+///   "field4": [1, 2, null, 4, false],
+///   "field5": {
+///     "life_answer": 42.2,
+///     "other_answers": null,
+///   }
+/// };
+///
+/// // Do what you will with the check
+/// // You can also throw
+/// var hasProperty = jsonHasKey(
+///   obj: obj,
+///   key: "field6"
+/// );
+/// print(hasProperty);
+/// ```
+bool jsonHasKey({
+  required CObject obj,
+  required String key,
+  bool shouldThrow = false,
+}) {
+  var result = obj.containsKey(key);
+  if (shouldThrow && !result) {
+    throw "data did not contain expected key.";
+  }
+  return result;
+}
+
+/// Will parse the given string data into a JSON compliant data type.
+///
+/// **Example:**
+/// ```dart
+/// // Given some string data
+/// var data = "duh";
+/// var parsed = jsonParse<int>(data);
+/// if (parsed != null) {
+///   // Do something with the parsed data.
+/// } else {
+///   print("Data not as expected");
+/// }
+/// ```
+T? jsonParse<T>(String data) {
+  if (T is CArray) {
+    return data.asArray() as T?;
+  } else if (T is bool) {
+    return data.asBool() as T;
+  } else if (T is double) {
+    return data.asDouble() as T?;
+  } else if (T is int) {
+    return data.asInt() as T?;
+  } else if (T is CObject) {
+    return data.asObject() as T?;
+  }
+  throw "SyntaxError: T was not a compliant JSON type.";
+}
+
+/// Will stringify either [CArray] or [CObject] data to a JSON compliant
+/// string. Null is returned if it cannot be stringified.
+///
+/// **Example:**
+/// ```dart
+/// // Given some data
+/// var obj = <CObject>{
+///   "field1": 1,
+///   "field2": true,
+///   "field3": "duh",
+///   "field4": [1, 2, null, 4, false],
+///   "field5": {
+///     "life_answer": 42.2,
+///     "other_answers": null,
+///   }
+/// };
+///
+/// var stringified = jsonStringify(obj);
+/// print(stringified);
+/// ```
+String? jsonStringify(dynamic data) {
+  assert(
+    data is CArray || data is CObject,
+    "data must be CArray or CObject types",
+  );
+  return data.stringify();
+}
+
+/// Validates that a given string URL is valid with an option to throw vs
+/// checking the return bool.
+///
+/// **Example:**
+/// ```dart
+/// // Given some url.
+/// var url = "https://something.com";
+/// jsonValidUrl(
+///   url: url,
+///   shouldThrow: true, // Throw because we never expect it to be bad.
+/// );
+/// ```
+bool jsonValidUrl({required String url, bool shouldThrow = false}) {
+  var valid = Uri.tryParse(url) != null;
+  if (shouldThrow && !valid) {
+    throw "url was not valid.";
+  }
+  return valid;
+}
+
+// ============================================================================
+// [LOGGER UC IMPLEMENTATION] =================================================
+// ============================================================================
+
+// TBD
+
+// ============================================================================
+// [MONITOR UC IMPLEMENTATION] ================================================
+// ============================================================================
+
+// TBD
+
+// ============================================================================
+// [NETWORK UC IMPLEMENTATION] ================================================
+// ============================================================================
+
+// TBD
 
 // ============================================================================
 // [NPU Use Case] =============================================================
 // ============================================================================
 
-/// @nodoc
-class CodeMeltedNPU {
-  /// Gets the single instance of the API.
-  static CodeMeltedNPU? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CodeMeltedNPU() => _instance ?? CodeMeltedNPU._();
-
-  /// Sets up the namespace for the [CodeMeltedNPU] object.
-  CodeMeltedNPU._() {
-    _instance = this;
-  }
-}
-
-/// @nodoc
-var codemelted_npu = CodeMeltedNPU();
+// TBD
 
 // ============================================================================
-// [Process Use Case] =========================================================
+// [PROCESS UC IMPLEMENTATION =================================================
 // ============================================================================
 
 // NOT APPLICABLE TO THIS MODULE
 
 // ============================================================================
-// [Storage Use Case] =========================================================
+// [RUNTIME UC IMPLEMENTATION] ================================================
 // ============================================================================
 
-/// @nodoc
-class CodeMeltedStorage {
-  /// Gets the single instance of the API.
-  static CodeMeltedStorage? _instance;
+/// Identifies the schema for usage with the [runtimeOpen] function.
+enum CSchemaType {
+  /// Represents the file protocol for accessing a local file.
+  file("file:"),
 
-  /// Sets up the internal instance for this object.
-  factory CodeMeltedStorage() => _instance ?? CodeMeltedStorage._();
+  /// Represents the HTTP protocol for a web server not secured.
+  http("http://"),
 
-  /// Sets up the namespace for the [CodeMeltedStorage] object.
-  CodeMeltedStorage._() {
-    _instance = this;
+  /// Represents the HTTP protocol for a web server that is secured.
+  https("https://"),
+
+  /// Represents the mailto protocol to open a desktop native service for
+  /// email.
+  mailto("mailto:"),
+
+  /// Represents the SMS protocol opening the app associated with texting.
+  sms("sms:"),
+
+  /// Represents the TEL protocol opening the app for making phone calls.
+  tel("tel:");
+
+  /// Holds the formatted protocol for the [runtimeOpen] call.
+  final String schema;
+
+  /// Constructor for the enumeration.
+  const CSchemaType(this.schema);
+
+  /// Utility function to format the [CSchemaType.mailto] parameter url.
+  static String formatMailToParams({
+    List<String> mailto = const [],
+    List<String> cc = const [],
+    List<String> bcc = const [],
+    String subject = "",
+    String body = "",
+  }) {
+    var url = "";
+
+    if (mailto.isNotEmpty) {
+      for (var addr in mailto) {
+        url += "$addr;";
+      }
+      url = url.substring(0, url.length - 1);
+    }
+
+    var delimiter = "?";
+    if (cc.isNotEmpty) {
+      url += "${delimiter}cc=";
+      delimiter = "&";
+      for (var addr in cc) {
+        url += "$addr;";
+      }
+      url = url.substring(0, url.length - 1);
+    }
+
+    if (bcc.isNotEmpty) {
+      url += "${delimiter}bcc=";
+      delimiter = "&";
+      for (var addr in bcc) {
+        url += "$addr;";
+      }
+      url = url.substring(0, url.length - 1);
+    }
+
+    if (subject.trim().isNotEmpty) {
+      url += "${delimiter}subject=${subject.trim()}";
+      delimiter = "&";
+    }
+
+    if (body.trim().isNotEmpty) {
+      url += "${delimiter}body=${body.trim()}";
+      delimiter = "&";
+    }
+
+    return url;
   }
 }
 
-/// @nodoc
-var codemelted_storage = CodeMeltedStorage();
+/// Identifies the architecture of the host operating system. Always
+/// UNDETERMINED as we await Browser Web API support.
+///
+/// **See:**
+/// - https://developer.mozilla.org/en-US/docs/Web/API/Navigator/userAgentData
+String get runtimeCpuArch => "UNDETERMINED";
 
-// ============================================================================
-// [System Use Case] ==========================================================
-// ============================================================================
+/// Identifies how many threads are available with the host operating system.
+int get runtimeCpuCount => web.window.navigator.hardwareConcurrency;
 
-/// @nodoc
-class CodeMeltedSystem {
-  /// Gets the single instance of the API.
-  static CodeMeltedSystem? _instance;
+/// Determines if the flutter app is a PWA or not.
+bool get runtimeIsPWA {
+  return web.window.matchMedia("(display-mode: standalone)").matches;
+}
 
-  /// Sets up the internal instance for this object.
-  factory CodeMeltedSystem() => _instance ?? CodeMeltedSystem._();
+/// Determines if the browser is a touch interface or not.
+bool get runtimeIsTouchEnabled {
+  return web.window.has("touchstart") ||
+      web.window.navigator.maxTouchPoints > 0;
+}
 
-  /// Sets up the namespace for the [CodeMeltedSystem] object.
-  CodeMeltedSystem._() {
-    _instance = this;
+/// Opens the specified protocol to a browser window or native app
+/// configured to handle the given [CSchemaType]. Returns the [web.Window]
+/// opened for later control.
+web.Window? runtimeOpen({
+  required CSchemaType schema,
+  bool popupWindow = false,
+  String? mailtoParams,
+  String? url,
+  String target = "_blank",
+  double? width,
+  double? height,
+}) {
+  var urlToLaunch = schema.schema;
+  if (schema == CSchemaType.file ||
+      schema == CSchemaType.http ||
+      schema == CSchemaType.https ||
+      schema == CSchemaType.sms ||
+      schema == CSchemaType.tel) {
+    urlToLaunch += url!;
+  } else if (schema == CSchemaType.mailto) {
+    urlToLaunch += mailtoParams ?? url!;
   }
+
+  if (popupWindow) {
+    var w = width ?? 900.0;
+    var h = height ?? 600.0;
+    var top = (web.window.screen.height - h) / 2;
+    var left = (web.window.screen.width - w) / 2;
+    var settings = "toolbar=no, location=no, "
+        "directories=no, status=no, menubar=no, "
+        "scrollbars=no, resizable=yes, copyhistory=no, "
+        "width=$w, height=$h, top=$top, left=$left";
+    return web.window.open(urlToLaunch, "_blank", settings);
+  }
+
+  return web.window.open(urlToLaunch, target);
 }
 
 // ============================================================================
-// [UI Use Case] ==============================================================
+// [STORAGE UC IMPLEMENTATION] ================================================
 // ============================================================================
 
-// ----------------------------------------------------------------------------
-// [App View Definitions] -----------------------------------------------------
-// ----------------------------------------------------------------------------
+// TBD
 
+// ============================================================================
+// [UI UC IMPLEMENTATION] =====================================================
+// ============================================================================
+
+/// Identifies the ability to open a close [CAppDrawerConfig] configured
+/// widgets.
 enum CAppDrawerAction {
+  /// Opens the widget.
   open,
+
+  /// Closes the widget.
   close;
 }
 
@@ -890,8 +928,8 @@ enum CAppDrawerAction {
 /// tree.
 typedef CAppViewResizeEventHandler = bool Function(Size);
 
-/// Provides the Single Page Application for the [CodeMeltedUI]. This is built
-/// via the [CodeMeltedUI.appConfig] function call which makes use of the
+/// Provides the Single Page Application for the [uiAppRun] function. This is
+/// built via the [uiAppConfig] function call which makes use of the
 /// [CAppViewConfig] objects to setup the SPA.
 ///
 /// **NOTE: It is recommended to not use this class directly and to use the
@@ -1109,20 +1147,20 @@ class CAppView extends StatefulWidget {
 
   /// Will programmatically close an open drawer on the [CAppView].
   static void closeDrawer() {
-    if (CodeMeltedUI.scaffoldKey.currentState!.isDrawerOpen) {
-      CodeMeltedUI.scaffoldKey.currentState!.closeDrawer();
+    if (uiScaffoldKey.currentState!.isDrawerOpen) {
+      uiScaffoldKey.currentState!.closeDrawer();
     }
-    if (CodeMeltedUI.scaffoldKey.currentState!.isEndDrawerOpen) {
-      CodeMeltedUI.scaffoldKey.currentState!.closeEndDrawer();
+    if (uiScaffoldKey.currentState!.isEndDrawerOpen) {
+      uiScaffoldKey.currentState!.closeEndDrawer();
     }
   }
 
   /// Will programmatically open a drawer on the [CAppView].
   static void openDrawer({bool isEndDrawer = false}) {
-    if (!isEndDrawer && CodeMeltedUI.scaffoldKey.currentState!.hasDrawer) {
-      CodeMeltedUI.scaffoldKey.currentState!.openDrawer();
-    } else if (CodeMeltedUI.scaffoldKey.currentState!.hasEndDrawer) {
-      CodeMeltedUI.scaffoldKey.currentState!.openEndDrawer();
+    if (!isEndDrawer && uiScaffoldKey.currentState!.hasDrawer) {
+      uiScaffoldKey.currentState!.openDrawer();
+    } else if (uiScaffoldKey.currentState!.hasEndDrawer) {
+      uiScaffoldKey.currentState!.openEndDrawer();
     }
   }
 
@@ -1132,7 +1170,7 @@ class CAppView extends StatefulWidget {
   CAppView({super.key}) {
     assert(
       !_isInitialized,
-      "Only one CSpaView can be created. It sets up a SPA.",
+      "Only one CAppView can be created. It sets up a SPA.",
     );
     _isInitialized = true;
   }
@@ -1150,7 +1188,7 @@ class _CAppViewState extends State<CAppView> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       darkTheme: CAppView.darkTheme,
-      navigatorKey: CodeMeltedUI.navigatorKey,
+      navigatorKey: uiNavigationKey,
       theme: CAppView.theme,
       themeMode: CAppView.themeMode,
       title: CAppView.title ?? "",
@@ -1182,7 +1220,7 @@ class _CAppViewState extends State<CAppView> {
           floatingActionButtonLocation: CAppView.uiState
               .get<FloatingActionButtonLocation?>(
                   key: "floatingActionButtonLocation"),
-          key: CodeMeltedUI.scaffoldKey,
+          key: uiScaffoldKey,
         ),
       ),
     );
@@ -1270,7 +1308,7 @@ class CAppFloatingActionButtonConfig extends CAppViewConfig {
 /// Provides the [CAppView] header / footer configuration.
 class CAppToolbarConfig extends CAppViewConfig {
   /// True for being the header, false for being the footer.
-  final bool isFooter;
+  final bool isHeader;
 
   /// The array of actions to put to the right of the title.
   final List<Widget>? actions;
@@ -1290,7 +1328,7 @@ class CAppToolbarConfig extends CAppViewConfig {
 
   @override
   void _execute() {
-    var exec = isFooter ? CAppView.footer : CAppView.header;
+    var exec = isHeader ? CAppView.header : CAppView.footer;
     exec(
       actions: actions,
       automaticallyImplyLeading: false,
@@ -1304,7 +1342,7 @@ class CAppToolbarConfig extends CAppViewConfig {
   /// Constructor for the class. Set actions leading, title to null to clear
   /// the header / footer.
   CAppToolbarConfig({
-    required this.isFooter,
+    required this.isHeader,
     this.actions,
     this.leading,
     this.title,
@@ -1314,7 +1352,7 @@ class CAppToolbarConfig extends CAppViewConfig {
 }
 
 /// Sets the overall SPA theme of the [CAppView] via the
-/// [CodeMeltedUI.themeData] function.
+/// [uiTheme] function.
 class CAppThemeConfig extends CAppViewConfig {
   /// Sets up the light theme for the overall SPA.
   final ThemeData? theme;
@@ -1344,101 +1382,34 @@ class CAppThemeConfig extends CAppViewConfig {
   });
 }
 
-// ----------------------------------------------------------------------------
-// [Dialog Definitions] -------------------------------------------------------
-// ----------------------------------------------------------------------------
-
+/// Identifies the [uiDialog] function supported dialog types.
 enum CDialogAction {
+  /// Displays an about dialog for the constructed [CAppView]
   about,
+
+  /// Displays a snack bar to alert the user of a condition.
   alert,
+
+  /// Opens a full page browser iFrame.
   browser,
+
+  /// Provides a half page selection of options.
   choose,
+
+  /// Will asynchronously close an open dialog.
   close,
+
+  /// Provides a confirmation Yes / No question to the user.
   confirm,
+
+  /// Provides a full page custom dialog to the [CAppView].
   custom,
+
+  /// Provides a loading half-page dialog closed via a [CDialogAction.close].
   loading,
+
+  /// Provides a single text field prompt input box.
   prompt;
-}
-
-// ----------------------------------------------------------------------------
-// [Schema Definitions] -------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// Identifies the schema for usage with the [CodeMeltedSystem.open] function.
-enum CSchemaType {
-  /// Represents the file protocol for accessing a local file.
-  file("file:"),
-
-  /// Represents the HTTP protocol for a web server not secured.
-  http("http://"),
-
-  /// Represents the HTTP protocol for a web server that is secured.
-  https("https://"),
-
-  /// Represents the mailto protocol to open a desktop native service for
-  /// email.
-  mailto("mailto:"),
-
-  /// Represents the SMS protocol opening the app associated with texting.
-  sms("sms:"),
-
-  /// Represents the TEL protocol opening the app for making phone calls.
-  tel("tel:");
-
-  /// Holds the formatted protocol for the [CodeMeltedSystem.open] call.
-  final String schema;
-
-  /// Constructor for the enumeration.
-  const CSchemaType(this.schema);
-
-  /// Utility function to format the [CSchemaType.mailto] parameter url.
-  static String formatMailToParams({
-    List<String> mailto = const [],
-    List<String> cc = const [],
-    List<String> bcc = const [],
-    String subject = "",
-    String body = "",
-  }) {
-    var url = "";
-
-    if (mailto.isNotEmpty) {
-      for (var addr in mailto) {
-        url += "$addr;";
-      }
-      url = url.substring(0, url.length - 1);
-    }
-
-    var delimiter = "?";
-    if (cc.isNotEmpty) {
-      url += "${delimiter}cc=";
-      delimiter = "&";
-      for (var addr in cc) {
-        url += "$addr;";
-      }
-      url = url.substring(0, url.length - 1);
-    }
-
-    if (bcc.isNotEmpty) {
-      url += "${delimiter}bcc=";
-      delimiter = "&";
-      for (var addr in bcc) {
-        url += "$addr;";
-      }
-      url = url.substring(0, url.length - 1);
-    }
-
-    if (subject.trim().isNotEmpty) {
-      url += "${delimiter}subject=${subject.trim()}";
-      delimiter = "&";
-    }
-
-    if (body.trim().isNotEmpty) {
-      url += "${delimiter}body=${body.trim()}";
-      delimiter = "&";
-    }
-
-    return url;
-  }
 }
 
 // ----------------------------------------------------------------------------
@@ -1667,17 +1638,13 @@ class CInputDecorationTheme extends InputDecorationTheme {
 /// Provides a wrapper around the Flutter ThemeData object that isolates
 /// the application theming to the material3 constructs of Flutter. Extended
 /// existing ThemeData objects utilized to provide a similar theming experience.
-/// The theme is created via the [CodeMeltedUI.themeData] method.
+/// The theme is created via the [uiTheme] function.
 extension ThemeDataExtension on ThemeData {
   /// Gets access to the specialized input decoration theme to pick up styles
   /// for all items that may utilize it.
   CInputDecorationTheme get cInputDecorationTheme =>
       inputDecorationTheme as CInputDecorationTheme;
 }
-
-// ----------------------------------------------------------------------------
-// [Widget Definitions] -------------------------------------------------------
-// ----------------------------------------------------------------------------
 
 /// Base Widget configuration for the [CodeMeltedUI.widget] widget building
 /// function.
@@ -2649,7 +2616,7 @@ class CUiTabItem {
 //       material3 widgets.
 
 /// Widget associated with the [CUiTabbedViewWidget] to build a tabbed
-/// interface of content via the [CodeMeltedUI.widget] function.
+/// interface of content via the [uiWidget] function.
 class CUiTabbedView extends StatefulWidget {
   /// The list of [CUiTabItem] definitions of the tabbed content.
   final List<CUiTabItem> tabItems;
@@ -3177,555 +3144,483 @@ class CUiWebViewWidget extends CUiWidget {
   CUiWebViewWidget({required this.controller});
 }
 
-/// Implements the CodeMelted DEV UI use case. This provides the ability to
-/// utilize Flutter's rich widget system to define a [CAppView] to represent a
-/// Single Page Application (SPA). This is accomplished with the
-/// [CodeMeltedUI.appConfig] function. The [CodeMeltedUI.widget] function aids
-/// in building the the UI with [CUiWidget] objects. The
-/// [CodeMeltedUI.themeData] provides the ability to set a material3 theme for
-/// view along with the [CodeMeltedUI.dialog] providing page support. Once
-/// everything is reading, just call the [CodeMeltedUI.appRun] to kick off the
-/// SPA.
-class CodeMeltedUI {
-  /// Sets up a global navigator key for usage with dialogs rendered with the
-  /// [dialog] function.
-  static final navigatorKey = GlobalKey<NavigatorState>();
+/// Sets up a global navigator key for usage with dialogs rendered with the
+/// [uiDialog] function.
+final uiNavigationKey = GlobalKey<NavigatorState>();
 
-  /// Sets up a global scaffold key for opening drawers and such on the
-  /// [CAppView] widget..
-  static final scaffoldKey = GlobalKey<ScaffoldState>();
+/// Sets up a global scaffold key for opening drawers and such on the
+/// [CAppView] widget..
+final uiScaffoldKey = GlobalKey<ScaffoldState>();
 
-  /// Configures the [CAppView] utilizing the [CAppViewConfig] objects to setup
-  /// the SPA.
-  void appConfig(CAppViewConfig config) {
-    config._execute();
-  }
+/// Configures the [CAppView] utilizing the [CAppViewConfig] objects to setup
+/// the SPA.
+void uiAppConfig(CAppViewConfig config) {
+  config._execute();
+}
 
-  /// Handles the opening / closing of the drawer areas of the [CAppView].
-  void appDrawer({
-    required CAppDrawerAction action,
-    required bool isEndDrawer,
-  }) {
-    if (action == CAppDrawerAction.open) {
-      CAppView.openDrawer(isEndDrawer: isEndDrawer);
-    } else if (action == CAppDrawerAction.close) {
-      CAppView.closeDrawer();
-    }
-  }
-
-  /// Provides the ability to get items from the global app state.
-  T appStateGet<T>({required String key}) {
-    return CAppView.uiState.get<T>(key: key);
-  }
-
-  /// Provides the ability to set items on the global app state.
-  void appStateSet<T>({required String key, required T value}) {
-    CAppView.uiState.set<T>(key: key, value: value);
-  }
-
-  // TODO: Future instead of appRun when running full PWA the runWidget.
-
-  /// Kicks off the running of a web applications within a runZoneGuarded
-  /// so any errors during runtime are logged. Specify the webApp parameter if
-  /// you have your own UI you are using or leave null if you are utilizing the
-  /// [CAppView] construct of this module setup via the [appConfig] method.
-  void appRun({
-    Future<void> Function()? preInit,
-    Widget? webApp,
-    Future<void> Function()? postInit,
-  }) {
-    runZonedGuarded<Future<void>>(() async {
-      // Ensure flutter is initialized.
-      WidgetsFlutterBinding.ensureInitialized();
-
-      // Do any pre-initialization
-      await preInit?.call();
-
-      // Kick-off the application.
-      runApp(webApp ?? CAppView());
-
-      // Do any post-initialization
-      await postInit?.call();
-    }, (error, stack) {
-      // TODO: Run with logging
-      print("$error, $stack");
-    });
-  }
-
-  /// Provides the ability utilize Flutter's [BottomSheet] / [SnackBar] /
-  /// [LicensePage] constructs to interact with a user. The different
-  /// [CDialogAction] actions in combination with the named parameters provide
-  /// this interaction. Certain [CDialogAction] will return values with their
-  /// own close action vs. other actions where you will need to call the
-  /// [CDialogAction.close] to properly return values.
-  Future<T?> dialog<T>({
-    required CDialogAction action,
-    Widget? appIcon,
-    String? appName,
-    String? appVersion,
-    String? appLegalese,
-    Widget? leading,
-    List<Widget>? actions,
-    List<String>? choices,
-    String? title,
-    String? message,
-    Widget? content,
-    double? height,
-    T? returnValue,
-  }) async {
-    if (action == CDialogAction.about) {
-      showLicensePage(
-        context: navigatorKey.currentContext!,
-        applicationIcon: appIcon,
-        applicationName: appName,
-        applicationVersion: appVersion,
-        applicationLegalese: appLegalese,
-        useRootNavigator: true,
-      );
-    } else if (action == CDialogAction.close) {
-      Navigator.of(
-        navigatorKey.currentContext!,
-        rootNavigator: true,
-      ).pop(returnValue);
-    } else {
-      // Setup our widgets for the dialog
-      var closeButton = widget(
-        CUiButtonWidget(
-          icon: Icons.close,
-          type: CUiButtonType.icon,
-          title: "Close",
-          onPressed: () => dialog<void>(action: CDialogAction.close),
-        ),
-      );
-      List<Widget>? sheetActions;
-      Widget? sheetContent;
-      double maxHeight = height ?? 300.0;
-
-      // Determine the type of dialog we are going to build.
-      if (action == CDialogAction.alert) {
-        // TODO: change to snackbar.
-        sheetActions = [closeButton];
-        sheetContent = widget(
-          CUiCenterWidget(
-            child: widget(
-              CUiContainerWidget(
-                padding: EdgeInsets.all(15.0),
-                child: widget(
-                  CUiLabelWidget(
-                    data: message!,
-                    softWrap: true,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      } else if (action == CDialogAction.browser) {
-        sheetActions = [closeButton];
-        if (actions != null) {
-          sheetActions.insertAll(0, actions);
-        }
-        sheetContent = widget(
-          CUiWebViewWidget(
-            controller: CUiWebViewController(
-              initialUrl: message!,
-            ),
-          ),
-        );
-      } else if (action == CDialogAction.choose) {
-        int answer = 0;
-        sheetActions = [
-          widget(
-            CUiButtonWidget(
-              type: CUiButtonType.text,
-              title: "OK",
-              onPressed: () => dialog<int>(
-                action: CDialogAction.close,
-                returnValue: answer,
-              ),
-            ),
-          ),
-        ];
-
-        final dropdownItems = <DropdownMenuEntry<int>>[];
-        for (final (index, choices) in choices!.indexed) {
-          dropdownItems.add(DropdownMenuEntry(label: choices, value: index));
-        }
-
-        sheetContent = widget(
-          CUiCenterWidget(
-            child: widget(
-              CUiContainerWidget(
-                padding: EdgeInsets.all(15.0),
-                child: widget(
-                  CUiComboBoxWidget<int>(
-                    width: double.maxFinite,
-                    label: widget(
-                      CUiLabelWidget(
-                        data: message ?? "",
-                        softWrap: true,
-                      ),
-                    ),
-                    dropdownMenuEntries: dropdownItems,
-                    enableSearch: false,
-                    initialSelection: 0,
-                    onSelected: (v) {
-                      answer = v!;
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      } else if (action == CDialogAction.confirm) {
-        sheetActions = [
-          widget(
-            CUiButtonWidget(
-              type: CUiButtonType.text,
-              title: "Yes",
-              onPressed: () => dialog<bool>(
-                action: CDialogAction.close,
-                returnValue: true,
-              ),
-            ),
-          ),
-          widget(
-            CUiButtonWidget(
-              type: CUiButtonType.text,
-              title: "No",
-              onPressed: () => dialog<bool>(
-                action: CDialogAction.close,
-                returnValue: true,
-              ),
-            ),
-          ),
-        ];
-        sheetContent = widget(
-          CUiCenterWidget(
-            child: widget(
-              CUiContainerWidget(
-                padding: EdgeInsets.all(15.0),
-                child: widget(
-                  CUiLabelWidget(
-                    data: message!,
-                    softWrap: true,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      } else if (action == CDialogAction.custom) {
-        sheetActions = actions;
-        sheetContent = content!;
-      } else if (action == CDialogAction.loading) {
-        sheetContent = widget(
-          CUiCenterWidget(
-            child: widget(
-              CUiContainerWidget(
-                padding: EdgeInsets.all(15.0),
-                child: widget(
-                  CUiColumnWidget(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        height: 25.0,
-                        width: 25.0,
-                        child: CircularProgressIndicator(),
-                      ),
-                      widget(CUiDividerWidget(height: 5.0)),
-                      widget(
-                        CUiLabelWidget(
-                          data: message!,
-                          softWrap: true,
-                          style: TextStyle(overflow: TextOverflow.ellipsis),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      } else if (action == CDialogAction.prompt) {
-        String answer = "";
-        sheetActions = [
-          widget(
-            CUiButtonWidget(
-              type: CUiButtonType.text,
-              title: "OK",
-              onPressed: () => dialog<String>(
-                action: CDialogAction.close,
-                returnValue: answer,
-              ),
-            ),
-          ),
-        ];
-        sheetContent = widget(
-          CUiCenterWidget(
-            child: widget(
-              CUiContainerWidget(
-                padding: EdgeInsets.all(15.0),
-                child: widget(
-                  CUiTextFieldWidget(
-                    labelText: message ?? "",
-                    onChanged: (v) => answer = v,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      }
-
-      // Now go show the dialog as a bottom sheet to the page.
-      return showModalBottomSheet<T>(
-        constraints: BoxConstraints(
-          maxHeight: maxHeight,
-        ),
-        enableDrag: false,
-        isDismissible: false,
-        isScrollControlled: true,
-        useSafeArea: true,
-        useRootNavigator: true,
-        context: navigatorKey.currentContext!,
-        builder: (context) {
-          return PointerInterceptor(
-            child: Scaffold(
-              appBar: AppBar(
-                leading: leading,
-                automaticallyImplyLeading: false,
-                actions: sheetActions,
-                centerTitle: false,
-                title: Text(title ?? action.name.toUpperCase()),
-                titleSpacing: 15.0,
-              ),
-              body: sheetContent!,
-            ),
-          );
-        },
-      );
-    }
-    return null;
-  }
-
-  /// Retrieves the height of the overall browser window.
-  double height(BuildContext context) {
-    return MediaQuery.of(context).size.height;
-  }
-
-  /// Determines if the flutter app is a PWA or not.
-  bool get isPWA {
-    return web.window.matchMedia("(display-mode: standalone)").matches;
-  }
-
-  /// Determines if the browser is a touch interface or not.
-  bool get isTouchEnabled {
-    return web.window.has("touchstart") ||
-        web.window.navigator.maxTouchPoints > 0;
-  }
-
-  /// Opens the specified protocol to a browser window or native app
-  /// configured to handle the given [CSchemaType]. Returns the [web.Window]
-  /// opened for later control.
-  web.Window? open({
-    required CSchemaType schema,
-    bool popupWindow = false,
-    String? mailtoParams,
-    String? url,
-    String target = "_blank",
-    double? width,
-    double? height,
-  }) {
-    var urlToLaunch = schema.schema;
-    if (schema == CSchemaType.file ||
-        schema == CSchemaType.http ||
-        schema == CSchemaType.https ||
-        schema == CSchemaType.sms ||
-        schema == CSchemaType.tel) {
-      urlToLaunch += url!;
-    } else if (schema == CSchemaType.mailto) {
-      urlToLaunch += mailtoParams ?? url!;
-    }
-
-    if (popupWindow) {
-      var w = width ?? 900.0;
-      var h = height ?? 600.0;
-      var top = (web.window.screen.height - h) / 2;
-      var left = (web.window.screen.width - w) / 2;
-      var settings = "toolbar=no, location=no, "
-          "directories=no, status=no, menubar=no, "
-          "scrollbars=no, resizable=yes, copyhistory=no, "
-          "width=$w, height=$h, top=$top, left=$left";
-      return web.window.open(urlToLaunch, "_blank", settings);
-    }
-
-    return web.window.open(urlToLaunch, target);
-  }
-
-  /// Creates a [ThemeData] object but it only exposes the material3 themes so
-  /// that any application theming is done with the future in mind.
-  ThemeData themeData({
-    ActionIconThemeData? actionIconTheme,
-    AppBarTheme? appBarTheme,
-    BadgeThemeData? badgeTheme,
-    MaterialBannerThemeData? bannerTheme,
-    BottomAppBarTheme? bottomAppBarTheme,
-    BottomNavigationBarThemeData? bottomNavigationBarTheme,
-    BottomSheetThemeData? bottomSheetTheme,
-    Brightness? brightness,
-    ButtonThemeData? buttonTheme,
-    CardThemeData? cardTheme,
-    CheckboxThemeData? checkboxTheme,
-    ChipThemeData? chipTheme,
-    ColorScheme? colorScheme,
-    DataTableThemeData? dataTableTheme,
-    DatePickerThemeData? datePickerTheme,
-    DividerThemeData? dividerTheme,
-    DialogThemeData? dialogTheme,
-    DrawerThemeData? drawerTheme,
-    DropdownMenuThemeData? dropdownMenuTheme,
-    ElevatedButtonThemeData? elevatedButtonTheme,
-    ExpansionTileThemeData? expansionTileTheme,
-    FilledButtonThemeData? filledButtonTheme,
-    FloatingActionButtonThemeData? floatingActionButtonTheme,
-    IconButtonThemeData? iconButtonTheme,
-    IconThemeData? iconTheme,
-    InputDecorationTheme? inputDecorationTheme,
-    ListTileThemeData? listTileTheme,
-    MaterialTapTargetSize? materialTapTargetSize,
-    MenuBarThemeData? menuBarTheme,
-    MenuButtonThemeData? menuButtonTheme,
-    MenuThemeData? menuTheme,
-    NavigationBarThemeData? navigationBarTheme,
-    NavigationDrawerThemeData? navigationDrawerTheme,
-    NavigationRailThemeData? navigationRailTheme,
-    OutlinedButtonThemeData? outlinedButtonTheme,
-    PageTransitionsTheme? pageTransitionsTheme,
-    PopupMenuThemeData? popupMenuTheme,
-    IconThemeData? primaryIconTheme,
-    ProgressIndicatorThemeData? progressIndicatorTheme,
-    TextTheme? primaryTextTheme,
-    RadioThemeData? radioTheme,
-    ScrollbarThemeData? scrollbarTheme,
-    SearchBarThemeData? searchBarTheme,
-    SearchViewThemeData? searchViewTheme,
-    SegmentedButtonThemeData? segmentedButtonTheme,
-    SnackBarThemeData? snackBarTheme,
-    SliderThemeData? sliderTheme,
-    InteractiveInkFeatureFactory? splashFactory,
-    SwitchThemeData? switchTheme,
-    TabBarThemeData? tabBarTheme,
-    TextButtonThemeData? textButtonTheme,
-    TextSelectionThemeData? textSelectionTheme,
-    TextTheme? textTheme,
-    TimePickerThemeData? timePickerTheme,
-    ToggleButtonsThemeData? toggleButtonsTheme,
-    TooltipThemeData? tooltipTheme,
-    Typography? typography,
-    VisualDensity? visualDensity,
-  }) {
-    return ThemeData(
-      actionIconTheme: actionIconTheme,
-      appBarTheme: appBarTheme,
-      badgeTheme: badgeTheme,
-      bannerTheme: bannerTheme,
-      bottomAppBarTheme: bottomAppBarTheme,
-      bottomNavigationBarTheme: bottomNavigationBarTheme,
-      bottomSheetTheme: bottomSheetTheme,
-      brightness: brightness,
-      buttonTheme: buttonTheme,
-      cardTheme: cardTheme,
-      checkboxTheme: checkboxTheme,
-      chipTheme: chipTheme,
-      colorScheme: colorScheme,
-      dataTableTheme: dataTableTheme,
-      datePickerTheme: datePickerTheme,
-      dialogTheme: dialogTheme,
-      dividerTheme: dividerTheme,
-      drawerTheme: drawerTheme,
-      dropdownMenuTheme: dropdownMenuTheme,
-      elevatedButtonTheme: elevatedButtonTheme,
-      expansionTileTheme: expansionTileTheme,
-      filledButtonTheme: filledButtonTheme,
-      floatingActionButtonTheme: floatingActionButtonTheme,
-      iconButtonTheme: iconButtonTheme,
-      iconTheme: iconTheme,
-      inputDecorationTheme: inputDecorationTheme,
-      listTileTheme: listTileTheme,
-      materialTapTargetSize: materialTapTargetSize,
-      menuBarTheme: menuBarTheme,
-      menuButtonTheme: menuButtonTheme,
-      menuTheme: menuTheme,
-      navigationBarTheme: navigationBarTheme,
-      navigationDrawerTheme: navigationDrawerTheme,
-      navigationRailTheme: navigationRailTheme,
-      outlinedButtonTheme: outlinedButtonTheme,
-      pageTransitionsTheme: pageTransitionsTheme,
-      popupMenuTheme: popupMenuTheme,
-      primaryIconTheme: primaryIconTheme,
-      primaryTextTheme: primaryTextTheme,
-      progressIndicatorTheme: progressIndicatorTheme,
-      radioTheme: radioTheme,
-      scrollbarTheme: scrollbarTheme,
-      searchBarTheme: searchBarTheme,
-      searchViewTheme: searchViewTheme,
-      segmentedButtonTheme: segmentedButtonTheme,
-      sliderTheme: sliderTheme,
-      snackBarTheme: snackBarTheme,
-      splashFactory: splashFactory,
-      switchTheme: switchTheme,
-      tabBarTheme: tabBarTheme,
-      textButtonTheme: textButtonTheme,
-      textSelectionTheme: textSelectionTheme,
-      textTheme: textTheme,
-      timePickerTheme: timePickerTheme,
-      toggleButtonsTheme: toggleButtonsTheme,
-      tooltipTheme: tooltipTheme,
-      useMaterial3: true,
-      visualDensity: visualDensity,
-    );
-  }
-
-  /// Provides the ability to define [CUiWidget] objects to define a Fluter
-  /// user interface. This does not prevent the use of regular Flutter widgets.
-  /// It simply provides a mechanism of vetted reusable widgets for this
-  /// module.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// // Example building a button laid out declarative style
-  /// // if you were building a UI.
-  /// codemelted_ui.widget(
-  ///   CUiButtonWidget(
-  ///     title: "POST",
-  ///     type: CUiButtonType.elevated,
-  ///     onPressed: () {},
-  ///   ),
-  /// ),
-  /// ```
-  Widget widget(CUiWidget widget) {
-    return widget._build();
-  }
-
-  /// Gets the overall width of the given context.
-  double width(BuildContext context) {
-    return MediaQuery.of(context).size.width;
-  }
-
-  /// Gets the single instance of the API.
-  static CodeMeltedUI? _instance;
-
-  /// Sets up the internal instance for this object.
-  factory CodeMeltedUI() => _instance ?? CodeMeltedUI._();
-
-  /// Sets up the namespace for the [CodeMeltedUI] object.
-  CodeMeltedUI._() {
-    _instance = this;
+/// Handles the opening / closing of the drawer areas of the [CAppView].
+void uiAppDrawer({
+  required CAppDrawerAction action,
+  required bool isEndDrawer,
+}) {
+  if (action == CAppDrawerAction.open) {
+    CAppView.openDrawer(isEndDrawer: isEndDrawer);
+  } else if (action == CAppDrawerAction.close) {
+    CAppView.closeDrawer();
   }
 }
 
-/// Provides the namespace access to the [CodeMeltedUI] object.
-var codemelted_ui = CodeMeltedUI();
+/// Provides the ability to get items from the global app state.
+T uiAppStateGet<T>({required String key}) {
+  return CAppView.uiState.get<T>(key: key);
+}
+
+/// Provides the ability to set items on the global app state.
+void uiAppStateSet<T>({required String key, required T value}) {
+  CAppView.uiState.set<T>(key: key, value: value);
+}
+
+// TODO: Future instead of appRun when running full PWA the runWidget.
+
+/// Kicks off the running of a web applications within a runZoneGuarded
+/// so any errors during runtime are logged. Specify the webApp parameter if
+/// you have your own UI you are using or leave null if you are utilizing the
+/// [CAppView] construct of this module setup via the [appConfig] method.
+void uiAppRun({
+  Future<void> Function()? preInit,
+  Widget? webApp,
+  Future<void> Function()? postInit,
+}) {
+  runZonedGuarded<Future<void>>(() async {
+    // Ensure flutter is initialized.
+    WidgetsFlutterBinding.ensureInitialized();
+
+    // Do any pre-initialization
+    await preInit?.call();
+
+    // Kick-off the application.
+    runApp(webApp ?? CAppView());
+
+    // Do any post-initialization
+    await postInit?.call();
+  }, (error, stack) {
+    // TODO: Run with logging
+    print("$error, $stack");
+  });
+}
+
+/// Provides the ability utilize Flutter's [BottomSheet] / [SnackBar] /
+/// [LicensePage] constructs to interact with a user. The different
+/// [CDialogAction] actions in combination with the named parameters provide
+/// this interaction. Certain [CDialogAction] will return values with their
+/// own close action vs. other actions where you will need to call the
+/// [CDialogAction.close] to properly return values.
+Future<T?> uiDialog<T>({
+  required CDialogAction action,
+  Widget? appIcon,
+  String? appName,
+  String? appVersion,
+  String? appLegalese,
+  Widget? leading,
+  List<Widget>? actions,
+  List<String>? choices,
+  String? title,
+  String? message,
+  Widget? content,
+  double? height,
+  T? returnValue,
+}) async {
+  if (action == CDialogAction.about) {
+    showLicensePage(
+      context: uiNavigationKey.currentContext!,
+      applicationIcon: appIcon,
+      applicationName: appName,
+      applicationVersion: appVersion,
+      applicationLegalese: appLegalese,
+      useRootNavigator: true,
+    );
+  } else if (action == CDialogAction.close) {
+    Navigator.of(
+      uiNavigationKey.currentContext!,
+      rootNavigator: true,
+    ).pop(returnValue);
+  } else {
+    // Setup our widgets for the dialog
+    var closeButton = uiWidget(
+      CUiButtonWidget(
+        icon: Icons.close,
+        type: CUiButtonType.icon,
+        title: "Close",
+        onPressed: () => uiDialog<void>(action: CDialogAction.close),
+      ),
+    );
+    List<Widget>? sheetActions;
+    Widget? sheetContent;
+    double maxHeight = height ?? 300.0;
+
+    // Determine the type of dialog we are going to build.
+    if (action == CDialogAction.alert) {
+      sheetContent = uiWidget(
+        CUiCenterWidget(
+          child: uiWidget(
+            CUiContainerWidget(
+              padding: EdgeInsets.all(15.0),
+              child: uiWidget(
+                CUiLabelWidget(
+                  data: message!,
+                  softWrap: true,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      ScaffoldMessenger.of(
+        uiNavigationKey.currentContext!,
+      ).showSnackBar(SnackBar(content: sheetContent));
+      return null;
+    } else if (action == CDialogAction.browser) {
+      sheetActions = [closeButton];
+      if (actions != null) {
+        sheetActions.insertAll(0, actions);
+      }
+      sheetContent = uiWidget(
+        CUiWebViewWidget(
+          controller: CUiWebViewController(
+            initialUrl: message!,
+          ),
+        ),
+      );
+    } else if (action == CDialogAction.choose) {
+      int answer = 0;
+      sheetActions = [
+        uiWidget(
+          CUiButtonWidget(
+            type: CUiButtonType.text,
+            title: "OK",
+            onPressed: () => uiDialog<int>(
+              action: CDialogAction.close,
+              returnValue: answer,
+            ),
+          ),
+        ),
+      ];
+
+      final dropdownItems = <DropdownMenuEntry<int>>[];
+      for (final (index, choices) in choices!.indexed) {
+        dropdownItems.add(DropdownMenuEntry(label: choices, value: index));
+      }
+
+      sheetContent = uiWidget(
+        CUiCenterWidget(
+          child: uiWidget(
+            CUiContainerWidget(
+              padding: EdgeInsets.all(15.0),
+              child: uiWidget(
+                CUiComboBoxWidget<int>(
+                  width: double.maxFinite,
+                  label: uiWidget(
+                    CUiLabelWidget(
+                      data: message ?? "",
+                      softWrap: true,
+                    ),
+                  ),
+                  dropdownMenuEntries: dropdownItems,
+                  enableSearch: false,
+                  initialSelection: 0,
+                  onSelected: (v) {
+                    answer = v!;
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else if (action == CDialogAction.confirm) {
+      sheetActions = [
+        uiWidget(
+          CUiButtonWidget(
+            type: CUiButtonType.text,
+            title: "Yes",
+            onPressed: () => uiDialog<bool>(
+              action: CDialogAction.close,
+              returnValue: true,
+            ),
+          ),
+        ),
+        uiWidget(
+          CUiButtonWidget(
+            type: CUiButtonType.text,
+            title: "No",
+            onPressed: () => uiDialog<bool>(
+              action: CDialogAction.close,
+              returnValue: true,
+            ),
+          ),
+        ),
+      ];
+      sheetContent = uiWidget(
+        CUiCenterWidget(
+          child: uiWidget(
+            CUiContainerWidget(
+              padding: EdgeInsets.all(15.0),
+              child: uiWidget(
+                CUiLabelWidget(
+                  data: message!,
+                  softWrap: true,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else if (action == CDialogAction.custom) {
+      sheetActions = actions;
+      sheetContent = content!;
+    } else if (action == CDialogAction.loading) {
+      sheetContent = uiWidget(
+        CUiCenterWidget(
+          child: uiWidget(
+            CUiContainerWidget(
+              padding: EdgeInsets.all(15.0),
+              child: uiWidget(
+                CUiColumnWidget(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 25.0,
+                      width: 25.0,
+                      child: CircularProgressIndicator(),
+                    ),
+                    uiWidget(CUiDividerWidget(height: 5.0)),
+                    uiWidget(
+                      CUiLabelWidget(
+                        data: message!,
+                        softWrap: true,
+                        style: TextStyle(overflow: TextOverflow.ellipsis),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else if (action == CDialogAction.prompt) {
+      String answer = "";
+      sheetActions = [
+        uiWidget(
+          CUiButtonWidget(
+            type: CUiButtonType.text,
+            title: "OK",
+            onPressed: () => uiDialog<String>(
+              action: CDialogAction.close,
+              returnValue: answer,
+            ),
+          ),
+        ),
+      ];
+      sheetContent = uiWidget(
+        CUiCenterWidget(
+          child: uiWidget(
+            CUiContainerWidget(
+              padding: EdgeInsets.all(15.0),
+              child: uiWidget(
+                CUiTextFieldWidget(
+                  labelText: message ?? "",
+                  onChanged: (v) => answer = v,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Now go show the dialog as a bottom sheet to the page.
+    return showModalBottomSheet<T>(
+      constraints: BoxConstraints(
+        maxHeight: maxHeight,
+      ),
+      enableDrag: false,
+      isDismissible: false,
+      isScrollControlled: true,
+      useSafeArea: true,
+      useRootNavigator: true,
+      context: uiNavigationKey.currentContext!,
+      builder: (context) {
+        return PointerInterceptor(
+          child: Scaffold(
+            appBar: AppBar(
+              leading: leading,
+              automaticallyImplyLeading: false,
+              actions: sheetActions,
+              centerTitle: false,
+              title: Text(title ?? action.name.toUpperCase()),
+              titleSpacing: 15.0,
+            ),
+            body: sheetContent!,
+          ),
+        );
+      },
+    );
+  }
+  return null;
+}
+
+/// Retrieves the height of the overall browser window.
+double uiHeight(BuildContext context) {
+  return MediaQuery.of(context).size.height;
+}
+
+/// Creates a [ThemeData] object but it only exposes the material3 themes so
+/// that any application theming is done with the future in mind.
+ThemeData uiTheme({
+  ActionIconThemeData? actionIconTheme,
+  AppBarTheme? appBarTheme,
+  BadgeThemeData? badgeTheme,
+  MaterialBannerThemeData? bannerTheme,
+  BottomAppBarTheme? bottomAppBarTheme,
+  BottomNavigationBarThemeData? bottomNavigationBarTheme,
+  BottomSheetThemeData? bottomSheetTheme,
+  Brightness? brightness,
+  ButtonThemeData? buttonTheme,
+  CardThemeData? cardTheme,
+  CheckboxThemeData? checkboxTheme,
+  ChipThemeData? chipTheme,
+  ColorScheme? colorScheme,
+  DataTableThemeData? dataTableTheme,
+  DatePickerThemeData? datePickerTheme,
+  DividerThemeData? dividerTheme,
+  DialogThemeData? dialogTheme,
+  DrawerThemeData? drawerTheme,
+  DropdownMenuThemeData? dropdownMenuTheme,
+  ElevatedButtonThemeData? elevatedButtonTheme,
+  ExpansionTileThemeData? expansionTileTheme,
+  FilledButtonThemeData? filledButtonTheme,
+  FloatingActionButtonThemeData? floatingActionButtonTheme,
+  IconButtonThemeData? iconButtonTheme,
+  IconThemeData? iconTheme,
+  InputDecorationTheme? inputDecorationTheme,
+  ListTileThemeData? listTileTheme,
+  MaterialTapTargetSize? materialTapTargetSize,
+  MenuBarThemeData? menuBarTheme,
+  MenuButtonThemeData? menuButtonTheme,
+  MenuThemeData? menuTheme,
+  NavigationBarThemeData? navigationBarTheme,
+  NavigationDrawerThemeData? navigationDrawerTheme,
+  NavigationRailThemeData? navigationRailTheme,
+  OutlinedButtonThemeData? outlinedButtonTheme,
+  PageTransitionsTheme? pageTransitionsTheme,
+  PopupMenuThemeData? popupMenuTheme,
+  IconThemeData? primaryIconTheme,
+  ProgressIndicatorThemeData? progressIndicatorTheme,
+  TextTheme? primaryTextTheme,
+  RadioThemeData? radioTheme,
+  ScrollbarThemeData? scrollbarTheme,
+  SearchBarThemeData? searchBarTheme,
+  SearchViewThemeData? searchViewTheme,
+  SegmentedButtonThemeData? segmentedButtonTheme,
+  SnackBarThemeData? snackBarTheme,
+  SliderThemeData? sliderTheme,
+  InteractiveInkFeatureFactory? splashFactory,
+  SwitchThemeData? switchTheme,
+  TabBarThemeData? tabBarTheme,
+  TextButtonThemeData? textButtonTheme,
+  TextSelectionThemeData? textSelectionTheme,
+  TextTheme? textTheme,
+  TimePickerThemeData? timePickerTheme,
+  ToggleButtonsThemeData? toggleButtonsTheme,
+  TooltipThemeData? tooltipTheme,
+  Typography? typography,
+  VisualDensity? visualDensity,
+}) {
+  return ThemeData(
+    actionIconTheme: actionIconTheme,
+    appBarTheme: appBarTheme,
+    badgeTheme: badgeTheme,
+    bannerTheme: bannerTheme,
+    bottomAppBarTheme: bottomAppBarTheme,
+    bottomNavigationBarTheme: bottomNavigationBarTheme,
+    bottomSheetTheme: bottomSheetTheme,
+    brightness: brightness,
+    buttonTheme: buttonTheme,
+    cardTheme: cardTheme,
+    checkboxTheme: checkboxTheme,
+    chipTheme: chipTheme,
+    colorScheme: colorScheme,
+    dataTableTheme: dataTableTheme,
+    datePickerTheme: datePickerTheme,
+    dialogTheme: dialogTheme,
+    dividerTheme: dividerTheme,
+    drawerTheme: drawerTheme,
+    dropdownMenuTheme: dropdownMenuTheme,
+    elevatedButtonTheme: elevatedButtonTheme,
+    expansionTileTheme: expansionTileTheme,
+    filledButtonTheme: filledButtonTheme,
+    floatingActionButtonTheme: floatingActionButtonTheme,
+    iconButtonTheme: iconButtonTheme,
+    iconTheme: iconTheme,
+    inputDecorationTheme: inputDecorationTheme,
+    listTileTheme: listTileTheme,
+    materialTapTargetSize: materialTapTargetSize,
+    menuBarTheme: menuBarTheme,
+    menuButtonTheme: menuButtonTheme,
+    menuTheme: menuTheme,
+    navigationBarTheme: navigationBarTheme,
+    navigationDrawerTheme: navigationDrawerTheme,
+    navigationRailTheme: navigationRailTheme,
+    outlinedButtonTheme: outlinedButtonTheme,
+    pageTransitionsTheme: pageTransitionsTheme,
+    popupMenuTheme: popupMenuTheme,
+    primaryIconTheme: primaryIconTheme,
+    primaryTextTheme: primaryTextTheme,
+    progressIndicatorTheme: progressIndicatorTheme,
+    radioTheme: radioTheme,
+    scrollbarTheme: scrollbarTheme,
+    searchBarTheme: searchBarTheme,
+    searchViewTheme: searchViewTheme,
+    segmentedButtonTheme: segmentedButtonTheme,
+    sliderTheme: sliderTheme,
+    snackBarTheme: snackBarTheme,
+    splashFactory: splashFactory,
+    switchTheme: switchTheme,
+    tabBarTheme: tabBarTheme,
+    textButtonTheme: textButtonTheme,
+    textSelectionTheme: textSelectionTheme,
+    textTheme: textTheme,
+    timePickerTheme: timePickerTheme,
+    toggleButtonsTheme: toggleButtonsTheme,
+    tooltipTheme: tooltipTheme,
+    useMaterial3: true,
+    visualDensity: visualDensity,
+  );
+}
+
+/// Provides the ability to define [CUiWidget] objects to define a Fluter
+/// user interface. This does not prevent the use of regular Flutter widgets.
+/// It simply provides a mechanism of vetted reusable widgets for this
+/// module.
+///
+/// **Example:**
+/// ```dart
+/// // Example building a button laid out declarative style
+/// // if you were building a UI.
+/// uiWidget(
+///   CUiButtonWidget(
+///     title: "POST",
+///     type: CUiButtonType.elevated,
+///     onPressed: () {},
+///   ),
+/// ),
+/// ```
+Widget uiWidget(CUiWidget widget) {
+  return widget._build();
+}
+
+/// Gets the overall width of the given context.
+double uiWidth(BuildContext context) {
+  return MediaQuery.of(context).size.width;
+}
