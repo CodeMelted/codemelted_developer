@@ -15,13 +15,74 @@ The last section is the `MAIN CLI API`. This defines the mapping between the `--
 ```
 Name       Version Author                      Description
 ----       ------- ------                      -----------
-codemelted 0.8.0.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac / Linux / Windows OS.
+codemelted 25.1.1.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac / Linux / Windows OS.
 ```
-
-*NOTE: Current version is frozen and usable. But it will be going through a refactor. Stay Tuned*
 
 ## 2.3 codemelted --help
 
-<mark>TBD</mark>
+```
+NAME
+    codemelted_help
+
+SYNOPSIS
+    The codemelted Command Line Interface (CLI) Terminal Module. It allows
+    a developer to execute the CodeMelted DEV | Module use cases within a
+    pwsh terminal shell. This allows for building CLI tools, Terminal User
+    Interface (TUI) tools, or building DevOps toolchain automation.
+
+    SYNTAX:
+      codemelted [Action] [Params]
+
+    PARAMETERS:
+      [Action]
+        # To Learn About the CLI use case functions.
+        --help : Execute 'codemelted --help @{ action = "use_case" }'
+                 to learn about the CLI actions associated with the
+                 use case.
+
+                 Execute
+                   codemelted --help @{
+                     action = "--use_case-function"
+                   }
+                 to learn about an individual CLI action associated
+                 with the given use case listed above.
+
+        --version : Get current information about the codemelted CLI
+
+        --function-name : The identified use case function name to execute.
+                          Ex. codemelted --logger-log [Params]
+
+      [Params]
+        The optional set of named arguments wrapped within a [hashtable]
+
+    USE CASES:
+      async     : TBD
+      console   : COMPLETED
+      db        : TBD
+      developer : TBD
+      disk      : TBD
+      hw        : TBD
+      json      : TBD
+      logger    : TBD
+      monitor   : TBD
+      network   : TBD
+      npu       : TBD
+      process   : TBD
+      runtime   : TBD
+      setup     : TBD
+      storage   : TBD
+      ui        : TBD
+
+    RETURNS:
+      Will vary depending on the called [Action] representing a use case
+      function call. It will be documented with each use case function.
+
+RELATED LINKS
+    codemelted.ps1 SDK Docs:
+    https://developer.codemelted.com/modules/powershell
+
+    GitHub Source:
+    https://github.com/CodeMelted/codemelted_developer
+```
 
 *NOTE: Current version is frozen and usable. But it will be going through a refactor. Stay Tuned*

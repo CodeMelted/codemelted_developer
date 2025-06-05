@@ -8,7 +8,7 @@ According to Tech Target:
 
 The *Runtime Use Case* will provide queryable actions common between all the runtimes for the chosen languages models. It will then implement SDK specific functions to fully exercise the availability of functionality for a chosen SDK programming language.
 
-**Acceptance Criteria**
+## 13.1 Acceptance Criteria
 
 1. The *Runtime Use Case* will provide the following queryable actions. Failed queryable values will result in a minimum value or UNDETERMINED if a String return:
    1. CPU architecture
@@ -25,18 +25,6 @@ The *Runtime Use Case* will provide queryable actions common between all the run
    12. User name
 2. The *Runtime Use Case* will provide access to SDK language specific features not common between the chosen module languages. (i.e. Event attachment in JavaScript, etc.).
 
-## 13.1 Flutter Module
+## 13.2 SDK Notes
 
-<mark>TBD</mark>
-
-## 13.2 JavaScript Module
-
-<mark>TBD</mark>
-
-## 13.3 PowerShell Module
-
-<mark>TBD</mark>
-
-## 13.4 Rust Module
-
-<mark>TBD</mark>
+None.

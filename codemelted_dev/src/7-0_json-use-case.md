@@ -5,7 +5,7 @@ According to Wikipedia,
 
 For the purposes of the CodeMelted Dev project, the *JSON Use Case* will provide the functions necessary to facilitate working with the JSON format. This includes data validation, translating between supported data types, creating the SDK language JSON compliant format, parsing of strings to JSON, and stringifying the JSON object to a serialized JSON string.
 
-**Acceptance Criteria**
+## 7.1 Acceptance Criteria
 
 1. The *JSON Use Case* will support the translation of Strings to the appropriate JSON data types. Failure to perform such a translation will result in a NULL (whatever that means in the given SDK language).
 2. The *JSON Use Case* will support the checking of variable data types to ensure that dynamic type data is as expected. This will support Boolean true / false returns along with the ability to throw an exception.
@@ -15,18 +15,6 @@ For the purposes of the CodeMelted Dev project, the *JSON Use Case* will provide
 6. The *JSON Use Case* will support the stringifying of a JSON compliant object to produce a JSON serialized string. Failure to perform the parse will result in a NULL (whatever that means in the given SDK language).
 7. The *JSON Use Case* will support the validation of URL strings. This will support Boolean true / false returns along with the ability to throw an exception.
 
-## 7.1 Flutter Module
+## 7.2 SDK Notes
 
-<mark>TBD</mark>
-
-## 7.2 JavaScript Module
-
-<mark>TBD</mark>
-
-## 7.3 PowerShell Module
-
-<mark>TBD</mark>
-
-## 7.4 Rust Module
-
-<mark>TBD</mark>
+None.

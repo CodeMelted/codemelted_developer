@@ -11,7 +11,7 @@ create-missing = false
 
 [output.html]
 default-theme = "navy"
-site-url = "https://codemelted.com/developer/codemelted_dev/"
+site-url = "https://developer.codemelted.com/projects/rosetta-stone"
 git-repository-url = "https://github.com/codemelted/codemelted_developer"
 additional-js = ["mermaid.min.js", "mermaid-init.js"]
 

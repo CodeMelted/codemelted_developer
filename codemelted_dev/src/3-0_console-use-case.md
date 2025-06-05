@@ -8,7 +8,7 @@ Mainly it represents a user interacting with a console application via a termina
 
 *NOTE: In this context, the console application is an interactive application via STDIN / STDOUT. It is not a dedicated Textual User Interface (TUI) or a shell command where the interaction while still via the terminal shell, is kicked off with arguments passed, and completes its work bringing the user back to the shell prompt.*
 
-**Acceptance Criteria**
+## 3.1 Acceptance Criteria
 
 1. The *Console Use Case* will support an "Alert" feature that writes a custom message to STDOUT and waits for a user to press the "ENTER" via STDIN before continuing.
 2. The *Console Use Case* will support a "Confirm" feature that writes a custom message to STDOUT and wait for a user to answer a `[y/N]` prompt via STDIN before continuing. The return will be a Boolean true for any truthy confirmation.
@@ -18,7 +18,7 @@ Mainly it represents a user interacting with a console application via a termina
 6. The *Console Use Case* will support a "Write" feature that will write data to STDOUT without a newline character. Every call to this will continue to write data to STDOUT on the same line.
 7. The *Console Use Case* will support a "WriteLn" feature that will write data to STDOUT with a newline character.
 
-**SDK Notes**
+## 3.2 SDK Notes
 
 ```mermaid
 ---
@@ -40,19 +40,3 @@ stateDiagram-v2
   if_state --> loop : invalid choice
 
 ```
-
-## 3.1 Flutter Module
-
-NOT APPLICABLE TO THIS MODULE.
-
-## 3.2 JavaScript Module
-
-<mark>TBD</mark>
-
-## 3.3 PowerShell Module
-
-<mark>TBD</mark>
-
-## 3.4 Rust Module
-
-<mark>TBD</mark>

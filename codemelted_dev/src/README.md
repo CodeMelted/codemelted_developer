@@ -4,7 +4,7 @@
 <br />
 <h1><img style="height: 35px;" src="https://codemelted.com/assets/favicon/apple-touch-icon.png" /> The CodeMelted DEV Rosetta Stone</h1>
 
-*BY: Mark Shaffer / LAST UPDATED: 2025-May-31*
+*BY: Mark Shaffer / LAST UPDATED: 2025-Jun-04*
 
 "Write once, run anywhere (WORA)" was the famous slogan made by Sun Microsystems in 1995. At the time, this technology allowed for easy full stack engineering allowing you to target dedicated workstations and on-premises servers. So long as a Java Runtime Environment existed, you could run your code. Java was unable to keep to their slogan as web browsers became more advanced, mobile devices became ubiquitous, and companies no longer required dedicated servers.
 
@@ -26,4 +26,5 @@ Enter the CodeMelted DEV project. The aim of this project is to deliver usable m
 
 <center><b>Revision History</b></center><br />
 
+- **<u>2025-Jun-04 (M. Shaffer)</u>:** Removed individual sections for each of the use cases. Updated sectioning. The section needing filling in really is the mathematical formulas. Also added reference section for each of the module SDK documentation.
 - **<u>2025-May-31 (M. Shaffer)</u>:** Initial release of the document breaking down the use cases to serve as the Rosetta Stone between different programming languages.

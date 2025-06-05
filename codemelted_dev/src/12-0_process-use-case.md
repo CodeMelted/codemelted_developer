@@ -6,24 +6,12 @@ According to Wikipedia,
 
 This use case will facilitate the functionality to detect installed programs, run one off command to gather outputs, and setup a bi-directional STDIN / STDOUT dedicated process your program can communicate.
 
-**Acceptance Criteria**
+## 12.1 Acceptance Criteria
 
 1. The *Process Use Case* will support the ability to detect if a command exists with the host operating system.
 2. The *Process Use Case* will support the ability to run a one-off command and capture its STDOUT / STDERR output.
 3. The *Process Use Case* will support the ability to run a bi-directional command that is communicated with via STDIN / STDOUT / STDERR until command to end its processing
 
-## 12.1 Flutter Module
+## 12.2 SDK Notes
 
-NOT APPLICABLE TO THIS MODULE.
-
-## 12.2 JavaScript Module
-
-<mark>TBD</mark>
-
-## 12.3 PowerShell Module
-
-<mark>TBD</mark>
-
-## 12.4 Rust Module
-
-<mark>TBD</mark>
+None.

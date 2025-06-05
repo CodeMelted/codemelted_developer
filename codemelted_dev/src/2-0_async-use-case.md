@@ -12,14 +12,15 @@ According to MDN,
 
 This basically means the ability to not run code in parallel but instead time slice a main thread to run different tasks where the notification on one task completing kicks off another work task. The *Async Use Case* will implement both concepts playing to the overall strengths of each programming language SDK.
 
-**Acceptance Criteria**
+## 2.1 Acceptance Criteria
 
 1. The *Async Use Case* will support the ability to sleep a given task in milliseconds.
 2. The *Async Use Case* will support the scheduling of a task that can take data (if required) and run to completion returning a result (if required).
 3. The *Async Use Case* will support the starting of a timer that repeats a specified task on a regular interval until stopped.
 4. The *Async Use Case* will support the ability to start a background worker that has the ability to queue up work tasks in a first in first out (FIFO) order and receive the results of the completed tasks. The returned object will be a Protocol Handler object.
 
-**SDK Notes**
+## 2.2 SDK Notes
+
 ```mermaid
 ---
 title: PowerShell / Rust Task Objects
@@ -37,21 +38,3 @@ classDiagram
 - For Flutter / JavaScript tasks on the same thread via Promises.
 - For PowerShell and Rust, this is in a background thread.
 - The background worker will be a dedicated thread for all SDKs.
-
-
-
-## 2.1 Flutter Module
-
-<mark>TBD</mark>
-
-## 2.2 JavaScript Module
-
-<mark>TBD</mark>
-
-## 2.3 PowerShell Module
-
-<mark>TBD</mark>
-
-## 2.4 Rust Module
-
-<mark>TBD</mark>

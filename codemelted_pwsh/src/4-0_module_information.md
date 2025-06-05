@@ -16,8 +16,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ## 4.2 Versioning
 
-The versioning of the module will be captured via GitHub or the modules documentation method. It will utilize semantic versioning `X.Y.Z` with the following rules for the numbering scheme this project.
+The versioning of the `codemelted` CLI will utilize a modified semantic versioning `X.Y.Z` with the following rules for the numbering scheme.
 
-- **X:** When the 14 identified use cases are fully functional.
-- **Y:** Use case implemented, documented, tested, and ready for usage by a developer.
-- **Z:** Bug fix or expansion of a use case.
+- **X:** Year of release. Each new year resets the `Y.Z` values to `1`
+- **Y:** Breaking change to one of the use case functions or upgrade of dependencies requiring considerations within an app. A change in this value resets `.Z` to `1`.
+- **Z:** Bug fix, new use case function implemented, or expansion of a use case function. Continuously updated by adding one with each new release unless reset by `X.Y` changes.

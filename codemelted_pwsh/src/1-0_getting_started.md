@@ -1,6 +1,6 @@
 # 1.0 GETTING STARTED
 
-This will guide you through the setup of the `codemelted` CLI command.
+This will guide you through the setup of the `codemelted.ps1` CLI command.
 
 ## 1.1 Install pwsh Core
 

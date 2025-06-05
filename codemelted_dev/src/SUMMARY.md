@@ -17,4 +17,3 @@
 - [Runtime Use Case](./13-0_runtime-use-case.md)
 - [Storage Use Case](./14-0_storage-use-case.md)
 - [UI Use Case](./15-0_ui-use-case.md)
-- [Mathematical Formulas](./16-0_mathematical-formulas.md)

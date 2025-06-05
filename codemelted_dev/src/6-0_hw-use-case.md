@@ -8,29 +8,14 @@ According to Wikipedia for the hardware of interest.
 
 The *HW Use Case* will support these different hardware types. Each of them is similar in terms of how you interact with them. You must first scan for devices connected to the host operating system. Once you identify the hardware you want, you connect to it. Once connected, you are able to read / write data with the hardware until you close the connection. This use case will facilitate this transactions.
 
-**Acceptance Criteria**
+## 6.1 Acceptance Criteria
 
 1. The *HW Use Case* will provide the ability to scan for connected hardware devices based on the hardware type. The result will be a list of connected devices one can open a connection.
 2. The *HW Use Case* will provide the ability to open a connection to a hardware device. The result will be a Protocol Handler to facilitate reading and writing data to the hardware until disconnected. Failed connections will result in a NULL return.
 3. The *HW Use Case* will provide the ability to attach event listeners to the browser based global events and individual object events.
 4. The *HW Use Case* will provide the ability to query the current device location and orientation in 3D space.
 
-**SDK Notes**
+## 6.2 SDK Notes
+
 - Acceptance criteria 1 - 2 apply to all modules.
 - Acceptance criteria 3 - 4 applies to Flutter / JavaScript modules only.
-
-## 6.1 Flutter Module
-
-<mark>TBD</mark>
-
-## 6.2 JavaScript Module
-
-<mark>TBD</mark>
-
-## 6.3 PowerShell Module
-
-<mark>TBD</mark>
-
-## 6.4 Rust Module
-
-<mark>TBD</mark>

@@ -6,14 +6,14 @@ According to Wikipedia,
 
 For this particular use case, the organized collection will be segmented into two types of databases. A relational embedded database via SQLite for PowerShell and Rust. An indexed database (i.e. no SQL) via the Web Browser APIs. For the Deno runtime portion of JavaScript, the Deno Key Value (KV) backed by SQLite is utilized. The basic use case interface will be divided into three transaction types, manage, query, and update. These functions will be tailored to the database specifics.
 
-**Acceptance Criteria**
+## 4.1 Acceptance Criteria
 
 1. The *DB Use Case* will support a manage feature to allow for altering the structure of the database. A true / false will be returned to indicate success or failure.
 2. The *DB Use Case* will support a query feature to allow for getting data from the database. The data will be held in an array like structure tailored for the database technology.
 3. The *DB Use Case* will support an update feature to allow for adding / updating / deleting data within the database. An integer will be returned indicating how many records within the database were updated.
 4. Any failure of the transactions above will result in a thrown `SyntaxError` error as it will be a violation of database rules.
 
-**SDK Notes**
+## 4.2 SDK Notes
 
 ```mermaid
 ---
@@ -40,20 +40,3 @@ stateDiagram-v2
 - *JavaScript (Deno):* Will utilize DenoKV which supports local file.
 - *JavaScript (NodeJS):* TBD.
 - *PowerShell / Rust:* Will utilize SQLite embedded database
-
-
-## 4.1 Flutter Module
-
-<mark>TBD</mark>
-
-## 4.2 JavaScript Module
-
-<mark>TBD</mark>
-
-## 4.3 PowerShell Module
-
-<mark>TBD</mark>
-
-## 4.4 Rust Module
-
-<mark>TBD</mark>

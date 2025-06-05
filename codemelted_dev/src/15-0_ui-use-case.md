@@ -7,19 +7,3 @@ A dialog feature will provide the ability to alert (a.k.a. snackbar), close, con
 **SDK Notes**
 
 <center><img src="models/all/spa-design-goals.drawio.png" /></center>
-
-## 15.1 Flutter Module
-
-<mark>TBD</mark>
-
-## 15.2 JavaScript Module
-
-<mark>TBD</mark>
-
-## 15.3 PowerShell Module
-
-<mark>TBD</mark>
-
-## 15.4 Rust Module
-
-<mark>TBD</mark>

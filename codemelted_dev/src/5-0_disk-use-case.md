@@ -2,7 +2,7 @@
 
 Regardless of where you run your application you will need the ability to store data. The host operating system provides access to be able to manage such files. The Disk Use Case will provide the ability to read / write file content to disk. It will also support the ability to manage these files on disk allowing for the creation of files, deletion of files, the ability to rename the files, and to delete such files.
 
-**Acceptance Criteria**
+## 5.1 Acceptance Criteria
 
 1. The *Disk Use Case* will support the reading of an entire file from the hosted operating system disk. This will be read either as a string or a binary blob.
 2. The *Disk Use Case* will support writing an entire file to disk from either a String or binary Blob. This will support either creation of a file or appending to an existing file.
@@ -16,22 +16,7 @@ Regardless of where you run your application you will need the ability to store 
 10. The *Disk Use Case* will support getting the size of files / directories from the hosted operating system disk.
 11. Failures of any of the above transactions will be indicating either by a Boolean true / false or a null for the given requested data.
 
-**SDK Notes**
+## 5.2 SDK Notes
+
 - Acceptance criteria 1 / 2 apply to all modules.
 - Acceptance criteria 3 - 11 does not apply to the Flutter module.
-
-## 5.1 Flutter Module
-
-<mark>TBD</mark>
-
-## 5.2 JavaScript Module
-
-<mark>TBD</mark>
-
-## 5.3 PowerShell Module
-
-<mark>TBD</mark>
-
-## 5.4 Rust Module
-
-<mark>TBD</mark>

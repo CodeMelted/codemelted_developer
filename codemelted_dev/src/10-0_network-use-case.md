@@ -8,25 +8,13 @@ According to Cloudflare,
 
 The *Network Use Case* will facilitate several protocols that fit this model. For the Flutter and JavaScript modules, these will be client-side network protocols to communicate with servers or amongst other web apps. For PowerShell and Rust, it will be to support the server side protocols for the client-side network protocols to connect.
 
-**Acceptance Criteria**
+## 10.1 Acceptance Criteria
 
 1. All. The *Network Use Case* will support the ability to fetch data from RESTful APIs. The response will include http status code, status text, and the particular data received with the ability to translate between it.
 2. Flutter / JS Only. The *Network Use Case* will support the ability to broadcast messages between web apps and services.
 3. Flutter / JS (Web) Only. The Network Use Case will support the client network protocols of Server Sent Events, Web Sockets, and WebRTC.
 4. JS (Deno) / PowerShell / Rust Only. The *Network Use Case* will support the ability to act as a server for the network protocols of HTTP and Web Sockets and Web RTC.
 
-## 10.1 Flutter Module
+## 10.2 SDK Notes
 
-<mark>TBD</mark>
-
-## 10.2 JavaScript Module
-
-<mark>TBD</mark>
-
-## 10.3 PowerShell Module
-
-<mark>TBD</mark>
-
-## 10.4 Rust Module
-
-<mark>TBD</mark>
+None.

@@ -10,76 +10,14 @@
 .EXTERNALMODULEDEPENDENCIES Microsoft.PowerShell.ConsoleGuiTools
 .TAGS pwsh pwsh-scripts pwsh-modules CodeMeltedDEV codemelted
 .GUID c757fe44-4ed5-46b0-8e24-9a9aaaad872c
-.VERSION 0.8.1
+.VERSION 25.1.1
 .RELEASENOTES
 TBD
 #>
 
 # =============================================================================
-# [Async Use Case] ============================================================
+# [MODULE DATA DEFINITION] ====================================================
 # =============================================================================
-
-# =============================================================================
-# [Audio Use Case] ============================================================
-# =============================================================================
-
-# =============================================================================
-# [Console Use Case] ==========================================================
-# =============================================================================
-
-# =============================================================================
-# [DB Use Case] ===============================================================
-# =============================================================================
-
-# =============================================================================
-# [Disk Use Case] =============================================================
-# =============================================================================
-
-# =============================================================================
-# [HW Use Case] ===============================================================
-# =============================================================================
-
-# =============================================================================
-# [JSON Use Case] =============================================================
-# =============================================================================
-
-# =============================================================================
-# [Logger Use Case] ===========================================================
-# =============================================================================
-
-# =============================================================================
-# [Monitor Use Case] ==========================================================
-# =============================================================================
-
-# =============================================================================
-# [Network Use Case] ==========================================================
-# =============================================================================
-
-# =============================================================================
-# [NPU Use Case] ==============================================================
-# =============================================================================
-
-# =============================================================================
-# [Runtime Use Case] ==========================================================
-# =============================================================================
-
-# =============================================================================
-# [Storage Use Case] ==========================================================
-# =============================================================================
-
-# =============================================================================
-# [UI Use Case] ===============================================================
-# =============================================================================
-
-# =============================================================================
-# [MAIN CLI API] ==============================================================
-# =============================================================================
-
-# ---- REFACTORS BELOW INTO NEW USE CASE STRUCTURE ABOVE ----
-
-# -----------------------------------------------------------------------------
-# [Main Parameter Definition] -------------------------------------------------
-# -----------------------------------------------------------------------------
 
 <#
   .DESCRIPTION
@@ -92,30 +30,17 @@ param(
     Position = 0
   )]
   [ValidateSet(
-    # Module Definition Use Case
+    # Module Definition
     "--version",
     "--help",
-
-    # Async I/O Use Cases
-    "--process",
-    "--task",
-    "--worker",
-
-    # Data Use Cases
-    "--data-check",
-    "--disk",
-    "--json",
-    "--string-parse",
-
-    # NPU Use Cases
-
-    # SDK Use Cases
-    "--logger",
-    "--network",
-    "--runtime",
-
-    # User Interface Use Cases
-    "--console"
+    # Console Use Case
+    "--console-alert",
+    "--console-confirm",
+    "--console-choose",
+    "--console-password",
+    "--console-prompt",
+    "--console-write",
+    "--console-writeln"
   )]
   [string] $Action,
 
@@ -126,6 +51,493 @@ param(
   )]
   [hashtable]$Params
 )
+
+function codemelted_help {
+  <#
+  .SYNOPSIS
+    The codemelted Command Line Interface (CLI) Terminal Module. It allows
+    a developer to execute the CodeMelted DEV | Module use cases within a
+    pwsh terminal shell. This allows for building CLI tools, Terminal User
+    Interface (TUI) tools, or building DevOps toolchain automation.
+
+    SYNTAX:
+      codemelted [Action] [Params]
+
+    PARAMETERS:
+      [Action]
+        # To Learn About the CLI use case functions.
+        --help : Execute 'codemelted --help @{ action = "use_case" }'
+                 to learn about the CLI actions associated with the
+                 use case.
+
+                 Execute
+                   codemelted --help @{
+                     action = "--use_case-function"
+                   }
+                 to learn about an individual CLI action associated
+                 with the given use case listed above.
+
+        --version : Get current information about the codemelted CLI
+
+        --function-name : The identified use case function name to execute.
+                          Ex. codemelted --logger-log [Params]
+
+      [Params]
+        The optional set of named arguments wrapped within a [hashtable]
+
+    USE CASES:
+      async     : TBD
+      console   : COMPLETED
+      db        : TBD
+      developer : TBD
+      disk      : TBD
+      hw        : TBD
+      json      : TBD
+      logger    : TBD
+      monitor   : TBD
+      network   : TBD
+      npu       : TBD
+      process   : TBD
+      runtime   : TBD
+      setup     : TBD
+      storage   : TBD
+      ui        : TBD
+
+    RETURNS:
+      Will vary depending on the called [Action] representing a use case
+      function call. It will be documented with each use case function.
+
+  .LINK
+    codemelted.ps1 SDK Docs:
+    https://developer.codemelted.com/modules/powershell
+
+    GitHub Source:
+    https://github.com/CodeMelted/codemelted_developer
+  #>
+  param(
+    [Parameter(
+      Mandatory = $false,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  [hashtable] $helpLookup = @{
+    # async use case functions
+    "async" = {
+      Write-Host "TBD"
+    };
+
+    # console use case functions
+    "console" = {
+      Write-Host "=================================="
+      Write-Host "codemelted CLI (console) Use Case"
+      Write-Host "=================================="
+      Write-Host
+      Write-Host "This use case provides the ability to interact with a user"
+      Write-Host "via STDIN and STDOUT to provide an interactive console"
+      Write-Host "experience. The use case options available are:"
+      Write-Host
+      Write-Host "--console-alert"
+      Write-Host "--console-confirm"
+      Write-Host "--console-choose"
+      Write-Host "--console-password"
+      Write-Host "--console-prompt"
+      Write-Host "--console-write"
+      Write-Host "--console-writeln"
+      Write-Host
+      Write-Host "Execute 'codemelted --help @ {action = ""--uc-name""}'"
+      Write-Host "for more details."
+    };
+    "--console-alert" = { Get-Help console_alert };
+    "--console-confirm" = { Get-Help console_confirm };
+    "--console-choose" = { Get-Help console_choose };
+    "--console-password" = { Get-Help console_password };
+    "--console-prompt" = { Get-Help console_prompt };
+    "--console-write" = { Get-Help console_write };
+    "--console-writeln" = { Get-Help console_writeln };
+
+    # db use case functions
+    "db" = {
+      Write-Host "TBD"
+    };
+
+    # developer use case functions
+    "developer" = {
+      Write-Host "TBD"
+    };
+
+    # disk use case functions
+    "disk" = {
+      Write-Host "TBD"
+    };
+
+    # hw use case functions
+    "hw" = {
+      Write-Host "TBD"
+    };
+
+    # json use case functions
+    "json" = {
+      Write-Host "TBD"
+    };
+
+    # logger use case functions
+    "logger" = {
+      Write-Host "TBD"
+    };
+
+    # monitor use case functions
+    "monitor" = {
+      Write-Host "TBD"
+    };
+
+    # network use case functions
+    "network" = {
+      Write-Host "TBD"
+    };
+
+    # npu use cse functions
+    "npu" = {
+      Write-Host "TBD"
+    };
+
+    # process use case functions
+    "process" = {
+      Write-Host "TBD"
+    };
+
+    # runtime use case functions
+    "runtime" = {
+      Write-Host "TBD"
+    };
+
+    # setup use case functions
+    "setup" = {
+      Write-Host "TBD"
+    };
+
+    # storage use case functions
+    "storage" = {
+      Write-Host "TBD"
+    };
+
+    # ui use case functions
+    "ui" = {
+      Write-Host "TBD"
+    };
+  }
+  if ($null -ne $Params) {
+    if (-not $Params.ContainsKey("action")) {
+      throw "--help expects action key to be specified"
+    } elseif ($null -eq $helpLookup[$Params["action"]]) {
+      throw "--help action specified did not find a help specification"
+    }
+    Invoke-Command -ScriptBlock $helpLookup[$Params["action"]]
+  } else {
+    Get-Help codemelted_help
+  }
+}
+
+# =============================================================================
+# [ASYNC UC IMPLEMENTATION] ===================================================
+# =============================================================================
+
+# =============================================================================
+# [CONSOLE UC IMPLEMENTATION] =================================================
+# =============================================================================
+
+function console_alert {
+  <#
+  .SYNOPSIS
+    Provides a pausing alert to STDOUT with an optional message until the user
+    presses [ENTER] to continue. If no message is specified then just [ENTER]
+    is presented.
+
+    SYNTAX:
+      codemelted --console-alert @{
+        message = ""; # optional
+      }
+
+    RETURNS:
+      [void]
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  $message = $Params["message"]
+  $prompt = $null -ne $message ? "$message [ENTER]" : "[ENTER]"
+  Read-Host -Prompt $prompt -MaskInput | Out-Null
+}
+
+function console_confirm {
+  <#
+  .SYNOPSIS
+    Will prompt to STDOUT a confirmation request with optional message. The
+    user will need to press [y/N] to continue with those answers turning into
+    a [boolean]. If no message is specified, then "CONFIRM [y/N]" is presented
+    to STDOUT.
+
+    SYNTAX:
+      $answer = codemelted --console-confirm @{
+        message = "Proceed with action"; # optional
+      }
+
+    RETURNS:
+      [boolean] $true if confirmed, $false otherwise.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  $message = $Params["message"]
+  $prompt = $null -ne $message ? "$message [y/N]" : "CONFIRM [y/N]"
+  $answer = Read-Host -Prompt $prompt
+  return $answer.ToLower() -eq "y"
+}
+
+function console_choose {
+  <#
+  .SYNOPSIS
+    Will present a selection menu to STDOUT based on a specified array of
+    choices. Optionally you can specify a message as to what the user is
+    choosing. Not specifying the message will yield a CHOOSE prompt stand in.
+
+    SYNTAX:
+      $answer = codemelted --console-choose @{
+        message = "Whats the best pet"; # optional
+        choices = @(  # required
+          "dog",
+          "cat",
+          "fish"
+        )
+      }
+
+    RETURNS:
+      [int] based on the selected index of the choices array.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  $message = $Params["message"]
+  $choices = $params["choices"]
+  if ((-not ($choices -is [array])) -or $choices.Length -eq 0) {
+    throw "SyntaxError: codemelted --console-choose Params expects a " +
+      "choices key with an array of string values."
+  }
+
+  [int] $answer = -1
+  [string] $title = $message ?? "CHOOSE"
+  do {
+    Write-Host
+    "-" * $title.Length
+    Write-Host $title
+    "-" * $title.Length
+    Write-Host
+    [int]$x = 0
+    foreach ($choice in $choices) {
+      Write-Host "$x. $choice"
+      $x += 1
+    }
+    Write-Host
+    $selection = Read-Host -Prompt "Make a Selection"
+    try {
+      $answer = [int]::Parse($selection)
+    } catch {
+      Write-Host
+      Write-Warning "Entered value was invalid. Please try again."
+      $answer = -1
+    }
+  } while ($answer -eq -1)
+  return $answer
+}
+
+function console_password {
+  <#
+  .SYNOPSIS
+    Writes an optional message to STDOUT to prompt for a password via STDIN.
+    Not specifying a message will result in a PASSWORD stand in for the
+    prompt.
+
+    SYNTAX:
+      $answer = codemelted --console-password @{
+        message = ""; # optional
+      }
+
+    RETURNS:
+      [string] of the entered password.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  $answer = Read-Host -Prompt ($message ?? "PASSWORD") -MaskInput
+  return $answer
+}
+
+function console_prompt {
+  <#
+  .SYNOPSIS
+    Writes a optional message to STDOUT to prompt for user input returned as a
+    string. Not specifying the message will yield a PROMPT as the stand in
+    prompt.
+
+    SYNTAX:
+      $answer = codemelted --console-prompt @{
+        message = "First Name"; # optional
+      }
+
+    RETURNS:
+      [string] of the entered prompt.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  $answer = Read-Host -Prompt ($message ?? "PROMPT")
+  return $answer
+}
+
+function console_write {
+  <#
+  .SYNOPSIS
+    Writes a optional message to STDOUT on the same line. Not specifying a
+    message is essentially a NO-OP as nothing will be written to STDOUT.
+
+    SYNTAX:
+      codemelted --console-write @{
+        message = ""; # optional
+      }
+
+    RETURNS:
+      [void]
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  Write-Host ($message ?? "") -NoNewline
+}
+
+function console_writeln {
+  <#
+  .SYNOPSIS
+    Writes an optional message to STDOUT with a newline. Not specifying the
+    message will just write a newline to STDOUT.
+
+    SYNTAX:
+      codemelted --console-writeln @{
+        message = ""; # optional message to associate with action
+      }
+
+    RETURNS:
+      [void]
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  Write-Host ($message ?? "")
+}
+
+# =============================================================================
+# [DB UC IMPLEMENTATION] ======================================================
+# =============================================================================
+
+# =============================================================================
+# [DISK UC IMPLEMENTATION] ====================================================
+# =============================================================================
+
+# =============================================================================
+# [HW UC IMPLEMENTATION] ======================================================
+# =============================================================================
+
+# =============================================================================
+# [JSON UC IMPLEMENTATION] ====================================================
+# =============================================================================
+
+# =============================================================================
+# [LOGGER UC IMPLEMENTATION] ==================================================
+# =============================================================================
+
+# =============================================================================
+# [MONITOR UC IMPLEMENTATION] =================================================
+# =============================================================================
+
+# =============================================================================
+# [NETWORK UC IMPLEMENTATION] =================================================
+# =============================================================================
+
+# =============================================================================
+# [NPU UC IMPLEMENTATION] =====================================================
+# =============================================================================
+
+# =============================================================================
+# [PROCESS UC IMPLEMENTATION] =================================================
+# =============================================================================
+
+# =============================================================================
+# [RUNTIME UC IMPLEMENTATION] =================================================
+# =============================================================================
+
+# =============================================================================
+# [STORAGE UC IMPLEMENTATION] =================================================
+# =============================================================================
+
+# =============================================================================
+# [UI UC IMPLEMENTATION] ======================================================
+# =============================================================================
+
+# =============================================================================
+# [MAIN CLI API] ==============================================================
+# =============================================================================
+
+# OK, go parse the command.
+switch ($Action) {
+  # Module Information
+  "--version" { Get-PSScriptFileInfo -Path $PSScriptRoot/codemelted.ps1 }
+  "--help" { codemelted_help $Params }
+  # Console Use Case
+  "--console-alert" { console_alert $Params }
+  "--console-confirm" { codemelted_confirm $Params }
+  "--console-choose" { codemelted_choose $Params }
+  "--console-password" {codemelted_password $Params }
+  "--console-prompt" { codemelted_prompt $Params }
+  "--console-write" { codemelted_write $Params }
+  "--console-writeln" { codemelted_writeln $Params }
+}
+
+# ---- REFACTORS BELOW INTO NEW USE CASE STRUCTURE ABOVE ----
 
 # -----------------------------------------------------------------------------
 # [Data Types] ----------------------------------------------------------------
@@ -398,119 +810,6 @@ class CTaskTimer {
   }
 }
 
-# -----------------------------------------------------------------------------
-# [CLI Help System] -----------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-function codemelted_help {
-  <#
-    .SYNOPSIS
-    The codemelted Command Line Interface (CLI) Terminal Module. It allows
-    a developer to execute the CodeMelted DEV | Module use cases within a
-    pwsh terminal shell. This allows for building CLI tools, Terminal User
-    Interface (TUI) tools, or building DevOps toolchain automation.
-
-    SYNTAX:
-
-      codemelted [Action] [Params]
-
-    PARAMETERS:
-
-      [Action]
-        # To Learn About the CLI use cases.
-        --help : Execute 'codemelted --help @{ "action" = "--use-case" }'
-                 to learn more about the CLI Actions.
-        --version : Get current information about the codemelted CLI
-
-        # Async I/O Use Cases (Completed)
-        --task
-        --process
-        --worker
-
-        # Data Use Cases
-        --database     (TBD)
-        --data-check
-        --disk         (IN DEVELOPMENT. DON'T USE)
-        --file         (TBD)
-        --json
-        --string-parse
-        --storage      (TBD)
-        --xml          (TBD)
-
-        # NPU Use Cases
-        --compute (TBD)
-        --math    (TBD)
-
-        # SDK Use Cases
-        --developer (TBD)
-        --logger
-        --monitor   (TBD)
-        --network   (IN DEVELOPMENT. fetch usable)
-        --pi        (TBD)
-        --runtime
-        --setup     (TBD)
-
-        # User Interface Use Cases
-        --app     (TBD)
-        --console
-        --dialog  (TBD)
-        --ui      (TBD)
-
-      [Params]
-        The optional set of named arguments wrapped within a [hashtable]
-
-    RETURNS:
-      Will vary depending on the called [Action].
-
-  .LINK
-    CodeMelted DEV | pwsh Module:
-    https://codemelted.com/developer/assets/pwsh
-
-    GitHub Source:
-    https://github.com/CodeMelted/codemelted_developer/tree/main/assets/pwsh
-  #>
-  param(
-    [Parameter(
-      Mandatory = $false,
-      ValueFromPipeline = $false,
-      Position = 0
-    )]
-    [hashtable]$Params
-  )
-  [hashtable] $helpLookup = @{
-    # Async I/O Use Cases
-    "--process" = { Get-Help codemelted_process };
-    "--task" = { Get-Help codemelted_task };
-    "--worker" = { Get-Help codemelted_worker };
-
-
-    # Data Use Cases
-    "--data-check" = { Get-Help codemelted_data_check };
-    "--disk" = { Get-Help codemelted_disk };
-    "--json" = { Get-Help codemelted_json };
-    "--string-parse" = { Get-Help codemelted_string_parse };
-
-    # NPU Use Cases
-
-    # SDK Use Cases
-    "--logger" = { Get-Help codemelted_logger };
-    "--network" = { Get-Help codemelted_network };
-    "--runtime" = { Get-Help codemelted_runtime };
-
-    # User Interface Use Cases
-    "--console" = { Get-Help codemelted_console };
-  }
-  if ($null -ne $Params) {
-    if (-not $Params.ContainsKey("action")) {
-      throw "--help expects action key to be specified"
-    } elseif ($null -eq $helpLookup[$Params["action"]]) {
-      throw "--help action specified did not find a help specification"
-    }
-    Invoke-Command -ScriptBlock $helpLookup[$Params["action"]]
-  } else {
-    Get-Help codemelted_help
-  }
-}
 
 # =============================================================================
 # [USE CASE DEFINITIONS] ======================================================
@@ -921,10 +1220,6 @@ function codemelted_worker {
 # [Data Use Cases] ------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
-function codemelted_database {
-  throw "FUTURE IMPLEMENTATION"
-}
-
 function codemelted_data_check {
   <#
     .SYNOPSIS
@@ -1178,10 +1473,6 @@ function codemelted_disk {
   }
 }
 
-function codemelted_file {
-  throw "FUTURE IMPLEMENTATION"
-}
-
 function codemelted_json {
   <#
     .SYNOPSIS
@@ -1339,33 +1630,9 @@ function codemelted_string_parse {
   }
 }
 
-function codemelted_storage {
-  throw "FUTURE IMPLEMENTATION"
-}
-
-function codemelted_xml {
-  throw "FUTURE IMPLEMENTATION"
-}
-
-# -----------------------------------------------------------------------------
-# [NPU Use Cases] -------------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-function codemelted_compute {
-  throw "FUTURE IMPLEMENTATION"
-}
-
-function codemelted_math {
-  throw "FUTURE IMPLEMENTATION"
-}
-
 # -----------------------------------------------------------------------------
 # [SDK Use Cases] -------------------------------------------------------------
 # -----------------------------------------------------------------------------
-
-function codemelted_developer {
-  throw "FUTURE IMPLEMENTATION"
-}
 
 function codemelted_logger {
   <#
@@ -1465,10 +1732,6 @@ function codemelted_logger {
     "supported action key specified. Valid actions are log_level / " +
     "handler / debug / info / warning / error."
   }
-}
-
-function codemelted_monitor {
-  throw "FUTURE IMPLEMENTATION"
 }
 
 function codemelted_network {
@@ -1777,146 +2040,4 @@ function codemelted_runtime {
       "os_version / path_separator / processor_count / stats_disk / " +
       "stats_perf / stats_tcp / stats_udp / system / temp_path / username"
   }
-}
-
-function codemelted_pi {
-  throw "FUTURE IMPLEMENTATION"
-}
-
-function codemelted_setup {
-  throw "FUTURE IMPLEMENTATION"
-}
-
-# -----------------------------------------------------------------------------
-# [User Interface Use Cases] --------------------------------------------------
-# -----------------------------------------------------------------------------
-
-function codemelted_app {
-  throw "FUTURE IMPLEMENTATION"
-}
-
-function codemelted_console {
-  <#
-    .SYNOPSIS
-    Provides a basic mechanism for interacting with a user via STDIN and
-    STDOUT for later processing within a script.
-
-    SYNTAX:
-      $answer = codemelted --console @{
-        "action" = "";  # required
-        "message" = ""; # optional message to associate with action
-        "choices" = @(  # required when using the 'choose' action.
-          "dog",
-          "cat",
-          "fish"
-        )
-      }
-
-    ACTIONS:
-      alert / confirm / choose / password / prompt / writeln
-
-    RETURNS:
-      alert    [void]
-      confirm  [boolean]
-      choose   [int]
-      password [string]
-      prompt   [string]
-      writeln  [void]
-  #>
-  param(
-    [Parameter(
-      Mandatory = $true,
-      ValueFromPipeline = $false,
-      Position = 0
-    )]
-    [hashtable]$Params
-  )
-
-  $action = $Params["action"]
-  $message = $Params["message"]
-  $choices = $params["choices"]
-  if ($action -eq "alert") {
-    $prompt = $null -ne $message ? "$message [ENTER]" : "[ENTER]"
-    Read-Host -Prompt $prompt -MaskInput | Out-Null
-  } elseif ($action -eq "confirm") {
-    $prompt = $null -ne $message ? "$message [y/N]" : "CONFIRM [y/N]"
-    $answer = Read-Host -Prompt $prompt
-    return $answer.ToLower() -eq "y"
-  } elseif ($action -eq "choose") {
-    if ((-not ($choices -is [array])) -or $choices.Length -eq 0) {
-      throw "SyntaxError: codemelted --console Params expects a choices " +
-        "key with an array of string values."
-    }
-
-    [int] $answer = -1
-    [string] $title = $message ?? "CHOOSE"
-    do {
-      Write-Host
-      "-" * $title.Length
-      Write-Host $title
-      "-" * $title.Length
-      Write-Host
-      [int]$x = 0
-      foreach ($choice in $choices) {
-        Write-Host "$x. $choice"
-        $x += 1
-      }
-      Write-Host
-      $selection = Read-Host -Prompt "Make a Selection"
-      try {
-        $answer = [int]::Parse($selection)
-      } catch {
-        Write-Host
-        Write-Warning "Entered value was invalid. Please try again."
-        $answer = -1
-      }
-    } while ($answer -eq -1)
-    return $answer
-  } elseif ($action -eq "password") {
-    $answer = Read-Host -Prompt ($message ?? "PASSWORD") -MaskInput
-    return $answer
-  } elseif ($action -eq "prompt") {
-    $answer = Read-Host -Prompt ($message ?? "PROMPT")
-    return $answer
-  } elseif ($action -eq "writeln") {
-    Write-Host ($message ?? "")
-  } else {
-    throw "SyntaxError: codemelted --console Params did not have a " +
-      "supported action key specified. Valid actions are alert / " +
-      "confirm / choose / password / prompt / writeln."
-  }
-}
-
-function codemelted_dialog {
-  throw "FUTURE IMPLEMENTATION"
-}
-
-function codemelted_ui {
-  throw "FUTURE IMPLEMENTATION"
-}
-
-# =============================================================================
-# [MAIN API DEFINITION] =======================================================
-# =============================================================================
-
-# OK, go parse the command.
-switch ($Action) {
-  # Module Information
-  "--version" { Get-PSScriptFileInfo -Path $PSScriptRoot/codemelted.ps1 }
-  "--help" { codemelted_help $Params }
-  # Async I/O Use Cases
-  "--task" { codemelted_task $Params }
-  "--worker" { codemelted_worker $Params }
-  # Data Use Cases
-  "--data-check" { codemelted_data_check $Params }
-  "--disk" { codemelted_disk $Params }
-  "--json" { codemelted_json $Params }
-  "--string-parse" { codemelted_string_parse $Params }
-  # NPU Use Cases
-  # SDK Use Cases
-  "--logger" { codemelted_logger $Params }
-  "--network" { codemelted_network $Params }
-  "--runtime" { codemelted_runtime $Params }
-  # User Interface Use Case
-  "--console" { codemelted_console $Params }
 }
