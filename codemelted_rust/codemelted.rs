@@ -2164,6 +2164,19 @@ pub fn logger_log(level: CLogLevel, data: &str) {
 // [MONITOR UC IMPLEMENTATION] ================================================
 // ============================================================================
 
+// TODO:
+//   Connection monitoring of TCP / UDP of open connections / and actual
+//   connections
+// } elseif ($action -eq "stats_tcp") {
+//   return $IsLinux ? (netstat -na | grep "tcp") : (netstat -nap tcp)
+// } elseif ($action -eq "stats_udp") {
+//   return $IsLinux ? (netstat -na | grep "udp") : (netstat -nap tcp)
+
+// TODO:
+//   Trace Route
+//   Ping
+//   ipconfig /all ifconfig -na stuff
+
 /// Defines a trait to allow a struct to transform its data into a CSV format.
 pub trait CCsvFormat {
   /// Utility method to get the system id for a given monitor.

@@ -40,7 +40,21 @@ param(
     "--console-password",
     "--console-prompt",
     "--console-write",
-    "--console-writeln"
+    "--console-writeln",
+    # JSON Use Case
+    "--json-check-type",
+    "--json-create-array",
+    "--json-create-object",
+    "--json-check-type",
+    "--json-parse",
+    "--json-stringify",
+    "--json-valid-url",
+    # Logger Use Case
+    "--logger-level",
+    "--logger-handler",
+    "--logger-log",
+    # Network Use Case
+    "--network-fetch"
   )]
   [string] $Action,
 
@@ -86,19 +100,19 @@ function codemelted_help {
         The optional set of named arguments wrapped within a [hashtable]
 
     USE CASES:
-      async     : TBD
+      async     : COMPLETED
       console   : COMPLETED
       db        : TBD
       developer : TBD
-      disk      : TBD
+      disk      : COMPLETED
       hw        : TBD
-      json      : TBD
-      logger    : TBD
+      json      : COMPLETED
+      logger    : COMPLETED
       monitor   : TBD
-      network   : TBD
+      network   : IN DEVELOPMENT
       npu       : TBD
-      process   : TBD
-      runtime   : TBD
+      process   : COMPLETED
+      runtime   : COMPLETED
       setup     : TBD
       storage   : TBD
       ui        : TBD
@@ -179,13 +193,56 @@ function codemelted_help {
 
     # json use case functions
     "json" = {
-      Write-Host "TBD"
+      Write-Host "================================="
+      Write-Host "codemelted CLI (json) Use Case"
+      Write-Host "================================="
+      Write-Host
+      Write-Host "This use case provides the ability to work with JSON data."
+      Write-Host "This includes creating compliant JSON container objects,"
+      Write-Host "checking data types, parsing, and serializing the data"
+      Write-Host "for storage / transmission. The available use case options"
+      Write-Host "are:"
+      Write-Host
+      Write-Host "--json-check-type"
+      Write-Host "--json-create-array"
+      Write-Host "--json-create-object"
+      Write-Host "--json-parse"
+      Write-Host "--json-stringify"
+      Write-Host "--json-valid-url"
+      Write-Host
+      Write-Host "Execute 'codemelted --help @ {action = ""--uc-name""}'"
+      Write-Host "for more details."
     };
+    "--json-check-type" = { Get-Help json_check_type };
+    "--json-create-array" = { Get-Help json_create_array };
+    "--json-create-object" = { Get-Help json_create_object };
+    "--json-parse" = { Get-Help json_parse };
+    "--json-stringify" = { Get-Help json_stringify };
+    "--json-valid-url" = { Get-Help json_valid_url };
 
     # logger use case functions
     "logger" = {
-      Write-Host "TBD"
+      Write-Host "================================="
+      Write-Host "codemelted CLI (logger) Use Case"
+      Write-Host "================================="
+      Write-Host
+      Write-Host "This use case provides a logging facility with PowerShell."
+      Write-Host "All logging is sent to STDOUT color coded based on the log"
+      Write-Host "level of the logged item. Simply set the log level and"
+      Write-Host "log events that meet that level, are logged to STDOUT. To"
+      Write-Host "further process the log event, set a log handler."
+      Write-Host "The available use case options are:"
+      Write-Host
+      Write-Host "--logger-level"
+      Write-Host "--logger-handler"
+      Write-Host "--logger-log"
+      Write-Host
+      Write-Host "Execute 'codemelted --help @ {action = ""--uc-name""}'"
+      Write-Host "for more details."
     };
+    "--logger-level" = { Get-Help logger_level };
+    "--logger-handler" = { Get-Help logger_handler };
+    "--logger-log" = { Get-Help logger_log };
 
     # monitor use case functions
     "monitor" = {
@@ -194,8 +251,24 @@ function codemelted_help {
 
     # network use case functions
     "network" = {
-      Write-Host "TBD"
+      Write-Host "================================="
+      Write-Host "codemelted CLI (network) Use Case"
+      Write-Host "================================="
+      Write-Host
+      Write-Host "This use case provides the ability to fetch data from"
+      Write-Host "server REST API endpoints along with setting up and hosting"
+      Write-Host "your own HTTP server endpoint for REST API services and"
+      Write-Host "creating a web socket server for web sockets. The use case"
+      Write-Host "available are:"
+      Write-Host
+      Write-Host "--network-fetch"
+      Write-Host "--network-serve (TBD)"
+      Write-Host "--upgrade-web-socket (TBD)"
+      Write-Host
+      Write-Host "Execute 'codemelted --help @ {action = ""--uc-name""}'"
+      Write-Host "for more details."
     };
+    "--network-fetch" = { Get-Help network_fetch };
 
     # npu use cse functions
     "npu" = {
@@ -375,7 +448,7 @@ function console_password {
 
     SYNTAX:
       $answer = codemelted --console-password @{
-        message = ""; # optional
+        message = [string]; # optional
       }
 
     RETURNS:
@@ -402,7 +475,7 @@ function console_prompt {
 
     SYNTAX:
       $answer = codemelted --console-prompt @{
-        message = "First Name"; # optional
+        message = [string]; # optional
       }
 
     RETURNS:
@@ -428,7 +501,7 @@ function console_write {
 
     SYNTAX:
       codemelted --console-write @{
-        message = ""; # optional
+        message = [string]; # optional
       }
 
     RETURNS:
@@ -486,133 +559,324 @@ function console_writeln {
 # [JSON UC IMPLEMENTATION] ====================================================
 # =============================================================================
 
+function json_check_type {
+  <#
+  .SYNOPSIS
+    Validates that a specified variable is of an expected type providing
+    the option to either handle a return value or to throw if the data check
+    fails.
+
+    NOTE: the type represents the .NET type name but a Contains compare
+    is done to try to establish partial name finds but that is not a
+    guarantee.
+
+    SYNTAX:
+      $isType = codemelted --json-check-type @{
+        type = "string";       # required
+        data = $var1;          # required
+        should_throw = [bool]; # optional
+      }
+
+    RETURNS:
+      [bool] $true if the types match. $false otherwise
+
+    THROWS:
+      When the type is not met and should_throw = $true;
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  # Setup the data requests and validate expectations
+  $type = $Params["type"]
+  $data = $Params["data"]
+  $shouldThrow = $Params["should_throw"] -is [boolean] `
+    ? $Params["should_throw"]
+    : $false
+  if ($null -eq $data) {
+    throw "SyntaxError: codemelted --json-check-type Params 'data' key " +
+      "was not set."
+  } elseif ([string]::IsNullOrEmpty($type) -or
+            [string]::IsNullOrWhiteSpace($type)) {
+    throw "SyntaxError: codemelted --json-check-type Params 'type' key "
+      "was not set."
+  }
+
+  # Carry out the data check
+  $throwMessage = "$type was not the expected type for the codemelted " +
+      "--json-check-type action."
+  $answer = $type.ToString().ToLower().Contains(
+    $data.GetType().Name.ToLower()
+  )
+
+  # Handle how we are returning from this function whether to throw or return
+  # boolean.
+  if ($shouldThrow) {
+    if ( -not $answer) {
+      throw $throwMessage
+    } else {
+      return [void] $answer
+    }
+  }
+  return $answer
+}
+
+function json_create_array {
+  <#
+  .SYNOPSIS
+    Creates a JSON compliant array with the option to copy data into the
+    newly created array.
+
+    SYNTAX:
+      $data = codemelted --json-create-array @{
+        "data" = [array] or [System.Collection.ArrayList] # optional
+      }
+
+    RETURNS:
+      [System.Collections.ArrayList] object or $null if it could not be
+      created.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  $data = $Params["data"]
+  try {
+    $obj = New-Object System.Collections.ArrayList
+    if ($data -is [System.Collections.ArrayList]) {
+      $obj = $data.Clone()
+    } elseif ($data -is [array]) {
+      $obj += $data
+    }
+    return $obj
+  } catch [System.FormatException] {
+    return $null
+  }
+}
+
+function json_create_object {
+  <#
+  .SYNOPSIS
+    Creates a JSON compliant object with the option to copy data to it upon
+    creation.
+
+    SYNTAX:
+      $data = codemelted --json-create-object @{
+        "data" = [hashtable]  # optional
+      }
+
+    RETURNS:
+      [hashtable] of the newly created object or $null if a failure occurs.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  $data = $Params['data']
+  try {
+    $obj = $data -is [hashtable] ? $data.Clone() : @{}
+    return $obj
+  } catch [System.FormatException] {
+    return $null
+  }
+}
+
+function json_has_key {
+  <#
+  .SYNOPSIS
+    Validates that a given [hashtable] contains the key specified or not.
+
+    SYNTAX:
+      $isType = codemelted --json-has-key @{
+        data = [hashtable];    # required
+        key = "key_name";      # required
+        should_throw = [bool]; # optional
+      }
+
+    RETURNS:
+      [bool] $true if the key is found, $false otherwise.
+
+    THROWS:
+      When the type is not met and should_throw = $true;
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  # Setup the data requests and validate expectations
+  $key = $Params["key"]
+  $data = $Params["data"]
+  $shouldThrow = $Params["should_throw"] -is [boolean] `
+    ? $Params["should_throw"]
+    : $false
+  if (-not ($data -is [hashtable])) {
+    throw "SyntaxError: codemelted --json-has-key Params 'data' key was " +
+      "not a [hashtable] value."
+  } elseif ([string]::IsNullOrEmpty($key) `
+            -or [string]::IsNullOrWhiteSpace($key)) {
+    throw "SyntaxError: codemelted --json-has-key Params 'key' key " +
+      "was not set."
+  }
+
+  # Carry out the request
+  $throwMessage = "$key did not exist for the codemelted --json-has-key " +
+    "request."
+  $answer = $data.ContainsKey($key)
+
+  # Handle how we are returning from this function whether to throw or return
+  # boolean.
+  if ($shouldThrow) {
+    if ( -not $answer) {
+      throw $throwMessage
+    } else {
+      return [void] $answer
+    }
+  }
+  return $answer
+}
+
+function json_parse {
+  <#
+  .SYNOPSIS
+    Will parse a specified [string] data parameter and convert it to its
+    JSON compliant PowerShell type. So a stringified [hashtable] will become
+    a [hashtable]. A stringified [bool] becomes a [bool], etc.
+
+    SYNTAX:
+      $data = codemelted --json-parse @{
+        data = [string]; # required
+      }
+
+    RETURNS:
+      [array], [double], [int], [bool], [hashtable] JSON compliant types or
+      $null if conversion failed.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  $data = $Params["data"]
+  if ([string]::IsNullOrEmpty($data) -or [string]::IsNullOrWhiteSpace($data)) {
+    throw "SyntaxError: codemelted --json-parse Params expects a 'data' key " +
+      "with a string value."
+  }
+  try {
+    return ConvertFrom-Json -InputObject $data -Depth 100
+  } catch [System.FormatException] {
+    return $null
+  }
+}
+
+function json_stringify {
+  <#
+  .SYNOPSIS
+    Will stringify a JSON compliant specified data parameter.
+
+    SYNTAX:
+      $data = codemelted --json-stringify @{
+        data = [object]; # required, JSON compliant type.
+      }
+
+    RETURNS:
+      [string] or $null if the 'data' was not a JSON compliant type.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  $data = $Params["data"]
+  if ($null -eq $data) {
+    throw "SyntaxError: codemelted --json-stringify Params expects a 'data' " +
+      "key and value."
+  }
+  try {
+    if ($data.GetType().Name.ToLower() -eq "arraylist") {
+      return ConvertTo-Json -InputObject $data.ToArray() -Depth 100
+    }
+    return ConvertTo-Json -InputObject $data -Depth 100
+  } catch [System.FormatException] {
+    return $null
+  }
+}
+
+function json_valid_url {
+  <#
+  .SYNOPSIS
+    Validates that the url is valid or not.
+
+    SYNTAX:
+      $isType = codemelted --json-valid-url @{
+        data = [string];       # required
+        should_throw = [bool]; # optional
+      }
+
+    RETURNS:
+      [bool] $true if the url is well formed, $false otherwise.
+
+    THROWS:
+      When the type is not met and should_throw = $true;
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  # Parse the request elements.
+  $data = $Params["data"]
+  $shouldThrow = $Params["should_throw"] -is [boolean] `
+    ? $Params["should_throw"]
+    : $false
+  if ([string]::IsNullOrEmpty($data) -or [string]::IsNullOrWhiteSpace($data)) {
+    throw "SyntaxError: codemelted --json-valid-url Params 'data' key " +
+      "expected a [string] value."
+  }
+
+  # Carry out the url request.
+  $throwMessage = "$data failed the codemelted --json-valid-url request."
+  $answer = [uri]::IsWellFormedUriString($data.ToString(), 0)
+
+  # Handle how we are returning from this function whether to throw or return
+  # boolean.
+  if ($shouldThrow) {
+    if ( -not $answer) {
+      throw $throwMessage
+    } else {
+      return [void] $answer
+    }
+  }
+  return $answer
+}
+
 # =============================================================================
 # [LOGGER UC IMPLEMENTATION] ==================================================
 # =============================================================================
-
-# =============================================================================
-# [MONITOR UC IMPLEMENTATION] =================================================
-# =============================================================================
-
-# =============================================================================
-# [NETWORK UC IMPLEMENTATION] =================================================
-# =============================================================================
-
-# =============================================================================
-# [NPU UC IMPLEMENTATION] =====================================================
-# =============================================================================
-
-# =============================================================================
-# [PROCESS UC IMPLEMENTATION] =================================================
-# =============================================================================
-
-# =============================================================================
-# [RUNTIME UC IMPLEMENTATION] =================================================
-# =============================================================================
-
-# =============================================================================
-# [STORAGE UC IMPLEMENTATION] =================================================
-# =============================================================================
-
-# =============================================================================
-# [UI UC IMPLEMENTATION] ======================================================
-# =============================================================================
-
-# =============================================================================
-# [MAIN CLI API] ==============================================================
-# =============================================================================
-
-# OK, go parse the command.
-switch ($Action) {
-  # Module Information
-  "--version" { Get-PSScriptFileInfo -Path $PSScriptRoot/codemelted.ps1 }
-  "--help" { codemelted_help $Params }
-  # Console Use Case
-  "--console-alert" { console_alert $Params }
-  "--console-confirm" { codemelted_confirm $Params }
-  "--console-choose" { codemelted_choose $Params }
-  "--console-password" {codemelted_password $Params }
-  "--console-prompt" { codemelted_prompt $Params }
-  "--console-write" { codemelted_write $Params }
-  "--console-writeln" { codemelted_writeln $Params }
-}
-
-# ---- REFACTORS BELOW INTO NEW USE CASE STRUCTURE ABOVE ----
-
-# -----------------------------------------------------------------------------
-# [Data Types] ----------------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# .NET Assemblies
-Add-Type -AssemblyName Microsoft.PowerShell.Commands.Utility
-
-# Setup our module API for tracking items and supporting each of the use case
-# functions.
-if ($null -eq $Global:CodeMeltedAPI) {
-  $Global:CodeMeltedAPI = @{
-    tracker = @{
-      id = 0;
-      map = @{};
-    };
-    logger = @{
-      level = [CLogRecord]::offLogLevel;
-      handler = $null;
-    };
-    process = @{};
-    worker = @{
-      threadJob = $null;
-      queued = [System.Collections.ArrayList]::Synchronized( `
-        [System.Collections.ArrayList]::new()
-      );
-      scheduled = [System.Collections.ArrayList]::Synchronized( `
-        [System.Collections.ArrayList]::new()
-      );
-      task = $null;
-      handler = $null;
-    };
-  }
-}
-
-# A response object returned from the codemelted_network fetch action.
-# Contains the statusCode, statusText, and the data.
-class CFetchResponse {
-  # Member Fields
-  [int] $statusCode
-  [string] $statusText
-  [object] $data
-
-  # Will treat the data as a series of bytes if it is that or return $null.
-  [byte[]] asBytes() {
-    return $this.data -is [byte[]] ? $this.data : $null
-  }
-
-  # Will treat the data as a JSON object if it is that or return $null.
-  [hashtable] asObject() {
-    return $this.data -is [hashtable] ? $this.data : $null
-  }
-
-  # Will treat the data as a string if it is that or return $null.
-  [string] asString() {
-    return $this.data -is [string] ? $this.data : $null
-  }
-
-  # Constructor for the class transforming the response into the appropriate
-  # data for consumption.
-  CFetchResponse($resp) {
-    $this.statusCode = $resp.StatusCode
-    $this.statusText = $resp.StatusDescription
-    [string] $headers = $resp.Headers | Out-String
-    if ($headers.ToLower().Contains("application/json")) {
-      $this.data = codemelted_json @{
-        "action" = "parse";
-        "data" = $resp.Content
-      }
-      $this.data -is [hashtable]
-    } else {
-      $this.data = $resp.Content
-    }
-  }
-}
 
 # Provides the log record object to pass to a handler for post processing.
 # Attached to it is the module log level along with the current captured
@@ -668,7 +932,15 @@ class CLogRecord {
     $this.timestamp = (Get-Date -Format "yyyy/MM/dd HH:mm:ss.fff")
     $this.moduleLogLevel = $moduleLogLevel
     $this.logLevel = $logLevel
+    if ($logLevel -eq -1) {
+      throw "SyntaxError: codemelted --logger-log expects Params 'level' " +
+        "key to be set.";
+    }
     $this.data = $data
+    if ($null -eq $data) {
+      throw "SyntaxError: codemelted --logger-log expects Params 'data' " +
+        "key to be set.";
+    }
   }
 
   [string] ToString() {
@@ -680,14 +952,271 @@ class CLogRecord {
   }
 }
 
-# Adds the [CProcess] type for C# to support the codemelted_process cmdlet.
+# Tracks the logger settings for the loaded module.
+if ($null -eq $Global:CodeMeltedLogger) {
+  $Global:CodeMeltedLogger = @{
+    level = $null;
+    handler = $null;
+  }
+}
+
+function logger_level {
+  <#
+  .SYNOPSIS
+    Sets / gets the log level for the module. By setting this, any log that
+    meets the log level will be reported to STDOUT and sent onto the log
+    handler if set. The supported log levels are 'debug' / 'info' /
+    'warning' / 'error' / 'off'.
+
+    SYNTAX:
+      codemelted --logger-level @{
+        level = [string]; # required for setting
+      }
+
+      # Get the log level
+      $level = codemelted --logger-level
+
+    RETURNS:
+      [string] representation of the log level if getting the log level.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $false,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  # Get data and see if we are returning the log level.
+  $log_level = $null -ne $Params ? $Params["log_level"] : $null
+  if ($null -eq $log_level) {
+    $logLevelString = [CLogRecord]::logLevelString($Global:CodeMeltedLogger.level)
+    return $logLevelString
+  }
+
+  # Ok, we are setting the log level, not retrieving it. Go get the int value
+  # and set it in the global store.
+  $level = [CLogRecord]::logLevelInt($log_level)
+  if ($level -eq -1) {
+    throw "SyntaxError: codemelted --logger-level Params data 'key' " +
+      "not a valid value for setting log level. Valid values are " +
+      "'debug' / 'info' / 'warning' / 'error'"
+  }
+  $Global:CodeMeltedLogger.level = $level
+}
+
+function logger_handler {
+  <#
+  .SYNOPSIS
+    Provides the ability to setup a log handler that can receive a log record
+    after written to STDOUT.
+
+    SYNTAX:
+      codemelted --logger-handler @{
+        "handler" = [scriptblock] / $null  # required
+      }
+
+    RETURNS:
+      [void]
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+
+  $handler = $Params["handler"]
+  if ($null -eq $handler -and $null -eq $Params) {
+    $Global:CodeMeltedLogger.handler = $null
+  } elseif ($data -is [scriptblock]) {
+    $Global:CodeMeltedAPI.logger.handler = $data
+  } else {
+    throw "SyntaxError: codemelted --logger-handler Params 'handler' key " +
+      "value was not $null or [scriptblock]"
+  }
+}
+
+function logger_log {
+  <#
+  .SYNOPSIS
+    Provides the logging of 'info' / 'warning' / 'error' / 'debug' messages
+    to STDOUT and to be further processed via a log handler.
+
+    SYNTAX:
+      codemelted --logger-log @{
+        level = [string]; # required
+        data = [string];  # required
+      }
+
+    RETURNS:
+      [void]
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  if ($Global:CodeMeltedLogger.level -eq [CLogRecord]::offLogLevel) {
+    return [void]
+  }
+
+  $level = [CLogRecord]::logLevelInt($Params["level"])
+  $record = [CLogRecord]::new($Global:CodeMeltedLogger.level, $level, $data)
+  if ($Global:CodeMeltedLogger.level -le [CLogRecord]::debugLogLevel -and `
+      $level -eq [CLogRecord]::debugLogLevel) {
+    Write-Host $record.ToString() -ForegroundColor White
+  } elseif ($Global:CodeMeltedLogger.level -le [CLogRecord]::infoLogLevel -and `
+          $level -eq [CLogRecord]::infoLogLevel) {
+    Write-Host $record.ToString() -ForegroundColor Green
+  } elseif ($Global:CodeMeltedLogger.level -le [CLogRecord]::warningLogLevel -and `
+          $level -eq [CLogRecord]::warningLogLevel) {
+    Write-Host $record.ToString() -ForegroundColor Yellow
+  } elseif ($Global:CodeMeltedLogger.level-le [CLogRecord]::errorLogLevel -and `
+          $level -eq [CLogRecord]::errorLogLevel) {
+    Write-Host $record.ToString() -ForegroundColor Red
+  }
+
+  if ($null -ne $Global:CodeMeltedLogger.handler) {
+    Invoke-Command -ScriptBlock $Global:CodeMeltedLogger.handler `
+      -ArgumentList $record
+  }
+}
+
+# =============================================================================
+# [MONITOR UC IMPLEMENTATION] =================================================
+# =============================================================================
+
+# =============================================================================
+# [NETWORK UC IMPLEMENTATION] =================================================
+# =============================================================================
+
+# A response object returned from the codemelted_network fetch action.
+# Contains the statusCode, statusText, and the data.
+class CFetchResponse {
+  # Member Fields
+  [int] $statusCode
+  [object] $data
+
+  # Signals whether the statusCode was a 2XX HTTP Response Code or not.
+  [bool] isOk() {
+    return $this.statusCode -gt 199 && $this.statusCode -lt 300
+  }
+
+  # Will treat the data as a series of bytes if it is that or return $null.
+  [byte[]] asBytes() {
+    return $this.data -is [byte[]] ? $this.data : $null
+  }
+
+  # Will treat the data as a JSON object if it is that or return $null.
+  [hashtable] asObject() {
+    return $this.data -is [hashtable] ? $this.data : $null
+  }
+
+  # Will treat the data as a string if it is that or return $null.
+  [string] asString() {
+    return $this.data -is [string] ? $this.data : $null
+  }
+
+  # Constructor for the class transforming the response into the appropriate
+  # data for consumption.
+  CFetchResponse($resp) {
+    $this.statusCode = $resp.StatusCode
+    [string] $headers = $resp.Headers | Out-String
+    if ($headers.ToLower().Contains("application/json")) {
+      $this.data = json_parse @{
+        "data" = $resp.Content
+      }
+    } else {
+      $this.data = $resp.Content
+    }
+  }
+}
+
+function network_fetch {
+  <#
+  .SYNOPSIS
+    Provides a mechanism for fetching data from a server REST API. The result
+    is a [CFetchResponse] object with the statusCode along with the data
+    received asBytes(), asObject(), or asString(). If it is not any of those
+    types, a $null is returned.
+
+    SYNTAX:
+      # Perform a network fetch to a REST API. The "data" is a [hashtable]
+      # reflecting the named parameters of the Invoke-WebRequest. So the two
+      # most common items will be "method" / "body" / "headers" but others
+      # are reflected via the link.
+      $resp = codemelted --network-fetch @{
+        "url" = [string / ip]; # required
+        "data" = [hashtable]   # required
+      }
+
+    RETURNS:
+      [CFetchResponse] that has the statusCode and data as properties.
+        Methods of asBytes(), asObject(), asString() exists to get the data
+        of the expected type or $null if not of that type. A method of isOk()
+        signals whether the statusCode was a 2XX HTTP Status Code.
+
+  .LINK
+    Invoke-WebRequest Details:
+      https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-webrequest
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  # Validate the required entries utilized by all actions.
+  $url = $Params["url"]
+  $data = $Params["data"]
+
+  if ([string]::IsNullOrEmpty($url) -or [string]::IsNullOrWhiteSpace($url)) {
+    throw "SyntaxError: codemelted --network-fetch Params expects a url " +
+      "key with a [string] URL / IP address"
+  } elseif (-not ($data -is [hashtable])) {
+    throw "SyntaxError: codemelted --network-fetch Params expects a data " +
+      "[hashtable] entry."
+  }
+
+  try {
+    # Go carry out the fetch.
+    [hashtable] $request = json_create_object @{
+      "data" = $data
+    }
+    $request.Add("uri", $url)
+    $resp = Invoke-WebRequest @request -SkipHttpErrorCheck
+    return [CFetchResponse]::new($resp)
+  } catch {
+    throw "SyntaxError: codemelted --network-fetch encountered an issue. " +
+      $_.Exception.Message
+  }
+}
+
+# =============================================================================
+# [NPU UC IMPLEMENTATION] =====================================================
+# =============================================================================
+
+# =============================================================================
+# [PROCESS UC IMPLEMENTATION] =================================================
+# =============================================================================
+
+# Adds the [CProcess] C# class to support the [process_spawn] function.
+# TODO: Match Rust construct.
 Add-Type -Language CSharp @"
   using System;
   using System.Diagnostics;
   using System.IO;
   using System.Text;
 
-  // Main class definition for the codemelted_process cmdlet.
+  // Main class definition for the process_spawn cmdlet.
   public class CProcess {
     // Member Fields
     private String _output;
@@ -745,6 +1274,468 @@ Add-Type -Language CSharp @"
     }
   }
 "@
+
+function process_exists {
+  <#
+  .SYNOPSIS
+    Determines if a given executable program is known by the host operating
+    system. NOTE: regular terminal commands (i.e. ls, dir) will not register.
+
+    SYNTAX:
+      $exists = codemelted --process-exists @{
+        command = [string]; # required
+      }
+
+    RETURNS:
+      [bool] $true if the specified command exists, $false otherwise.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  $cmd = $Params["command"]
+  if ([string]::IsNullOrEmpty($cmd) -or [string]::IsNullOrWhiteSpace($cmd)) {
+    throw "'command' key / value expected with named parameters"
+  }
+
+  if ($IsWindows) {
+    cmd /c where $cmd > nul 2>&1
+  } else {
+    which -s $cmd > /dev/null
+  }
+  return $LASTEXITCODE -eq 0
+}
+
+function process_run {
+  <#
+  .SYNOPSIS
+    Something Something Star Wars.
+
+    SYNTAX:
+      # Example listing files on a linux terminal.
+      $output = codemelted --process-run @{
+        command = "ls"; [string] # required
+        args = "-latr"; [string] # optional
+      }
+
+    RETURNS:
+      [string] The capture output from the process via STDOUT.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  $cmd = $Params["command"]
+  $arguments = $Params["args"]
+  if ([string]::IsNullOrEmpty($cmd) -or [string]::IsNullOrWhiteSpace($cmd)) {
+    throw "'command' key / value expected with named parameters"
+  }
+
+  if (-not [string]::IsNullOrEmpty($arguments) -and
+      -not [string]::IsNullOrWhiteSpace($arguments)) {
+    $cmd += " " + $arguments
+  }
+
+  return $IsWindows ? (cmd /c $cmd) : (sh -c $cmd)
+}
+
+function process_spawn {
+  <#
+  .SYNOPSIS
+    Something Something Star Wars.
+
+    SYNTAX:
+
+    RETURNS:
+
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+}
+
+# =============================================================================
+# [RUNTIME UC IMPLEMENTATION] =================================================
+# =============================================================================
+
+function runtime_cpu_arch {
+  <#
+  .SYNOPSIS
+    Retrieves whether the host operating system is 64-bit or 32-bit.
+
+    SYNTAX:
+      $arch = codemelted --runtime-cpu-arch
+
+    RETURNS:
+      [string] Identifies if the operating system is '64-bit' or '32-bit'
+  #>
+  param(
+    [Parameter(
+      Mandatory = $false,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  return [System.Environment]::Is64BitOperatingSystem `
+    ? "64-bit"
+    : "32-bit"
+}
+
+function runtime_cpu_count {
+  <#
+  .SYNOPSIS
+    Retrieves the available CPUs for processing work for the host operating
+    system.
+
+    SYNTAX:
+      $cpuCount = codemelted --runtime-cpu-count
+
+    RETURNS:
+      [int] Identifies how many CPUs available for parallel work.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $false,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  return [System.Environment]::ProcessorCount
+}
+
+function runtime_environment {
+  <#
+  .SYNOPSIS
+    Retrieves an environment variable held by the host operating system based
+    on the name you specify.
+
+    SYNTAX:
+      $value = codemelted --runtime-environment @{
+        name = [string]; # required
+      }
+
+    RETURNS:
+      [string] Retrieves the environment variable value or $null if not found.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  $name = $Params["name"]
+  if ([string]::IsNullOrEmpty($name) -or [string]::IsNullOrWhiteSpace($name)) {
+    throw "Params 'name' key is required."
+  }
+  return [System.Environment]::GetEnvironmentVariable($name)
+}
+
+function runtime_home_path {
+  <#
+  .SYNOPSIS
+    Retrieves the logged in user's home directory on the given operating
+    system.
+
+    SYNTAX:
+      $path = codemelted --runtime-home-path
+
+    RETURNS:
+      [string] Identifies the user's home directory.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $false,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  return $IsWindows `
+    ? [System.Environment]::GetEnvironmentVariable("USERPROFILE")
+    : [System.Environment]::GetEnvironmentVariable("HOME")
+}
+
+function runtime_hostname {
+  <#
+  .SYNOPSIS
+    Retrieves the hostname of the given operating system.
+
+    SYNTAX:
+      $hostname = codemelted --runtime-hostname
+
+    RETURNS:
+      [string] The hostname of how your machine identifies itself on a
+        network.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $false,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  return [System.Environment]::MachineName
+}
+
+function runtime_newline {
+  <#
+  .SYNOPSIS
+    Retrieves the newline character for the given operating system.
+
+    SYNTAX:
+      $newLine = codemelted --runtime-newline
+
+    RETURNS:
+      [string] The newline character for the given operating system.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $false,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  return [System.Environment]::NewLine
+}
+
+function runtime_online {
+  <#
+  .SYNOPSIS
+    Determines if the given operating system has access to the Internet.
+
+    SYNTAX:
+      $online = codemelted --runtime-online
+
+    RETURNS:
+      [bool] $true if access to the Internet exists. $false otherwise.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $false,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  return (Test-Connection -Ping google.com -Count 1 -Quiet)
+}
+
+function runtime_os_name {
+  <#
+  .SYNOPSIS
+    Retrieves the name of the operating system. The value will be 'mac' /
+    'windows' / 'linux' / 'pi'
+
+    SYNTAX:
+      $name = codemelted --runtime-os-name
+
+    RETURNS:
+      [string] A string representing the name of the operating system.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $false,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  return $IsMacOS `
+    ? "mac"
+    : $IsWindows `
+      ? "windows"
+      : (Test-Path "/etc/rpi-issue") `
+        ? "pi"
+        : "linux"
+}
+
+function runtime_os_version {
+  <#
+  .SYNOPSIS
+    Retrieves the current operating system version.
+
+    SYNTAX:
+      $version = codemelted --runtime-os-version
+
+    RETURNS:
+      [string] Identifying version number for the operating system.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $false,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  return [System.Environment]::OSVersion.VersionString
+}
+
+function runtime_path_separator {
+  <#
+  .SYNOPSIS
+    Retrieves the path separator for the host operating system.
+
+    SYNTAX:
+      $separator = codemelted --runtime-path-separator
+
+    RETURNS:
+      [string] The separator character for directories on disk for the given
+        host operating system.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $false,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  return [System.IO.Path]::DirectorySeparatorChar
+}
+
+function runtime_temp_path {
+  <#
+  .SYNOPSIS
+    Retrieves the temporary directory for the given operating system for
+    storing temporary data.
+
+    SYNTAX:
+      $tempPath = codemelted --runtime-temp-path
+
+    RETURNS:
+      [string] reflecting the operating system temp path for temporary data.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $false,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  return [System.IO.Path]::GetTempPath()
+}
+
+function runtime_user {
+  <#
+  .SYNOPSIS
+    Retrieves the currently logged in user.
+
+    SYNTAX:
+      $user = codemelted --runtime-user
+
+    RETURNS:
+      [string] reflecting the logged in user.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $false,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  return $IsWindows `
+    ? [System.Environment]::GetEnvironmentVariable("USERNAME")
+    : [System.Environment]::GetEnvironmentVariable("USER")
+}
+
+# =============================================================================
+# [STORAGE UC IMPLEMENTATION] =================================================
+# =============================================================================
+
+# =============================================================================
+# [UI UC IMPLEMENTATION] ======================================================
+# =============================================================================
+
+# =============================================================================
+# [MAIN CLI API] ==============================================================
+# =============================================================================
+
+try {
+  # OK, go parse the command.
+  switch ($Action) {
+    # Module Information
+    "--version" { Get-PSScriptFileInfo -Path $PSScriptRoot/codemelted.ps1 }
+    "--help" { codemelted_help $Params }
+    # Console Use Case
+    "--console-alert" { console_alert $Params }
+    "--console-confirm" { console_confirm $Params }
+    "--console-choose" { console_choose $Params }
+    "--console-password" { console_password $Params }
+    "--console-prompt" { console_prompt $Params }
+    "--console-write" { console_write $Params }
+    "--console-writeln" { console_writeln $Params }
+    # JSON Use Case
+    "--json-check-type" { json_check_type $Params }
+    "--json-create-array" { json_create_array $Params }
+    "--json-create-object" { json_create_object $Params }
+    "--json-check-type" { json_check_type $Params }
+    "--json-parse" { json_parse $Params }
+    "--json-stringify" { json_stringify $Params }
+    "--json-valid-url" { json_valid_url $Params }
+    # Logger Use Case
+    "--logger-level" { logger_level $Params }
+    "--logger-handler" { logger_handler $Params }
+    "--logger-log" { Get-Help logger_log $Params }
+    # Network Use Case
+    "--network-fetch" { network_fetch $Params }
+  }
+} catch {
+  Write-Warning ("SyntaxError: codemelted $Action " + $_.Exception.Message)
+}
+
+# ---- REFACTORS BELOW INTO NEW USE CASE STRUCTURE ABOVE ----
+
+# -----------------------------------------------------------------------------
+# [Data Types] ----------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
+# .NET Assemblies
+Add-Type -AssemblyName Microsoft.PowerShell.Commands.Utility
+
+# Setup our module API for tracking items and supporting each of the use case
+# functions.
+if ($null -eq $Global:CodeMeltedAPI) {
+  $Global:CodeMeltedAPI = @{
+    tracker = @{
+      id = 0;
+      map = @{};
+    };
+    process = @{};
+    worker = @{
+      threadJob = $null;
+      queued = [System.Collections.ArrayList]::Synchronized( `
+        [System.Collections.ArrayList]::new()
+      );
+      scheduled = [System.Collections.ArrayList]::Synchronized( `
+        [System.Collections.ArrayList]::new()
+      );
+      task = $null;
+      handler = $null;
+    };
+  }
+}
 
 # Holds the results of a codemelted_task 'run' action. This happens in a
 # background thread.
@@ -818,88 +1809,6 @@ class CTaskTimer {
 # -----------------------------------------------------------------------------
 # [Async I/O Use Cases] -------------------------------------------------------
 # -----------------------------------------------------------------------------
-
-function codemelted_process {
-  <#
-    .SYNOPSIS
-  #>
-  param(
-    [Parameter(
-      Mandatory = $true,
-      ValueFromPipeline = $false,
-      Position = 0
-    )]
-    [hashtable]$Params
-  )
-
-  # Go get our parameters for our actions.
-  $action = $Params["action"]
-  $arguments = $Params["arguments"]
-  $command = $Params["command"]
-  $data = $Params["data"]
-  $id = $Params["id"]
-  $includeUserName = $Params["include_user_name"] ?? $false
-
-  # For actions utilizing id, go check it so those actions can be carried out.
-  if ((-not ($id -is [int])) -and ($action -ne "list" -and `
-      $action -ne "start")) {
-    throw "SyntaxError: codemelted --process Params expects a specified " +
-      "'id' key to be an [int] type."
-  } elseif ($action -eq "read" -or $action -eq "write" -or $action -eq "kill") {
-    $p = $Global:CodeMeltedAPI.process[$id]
-    if ($null -eq $p) {
-      throw "SyntaxError: codemelted --process '$action' Params action " +
-        "did not find the specified $id 'id'."
-    }
-  }
-
-  # Now carry out the actions. First two deal with operating system processes.
-  if ($action -eq "list") {
-    $name = $data ?? "*"
-    if ([string]::IsNullOrEmpty($name) -or `
-        [string]::IsNullOrWhiteSpace($name)) {
-      throw "SyntaxError: codemelted --process 'list' Params action " +
-        "expects 'data' key / [string] value when specified."
-    }
-    return $includeUserName -eq $true `
-      ? (Get-Process -Name $data -IncludeUserName)
-      : (Get-Process -Name $data)
-  } elseif ($action -eq "stop") {
-      Stop-Process -id $id -ErrorAction -SilentlyContinue
-
-  # The remainder of these actions deal with working with a process spawned
-  # from the codemelted.ps1 module.
-  } elseif ($action -eq "start") {
-    if ([string]::IsNullOrEmpty($command) -or `
-        [string]::IsNullOrWhiteSpace($command)) {
-      throw "SyntaxError: codemelted --process 'start' Params action " +
-        "expects 'command' key to be a [string] value."
-    }
-    $p = [CProcess]::new($command, $arguments)
-    $id = $Global:CodeMeltedAPI.tracker.allocate()
-    $Global:CodeMeltedAPI.process[$id] = $p
-    return $id
-  } elseif ($action -eq "kill") {
-    $p = $Global:CodeMeltedAPI.process[$id]
-    $p.Kill()
-    $Global:CodemeltedAPI.process.Remove($id)
-  } elseif ($action -eq "read") {
-    $p = $Global:CodeMeltedAPI.process[$id]
-    $rtnval = $p.read()
-    return $rtnval
-  } elseif ($action -eq "write") {
-    if ([string]::IsNullOrEmpty($data)) {
-      throw "SyntaxError: codemelted --process 'write' Params action " +
-        "expects 'data' key be a [string] type and not NULL"
-    }
-    $p = $Global:CodeMeltedAPI.process[$id]
-    $p.write($data)
-  } else {
-    throw "SyntaxError: codemelted --process Params did not have a " +
-      "supported action key specified. Valid actions are start / kill / " +
-      "read / write"
-  }
-}
 
 function codemelted_task {
   <#
@@ -1216,114 +2125,6 @@ function codemelted_worker {
   }
 }
 
-# -----------------------------------------------------------------------------
-# [Data Use Cases] ------------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-function codemelted_data_check {
-  <#
-    .SYNOPSIS
-    Provides basic data validation and type checking of dynamic variables
-    within a powershell script.
-
-    SYNTAX:
-      # Checks that the specified 'data' [hashtable] has the specified 'key'.
-      $answer = codemelted --data-check @{
-        "action" = "has_property";      # required
-        "data" = [hashtable];           # required
-        "key" = "name of key in data";  # required
-        "should_throw" = $false         # optional
-      }
-
-      # Checks that the specified 'data' variable is the expected typename
-      # specified by the 'key'.
-      $answer = codemelted --data-check @{
-        "action" = "type";       # required
-        "data" = $variable;      # required
-        "key" = "typename";      # required (.NET type names)
-        "should_throw" = $false  # optional
-      }
-
-      # Checks that the specified 'data' is a well formed URI object.
-      $answer = codemelted --data-check @{
-        "action" = "url";        # required
-        "data" = "url string";   # required
-        "should_throw" = $false  # optional
-      }
-
-    RETURNS:
-      [boolean] $true if data check passes, $false otherwise
-
-    THROWS:
-      [string] if 'should_throw' is set to $true in the $Params.
-  #>
-  param(
-    [Parameter(
-      Mandatory = $true,
-      ValueFromPipeline = $false,
-      Position = 0
-    )]
-    [hashtable]$Params
-  )
-
-  $action = $Params["action"]
-  $data = $Params["data"]
-  $key = $Params["key"]
-  $shouldThrow = $Params["should_throw"] -is [boolean] `
-    ? $Params["should_throw"]
-    : $false
-
-  if ($null -eq $data) {
-    throw "SyntaxError: codemelted --data-check Params did not have a " +
-      "specified data key and value."
-  }
-
-  $answer = $false
-  $throwMessage = ""
-  if ($action -eq "has_property") {
-    if (-not ($data -is [hashtable])) {
-      throw "SyntaxError: codemelted --data-check Params data key was not " +
-        "a [hashtable] value for the 'has_property' action."
-    } elseif ([string]::IsNullOrEmpty($key) `
-               -or [string]::IsNullOrWhiteSpace($key)) {
-      throw "SyntaxError: codemelted --data-check Params 'key' key " +
-        "was not set."
-    }
-    $throwMessage = "$key did not exist for the codemelted --data-check " +
-        "'has_property' action."
-    $answer = $data.ContainsKey($key)
-
-  } elseif ($action -eq "type") {
-    if ([string]::IsNullOrEmpty($key) -or [string]::IsNullOrWhiteSpace($key)) {
-      throw "SyntaxError: codemelted --data-check Params 'key' key "
-        "was not set."
-    }
-    $throwMessage = "$key was not the expected type for the codemelted " +
-        "--data-check 'type' action."
-    $answer = $key.ToString().ToLower() -eq $data.GetType().Name.ToLower()
-
-  } elseif ($action -eq "url") {
-    $throwMessage = "$data failed the codemelted --data-check 'url' action."
-    $answer = [uri]::IsWellFormedUriString($data.ToString(), 0)
-
-  } else {
-    throw "SyntaxError: codemelted --data-check Params did not have a " +
-      "supported action key specified. Valid actions are has_property / " +
-      "type / url"
-  }
-
-  # Handle how we are returning from this function whether to throw or return
-  # boolean.
-  if ($shouldThrow) {
-    if ( -not $answer) {
-      throw $throwMessage
-    } else {
-      return [void] $answer
-    }
-  }
-  return $answer
-}
-
 function codemelted_disk {
   <#
     .SYNOPSIS
@@ -1470,574 +2271,5 @@ function codemelted_disk {
       Write-Warning $_.Exception.Message
     }
     return $false
-  }
-}
-
-function codemelted_json {
-  <#
-    .SYNOPSIS
-    Provides the facilities to create / copy JSON compliant .NET objects and
-    the ability to parse / stringify that data for storage, transmission, and
-    processing of the data.
-
-    SYNTAX:
-      # Create / copy data into a new [arraylist]
-      $data = codemelted --json @{
-        "action" = "create_array";  # required
-        "data" = $arrayListData     # optional [arraylist] to copy
-      }
-
-      # Create / copy data into a new [arraylist]
-      $data = codemelted --json @{
-        "action" = "create_object";  # required
-        "data" = $hashTableData      # optional [arraylist] to copy
-      }
-
-      # Parse a string into a [hashtable] or [arraylist] or generic datatype
-      $data = codemelted --json @{
-        "action" = "parse";   # required
-        "data" = $stringData  # required [string] data
-      }
-
-      # Transform a [arraylist] or [hashtable] into string data
-      $data = codemelted --json @{
-        "action" = "stringify"; # required
-        "data" = $theData       # required [arraylist] or [hashtable] data
-      }
-
-    RETURNS:
-      [arraylist] for 'create_array' / 'parse' actions.
-      [hashtable] for 'create_object' / 'parse' actions.
-      [string] for 'stringify' action.
-      $null for invalid data types that can't be translated.
-  #>
-  param(
-    [Parameter(
-      Mandatory = $true,
-      ValueFromPipeline = $false,
-      Position = 0
-    )]
-    [hashtable]$Params
-  )
-
-  $action = $Params["action"]
-  $data = $Params["data"]
-
-  try {
-    if ($action -eq "create_array") {
-      $obj = New-Object System.Collections.ArrayList
-      if ($data -is [System.Collections.ArrayList]) {
-        $obj = $data.Clone()
-      } elseif ($data -is [array]) {
-        $obj += $data
-      }
-      return $obj
-    } elseif ($action -eq "create_object") {
-      $obj = $data -is [hashtable] ? $data.Clone() : @{}
-      return $obj
-    } elseif ($action -eq "parse") {
-      if ([string]::IsNullOrEmpty($data) -or [string]::IsNullOrWhiteSpace($data)) {
-        throw "SyntaxError: codemelted --json Params expects a data key."
-      }
-      return ConvertFrom-Json -InputObject $data -AsHashtable -Depth 100
-    } elseif ($action -eq "stringify") {
-      if ($null -eq $data) {
-        throw "SyntaxError: codemelted --json Params expects a data key."
-      }
-      if ($data.GetType().Name.ToLower() -eq "arraylist") {
-        return ConvertTo-Json -InputObject $data.ToArray() -Depth 100
-      }
-      return ConvertTo-Json -InputObject $data -Depth 100
-    } else {
-      throw "SyntaxError: codemelted json Params did not have a " +
-        "supported action key specified. Valid actions are create_array / " +
-        "create_object / parse / stringify"
-    }
-  } catch [System.FormatException] {
-    return $null
-  }
-}
-
-function codemelted_string_parse {
-  <#
-    .SYNOPSIS
-    Provides the facilities to translate strings into their appropriate
-    data type.
-
-    SYNTAX:
-      $data = codemelted --string-parse @{
-        "action" = "";  # required
-        "data" = $dataString  # required
-      }
-
-    ACTIONS:
-      array / boolean / double / int / object
-
-    RETURNS:
-      [System.Collections.ArrayList] for 'array' action.
-      [boolean] for 'boolean' action.
-      [double] for 'double' action.
-      [int] for 'int' action.
-      [object] for 'object' action.
-      $null for string data that can't be translated.
-  #>
-  param(
-    [Parameter(
-      Mandatory = $true,
-      ValueFromPipeline = $false,
-      Position = 0
-    )]
-    [hashtable]$Params
-  )
-  $action = $Params["action"]
-  $data = $Params["data"]
-  if ([string]::IsNullOrEmpty($data) `
-      -or [string]::IsNullOrWhiteSpace($data)) {
-    throw "SyntaxError: codemelted --string-parse Params expects a " +
-      "data key value."
-  }
-
-  try {
-    if ($action -eq "array" -or $action -eq "object") {
-      $answer = codemelted_json @{ "action" = "parse"; "data" = $data }
-      return $answer
-    } elseif ($action -eq "boolean") {
-      $trueStrings = @(
-        "true",
-        "1",
-        "t",
-        "y",
-        "yes",
-        "yeah",
-        "yup",
-        "certainly",
-        "uh-huh"
-      )
-      return $trueStrings.Contains(
-        $data.ToString().ToLower()
-      )
-    } elseif ($action -eq "double") {
-      return [double]::Parse($data)
-    } elseif ($action -eq "int") {
-      return [int]::Parse($data)
-    } else {
-      throw "SyntaxError: codemelted --string-parse Params did not have a " +
-        "supported action key specified. Valid actions are array / " +
-        "boolean / double / int / object"
-    }
-  } catch [FormatException] {
-    return $null
-  }
-}
-
-# -----------------------------------------------------------------------------
-# [SDK Use Cases] -------------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-function codemelted_logger {
-  <#
-    .SYNOPSIS
-    Provides a logging facility to report log events to STDOUT color coded
-    based on the type of event. Also provides for setting up a handler to
-    perform other types of processing not just to STDOUT.
-
-    SYNTAX:
-      # Set up the log level for the logging facility within the module.
-      # The "data" levels are 'debug' / 'info' / 'warning' / 'error' / 'off'.
-      codemelted --logger @{
-        "action" = "log_level";  # required
-        "data" = [string]       # optional
-      }
-
-      # Set up a log handler for logged events via the logger. This will
-      # be called when the logger is not configured as off. Regardless of
-      # the log level, the event will be passed to the handler. The
-      # CLogRecord object will include the current moduleLogLevel.
-      codemelted --logger @{
-        "action" = "handler";           # required
-        "data" = [scriptblock] / $null  # required
-      }
-
-      # To log data to STDOUT set the "action" to 'debug' / 'info' /
-      # 'warning' / 'error'. If the event meets the module log level,
-      # it will report to STDOUT color coded and time stamped.
-      codemelted --logger @{
-        "action" = [string]  # required
-        "data"   = [string]  # required
-      }
-
-    RETURNS:
-      [string] When the action is 'log_level' but no log level is set.
-      [void]   For all other actions.
-  #>
-  param(
-    [Parameter(
-      Mandatory = $true,
-      ValueFromPipeline = $false,
-      Position = 0
-    )]
-    [hashtable]$Params
-  )
-
-  $action = $Params["action"]
-  $data = $Params["data"]
-
-  if ($action -eq "log_level") {
-    if ($null -eq $data) {
-      $logLevelString = [CLogRecord]::logLevelString($Global:CodeMeltedAPI.logger.level)
-      return $logLevelString
-    }
-    $level = [CLogRecord]::logLevelInt($data)
-    if ($level -eq -1) {
-      throw "SyntaxError: codemelted --logger Params data key not a valid " +
-        "value for setting log level. Valid values are 'debug' / 'info' " +
-        "/ 'warning' / 'error'"
-    }
-    $Global:CodeMeltedAPI.logger.level = $level
-  } elseif ($action -eq "handler") {
-    if ($null -eq $data) {
-      $Global:CodeMeltedAPI.logger.handler = $null
-    } elseif ($data -is [scriptblock]) {
-      $Global:CodeMeltedAPI.logger.handler = $data
-    } else {
-      throw "SyntaxError: codemelted --logger Params handler action only " +
-        "supports a data value of [null] or [scriptblock]"
-    }
-  } elseif ($action -eq "debug" -or $action -eq "info" -or `
-            $action -eq "warning" -or $action -eq "error") {
-    if ($Global:CodeMeltedAPI.logger.level -eq [CLogRecord]::offLogLevel) {
-      return [void]
-    }
-    $level = [CLogRecord]::logLevelInt($action)
-    $record = [CLogRecord]::new($Global:CodeMeltedAPI.logger.level, $level, $data)
-    if ($Global:CodeMeltedAPI.logger.level -le [CLogRecord]::debugLogLevel -and `
-        $level -eq [CLogRecord]::debugLogLevel) {
-      Write-Host $record.ToString() -ForegroundColor White
-    } elseif ($Global:CodeMeltedAPI.logger.level -le [CLogRecord]::infoLogLevel -and `
-            $level -eq [CLogRecord]::infoLogLevel) {
-      Write-Host $record.ToString() -ForegroundColor Green
-    } elseif ($Global:CodeMeltedAPI.logger.level -le [CLogRecord]::warningLogLevel -and `
-            $level -eq [CLogRecord]::warningLogLevel) {
-      Write-Host $record.ToString() -ForegroundColor Yellow
-    } elseif ($Global:CodeMeltedAPI.logger.level-le [CLogRecord]::errorLogLevel -and `
-            $level -eq [CLogRecord]::errorLogLevel) {
-      Write-Host $record.ToString() -ForegroundColor Red
-    }
-
-    if ($null -ne $Global:CodeMeltedAPI.logger.handler) {
-      Invoke-Command -ScriptBlock $Global:logHandler -ArgumentList $record
-    }
-  } else {
-    throw "SyntaxError: codemelted --slogger Params did not have a " +
-    "supported action key specified. Valid actions are log_level / " +
-    "handler / debug / info / warning / error."
-  }
-}
-
-function codemelted_network {
-  <#
-    .SYNOPSIS
-    Provides a mechanism for getting data within a script via various network
-    calls or setting up a server based network protocol. These are focused
-    around web OSS network technologies and not all the different networking
-    technologies available.
-
-    SYNTAX:
-      # Perform a network fetch to a REST API. The "data" is a [hashtable]
-      # reflecting the named parameters of the Invoke-WebRequest. So the two
-      # most common items will be "method" / "body" / "headers" but others
-      # are reflected via the link.
-      $resp = codemelted --network @{
-        "action" = "fetch";    # required
-        "url" = [string / ip]; # required
-        "data" = [hashtable]   # required
-      }
-
-      # FUTURE ACTIONS not implemented yet.
-      http_server / websocket_client / websocket_server
-
-    RETURNS:
-      [CNetworkResponse] for the 'fetch' action that has the statusCode,
-        statusText, and data as properties. Methods of asBytes(), asObject(),
-        asString() exists to get the data of the expected type or $null if
-        not of that type.
-
-    .LINK
-      Invoke-WebRequest Details:
-      https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/invoke-webrequest
-  #>
-  param(
-    [Parameter(
-      Mandatory = $true,
-      ValueFromPipeline = $false,
-      Position = 0
-    )]
-    [hashtable]$Params
-  )
-
-  $action = $Params["action"]
-  $url = $Params["url"]
-  # TBD FUTURE $port = $Params["port"]
-  $data = $Params["data"]
-
-  # Validate the required entries utilized by all actions.
-  if ([string]::IsNullOrEmpty($url) -or [string]::IsNullOrWhiteSpace($url)) {
-    throw "SyntaxError: codemelted --network Params expects a url key with " +
-      "a [string] URL / IP address"
-  }
-
-  # Go perform the actions.
-  try {
-    if ($action -eq "fetch") {
-      # data needs to be a hashtable or this won't work.
-      if (-not ($data -is [hashtable])) {
-        throw "SyntaxError: codemelted --network Params 'fetch' action " +
-          "expects a data [hashtable] entry."
-      }
-
-      # Go carry out the fetch.
-      [hashtable] $request = codemelted_json @{
-        "action" = "create_object";
-        "data" = $data
-      }
-      $request.Add("uri", $url)
-      $resp = Invoke-WebRequest @request -SkipHttpErrorCheck
-      return [CFetchResponse]::new($resp)
-    } elseif ($action -eq "http_server") {
-      throw "FUTURE IMPLEMENTATION"
-    } elseif ($action -eq "websocket_client") {
-      throw "FUTURE IMPLEMENTATION"
-    } elseif ($action -eq "websocket_server") {
-      throw "FUTURE IMPLEMENTATION"
-    } else {
-      throw "SyntaxError: codemelted --network Params did not have a " +
-        "supported action key specified. Valid actions are fetch / "
-    }
-  } catch {
-    throw "SyntaxError: codemelted --network encountered an issue. " +
-      $_.Exception.Message
-  }
-}
-
-function codemelted_runtime {
-  <#
-    .SYNOPSIS
-    Provides an interface for interacting and learning about the host
-    operating system.
-
-    SYNTAX:
-      Lookups:
-        # Provides the ability to lookup / run commands with the host
-        # operating system. These actions are 'environment' / 'exist' /
-        # 'system'. These would have a corresponding name identified that
-        # will lookup a variable with the environment, check on a command
-        # that exist, or a system command to execute (to include
-        # parameters to command).
-        $answer = codemelted --runtime @{
-          "action" = [string] # required action identified above.
-          "name" = [string]   # required
-        }
-
-      Queryable Actions:
-        # Queryable answers to items available about the host operating
-        # system. These actions are 'home_path' / 'hostname' / 'newline' /
-        # 'online' / 'os_name' / 'os_version' / 'path_separator' /
-        # 'processor_count' / 'temp_path' / 'username'
-        $answer = codemelted --runtime @{
-          "action" = [string] # required action identified above.
-        }
-
-      Stats:
-        # Gets the current stats of the host operating system.
-        # These actions are 'stats_disk' / 'stats_perf' / 'stats_tcp' /
-        # 'stats_udp'
-        $answer = codemelted --runtime @{
-          "action" = [string] # required action identified above.
-        }
-
-    RETURNS:
-      Lookups:
-        [bool] $true if a 'command' action exists.
-        [string] For a environment variable found or $null if not. For a
-          'system' action, this will be the STDOUT of the command.
-
-      Queryable Actions:
-        [bool] for the 'online' queryable action. $true means path to Internet.
-          $False means no path to the Internet.
-        [char] for the 'newline' queryable action.
-        [int] for the 'processor_count' queryable action.
-        [string] for all the queryable actions.
-
-      Stats:
-        # 'stats_disk' action:
-        [hashtable] @{
-          "bytes_used_percent" = [double];
-          "bytes_used" = [int]; # kilobytes
-          "bytes_free" = [int]; # kilobytes
-          "bytes_total" = [int]; # kilobytes
-        }
-
-        # 'stats_perf' action:
-        [hashtable] @{
-          "cpu_used_percent" = [double];
-          "cpu_processor_count" = [int];
-          "mem_used_percent" = [double];
-          "mem_used_kb" = [int];
-          "mem_available_kb" = [int];
-          "mem_total_kb" = [int];
-      }
-
-      [string] for 'stats_tcp' / 'stats_udp' action.
-  #>
-  param(
-    [Parameter(
-      Mandatory = $true,
-      ValueFromPipeline = $false,
-      Position = 0
-    )]
-    [hashtable]$Params
-  )
-
-  # Get our expected parameters.
-  $action = $Params["action"]
-  $name = $Params["name"]
-
-  # Validate name parameter based on actions that would use it.
-  if ($action -eq "environment" -or $action -eq "exist" `
-        -or $action -eq "system") {
-    if ([string]::isNullOrEmpty($name) -or
-        [string]::IsNullOrWhiteSpace($name)) {
-      throw "SyntaxError: codemelted --runtime $action action expects the " +
-        "name Params key to have a string value."
-    }
-  }
-
-  # Now go carry out the request.
-  if ($action -eq "environment") {
-    return [System.Environment]::GetEnvironmentVariable($name)
-  } elseif ($action -eq "exist") {
-    if ($IsWindows) {
-      cmd /c where $name > nul 2>&1
-    } else {
-      which -s $name
-    }
-    return $LASTEXITCODE -eq 0
-  } elseif ($action -eq "home_path") {
-    return $IsWindows `
-      ? [System.Environment]::GetEnvironmentVariable("USERPROFILE")
-      : [System.Environment]::GetEnvironmentVariable("HOME")
-  } elseif ($action -eq "hostname") {
-    return [System.Environment]::MachineName
-  } elseif ($action -eq "newline") {
-    return [System.Environment]::NewLine
-  } elseif ($action -eq "online") {
-    return (Test-Connection -Ping google.com -Count 1 -Quiet)
-  } elseif ($action -eq "os_name") {
-    return $IsMacOS `
-      ? "mac"
-      : $IsWindows `
-        ? "windows"
-        : (Test-Path "/etc/rpi-issue") `
-          ? "pi"
-          : "linux"
-  } elseif ($action -eq "os_version") {
-    return [System.Environment]::OSVersion.VersionString
-  } elseif ($action -eq "path_separator") {
-    return [System.IO.Path]::DirectorySeparatorChar
-  } elseif ($action -eq "processor_count") {
-    return [System.Environment]::ProcessorCount
-  } elseif ($action -eq "stats_disk") {
-    $diskStats = (Get-PSDrive -PSProvider FileSystem)
-    $diskTotal = $diskStats[0].Free + $diskStats[0].Used
-    $diskTotalUsedPercent = ($diskStats[0].Used / $diskTotal) * 100
-    return [ordered] @{
-      "bytes_used_percent" = $diskTotalUsedPercent;
-      "bytes_used" = $diskStats[0].Used;
-      "bytes_free" = $diskStats[0].Free;
-      "bytes_total" = $diskTotal;
-    }
-  } elseif ($action -eq "stats_perf") {
-    if ($IsWindows) {
-      if ($null -eq $Global:cpuCounter) {
-        $Global:cpuCounter = [System.Diagnostics.PerformanceCounter]::new(
-          "Processor", "% Processor Time", "_Total"
-        )
-        $Global:cpuCounter.NextValue() | Out-Null
-      }
-      if ($null -eq $Global:memCounter) {
-        $Global:memCounter = [System.Diagnostics.PerformanceCounter]::new(
-          "Memory", "Available MBytes"
-        )
-        $Global:memCounter.NextValue() | Out-Null
-      }
-
-      # All memory stats in Kilobytes
-      $availableRam = $Global:memCounter.NextValue()
-      $totalRam = (wmic ComputerSystem get TotalPhysicalMemory | findstr [0..9])
-      $totalRam = $totalRam.Trim()
-      $totalRam = [double]::Parse($totalRam) / 1e+6
-      $memUsedKb = $totalRam - $availableRam
-      $memUsed = ($memUsedKb / $totalRam) * 100
-      return [ordered] @{
-        "cpu_used_percent" = $Global:cpuCounter.NextValue();
-        "cpu_processor_count" = [System.Environment]::ProcessorCount;
-        "mem_used_percent" = $memUsed;
-        "mem_used_kb" = $memUsedKb;
-        "mem_available_kb" = $availableRam
-        "mem_total_kb" = $totalRam
-      }
-    } elseif ($IsMacOS) {
-      $cpuLoad = (top -l 1 | grep -E "^CPU" | tail -1 | awk '{ print $3 + $5"%" }').Replace("%", "")
-      $cpuLoad = [double]::Parse($cpuLoad)
-      $usedMemM = (top -l 1 | grep "^Phys" | awk '{ print $2 }').Replace("M", "")
-      $usedMemKb = [double]::Parse($usedMemM) * 1000
-      $availableMemM = (top -l 1 | grep "^Phys" | awk '{ print $8 }').Replace("M", "")
-      $availableMemKb = [double]::Parse($availableMemM) * 1000
-      $totalMemKb = $availableMemKb + $usedMemKb
-      $memUsedPercent = ($usedMemKb / $totalMemKb) * 100
-      return [ordered]  @{
-        "cpu_used_percent" = $cpuLoad;
-        "cpu_processor_count" = [System.Environment]::ProcessorCount;
-        "mem_used_percent" = $memUsedPercent;
-        "mem_used_kb" = $usedMemKb;
-        "mem_available_kb" = $availableMemKb;
-        "mem_total_kb" = $totalMemKb;
-      }
-    } else {
-      $memUsedKb = (free --line | awk '{ print $6}')
-      $memUsedKb = [double]::Parse($memUsedKb)
-      $memFreeKb = (free --line | awk '{ print $8}')
-      $memFreeKb = [double]::Parse($memFreeKb)
-      $memTotalKb = $memFreeKb + $memUsedKb
-      $memUsedPercent = ($memUsedKb / $memTotalKb) * 100
-      $cpuIdle = (top -b -d1 -n1 | grep Cpu | awk '{ print $8 }')
-      $cpuUsed = 100.0 - [double]::Parse($cpuIdle)
-      return [ordered]  @{
-        "cpu_used_percent" = $cpuUsed;
-        "cpu_processor_count" = [System.Environment]::ProcessorCount;
-        "mem_used_percent" = $memUsedPercent;
-        "mem_used_kb" = $memUsedKb;
-        "mem_available_kb" = $memFreeKb;
-        "mem_total_kb" = $memTotalKb;
-      }
-    }
-  } elseif ($action -eq "stats_tcp") {
-    return $IsLinux ? (netstat -na | grep "tcp") : (netstat -nap tcp)
-  } elseif ($action -eq "stats_udp") {
-    return $IsLinux ? (netstat -na | grep "udp") : (netstat -nap tcp)
-  } elseif ($action -eq "system") {
-    return $IsWindows ? (cmd /c $name) : (sh -c $name)
-  } elseif ($action -eq "temp_path") {
-    return [System.IO.Path]::GetTempPath()
-  } elseif ($action -eq "username") {
-    return $IsWindows `
-      ? [System.Environment]::GetEnvironmentVariable("USERNAME")
-      : [System.Environment]::GetEnvironmentVariable("USER")
-  } else {
-    throw "SyntaxError: codemelted --runtime Params did not have a " +
-      "supported action key specified. Valid actions are environment / " +
-      "exist / home_path / hostname / newline / online / os_name / " +
-      "os_version / path_separator / processor_count / stats_disk / " +
-      "stats_perf / stats_tcp / stats_udp / system / temp_path / username"
   }
 }
