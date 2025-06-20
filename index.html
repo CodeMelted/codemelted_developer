@@ -103,35 +103,10 @@
     // Handle the override of codemelted_navigation.js click actions.
     setTimeout(() => {
       // Hide the controls not applicable to this page.
-      document.getElementById("btnPrintPage").style.display = "none";
-      document.getElementById("btnTTS").style.display = "none";
-
-      // Override our share page clicked action to properly get the iframe
-      // source for sharing.
-      window.onSharePageClicked = async () => {
-        try {
-          // Override to prep for loading proper content when share occurs.
-          const isMobile = 'ontouchstart' in window ||
-            navigator.maxTouchPoints > 0 ||
-            navigator.msMaxTouchPoints > 0
-          const tooltip = globalThis.document.getElementById("divTooltip");
-          let href = window.location.href.replaceAll("www.", "");
-          href += `&src=${frmContent.src}`;
-          await globalThis.navigator.clipboard.writeText(href);
-          if (!isMobile) {
-            tooltip.style.display = "inline-block";
-            setTimeout(() => { tooltip.style.display = "none"; }, 750);
-          }
-        } catch (err) {
-          // Something failed, go report it.
-          let msg = Object.hasOwn(err, "message")
-            ? err.message
-            : "unable to perform share";
-          console.error("onSharePageClicked()", msg);
-          alert(msg);
-          return false;
-        }
-      }
+      document.getElementById("btnPrintPage").style.visibility = "hidden";
+      document.getElementById("btnTTS").style.visibility = "hidden";
+      document.getElementById("btnSharePage").style.visibility = "hidden";
+      document.getElementById("anchorDisqus").style.visibility = "hidden";
     }, 250);
   </script>
 </body></html>

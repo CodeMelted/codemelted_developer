@@ -41,8 +41,12 @@
   .header-search-options-layout {
     border-top: 5px solid #161E27;
     display: grid;
-    grid-template-columns: auto 50px 50px 50px;
+    grid-template-columns: auto 50px 50px;
     padding: 1px;
+  }
+  .header-search-options-layout img {
+    height: 35px;
+    width: 35px;
   }
   .header-search-options-layout a {
     cursor: pointer;
@@ -63,7 +67,7 @@
 
   .header-socials {
     display: grid;
-    grid-template-columns: auto auto auto auto auto auto;
+    grid-template-columns: auto auto auto auto;
     margin-top: 10px;
   }
   .header-socials a {
@@ -84,16 +88,13 @@
     <div class="header-search-options-layout">
       <input id="txtSearch" type="search" placeholder="Search Blog..."/>
       <a id="btnSearch">🔎</a>
-      <a title="Newsletter" onclick="onOpenLinkClicked('newsletter.codemelted.com'); return false;">📬</a>
-      <a title="CodeMelted DEV" onclick="onOpenLinkClicked('developer.codemelted.com'); return false;">🧑‍💻</a>
+      <a title="Get The App" href="https://app.codemelted.com" target="_blank"><img src="https://codemelted.com/assets/images/icon-codemelted-app.png" /></a>
     </div>
     <div class="header-socials">
       <a title="Support My Work / Services" onclick="onOpenLinkClicked('buymeacoffee.com/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icon-buy-me-a-coffee.png" /></a>
-      <a title="CodeMelted DEV" onclick="onOpenLinkClicked('github.com/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icon-github.png" /></a>
-      <a title="Follow on BlueSky" onclick="onOpenLinkClicked('bsky.app/profile/codemelted.com'); return false;"><img src="https://codemelted.com/assets/images/icon-bluesky.png" /></a>
-      <a title="Follow on Instagram" onclick="onOpenLinkClicked('www.instagram.com/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icon-instagram.png" /></a>
-      <a title="Follow on Threads" onclick="onOpenLinkClicked('www.threads.net/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icon-threads-white.png" /></a>
-      <a title="Follow on YouTube" onclick="onOpenLinkClicked('youtube.com/@codemelted'); return false;" target="_blank"><img src="https://codemelted.com/assets/images/icon-youtube.png" /></a>
+      <a title="CodeMelted DEV on GitHub" onclick="onOpenLinkClicked('developer.codemelted.com'); return false;"><img src="https://codemelted.com/assets/images/icon-github.png" /></a>
+      <a title="Follow on X" onclick="onOpenLinkClicked('x.com/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icon-twitterx.png" /></a>
+      <a title="CodeMelted Media on YouTube" onclick="onOpenLinkClicked('media.codemelted.com'); return false;" target="_blank"><img src="https://codemelted.com/assets/images/icon-youtube.png" /></a>
     </div>
   </header>
 </div>
