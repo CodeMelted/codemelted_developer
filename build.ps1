@@ -50,50 +50,13 @@ function build([string[]]$params) {
     message "codemelted_dev module completed."
   }
 
-  # Build / test the codemelted.dart module.
-  function build_flutter([bool]$isTestOnly = $false) {
-    # Go test our module
-    Set-Location $PSScriptRoot/codemelted_flutter
-    message "Now testing the codemelted.dart module"
-
-    Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
-    flutter test --platform chrome
-
-    message "codemelted.dart module testing completed."
-
-    if (-not $isTestOnly) {
-      # Now build our module items.
-      message "Now building the codemelted.dart module documentation"
-
-      message "Now generating dart doc"
-      dart doc --output "docs"
-      Copy-Item -Path CHANGELOG.md -Destination docs -Force
-
-      [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
-      $htmlData = $htmlData.Replace('<a href="codemelted">','<a href="codemelted/index.html">')
-      $htmlData | Out-File docs/index.html -Force
-
-      $files = Get-ChildItem -Path docs/codemelted/*.html, docs/codemelted/*/*.html -Exclude "*sidebar*"
-      foreach ($file in $files) {
-        [string]$htmlData = Get-Content -Path $file.FullName -Raw
-        $htmlData = $htmlData.Replace('<a href="../codemelted">','<a href="../codemelted/index.html">')
-        $htmlData = $htmlData.Replace('<a href="../codemelted">codemelted.dart</a>','<a href="../codemelted/index.html">codemelted.dart</a>')
-        $htmlData | Out-File $file.FullName -Force
-      }
-
-      message "codemelted.dart module documentation completed."
-    }
-    Set-Location $PSScriptRoot
-  }
-
-  # Build / test the CodeMelted JS Project.
-  function build_js([bool]$isTestOnly = $false) {
-    # Go test our module
-    Set-Location $PSScriptRoot/codemelted_js
+  # Builds the web modules comprised of the codemelted.dart and codemelted.js modules.
+  function build_web([bool]$isTestOnly = $false) {
+    # Go test the codemelted.js module
+    Set-Location $PSScriptRoot/codemelted_web/assets/js
     message "Now testing the codemelted.js module"
     Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
     New-Item -Path "docs" -ItemType Directory
-
     message "Now Running Deno tests"
     deno test --allow-env --allow-net --allow-read --allow-sys --allow-write --coverage=coverage --no-config codemelted_test.ts
     deno coverage coverage --lcov > coverage/lcov.info
@@ -113,18 +76,42 @@ function build([string[]]$params) {
     }
     Move-Item -Path coverage -Destination docs -Force
 
-    if (-not $isTestOnly) {
-      message "Now generating the jsdoc"
-      jsdoc ./codemelted.js --readme ./README.md --destination docs
+    # Go test the codemelted.dart module
+    Set-Location $PSScriptRoot/codemelted_web
+    message "Now testing the codemelted.dart module"
+    Copy-Item -Path assets/js/codemelted.js test/ -Force
+    Remove-Item -Path docs -Force -Recurse -ErrorAction Ignore
+    flutter test --platform chrome
+    message "codemelted.dart module testing completed."
 
-      # Some final moves to complete the module documentation.
+    # Go generate documentation
+    if (-not $isTestOnly) {
+      message "Now generating the codemelted.js jsdoc"
+      Set-Location $PSScriptRoot/codemelted_web/assets/js
+      jsdoc ./codemelted.js --readme ./README.md --destination docs
       Copy-Item jsdoc-default.css -Destination docs/styles
       Copy-Item codemelted.js -Destination docs
       Copy-Item codemelted_test.html -Destination docs
-
       message "codemelted.js module documentation completed."
-    }
 
+      message "Now building the codemelted.dart module documentation"
+      Set-Location $PSScriptRoot/codemelted_web
+      message "Now generating dart doc"
+      dart doc --output "docs"
+      Copy-Item -Path CHANGELOG.md -Destination docs -Force
+      [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
+      $htmlData = $htmlData.Replace('<a href="codemelted">','<a href="codemelted/index.html">')
+      $htmlData | Out-File docs/index.html -Force
+      $files = Get-ChildItem -Path docs/codemelted/*.html, docs/codemelted/*/*.html -Exclude "*sidebar*"
+      foreach ($file in $files) {
+        [string]$htmlData = Get-Content -Path $file.FullName -Raw
+        $htmlData = $htmlData.Replace('<a href="../codemelted">','<a href="../codemelted/index.html">')
+        $htmlData = $htmlData.Replace('<a href="../codemelted">codemelted.dart</a>','<a href="../codemelted/index.html">codemelted.dart</a>')
+        $htmlData | Out-File $file.FullName -Force
+      }
+
+      message "codemelted.dart module documentation completed."
+    }
     Set-Location $PSScriptRoot
   }
 
@@ -184,32 +171,29 @@ function build([string[]]$params) {
   switch ($params[0]) {
     "--test" {
       build_dev $true
-      build_flutter $true
-      build_js $true
       build_pi $true
       build_pwsh $true
       build_rust $true
+      build_web $true
     }
     "--build" {
       # Build and test each of the modules.
       build_dev $false
-      build_flutter $false
-      build_js $false
       build_pi $false
       build_pwsh $false
       build_rust $false
+      build_web $false
 
       # Now go move all the resources
       Remove-Item -Path docs -Force -Recurse -ErrorAction SilentlyContinue
       New-Item -Path docs/codemelted_dev -ItemType Directory
-      New-Item -Path docs/codemelted_flutter -ItemType Directory
-      New-Item -Path docs/codemelted_js -ItemType Directory
+      New-Item -Path docs/codemelted_web/assets/js -ItemType Directory
       New-Item -Path docs/codemelted_pi -ItemType Directory
       New-Item -Path docs/codemelted_pwsh -ItemType Directory
       New-Item -Path docs/codemelted_rust -ItemType Directory
       Copy-Item -Path codemelted_dev/book/* -Destination docs/codemelted_dev -Force -Recurse
-      Copy-Item -Path codemelted_flutter/docs/* -Destination docs/codemelted_flutter -Force -Recurse
-      Copy-Item -Path codemelted_js/docs/* -Destination docs/codemelted_js -Force -Recurse
+      Copy-Item -Path codemelted_web/docs/* -Destination docs/codemelted_web -Force -Recurse
+      Copy-Item -Path codemelted_web/assets/js/docs/* -Destination docs/codemelted_web/assets/js -Force -Recurse
       Copy-Item -Path codemelted_pi/book/* -Destination docs/codemelted_pi -Force -Recurse
       Copy-Item -Path codemelted_pwsh/book/* -Destination docs/codemelted_pwsh -Force -Recurse
       Copy-Item -Path codemelted_rust/target/doc/* -Destination docs/codemelted_rust -Force -Recurse

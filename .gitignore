@@ -42,3 +42,4 @@ test/codemelted.wasm
 pwa/codemelted.wasm
 test/codemelted.js
 book/
+codemelted_web/test/codemelted.js

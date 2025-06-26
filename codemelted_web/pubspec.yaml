@@ -1,7 +1,7 @@
-name: codemelted_flutter
+name: codemelted_web
 description: "The codemelted.dart module brings the power of Flutter to the web with its rich widget toolset leveraging a professional polish and feel without needing HTML or CSS."
 version: 0.0.0
-homepage: https://developer.codemelted.com/module/flutter
+homepage: https://developer.codemelted.com/module/web
 
 platforms:
   web:

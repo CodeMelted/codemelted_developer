@@ -76,11 +76,7 @@ class CResult<T> {
     this.st,
   }) {
     assert(
-      value != null && error == null,
-      "SyntaxError: Only value or error can be set. Not both!",
-    );
-    assert(
-      value == null && error != null,
+      ((value != null && error == null) || (value == null && error != null)),
       "SyntaxError: Only value or error can be set. Not both!",
     );
   }
@@ -109,7 +105,7 @@ abstract class CProtocolHandler<T> {
 // ============================================================================
 
 /// The task to run as part of the [asyncTask] call.
-typedef CTaskCB<T> = Future<CResult<T>> Function([dynamic]);
+typedef CTaskCB<T> = Future<T> Function([dynamic]);
 
 /// The task to run as part of the [asyncTimer] call.
 typedef CTimerCB = void Function();
@@ -134,103 +130,104 @@ class CTimerResult {
   }
 }
 
-/// Wraps a Web Worker API to provide a background worker thread via
-/// JavaScript. This provides the Flutter interface to interact with that
-/// JavaScript. The [CWorkerProtocol.getMessage] will retrieve
-/// [web.MessageEvent] objects from the worker while the
-/// [CWorkerProtocol.getError] will retrieve either [web.MessageEvent] or
-/// [web.Event] objects. If no data is retrieved, then null is returned. The
-/// [asyncWorker] function.
-///
-/// **See:**
-/// - https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API)
-///
-class CWorkerProtocol implements CProtocolHandler<Object> {
-  /// Holds the processed errors by the worker.
-  final _errors = <CResult<Object>>[];
+// TODO: Will utilize codemelted.js instead of native wrapping.
+// /// Wraps a Web Worker API to provide a background worker thread via
+// /// JavaScript. This provides the Flutter interface to interact with that
+// /// JavaScript. The [CWorkerProtocol.getMessage] will retrieve
+// /// [web.MessageEvent] objects from the worker while the
+// /// [CWorkerProtocol.getError] will retrieve either [web.MessageEvent] or
+// /// [web.Event] objects. If no data is retrieved, then null is returned. The
+// /// [asyncWorker] function.
+// ///
+// /// **See:**
+// /// - https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API)
+// ///
+// class CWorkerProtocol implements CProtocolHandler<Object> {
+//   /// Holds the processed errors by the worker.
+//   final _errors = <CResult<Object>>[];
 
-  /// The reference to the held worker.
-  late web.Worker _worker;
+//   /// The reference to the held worker.
+//   late web.Worker _worker;
 
-  /// Holds the received messages by the worker.
-  final _messages = <Object>[];
+//   /// Holds the received messages by the worker.
+//   final _messages = <Object>[];
 
-  /// Determines if the worker has been terminated or not.
-  bool _isRunning = true;
+//   /// Determines if the worker has been terminated or not.
+//   bool _isRunning = true;
 
-  @override
-  Future<CResult<Object>> getMessage([String? request]) async {
-    assert(isRunning, "SyntaxError: CWorkerProtocol should be running!");
+//   @override
+//   Future<CResult<Object>> getMessage([String? request]) async {
+//     assert(isRunning, "SyntaxError: CWorkerProtocol should be running!");
 
-    if (_errors.isNotEmpty) {
-      // We have errors, return those first.
-      return _errors.removeAt(0);
-    } else if (_messages.isNotEmpty) {
-      // We got data, go retrieve and return that.
-      return CResult(value: _messages.removeAt(0));
-    }
-    // No messages, signal OK but with no data.
-    return CResult();
-  }
+//     if (_errors.isNotEmpty) {
+//       // We have errors, return those first.
+//       return _errors.removeAt(0);
+//     } else if (_messages.isNotEmpty) {
+//       // We got data, go retrieve and return that.
+//       return CResult(value: _messages.removeAt(0));
+//     }
+//     // No messages, signal OK but with no data.
+//     return CResult();
+//   }
 
-  @override
-  bool get isRunning => _isRunning;
+//   @override
+//   bool get isRunning => _isRunning;
 
-  @override
-  CResult<void> postMessage(Object data) {
-    assert(isRunning, "SyntaxError: CWorkerProtocol should be running!");
+//   @override
+//   CResult<void> postMessage(Object data) {
+//     assert(isRunning, "SyntaxError: CWorkerProtocol should be running!");
 
-    // If there are any errors, return that instead of trying transaction.
-    // Something may need handling before attempting to perform the
-    // transaction.
-    if (_errors.isNotEmpty) {
-      return _errors.removeAt(0);
-    }
+//     // If there are any errors, return that instead of trying transaction.
+//     // Something may need handling before attempting to perform the
+//     // transaction.
+//     if (_errors.isNotEmpty) {
+//       return _errors.removeAt(0);
+//     }
 
-    // Attempt the transaction but if something does not serialize, return the
-    // error.
-    try {
-      _worker.postMessage(data.jsify());
-    } catch (err, st) {
-      return CResult(error: err.toString(), st: st);
-    }
+//     // Attempt the transaction but if something does not serialize, return the
+//     // error.
+//     try {
+//       _worker.postMessage(data.jsify());
+//     } catch (err, st) {
+//       return CResult(error: err.toString(), st: st);
+//     }
 
-    // Everything did as we expected.
-    return CResult();
-  }
+//     // Everything did as we expected.
+//     return CResult();
+//   }
 
-  @override
-  void terminate() {
-    assert(isRunning, "SyntaxError: CWorkerProtocol should be running!");
-    _isRunning = false;
-    _worker.terminate();
-  }
+//   @override
+//   void terminate() {
+//     assert(isRunning, "SyntaxError: CWorkerProtocol should be running!");
+//     _isRunning = false;
+//     _worker.terminate();
+//   }
 
-  /// Constructor invoked via the [asyncWorker] function.
-  CWorkerProtocol._(String workerUrl, bool isModule) {
-    web.WorkerOptions workerOptions = web.WorkerOptions();
-    workerOptions["type"] = isModule ? "module".toJS : "classic".toJS;
-    _worker = web.Worker(workerUrl.toJS, workerOptions);
-    _worker.onmessage = (web.MessageEvent evt) {
-      Future.delayed(Duration.zero, () {
-        var data = evt.data.dartify();
-        if (data != null) {
-          _messages.add(data);
-        }
-      });
-    }.toJS;
-    _worker.onmessageerror = (web.MessageEvent evt) {
-      Future.delayed(Duration.zero, () {
-        _errors.add(CResult(error: evt.toString(), st: StackTrace.current));
-      });
-    }.toJS;
-    _worker.onerror = (web.Event evt) {
-      Future.delayed(Duration.zero, () {
-        _errors.add(CResult(error: evt.toString(), st: StackTrace.current));
-      });
-    }.toJS;
-  }
-}
+//   /// Constructor invoked via the [asyncWorker] function.
+//   CWorkerProtocol._(String workerUrl, bool isModule) {
+//     web.WorkerOptions workerOptions = web.WorkerOptions();
+//     workerOptions["type"] = isModule ? "module".toJS : "classic".toJS;
+//     _worker = web.Worker(workerUrl.toJS, workerOptions);
+//     _worker.onmessage = (web.MessageEvent evt) {
+//       Future.delayed(Duration.zero, () {
+//         var data = evt.data.dartify();
+//         if (data != null) {
+//           _messages.add(data);
+//         }
+//       });
+//     }.toJS;
+//     _worker.onmessageerror = (web.MessageEvent evt) {
+//       Future.delayed(Duration.zero, () {
+//         _errors.add(CResult(error: evt.toString(), st: StackTrace.current));
+//       });
+//     }.toJS;
+//     _worker.onerror = (web.Event evt) {
+//       Future.delayed(Duration.zero, () {
+//         _errors.add(CResult(error: evt.toString(), st: StackTrace.current));
+//       });
+//     }.toJS;
+//   }
+// }
 
 /// Will put a currently running async task to sleep for a specified delay
 /// in milliseconds.
@@ -271,9 +268,10 @@ Future<CResult<T>> asyncTask<T>({
 }) async {
   return Future.delayed(
     Duration(milliseconds: delay),
-    () {
+    () async {
       try {
-        return task(data);
+        var answer = await task(data);
+        return CResult(value: answer);
       } catch (err, st) {
         return CResult(error: err.toString(), st: st);
       }
@@ -309,46 +307,47 @@ CTimerResult asyncTimer({required CTimerCB task, required int interval}) {
   );
 }
 
-/// Creates a [CWorkerProtocol] object that has a dedicated background
-/// thread for processing data types supported by Web Workers. The
-/// [CWorkerProtocol] backend processing is implemented in JavaScript.
-/// The backend JavaScript is a First In First Out (FIFO) message channel.
-/// Calling [CWorkerProtocol.postMessage] will schedule data for processing.
-/// Any received messages are accessed via the [CWorkerProtocol.getMessage].
-///
-/// *Example:*
-/// ```
-/// // Setup a worker where the worker.js is implemented as a module.
-/// let worker = asyncWorker(
-///   workerUrl: "worker.js",
-///   isModule: true,
-/// );
-///
-/// // To schedule work with the module. This example utilizes an object
-/// // as the serialized work. NOTE: The work must support JavaScript
-/// // Message Channel serialization.
-/// var success = worker.postMessage({
-///   "task": 1,
-///   "data": 42
-/// }).isOk;
-///
-/// // To retrieve and process any messages
-/// var result = await worker.getMessage();
-/// if (result.isOk) {
-///   print(result.value);
-/// } else {
-///   print("${result.error}\n${result.st}");
-/// }
-///
-/// // And when the worker is no longer needed.
-/// worker.terminate();
-/// ```
-CWorkerProtocol asyncWorker({
-  required String workerUrl,
-  bool isModule = false,
-}) {
-  return CWorkerProtocol._(workerUrl = workerUrl, isModule = isModule);
-}
+// TODO: Broken, will bring back with codemelted.js integration.
+// / Creates a [CWorkerProtocol] object that has a dedicated background
+// / thread for processing data types supported by Web Workers. The
+// / [CWorkerProtocol] backend processing is implemented in JavaScript.
+// / The backend JavaScript is a First In First Out (FIFO) message channel.
+// / Calling [CWorkerProtocol.postMessage] will schedule data for processing.
+// / Any received messages are accessed via the [CWorkerProtocol.getMessage].
+// /
+// / *Example:*
+// / ```
+// / // Setup a worker where the worker.js is implemented as a module.
+// / let worker = asyncWorker(
+// /   workerUrl: "worker.js",
+// /   isModule: true,
+// / );
+// /
+// / // To schedule work with the module. This example utilizes an object
+// / // as the serialized work. NOTE: The work must support JavaScript
+// / // Message Channel serialization.
+// / var success = worker.postMessage({
+// /   "task": 1,
+// /   "data": 42
+// / }).isOk;
+// /
+// / // To retrieve and process any messages
+// / var result = await worker.getMessage();
+// / if (result.isOk) {
+// /   print(result.value);
+// / } else {
+// /   print("${result.error}\n${result.st}");
+// / }
+// /
+// / // And when the worker is no longer needed.
+// / worker.terminate();
+// / ```
+// CWorkerProtocol asyncWorker({
+//   required String workerUrl,
+//   bool isModule = false,
+// }) {
+//   return CWorkerProtocol._(workerUrl = workerUrl, isModule = isModule);
+// }
 
 // ============================================================================
 // [CONSOLE UC IMPLEMENTATION] ================================================
@@ -670,15 +669,15 @@ bool jsonHasKey({
 /// }
 /// ```
 T? jsonParse<T>(String data) {
-  if (T is CArray) {
+  if (T.toString().containsIgnoreCase("carray")) {
     return data.asArray() as T?;
-  } else if (T is bool) {
+  } else if (T.toString().containsIgnoreCase("bool")) {
     return data.asBool() as T;
-  } else if (T is double) {
+  } else if (T.toString().containsIgnoreCase("double")) {
     return data.asDouble() as T?;
-  } else if (T is int) {
+  } else if (T.toString().containsIgnoreCase("int")) {
     return data.asInt() as T?;
-  } else if (T is CObject) {
+  } else if (T.toString().containsIgnoreCase("cobject")) {
     return data.asObject() as T?;
   }
   throw "SyntaxError: T was not a compliant JSON type.";
