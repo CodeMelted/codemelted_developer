@@ -23,7 +23,7 @@
 # IN THE SOFTWARE.
 # =============================================================================
 
-[string]$GEN_HTML_PERL_SCRIPT = "/ProgramData/chocolatey/lib/lcov/tools/bin/genhtml"
+[string]$GEN_HTML_PERL_SCRIPT = "c:/ProgramData/chocolatey/lib/lcov/tools/bin/genhtml"
 
 function build([string[]]$params) {
   # Helper function to format message output from the build script.
@@ -58,7 +58,7 @@ function build([string[]]$params) {
     Remove-Item -Path "docs" -Force -Recurse -ErrorAction Ignore
     New-Item -Path "docs" -ItemType Directory
     message "Now Running Deno tests"
-    deno test --allow-env --allow-net --allow-read --allow-sys --allow-write --coverage=coverage --no-config codemelted_test.ts
+    deno test --allow-env --allow-net --allow-read --allow-sys --allow-write --coverage=coverage --no-config test_deno.ts
     deno coverage coverage --lcov > coverage/lcov.info
 
     if ($IsLinux -or $IsMacOS) {
@@ -91,7 +91,7 @@ function build([string[]]$params) {
       jsdoc ./codemelted.js --readme ./README.md --destination docs
       Copy-Item jsdoc-default.css -Destination docs/styles
       Copy-Item codemelted.js -Destination docs
-      Copy-Item codemelted_test.html -Destination docs
+      Copy-Item test_browser.html -Destination docs
       message "codemelted.js module documentation completed."
 
       message "Now building the codemelted.dart module documentation"
@@ -100,13 +100,13 @@ function build([string[]]$params) {
       dart doc --output "docs"
       Copy-Item -Path CHANGELOG.md -Destination docs -Force
       [string]$htmlData = Get-Content -Path "docs/index.html" -Raw
-      $htmlData = $htmlData.Replace('<a href="codemelted">','<a href="codemelted/index.html">')
+      $htmlData = $htmlData.Replace('<a href="codemelted/">','<a href="codemelted/index.html">')
       $htmlData | Out-File docs/index.html -Force
       $files = Get-ChildItem -Path docs/codemelted/*.html, docs/codemelted/*/*.html -Exclude "*sidebar*"
       foreach ($file in $files) {
         [string]$htmlData = Get-Content -Path $file.FullName -Raw
-        $htmlData = $htmlData.Replace('<a href="../codemelted">','<a href="../codemelted/index.html">')
-        $htmlData = $htmlData.Replace('<a href="../codemelted">codemelted.dart</a>','<a href="../codemelted/index.html">codemelted.dart</a>')
+        $htmlData = $htmlData.Replace('<a href="../codemelted/">','<a href="../codemelted/index.html">')
+        $htmlData = $htmlData.Replace('<a href="../codemelted/">codemelted.dart</a>','<a href="../codemelted/index.html">codemelted.dart</a>')
         $htmlData | Out-File $file.FullName -Force
       }
 

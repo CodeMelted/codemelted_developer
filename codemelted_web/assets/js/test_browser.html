@@ -15,7 +15,7 @@ can show all testing efforts with the module.
   <link rel="icon" type="image/x-icon" href="https://codemelted.com/favicon.png">
   <!-- Includes mocha.css with overrides to add deno coverage information. -->
   <style>
-    @import url("https://unpkg.com/mocha@10.7.3/mocha.css");
+    @import url("https://unpkg.com/mocha@11.7.1/mocha.css");
     body {
       margin-top: 175px;
     }
@@ -73,8 +73,8 @@ can show all testing efforts with the module.
 </head><body>
   <!-- Sets up our title area offset from mocha's display area. -->
   <h2 class="codemelted-title">
-    <a href="../index.html"><img src="https://codemelted.com/assets/images/icons/deno-js.png" /></a>
-    CodeMelted - JS Module Test Results
+    <a href="./index.html"><img src="https://codemelted.com/assets/favicon/apple-touch-icon.png" /></a>
+    codemelted.js Module Test Results
     <div>
       <center><button onclick="btnMochaChaiClicked();">☕ Mocha / Chai</button></center>
       <center><button onclick="btnDenoTestsClicked();">🦖 Deno Test</button></center>
@@ -90,69 +90,45 @@ can show all testing efforts with the module.
     // ------------------------------------------------------------------------
     // [Setup Test Environment] -----------------------------------------------
     // ------------------------------------------------------------------------
-    import {assert} from "https://unpkg.com/chai@5.1.1/chai.js";
-    import "https://unpkg.com/mocha@10.7.3/mocha.js";
-    mocha.setup('bdd');
+    import {assert} from "https://unpkg.com/chai@5.2.0/chai.js";
+    import "https://unpkg.com/mocha@11.7.1/mocha.js";
+    import {
+      console_alert,
+      console_confirm,
+      console_choose,
+      console_password,
+      console_prompt,
+      console_writeln,
+      runtime_cpu_arch,
+      runtime_home_path,
+      runtime_newline,
+      runtime_os_name,
+      runtime_path_separator,
+      runtime_temp_path,
+      runtime_user
+    } from "./codemelted.js";
 
     // ------------------------------------------------------------------------
     // [Test Definitions] -----------------------------------------------------
     // ------------------------------------------------------------------------
-    const codemelted = (await import("./codemelted.js")).default;
-    describe("codemelted.console Tests", () => {
-      it("codemelted.console.* Functions Throw", () => {
-        assert.throws(() => codemelted.console.alert(), SyntaxError);
-        assert.throws(() => codemelted.console.confirm(), SyntaxError);
-        assert.throws(() => codemelted.console.choose(), SyntaxError);
-        assert.throws(() => codemelted.console.password(), SyntaxError);
-        assert.throws(() => codemelted.console.prompt(), SyntaxError);
-        assert.throws(() => codemelted.console.writeln(), SyntaxError);
+    mocha.setup('bdd');
+    describe("Functions Not Browser Supported Validation", () => {
+      it("console_xxx() Throws API_UNSUPPORTED_PLATFORM", () => {
+        assert.throws(() => console_alert(), SyntaxError);
+        assert.throws(() => console_confirm(), SyntaxError);
+        assert.throws(() => console_choose({}), SyntaxError);
+        assert.throws(() => console_password(), SyntaxError);
+        assert.throws(() => console_prompt(), SyntaxError);
+        assert.throws(() => console_writeln(), SyntaxError);
       });
-    });
-
-    describe("codemelted.disk Tests", () => {
-      it("codemelted.disk Properties Validation", () => {
-        assert.isNull(codemelted.disk.homePath);
-        assert.isNotEmpty(codemelted.disk.pathSeparator);
-        assert.isNull(codemelted.disk.tempPath);
-      });
-
-      it("codemelted.disk Methods Throw Validation", () => {
-        assert.throws(() => codemelted.disk.cp(), SyntaxError);
-        assert.throws(() => codemelted.disk.exists(), SyntaxError);
-        assert.throws(() => codemelted.disk.ls(), SyntaxError);
-        assert.throws(() => codemelted.disk.mkdir(), SyntaxError);
-        assert.throws(() => codemelted.disk.mv(), SyntaxError);
-        assert.throws(() => codemelted.disk.rm(), SyntaxError);
-      });
-
-      it("codemelted.disk File Validation", async () => {
-        // readEntireFile() will always expect to kick-off a download
-        // so it will never "fail".
-        try {
-          // File ignored as a file chooser is presented which will timeout
-          // with no user interaction.
-          await codemelted.disk.readEntireFile({accept: 42});
-          // Should fail.
-          assert.equal(true, false);
-        } catch (err) {
-          assert.equal(err instanceof SyntaxError, true);
-        }
-
-        try {
-          await codemelted.disk.writeEntireFile();
-          // Should fail.
-          assert.equal(true, false);
-        } catch (err) {
-          assert.equal(err instanceof SyntaxError, true);
-        }
-
-        try {
-          await codemelted.disk.writeEntireFile({filename: "test.txt"});
-          // Should fail.
-          assert.equal(true, false);
-        } catch (err) {
-          assert.equal(err instanceof SyntaxError, true);
-        }
+      it("runtime_xxx() Throws API_UNSUPPORTED_PLATFORM", () => {
+        assert.throws(() => runtime_cpu_arch(), SyntaxError);
+        assert.throws(() => runtime_home_path(), SyntaxError);
+        assert.throws(() => runtime_newline(), SyntaxError);
+        assert.throws(() => runtime_os_name(), SyntaxError);
+        assert.throws(() => runtime_path_separator(), SyntaxError);
+        assert.throws(() => runtime_temp_path(), SyntaxError);
+        assert.throws(() => runtime_user(), SyntaxError);
       });
     });
 
