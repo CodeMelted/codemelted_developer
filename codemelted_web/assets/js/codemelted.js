@@ -1,7 +1,10 @@
 // @ts-check
 // ============================================================================
 /**
- * @file The implementation of the codemelted.js Module.
+ * @file The implementation of the codemelted.js Module. It is meant as an all
+ * purpose ES6 module with a collection of functions that can target multiple
+ * JavaScript runtimes. Each public facing function documents which runtimes
+ * it supports.
  * @author Mark Shaffer
  * @version 0.0.0 (Last Modified 2025-mm-dd)
  * @license MIT <br />
@@ -29,20 +32,22 @@
 // ============================================================================
 
 /**
- * Identifies a future implementation within the codemelted.js module.
- * @constant {SyntaxError}
- */
-const API_FUTURE_IMPLEMENTATION = new SyntaxError(
-  "codemelted.js module future implementation"
-);
-
-/**
  * Error thrown when the module is not used as intended providing the error
  * for a developer to fix their code.
  * @constant {SyntaxError}
  */
-const API_MISUSE_ERROR = new SyntaxError(
+const API_MISUSE = new SyntaxError(
   "codemelted.js module logic was not used properly!"
+);
+
+/**
+ * Identifies a piece of logic that is not implemented within the
+ * codemelted.js module. This identifies future implementation logic or
+ * represents a base class element not utilized in a child.
+ * @constant {SyntaxError}
+ */
+const API_NOT_IMPLEMENTED = new SyntaxError(
+  "NOT IMPLEMENTED LOGIC. DO NOT CALL!"
 );
 
 /**
@@ -79,7 +84,7 @@ export class CProtocolHandler {
    * queries from the protocol.
    * @returns {Promise<CResult>}
    */
-  async get_message(request="") { throw API_FUTURE_IMPLEMENTATION; }
+  async get_message(request="") { throw API_NOT_IMPLEMENTED; }
 
   /**
    * The identification of the protocol.
@@ -93,20 +98,20 @@ export class CProtocolHandler {
    * @readonly
    * @type {boolean}
    */
-  get is_running() { throw API_FUTURE_IMPLEMENTATION; }
+  get is_running() { throw API_NOT_IMPLEMENTED; }
 
   /**
    * Posts a given message to the given implementing protocol.
    * @param {any} data
    * @returns {Promise<CResult>}
    */
-  post_message(data) { throw API_FUTURE_IMPLEMENTATION; }
+  post_message(data) { throw API_NOT_IMPLEMENTED; }
 
   /**
    * Terminates the given protocol.
    * @returns {void}
    */
-  terminate() { throw API_FUTURE_IMPLEMENTATION; }
+  terminate() { throw API_NOT_IMPLEMENTED; }
 
   /**
    * Constructor for the class.
@@ -124,7 +129,7 @@ export class CProtocolHandler {
  * checking by a user.
  */
 class CResult {
-  /** @type {string | null} */
+  /** @type {Error | string | null} */
   #error = null;
 
   /** @type {any} */
@@ -133,7 +138,7 @@ class CResult {
   /**
    * Holds any error message associated with a failed transaction request.
    * @readonly
-   * @type {string | null}
+   * @type {Error | string | null}
    */
   get error() { return this.#error; }
 
@@ -142,7 +147,11 @@ class CResult {
    * @readonly
    * @type {boolean}
    */
-  get is_error() { return this.error != null && this.error.length > 0; }
+  get is_error() {
+    if (this.error instanceof Error) {
+      return true;
+    }
+    return this.error != null && this.error.length > 0; }
 
   /**
    * Signals the transaction completed with no errors.
@@ -207,12 +216,12 @@ export class CTimerResult {
   /**
    * Stops the running timer.
    * @returns {void}
-   * @throws {API_MISUSE_ERROR} When called on an already terminated
+   * @throws {API_MISUSE} When called on an already terminated
    * timer.
    */
   stop() {
     if (!this.is_running) {
-      throw API_MISUSE_ERROR;
+      throw API_MISUSE;
     }
     clearInterval(this.#id);
     this.#id = -1;
@@ -234,8 +243,10 @@ export class CTimerResult {
  * @param {number} delay The delay in milliseconds to wait before processing
  * the next asynchronous task.
  * @returns {Promise<void>} The promise to await on for the delay.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -266,8 +277,10 @@ export function async_sleep(delay) {
  * future.
  * @returns {Promise<CResult>} A future promise with the result of the
  * task.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -301,8 +314,10 @@ export function async_task({task, data, delay = 0}) {
  * the given task.
  * @returns {CTimerResult} The timer that runs the task on the specified
  * interval.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -326,8 +341,10 @@ export function async_timer({task, interval}) {
 
 /**
  * @private
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -339,7 +356,7 @@ export function async_timer({task, interval}) {
  * // TBD
  */
 function async_worker() {
-  throw API_FUTURE_IMPLEMENTATION;
+  throw API_NOT_IMPLEMENTED;
 }
 
 // ============================================================================
@@ -351,8 +368,10 @@ function async_worker() {
  * press via STDIN.
  * @param {string} [message=""] The message to prompt out or "ALERT".
  * @returns {void}
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
@@ -368,7 +387,7 @@ export function console_alert(message = "") {
   if (runtime_is_deno()) {
     globalThis.alert(message);
   } else if (runtime_is_nodejs()) {
-    throw API_FUTURE_IMPLEMENTATION;
+    throw API_NOT_IMPLEMENTED;
   } else {
     throw API_UNSUPPORTED_PLATFORM;
   }
@@ -378,8 +397,10 @@ export function console_alert(message = "") {
  * Prompts (via STDOUT) for a user confirmation (via STDIN).
  * @param {string} [message=""] The confirmation you are looking for.
  * @returns {boolean} The choice made.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
@@ -398,7 +419,7 @@ export function console_confirm(message = "") {
       : "CONFIRM";
     return globalThis.confirm(prompt);
   } else if (runtime_is_nodejs()) {
-    throw API_FUTURE_IMPLEMENTATION;
+    throw API_NOT_IMPLEMENTED;
   } else {
     throw API_UNSUPPORTED_PLATFORM;
   }
@@ -412,8 +433,10 @@ export function console_confirm(message = "") {
  * @param {string[]} params.choices The choices to choose from
  * written to STDOUT.
  * @returns {number} The index of the selection in [params.choices].
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
@@ -453,7 +476,7 @@ export function console_choose({message = "", choices}) {
     } while (answer === -1);
     return answer;
   } else if (runtime_is_nodejs()) {
-    throw API_FUTURE_IMPLEMENTATION;
+    throw API_NOT_IMPLEMENTED;
   } else {
     throw API_UNSUPPORTED_PLATFORM;
   }
@@ -463,8 +486,10 @@ export function console_choose({message = "", choices}) {
  * Prompts (via STDOUT) for a user to enter their password via STDIN.
  * @param {string} [message=""] The custom prompt to write out to STDOUT.
  * @returns {string} the password entered via STDIN.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
@@ -502,7 +527,7 @@ export function console_password(message = "") {
     globalThis.Deno.stdin.setRaw(false);
     return answer;
   } else if (runtime_is_nodejs()) {
-    throw API_FUTURE_IMPLEMENTATION;
+    throw API_NOT_IMPLEMENTED;
   } else {
     throw API_UNSUPPORTED_PLATFORM;
   }
@@ -512,8 +537,10 @@ export function console_password(message = "") {
  * Write a prompt to STDOUT to receive an answer via STDIN.
  * @param {string} [message=""] The custom prompt message for STDOUT.
  * @returns {string} The typed in answer received via STDIN.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
@@ -533,7 +560,7 @@ export function console_prompt(message = "") {
     const answer = globalThis.prompt(`${prompt}:`);
     return answer != null ? answer : "";
   } else if (runtime_is_nodejs()) {
-    throw API_FUTURE_IMPLEMENTATION;
+    throw API_NOT_IMPLEMENTED;
   } else {
     throw API_UNSUPPORTED_PLATFORM;
   }
@@ -543,8 +570,10 @@ export function console_prompt(message = "") {
  * Writes the given message to STDOUT.
  * @param {string} [message=""] The message to write or a blank line.
  * @returns {void}
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
@@ -560,84 +589,42 @@ export function console_writeln(message = "") {
   if (runtime_is_deno()) {
     globalThis.console.log(message);
   } else if (runtime_is_nodejs()) {
-    throw API_FUTURE_IMPLEMENTATION;
+    throw API_NOT_IMPLEMENTED;
   } else {
     throw API_UNSUPPORTED_PLATFORM;
   }
 }
+
+// TODO: NodeJS Console?
 
 // ============================================================================
 // [DB UC IMPLEMENTATION] =====================================================
 // ============================================================================
 
 // TO BE DEVELOPED
+// TODO: IndexDB for browser / worker
+//       DenoKV for Deno
+//       Possibly Sqlite for NodeJS. If no third party items needed.
 
 // ============================================================================
 // [DISK UC IMPLEMENTATION] ===================================================
 // ============================================================================
 
 // TO BE DEVELOPED
+// TODO: Deno for sure
+//       NodeJS if no 3rd party items needed.
+//       Browser has read / write file. See Rust.
+//       Also classes must be abstracted from actual disk types.
 
 // ============================================================================
 // [HW UC IMPLEMENTATION] =====================================================
 // ============================================================================
 
-/**
- * Defined to support proper typing in the JSDocs when type checking in a
- * TypeScript environment.
- * @see https://developer.mozilla.org/en-US/docs/Web/API/DeviceOrientationEvent
- * @typedef {object} DeviceOrientationEvent
- * @property {boolean} absolute A boolean that indicates whether or not the
- * device is providing orientation data absolutely.
- * @property {number?} alpha A number representing the motion of the device
- * around the z axis, express in degrees with values ranging from 0
- * (inclusive) to 360 (exclusive).
- * @property {number?} beta A number representing the motion of the device
- * around the x axis, express in degrees with values ranging from -180
- * (inclusive) to 180 (exclusive). This represents a front to back motion of
- *  the device.
- * @property {number?} gamma A number representing the motion of the device
- * around the y axis, express in degrees with values ranging from -90
- * (inclusive) to 90 (exclusive). This represents a left to right motion of
- * the device.
- */
+// TODO: Stub out other protocol functions and mark as TBD.
 
 /**
- * The GeolocationCoordinates interface represents the position and altitude
- * of the device on Earth, as well as the accuracy with which these properties
- * are calculated. The geographic position information is provided in terms of
- * World Geodetic System coordinates (WGS84).
- * NOTE: Defined to support proper typing in the JSDocs when type checking in a
- * TypeScript environment.
- * @see https://developer.mozilla.org/en-US/docs/Web/API/GeolocationCoordinates
- * @typedef {object} GeolocationCoordinates
- * @property {number} latitude Returns a double representing the position's
- * latitude in decimal degrees.
- * @property {number} longitude Returns a double representing the position's
- * longitude in decimal degrees.
- * @property {number | null} altitude Returns a double representing the
- * position's altitude in meters, relative to nominal sea level. This value
- * can be null if the implementation cannot provide the data.
- * @property {number} accuracy Returns a double representing the accuracy of
- * the latitude and longitude properties, expressed in meters.
- * @property {number | null} altitudeAccuracy Returns a double representing
- * the accuracy of the altitude expressed in meters. This value can be null
- * if the implementation cannot provide the data.
- * @property {number | null} heading Returns a double representing the
- * direction towards which the device is facing. This value, specified in
- * degrees, indicates how far off from heading true north the device is. 0
- * degrees represents true north, and the direction is determined clockwise
- * (which means that east is 90 degrees and west is 270 degrees). If speed is
- * 0 or the device is unable to provide heading information, heading is null.
- * @property {number | null} speed Returns a double representing the velocity
- * of the device in meters per second. This value can be null.
- */
-
-
-
-/**
- * Represents the geodetic data captured from the codemelted.sensor()
- * protocol.
+ * Represents the geodetic data captured from the [COrientationProtocol]
+ * object when created via the [hw_request_orientation] function call.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/GeolocationCoordinates
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Window/deviceorientation_event
  */
@@ -789,7 +776,7 @@ export class CGeodeticData {
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Window/deviceorientation_event
  * @extends {CProtocolHandler}
  */
-export class CDeviceOrientationProtocol extends CProtocolHandler {
+export class COrientationProtocol extends CProtocolHandler {
   /** @type {CGeodeticData} */
   #data = new CGeodeticData();
   #onDeviceOrientation;
@@ -829,7 +816,7 @@ export class CDeviceOrientationProtocol extends CProtocolHandler {
    * @param {any} data
    * @returns {Promise<CResult>}
    */
-  post_message(data) { throw API_FUTURE_IMPLEMENTATION; }
+  post_message(data) { throw API_NOT_IMPLEMENTED; }
 
   /**
    * @inheritdoc
@@ -837,7 +824,7 @@ export class CDeviceOrientationProtocol extends CProtocolHandler {
    */
   terminate() {
     if (!this.is_running) {
-      throw API_MISUSE_ERROR;
+      throw API_MISUSE;
     }
     // @ts-ignore Object exists in browser runtime.
     globalThis.navigator.geolocation.clearWatch(this.#watchId);
@@ -856,7 +843,7 @@ export class CDeviceOrientationProtocol extends CProtocolHandler {
    * watch of geolocation changes.
    */
   constructor(options) {
-    super("CDeviceOrientationProtocol");
+    super("COrientationProtocol");
 
     // Setup to listen for device orientation changes.
     // @ts-ignore Object exists in browser runtime.
@@ -886,35 +873,354 @@ export class CDeviceOrientationProtocol extends CProtocolHandler {
 }
 
 /**
- * @private
+ * The data that supports a [CSerialPortProtocol::get_message] or
+ * [CSerialPortProtocol::post_message] function calls to communicate with the
+ * connected serial port.
+ * @typedef {object} CSerialPortPostRequest
+ * @property {SERIAL_PORT_DATA_REQUEST} request The requested data to either
+ * read or write to the serial port via the [CSerialPortProtocol].
+ * @property {any} data The data associated with the request.
  */
-class CSerialPort extends CProtocolHandler {
-
-}
 
 /**
- * @private
- * @returns {Promise<string[]>}
+ * Object created from the [hw_request_serial_port] function call opening a
+ * connection to the requested serial port connected to the host computer.
+ * With the opened serial port, utilize the [CSerialPort::get_message] and
+ * [CSerialPort::post_message] to interact with the port until it is
+ * [CSerialPort::terminate].
+ * @extends {CProtocolHandler}
  */
-async function hw_available_serial_ports() {
-  if (hw_serial_ports_supported()) {
-    // @ts-ignore This is available in some web browsers
-    const ports = await globalThis.navigator.serial.getPorts();
-    throw "TODO: Implement id parsing of ports";
+export class CSerialPortProtocol extends CProtocolHandler {
+  /** @type {SerialPort} */
+  #port;
+
+  /**
+   * Reads the requested data from the currently connected serial port.
+   * @param {SERIAL_PORT_DATA_REQUEST} request The request to read the current
+   * state of the serial port or actual data. The supported items to query are
+   * ClearToSend, CarrierDetect, DataSetReady, RingIndicator, and DataBytes.
+   * @returns {Promise<CResult>} holding the data associated with the request.
+   * A rejected promise is the result of an API violation.
+   */
+  async get_message(request) {
+    try {
+      if (!this.is_running) {
+        throw API_MISUSE;
+      }
+      let resp = null;
+      let data = null;
+      switch (request) {
+        case SERIAL_PORT_DATA_REQUEST.ClearToSend:
+          resp = await this.#port.getSignals();
+          data = resp["clearToSend"];
+          break;
+        case SERIAL_PORT_DATA_REQUEST.CarrierDetect:
+          resp = await this.#port.getSignals();
+          data = resp["dataCarrierDetect"];
+          break;
+        case SERIAL_PORT_DATA_REQUEST.DataSetReady:
+          resp = await this.#port.getSignals();
+          data = resp["dataSetReady"];
+          break;
+        case SERIAL_PORT_DATA_REQUEST.RingIndicator:
+          resp = await this.#port.getSignals();
+          data = resp["ringIndicator"];
+          break;
+        case SERIAL_PORT_DATA_REQUEST.DataBytes:
+          if (!this.#port.readable) {
+            return new CResult({
+              error: "Serial port was unreadable at this time"
+            });
+          }
+          const reader = this.#port.readable.getReader();
+          const { value, done } = await reader.read();
+          data = value;
+          reader.releaseLock();
+          break;
+        default:
+          throw API_MISUSE;
+      }
+      return new CResult({value: data});
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        throw err;
+      }
+      return new CResult({error: err});
+    }
   }
-  return [];
+
+  /**
+   * @inheritdoc
+   * @override
+   */
+  get is_running() {
+    return this.#port.connected;
+  }
+
+  /**
+   * Will process the data request and perform the requested transaction with
+   * the connected serial port returning a result of if it was successfully
+   * carried out.
+   * @override
+   * @param {CSerialPortPostRequest} data The request to make to the connected
+   * serial port with associated data.
+   * @return {Promise<CResult>} The result of the posted data to the port.
+   * A rejected promise is the result of an API violation.
+   */
+  async post_message(data) {
+    try {
+      json_check_type({type: "object", data: data, shouldThrow: true});
+      let request = data.request;
+      switch (request) {
+        case SERIAL_PORT_DATA_REQUEST.DataTerminalReady:
+          json_check_type({
+            type: "boolean",
+            data: data.data,
+            shouldThrow: true
+          });
+          await this.#port.setSignals("dataTerminalReady", data.data);
+          break;
+        case SERIAL_PORT_DATA_REQUEST.RequestToSend:
+          json_check_type({
+            type: "boolean",
+            data: data.data,
+            shouldThrow: true
+          });
+          await this.#port.setSignals("requestToSend", data.data);
+          break;
+        case SERIAL_PORT_DATA_REQUEST.Break:
+          json_check_type({
+            type: "boolean",
+            data: data.data,
+            shouldThrow: true
+          });
+          await this.#port.setSignals("break", data.data);
+          break;
+        case SERIAL_PORT_DATA_REQUEST.DataBytes:
+          json_check_type({
+            type: Uint8Array,
+            data: data.data,
+            shouldThrow: true
+          });
+          const writer = this.#port.writable.getWriter();
+          await writer.write(data.data);
+          writer.releaseLock();
+          break;
+        default:
+          throw API_MISUSE;
+      }
+      return new CResult();
+    } catch (err) {
+      if (err instanceof SyntaxError) {
+        throw err;
+      }
+      return new CResult({error: err});
+    }
+  }
+
+  /**
+   * @inheritdoc
+   * @override
+   */
+  terminate() {
+    if (!this.is_running) {
+      throw API_MISUSE;
+    }
+    this.#port.close();
+  }
 }
 
 /**
- * Opens a device orientation protocol to retrieve the devices current
+ * Defined to support proper typing in the JSDocs when type checking in a
+ * TypeScript environment.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/DeviceOrientationEvent
+ * @typedef {object} DeviceOrientationEvent
+ * @property {boolean} absolute A boolean that indicates whether or not the
+ * device is providing orientation data absolutely.
+ * @property {number?} alpha A number representing the motion of the device
+ * around the z axis, express in degrees with values ranging from 0
+ * (inclusive) to 360 (exclusive).
+ * @property {number?} beta A number representing the motion of the device
+ * around the x axis, express in degrees with values ranging from -180
+ * (inclusive) to 180 (exclusive). This represents a front to back motion of
+ *  the device.
+ * @property {number?} gamma A number representing the motion of the device
+ * around the y axis, express in degrees with values ranging from -90
+ * (inclusive) to 90 (exclusive). This represents a left to right motion of
+ * the device.
+ */
+
+/**
+ * The GeolocationCoordinates interface represents the position and altitude
+ * of the device on Earth, as well as the accuracy with which these properties
+ * are calculated. The geographic position information is provided in terms of
+ * World Geodetic System coordinates (WGS84).
+ * NOTE: Defined to support proper typing in the JSDocs when type checking in a
+ * TypeScript environment.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/GeolocationCoordinates
+ * @typedef {object} GeolocationCoordinates
+ * @property {number} latitude Returns a double representing the position's
+ * latitude in decimal degrees.
+ * @property {number} longitude Returns a double representing the position's
+ * longitude in decimal degrees.
+ * @property {number | null} altitude Returns a double representing the
+ * position's altitude in meters, relative to nominal sea level. This value
+ * can be null if the implementation cannot provide the data.
+ * @property {number} accuracy Returns a double representing the accuracy of
+ * the latitude and longitude properties, expressed in meters.
+ * @property {number | null} altitudeAccuracy Returns a double representing
+ * the accuracy of the altitude expressed in meters. This value can be null
+ * if the implementation cannot provide the data.
+ * @property {number | null} heading Returns a double representing the
+ * direction towards which the device is facing. This value, specified in
+ * degrees, indicates how far off from heading true north the device is. 0
+ * degrees represents true north, and the direction is determined clockwise
+ * (which means that east is 90 degrees and west is 270 degrees). If speed is
+ * 0 or the device is unable to provide heading information, heading is null.
+ * @property {number | null} speed Returns a double representing the velocity
+ * of the device in meters per second. This value can be null.
+ */
+
+
+/**
+ * The SerialPort interface of the Web Serial API provides access to a serial
+ * port on the host device.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SerialPort
+ * @typedef {object} SerialPort
+ * @property {boolean} connected Returns a boolean value that indicates
+ * whether the port is logically connected to the device.
+ * @property {ReadableStream} readable Returns a ReadableStream for receiving
+ * data from the device connected to the port.
+ * @property {WritableStream} writable Returns a WritableStream for sending
+ * data to the device connected to the port.
+ * @property {function} forget Returns a Promise that resolves when access
+ * to the serial port is revoked. Calling this "forgets" the device, resetting
+ * any previously-set permissions so the calling site can no longer
+ * communicate with the port.
+ * @property {function} getInfo Returns an object containing identifying
+ * information for the device available via the port.
+ * @property {function} open Returns a Promise that resolves when the port
+ * is opened. By default the port is opened with 8 data bits, 1 stop bit and
+ * no parity checking.
+ * @property {function} setSignals Sets control signals on the port and
+ * returns a Promise that resolves when they are set.
+ * @property {function} getSignals Returns a Promise that resolves with an
+ * object containing the current state of the port's control signals.
+ * @property {function} close Returns a Promise that resolves when the port
+ * closes.
+ */
+
+/**
+ * Provides the support to the [CSerialPort::get_message] and
+ * [CSerialPort::post_message] calls to interact with the connect serial
+ * port hardware.
+ * @enum {object} SERIAL_PORT_DATA_REQUEST
+ * @property {string} Break Line control status of the
+ * [CSerialPortProtocol].
+ * @property {string} CarrierDetect Line control status of the
+ * [CSerialPortProtocol].
+ * @property {string} ClearToSend Line control status of the
+ * [CSerialPortProtocol].
+ * @property {string} DataSetReady Line control status of the
+ * [CSerialPortProtocol].
+ * @property {string} DataTerminalReady Line control status of the
+ * [CSerialPortProtocol].
+ * @property {string} RequestToSend Line control status of the
+ * [CSerialPortProtocol].
+ * @property {string} RingIndicator Line control status of the
+ * [CSerialPortProtocol].
+ * @property {string} DataBytes Read / Write from the [CSerialPortProtocol].
+ */
+export const SERIAL_PORT_DATA_REQUEST = Object.freeze({
+  Break: "Break",
+  CarrierDetect: "CarrierDetect",
+  ClearToSend: "ClearToSend",
+  DataSetReady: "DataSetReady",
+  DataTerminalReady: "DataTerminalReady",
+  RequestToSend: "RequestToSend",
+  RingIndicator: "RingIndicator",
+  DataBytes: "DataBytes",
+});
+
+/**
+ * Determines if the JavaScript runtime support connecting to external devices
+ * via bluetooth protocol.
+ * @returns {boolean} Indication of runtime support.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" checked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
+ */
+export function hw_bluetooth_supported() {
+  return "navigator" in globalThis && "bluetooth" in globalThis.navigator;
+}
+
+/**
+ * Determines if the JavaScript runtime support connecting to Musical
+ * Instrument Digital Interface (MIDI) Devices.
+ * @returns {boolean} Indication of runtime support.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" checked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
+ */
+export function hw_midi_supported() {
+  return "navigator" in globalThis &&
+    "requestMIDIAccess" in globalThis.navigator;
+}
+
+/**
+ * Determines if the JavaScript runtime will support the ability to retrieve
+ * device orientation.
+ * @returns {boolean} Indication of runtime support.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" checked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
+ */
+export function hw_orientation_supported() {
+  return "navigator" in globalThis && "geolocation" in globalThis.navigator;
+}
+
+/**
+ * Requests a device orientation protocol to retrieve the devices current
  * geodetic orientation in 3D space.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition#options
  * @param {object} [options] The options for tuning the protocol to
  * watch for geolocation position updates.
- * @return {CDeviceOrientationProtocol} The protocol that handles device
+ * @return {COrientationProtocol} The protocol that handles device
  * orientation changes until terminated.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -925,19 +1231,48 @@ async function hw_available_serial_ports() {
  * @example
  * // TBD
  */
-export function hw_open_device_orientation(options) {
-  if (!runtime_is_browser()) {
+export function hw_request_orientation(options) {
+  if (!hw_orientation_supported()) {
     throw API_UNSUPPORTED_PLATFORM;
   }
-  return new CDeviceOrientationProtocol(options)
+  return new COrientationProtocol(options)
 }
 
 /**
- * Determines if the JavaScript browser runtime will provide the ability to
- * connect with serial ports.
+ * Provides the mechanism to request permission to connect to an attached
+ * serial port device.
+ * @returns {Promise<CSerialPortProtocol>} The requested connected serial port.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
+ */
+export async function hw_request_serial_port() {
+  if (hw_serial_port_supported()) {
+    // @ts-ignore This is available in some web browsers
+    const port = await globalThis.navigator.serial.requestPort();
+    return new CSerialPortProtocol(port);
+  }
+  throw API_UNSUPPORTED_PLATFORM;
+}
+
+/**
+ * Determines if the JavaScript runtime will provide the ability to connect
+ * with serial ports.
  * @returns {boolean} true if available, false otherwise.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -949,31 +1284,110 @@ export function hw_open_device_orientation(options) {
  * // Determine if serial port processing is supported.
  * const supported = hw_serial_ports_supported();
  * if (supported) {
- *   // Use hw_available_serial_ports() for further processing.
+ *   try {
+ *      const port = await hw_request_serial_port();
+ *   } catch (err) {
+ *      // Handle promise rejection
+ *   }
  * }
  */
-export function hw_serial_ports_supported() {
-  return "navigator" in globalThis &&
-    "serial" in globalThis.navigator &&
-    runtime_is_browser() || runtime_is_worker();
+export function hw_serial_port_supported() {
+  return "navigator" in globalThis && "serial" in globalThis.navigator;
 }
 
+/**
+ * Determines if the JavaScript runtime supports connecting to a usb device.
+ * @returns {boolean} Indication of runtime support.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" checked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
+ */
+export function hw_usb_supported() {
+  return "navigator" in globalThis && "usb" in globalThis.navigator;
+}
 // ============================================================================
 // [JSON UC IMPLEMENTATION] ===================================================
 // ============================================================================
 
 /**
+ * Decodes a string of data which has been encoded using Base64 encoding.
+ * @param {string} data Base64 encoded string.
+ * @returns {string | null} The decoded string or null if the encoding
+ * failed.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" checked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
+ */
+export function json_atob(data) {
+  json_check_type({type: "string", data: data, shouldThrow: true});
+  try {
+    return globalThis.atob(data);
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
+ * Creates a Base64-encoded ASCII string from a binary string (i.e., a string
+ * in which each character in the string is treated as a byte of binary data).
+ * @param {string} data The binary string.
+ * @returns {string | null} The base64 encoded string or null if the encoding
+ * failed.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" checked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
+ */
+export function json_btoa(data) {
+  json_check_type({type: "string", data: data, shouldThrow: true});
+  try {
+    return globalThis.btoa(data);
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
  * @private
  */
 function json_create_array() {
-  throw API_FUTURE_IMPLEMENTATION;
+  throw API_NOT_IMPLEMENTED;
 }
 
 /**
  * @private
  */
 function json_create_object() {
-  throw API_FUTURE_IMPLEMENTATION;
+  throw API_NOT_IMPLEMENTED;
 }
 
 /**
@@ -987,8 +1401,10 @@ function json_create_object() {
  * @param {boolean} [params.shouldThrow=false] Whether to throw instead of
  * returning a value upon failure.
  * @returns {boolean} true if it meets the expectations, false otherwise.
- * @throws {API_MISUSE_ERROR} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1017,7 +1433,7 @@ export function json_check_type({
     }
     return valid;
   } catch (err) {
-    throw API_MISUSE_ERROR;
+    throw API_MISUSE;
   }
 }
 
@@ -1029,8 +1445,10 @@ export function json_check_type({
  * @param {boolean} [params.shouldThrow=false] Whether to throw instead of
  * returning a value upon failure.
  * @returns {boolean} true if property was found, false otherwise.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1055,8 +1473,10 @@ export function json_has_key({data, key, shouldThrow = false}) {
  * Converts a string to a supported JSON data type.
  * @param {string} data The data to parse.
  * @returns {any | null} The JSON data type or null if the parsing fails.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1080,8 +1500,10 @@ export function json_parse(data) {
  * @param {any} data The data to convert.
  * @returns {string | null} The string representation or null if the
  * stringify failed.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1107,8 +1529,10 @@ export function json_stringify(data) {
  * @param {boolean} [params.shouldThrow=false] Whether to throw instead of
  * returning a value upon failure.
  * @returns {boolean} true if valid, false otherwise.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1223,8 +1647,10 @@ let _loggerHandler = null;
  * Sets the logger handler for post logging processing.
  * @param {CLogHandler | null} handler The handler to utilize.
  * @returns {void}
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1250,8 +1676,10 @@ export function logger_handler(handler) {
  * @param {object | undefined} [level] The optional log level to set based on
  * the [CLogLevel] object configuration.
  * @returns {string} The string representation of the log level.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1279,8 +1707,10 @@ export function logger_level(level) {
  * @param {LOGGER} params.level The log level for the logged event.
  * @param {any} params.data The data to log with the event.
  * @returns {void}
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1343,6 +1773,10 @@ export function logger_log({level, data}) {
 // ============================================================================
 // [MONITOR UC IMPLEMENTATION] ================================================
 // ============================================================================
+
+// TODO: Deno performance monitor for sure.
+//       Will need to check if NodeJS exposes anything
+//       Also need to see if any other monitors make sense. See Rust.
 
 // TO BE DEVELOPED
 
@@ -1443,6 +1877,32 @@ export class CFetchResult extends CResult {
     super({value: data, error: error});
     this.#status = status;
   }
+}
+
+/**
+ * @private
+ */
+function network_connect() {
+  // TODO: All client socket protocols. Browser worker, deno for sure.
+  //       Need to double check nodejs.
+  throw API_NOT_IMPLEMENTED;
+}
+
+/**
+ * @private
+ */
+function network_fetch() {
+  // TODO: a fetch wrapper. Should be same in all targets.
+  throw API_NOT_IMPLEMENTED;
+}
+
+/**
+ * @private
+ */
+function network_serve() {
+  // TODO: Deno.serve() for HTTP. Also support upgrade of websocket.
+  //       NodeJS if no 3rd party items needed.
+  throw API_NOT_IMPLEMENTED;
 }
 
 // ============================================================================
@@ -1560,7 +2020,7 @@ export const MATH_FORMULA = Object.freeze({
  * @private
  */
 function npu_compute() {
-  throw API_FUTURE_IMPLEMENTATION;
+  throw API_NOT_IMPLEMENTED;
 }
 
 /**
@@ -1571,8 +2031,10 @@ function npu_compute() {
  * @param {Array<number>} params.args The arguments needed for the formula.
  * @returns {number} The calculated result or NaN if something in the args
  * force that value (i.e. division by 0).
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1596,7 +2058,7 @@ export function npu_math({formula, args}) {
     return formula(args);
   } catch (err) {
     if (err instanceof RangeError) {
-      throw API_MISUSE_ERROR;
+      throw API_MISUSE;
     }
     return NaN;
   }
@@ -1607,6 +2069,8 @@ export function npu_math({formula, args}) {
 // ============================================================================
 
 // TO BE DEVELOPED
+// TODO: Deno process items. Maybe nodejs depending on what is exposed
+// globally.
 
 // ============================================================================
 // [RUNTIME UC IMPLEMENTATION] ================================================
@@ -1618,11 +2082,14 @@ export function npu_math({formula, args}) {
  * @param {Event} e The event object that was triggered
  * @returns {void}
  */
+
 /**
  * Determines the CPU architecture.
  * @returns {string} identifier of the architecture.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
@@ -1646,8 +2113,10 @@ export function runtime_cpu_arch() {
 /**
  * Determines the available CPU processors for background workers.
  * @returns {number} The available hardware processors.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1671,8 +2140,10 @@ export function runtime_cpu_count() {
  * value.
  * @param {string} name The name of the operating system variable to lookup.
  * @returns {string?} The value associated with the name or null if not found.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1713,8 +2184,10 @@ export function runtime_environment(name) {
  * @param {EventSource} [params.obj] An optional element to attach an event
  * handler to if it supports it.
  * @returns {void}
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1756,8 +2229,10 @@ export function runtime_event_listener({
 /**
  * Determines the home path of the logged in user.
  * @returns {string?} The identified home path on disk.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
@@ -1781,8 +2256,10 @@ export function runtime_home_path() {
 /**
  * Determines the hostname of the host operating system.
  * @returns {string} The hostname of the computer.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1805,8 +2282,10 @@ export function runtime_hostname() {
 /**
  * Determines if the JavaScript runtime is web browser.
  * @returns {boolean} true if web browser, false otherwise.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1824,8 +2303,10 @@ export function runtime_is_browser() {
 /**
  * Determines if the JavaScript runtime is Deno runtime.
  * @returns {boolean} true if Deno, false otherwise.
-* @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1843,8 +2324,10 @@ export function runtime_is_deno() {
 /**
  * Determines if the JavaScript runtime is a NodeJS runtime.
  * @returns {boolean} true if NodeJS, false otherwise.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1862,8 +2345,10 @@ export function runtime_is_nodejs() {
 /**
  * Determines if the JavaScript runtime is a Worker thread.
  * @returns {boolean} true if worker, false otherwise.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1883,8 +2368,10 @@ export function runtime_is_worker() {
  * @returns {string} Either "deno" / "nodejs" for backend or
  * the name of the actual browser. Or "UNDETERMINED" if it could not
  * be determined.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1926,8 +2413,10 @@ export function runtime_name() {
 /**
  * Retrieves the host operating systems newline character.
  * @returns {string} of the newline character for strings.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
@@ -1952,8 +2441,10 @@ export function runtime_newline() {
 /**
  * Determines if the web app has access to the Internet.
  * @returns {boolean} true if path to Internet available, false otherwise.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -1975,8 +2466,10 @@ export function runtime_online() {
 /**
  * Determines the name of the host operating system.
  * @returns {string} The identification of the OS.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
@@ -1997,8 +2490,10 @@ export function runtime_os_name() {
 /**
  * Gets the path separator of directories on disk.
  * @returns {string} representing the separation.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
@@ -2021,8 +2516,10 @@ export function runtime_path_separator() {
 /**
  * Gets the temporary directory location of the host operating system.
  * @returns {string} representing the directory on disk.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
@@ -2045,8 +2542,10 @@ export function runtime_temp_path() {
  * Identifies the logged in user running the application on the host operating
  * system.
  * @returns {string} user name on disk or "UNDETERMINED".
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
@@ -2072,8 +2571,10 @@ export function runtime_user() {
 /**
  * Clears the local storage of the module.
  * @returns {void}
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -2095,8 +2596,10 @@ export function storage_clear() {
  * Gets the value associated with the key from the module's local storage.
  * @param {string} key The key to search.
  * @returns {string?} The value associated with the key if found.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -2118,8 +2621,10 @@ export function storage_get(key) {
 /**
  * Retrieves the number of entries within the module's local storage.
  * @returns {number} The number of entries.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -2141,8 +2646,10 @@ export function storage_length() {
  * Removes a given entry from the module's local storage.
  * @param {string} key The key to remove.
  * @returns {void}
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -2166,8 +2673,10 @@ export function storage_remove(key) {
  * @param {string} key The key to identify the storage entry.
  * @param {string} value The storage entry.
  * @returns {void}
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -2187,38 +2696,451 @@ export function storage_set(key, value) {
   globalThis.localStorage.setItem(key, value);
 }
 
+// TODO: Add session storage and cookies. Update checks as such.
+
 // ============================================================================
 // [UI UC IMPLEMENTATION] =====================================================
 // ============================================================================
 
 /**
- * Retrieves the height of the running browser window.
- * @returns {number} The current height of the window.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
- * </p>
- * <b>Supported Platforms:</b>
- * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
- * <input type="checkbox" onclick="return false;" unchecked><label>Deno</label>
- * <input type="checkbox" onclick="return false;" unchecked><label>NodeJS</label>
- * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
- * </p>
- * @example
- * // TBD
+ * Provides the request actions of the [ui_action] function all.
+ * @enum {object}
+ * @property {string} Focus Makes a request to bring the window to the front.
+ * It may fail due to user settings and the window isn't guaranteed to be
+ * front most before this method returns.
+ * @property {string} MoveBy moves the current window by a specified amount.
+ * @property {string} MoveTo moves the current window to the specified
+ * coordinates.
+ * @property {string} OpenFilePicker shows a file picker that allows a user
+ * to select a file or multiple files and returns a handle for the file(s).
+ * NOTE: This is only supported on chromium browsers, will default to fallback
+ * methods in that event.
+ * @property {string} Print Opens the print dialog to print the current
+ * document.
+ * @property {string} ResizeBy resizes the current window by a specified
+ * amount.
+ * @property {string} ResizeTo dynamically resizes the window.
+ * @property {string} SaveFilePicker shows a file picker that allows a user to
+ * save a file. Either by selecting an existing file, or entering a name
+ * for a new file.
+ * NOTE: This is only supported on chromium browsers, will default to fallback
+ * methods in that event.
+ * @property {string} Scroll scrolls the window to a particular place in the
+ * document.
+ * @property {string} ScrollBy scrolls the document in the window by the
+ * given amount.
+ * @property {string} ScrollTo scrolls to a particular set of coordinates in
+ * the document.
+ * @property {string} Share invokes the native sharing mechanism of the
+ * device to share data such as text, URLs, or files. The available share
+ * targets depend on the device, but might include the clipboard, contacts
+ * and email applications, websites, Bluetooth, etc.
  */
-export function ui_height() {
-  if (!runtime_is_browser()) {
-    throw API_UNSUPPORTED_PLATFORM;
+export const ACTION_REQUEST = Object.freeze({
+  Focus: "focus",
+  MoveBy: "moveBy",
+  MoveTo: "moveTo",
+  OpenFilePicker: "openFilePicker",
+  Print: "print",
+  ResizeBy: "resizeBy",
+  ResizeTo: "resizeTo",
+  SaveFilePicker: "saveFilePicker",
+  Scroll: "scroll",
+  ScrollBy: "scrollBy",
+  ScrollTo: "scrollTo",
+  Share: "share",
+});
+
+/**
+ * Provides the request for executing audio playback in an HTML document via
+ * the [ui_audio] function call.
+ * @enum {object}
+ * @property {string} File Loads and plays back an audio file hosted on the
+ * web.
+ * @property {string} TextToSpeech Will take a string of text and read it
+ * aloud via speech synthesis.
+ */
+export const AUDIO_REQUEST = Object.freeze({
+  File: "file",
+  TextToSpeech: "tts",
+});
+
+/**
+ * Object created from a call to the [ui_audio] function to allow for audio
+ * playback on a document. This object is only valid with the data it is
+ * created with. Once playback is completed or stopped, it can only be started
+ * (i.e. played) again. To change the audio source requires a call to
+ * [ui_audio] to get a new audio player.
+ */
+export class CAudioPlayer {
+  /** @type {HTMLAudioElement} */
+  #audioPlayer;
+  /** @type {SpeechSynthesisUtterance} */
+  #ttsUtterance;
+  /** @type {string} */
+  #state;
+
+  /**
+   * Sets an error handler to listen for errors that may occur when
+   * utilizing the audio player.
+   * @param {OnErrorEventHandler} handler The handler to listen for errors
+   * with the audio player.
+   */
+  set onerror(handler) {
+    json_check_type({
+      type: "function",
+      data: handler,
+      count: 1,
+      shouldThrow: true
+    });
+    if (this.#audioPlayer) {
+      this.#audioPlayer.onerror = handler;
+    } else {
+      this.#ttsUtterance.onerror = handler;
+    }
   }
-  // @ts-ignore Property exists in a browser runtime.
-  return globalThis.screen.height;
+
+  /**
+   * Signal fired when the audio player has completed the audio source.
+   * @param {object} handler Handler that signals the audio player has
+   * completed playing the data source.
+   */
+  set onended(handler) {
+    json_check_type({
+      type: "function",
+      data: handler,
+      shouldThrow: true
+    });
+    if (this.#audioPlayer) {
+      this.#audioPlayer.onended = handler;
+    } else {
+      this.#ttsUtterance.onend = handler;
+    }
+  }
+
+  /**
+   * Sets / gets the playback rate of the audio player.
+   * @type {number}
+   */
+  get rate() {
+    return this.#audioPlayer != null
+      ? this.#audioPlayer.playbackRate
+      : this.#ttsUtterance.rate;
+  }
+  set rate(v) {
+    let rate = v > 11
+      ? 11
+      : v < 0.1
+        ? 0.1
+        : v;
+    if (this.#audioPlayer) {
+      this.#audioPlayer.playbackRate = rate;
+    } else {
+      this.#ttsUtterance.rate = rate;
+    }
+  }
+
+  /**
+   * Either "stopped" / "paused" / "playing".
+   * @readonly
+   * @type {string}
+   */
+  get state() {
+    return this.#state;
+  }
+
+  /**
+   * Sets / gets the volume of the audio player.
+   * @type {number}
+   */
+  get volume() {
+    return this.#audioPlayer != null
+      ? this.#audioPlayer.volume
+      : this.#ttsUtterance.volume;
+  }
+  set volume(v) {
+    let volume = v < 0
+      ? 0
+      : v > 1
+        ? 1
+        : v;
+    if (this.#audioPlayer) {
+      this.#audioPlayer.volume = volume;
+    } else {
+      this.#ttsUtterance.volume = volume;
+    }
+  }
+
+  /**
+   * Will resume the audio player from a paused state.
+   * @returns {Promise<CResult>} Identifying success / failure of
+   * transitioning to the new audio state.
+   * @throws {API_MISUSE} if you call when in an invalid state.
+   */
+  async resume() {
+    if (this.#state != "paused") {
+      throw API_MISUSE;
+    }
+    try {
+      if (this.#audioPlayer) {
+        await this.#audioPlayer.play();
+      } else {
+        globalThis.speechSynthesis.resume();
+      }
+      this.#state = "playing";
+      return new CResult();
+    } catch (err) {
+      return new CResult({error: err});
+    }
+  }
+
+  /**
+   * Will pause the audio player from a playing state.
+   * @returns {CResult} Identifying success / failure of
+   * transitioning to the new audio state.
+   * @throws {API_MISUSE} if you call when in an invalid state.
+   */
+  pause() {
+    if (this.#state != "playing") {
+      throw API_MISUSE;
+    }
+    try {
+      if (this.#audioPlayer) {
+        this.#audioPlayer.pause();
+      } else {
+        globalThis.speechSynthesis.pause();
+      }
+      this.#state = "paused";
+      return new CResult();
+    } catch (err) {
+      return new CResult({error: err});
+    }
+  }
+
+  /**
+   * Will play the audio player from a stopped state.
+   * @returns {Promise<CResult>} Identifying success / failure of
+   * transitioning to the new audio state.
+   * @throws {API_MISUSE} if you call when in an invalid state.
+   */
+  async play() {
+    if (this.#state != "stopped") {
+      throw API_MISUSE;
+    }
+    try {
+      if (this.#audioPlayer) {
+        await this.#audioPlayer.play();
+      } else {
+        globalThis.speechSynthesis.speak(this.#ttsUtterance);
+      }
+      this.#state = "playing";
+      return new CResult();
+    } catch (err) {
+      return new CResult({error: err});
+    }
+  }
+
+  /**
+   * Will stop the audio player from a paused or playing state.
+   * @returns {CResult} Identifying success / failure of
+   * transitioning to the new audio state.
+   * @throws {API_MISUSE} if you call when in an invalid state.
+   */
+  stop() {
+    if (this.#state === "stopped") {
+      throw API_MISUSE;
+    }
+    try {
+      if (this.#audioPlayer) {
+        this.#audioPlayer.load();
+        this.#audioPlayer.currentTime = 0;
+      } else {
+        globalThis.speechSynthesis.cancel();
+      }
+      this.#state = "stopped";
+      return new CResult();
+    } catch (err) {
+      return new CResult({error: err});
+    }
+  }
+
+  /**
+   * Constructor for the class.
+   * @param {AUDIO_REQUEST} request Identifies which audio source to utilize.
+   * @param {string} data The data associated with the request.
+   */
+  constructor(request, data) {
+    json_check_type({type: "string", data: data, shouldThrow: true});
+    switch (request) {
+      case AUDIO_REQUEST.File:
+        this.#audioPlayer = new Audio(data);
+        break;
+      case AUDIO_REQUEST.TextToSpeech:
+        this.#ttsUtterance = new SpeechSynthesisUtterance(data);
+        break;
+      default:
+        throw API_MISUSE;
+    }
+    this.#state = "stopped";
+  }
 }
 
 /**
- * Determines if the browser UI is installed as a PWA.
- * @returns {boolean} true if browser app installed as PWA, false otherwise.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * Provides the request to render a bottom sheet set of options to support a
+ * Single Page Application (SPA) document to get information from the user.
+ * @enum {object}
+ * @property {string} Alert Displays a snack bar to alert the user of a
+ * condition. Disappears after 4 seconds.
+ * @property {string} Browser Opens a full page browser iFrame.
+ * @property {string} Choose Provides a half page selection of options.
+ * @property {string} Close Will asynchronously close an open page.
+ * @property {string} Confirm Provides a half-page confirmation Yes / No
+ * question to the user.
+ * @property {string} Custom Provides a full page custom dialog to the user.
+ * @property {string} Loading Provides a loading half-page dialog closed via
+ * the Close request.
+ * @property {string} Prompt Provides a half-page text field prompt input
+ * box.
+ */
+export const DIALOG_REQUEST = Object.freeze({
+  Alert: "alert",
+  Browser: "browser",
+  Choose: "choose",
+  Close: "close",
+  Confirm: "confirm",
+  Custom: "custom",
+  Loading: "loading",
+  Prompt: "prompt",
+});
+
+/**
+ * Provides the request actions of the [ui_is] function call.
+ * @enum {object}
+ * @property {string} PWA Determines if the browser window represents an
+ * installed Progressive Web Application.
+ * @property {string} SecureContext indicating whether the current context
+ * is secure (true) or not (false).
+ * @property {string} TouchEnabled Identifies if the browser is accessible via
+ * a touch device.
+ */
+export const IS_REQUEST = Object.freeze({
+  PWA: "pwa",
+  SecureContext: "secureContext",
+  TouchEnabled: "touchEnabled",
+});
+
+/**
+ * Provides the request options of the [ui_message] function call.
+ * @enum {object}
+ * @property {string} Alert instructs the browser to display a dialog with
+ * an optional message, and to wait until the user dismisses the dialog.
+ * @property {string} Confirm instructs the browser to display a dialog with
+ * an optional message, and to wait until the user either confirms or cancels
+ * the dialog.
+ * @property {string} Prompt instructs the browser to display a dialog with
+ * an optional message prompting the user to input some text, and to wait
+ * until the user either submits the text or cancels the dialog.
+ * @property {string} Post safely enables cross-origin communication between
+ * Window objects; e.g., between a page and a pop-up that it spawned, or
+ * between a page and an iframe embedded within it.
+ */
+export const MESSAGE_REQUEST = Object.freeze({
+  Alert: "alert",
+  Confirm: "confirm",
+  Prompt: "prompt",
+  Post: "post",
+});
+
+/**
+ * Identifies queryable requests to discover more about your application
+ * running in the given browser.
+ * @enum {object}
+ * @property {string} AvailableHeight the height of the screen, in pixels,
+ * minus permanent or semipermanent user interface features displayed by the
+ * operating system, such as the Taskbar on Windows.
+ * @property {string} AvailableWidth the amount of horizontal space in pixels
+ * available to the window.
+ * @property {string} ColorDepth the color depth of the screen.
+ * @property {string} DevicePixelRatio the ratio of the resolution in physical
+ * pixels to the resolution in CSS pixels for the current display device.
+ * @property {string} Height the height of the screen in pixels.
+ * @property {string} InnerHeight the interior height of the window in pixels,
+ * including the height of the horizontal scroll bar, if present.
+ * @property {string} InnerWidth interior width of the window in pixels (that
+ * is, the width of the window's layout viewport). That includes the width of
+ * the vertical scroll bar, if one is present.
+ * @property {string} OuterHeight the height in pixels of the whole browser
+ * window, including any sidebar, window chrome, and window-resizing
+ * borders/handles.
+ * @property {string} OuterWidth the width of the outside of the browser
+ * window. It represents the width of the whole browser window including
+ * sidebar (if expanded), window chrome and window resizing borders/handles.
+ * @property {string} PixelDepth the bit depth of the screen.
+ * @property {string} ScreenLeft the horizontal distance, in CSS pixels, from
+ * the left border of the user's browser viewport to the left side of the
+ * screen.
+ * @property {string} ScreenOrientationAngle the document's current orientation
+ * angle.
+ * @property {string} ScreenOrientationType the document's current orientation
+ * type, one of portrait-primary, portrait-secondary, landscape-primary, or
+ * landscape-secondary.
+ * @property {string} ScreenTop the vertical distance, in CSS pixels, from the
+ * top border of the user's browser viewport to the top side of the screen.
+ * @property {string} ScreenX the horizontal distance, in CSS pixels, of the
+ * left border of the user's browser viewport to the left side of the screen.
+ * @property {string} ScreenY the vertical distance, in CSS pixels, of the top
+ * border of the user's browser viewport to the top edge of the screen.
+ * @property {string} ScrollX the number of pixels by which the document is
+ * currently scrolled horizontally. This value is subpixel precise in modern
+ * browsers, meaning that it isn't necessarily a whole number.
+ * @property {string} ScrollY the number of pixels by which the document is
+ * currently scrolled vertically. This value is subpixel precise in modern
+ * browsers, meaning that it isn't necessarily a whole number.
+ * @property {string} Width the width of the screen.
+ */
+export const SCREEN_REQUEST = Object.freeze({
+  AvailableHeight: "availHeight",
+  AvailableWidth: "availWidth",
+  ColorDepth: "colorDepth",
+  DevicePixelRatio: "devicePixelRatio",
+  Height: "height",
+  InnerHeight: "innerHeight",
+  InnerWidth: "innerWidth",
+  OuterHeight: "outerHeight",
+  OuterWidth: "outerWidth",
+  PixelDepth: "pixelDepth",
+  ScreenLeft: "screenLeft",
+  ScreenOrientationAngle: "screenOrientationAngle",
+  ScreenOrientationType: "screenOrientationType",
+  ScreenTop: "screenTop",
+  ScreenX: "screenX",
+  ScreenY: "screenY",
+  ScrollX: "scrollX",
+  ScrollY: "scrollY",
+  Width: "width",
+});
+
+/**
+ * Provides the ability to carry out actions with the open browser window.
+ * @param {object} params The named parameters.
+ * @param {ACTION_REQUEST} params.request The action to carry out with the
+ * open browser window.
+ * @param {object} [params.options] The optional data associated with the
+ * Share / OpenFilePicker / SaveFilePicker requests. See <ul>
+ * <li> https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share#data </li>
+ * <li> https://developer.mozilla.org/en-US/docs/Web/API/Window/showOpenFilePicker#parameters </li>
+ * <li> https://developer.mozilla.org/en-US/docs/Web/API/Window/showSaveFilePicker#parameters </li>
+ * </ul>
+ * @param {number} [params.x] An X coordinate or delta coordinate for a given action
+ * that moves / sets position of the browser window or item on the browser window.
+ * @param {number} [params.y] An X coordinate or delta coordinate for a given action
+ * that moves / sets position of the browser window or item on the browser window.
+ * @returns {Promise<CResult>} Reflecting success or failure of the given
+ * request.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -2229,12 +3151,205 @@ export function ui_height() {
  * @example
  * // TBD
  */
-export function ui_is_pwa() {
-  if (runtime_is_browser()) {
-    // @ts-ignore Property exists in a browser runtime.
-    return globalThis.matchMedia("(display-mode: standalone)").matches;
+export async function ui_action({request, options, x, y}) {
+  if (!runtime_is_browser()) {
+    throw API_UNSUPPORTED_PLATFORM;
   }
-  throw API_UNSUPPORTED_PLATFORM;
+  let value = null;
+  switch (request) {
+    case ACTION_REQUEST.Focus:
+      globalThis.focus();
+      break;
+    case ACTION_REQUEST.MoveBy:
+      json_check_type({type: "number", data: x, shouldThrow: true});
+      json_check_type({type: "number", data: y, shouldThrow: true});
+      // @ts-ignore check types above will validate number is not null.
+      globalThis.moveBy(x, y);
+      break;
+    case ACTION_REQUEST.MoveTo:
+      json_check_type({type: "number", data: x, shouldThrow: true});
+      json_check_type({type: "number", data: y, shouldThrow: true});
+      // @ts-ignore check types above will validate number is not null.
+      globalThis.moveTo(x, y);
+      break;
+    case ACTION_REQUEST.OpenFilePicker:
+      if ("showOpenFilePicker" in globalThis) {
+        value = globalThis.showOpenFilePicker(options);
+      } else {
+        throw API_NOT_IMPLEMENTED;
+        // TODO: Implement fallback.
+      }
+      break;
+    case ACTION_REQUEST.Print:
+      globalThis.print();
+      break;
+    case ACTION_REQUEST.ResizeBy:
+      json_check_type({type: "number", data: x, shouldThrow: true});
+      json_check_type({type: "number", data: y, shouldThrow: true});
+      // @ts-ignore check types above will validate number is not null.
+      globalThis.resizeBy(x, y);
+      break;
+    case ACTION_REQUEST.ResizeTo:
+      json_check_type({type: "number", data: x, shouldThrow: true});
+      json_check_type({type: "number", data: y, shouldThrow: true});
+      // @ts-ignore check types above will validate number is not null.
+      globalThis.resizeTo(x, y);
+      break;
+    case ACTION_REQUEST.SaveFilePicker:
+      if ("showSaveFilePicker" in globalThis) {
+        value = globalThis.showSaveFilePicker(options);
+      } else {
+        throw API_NOT_IMPLEMENTED;
+        // TODO: Implement fallback.
+      }
+      break;
+    case ACTION_REQUEST.Scroll:
+      json_check_type({type: "number", data: x, shouldThrow: true});
+      json_check_type({type: "number", data: y, shouldThrow: true});
+      // @ts-ignore check types above will validate number is not null.
+      globalThis.scroll(x, y);
+      break;
+    case ACTION_REQUEST.ScrollBy:
+      json_check_type({type: "number", data: x, shouldThrow: true});
+      json_check_type({type: "number", data: y, shouldThrow: true});
+      // @ts-ignore check types above will validate number is not null.
+      globalThis.scrollBy(x, y);
+      break;
+    case ACTION_REQUEST.ScrollTo:
+      json_check_type({type: "number", data: x, shouldThrow: true});
+      json_check_type({type: "number", data: y, shouldThrow: true});
+      // @ts-ignore check types above will validate number is not null.
+      globalThis.scrollTo(x, y);
+      break;
+    case ACTION_REQUEST.Share:
+      try {
+        await globalThis.navigator.share(options);
+      } catch (err) {
+        return new CResult({error: err});
+      }
+    default:
+      throw API_MISUSE;
+  }
+  return new CResult({value: value});
+}
+
+/**
+ * Constructs a [CAudioPlayer] to assist in either performing text to speech
+ * or playback of an audio file.
+ * @param {object} params The named parameters.
+ * @param {AUDIO_REQUEST} params.request The audio request to carry out.
+ * @param {string} params.data The string url for audio file or string of text
+ * to perform text to speech.
+ * @returns {CAudioPlayer} Reflecting success or failure of the given
+ * request.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
+ */
+export function ui_audio({request, data}) {
+  if (!runtime_is_browser()) {
+    throw API_UNSUPPORTED_PLATFORM;
+  }
+  return new CAudioPlayer(request, data);
+}
+
+/**
+ * @private
+ */
+function ui_dialog() {
+  // TODO: custom HTML element of dialog tag with the different supported
+  //       actions. Or bottom sheet approach with slide up 3D thingy...
+  //       Thinking about it.
+  throw API_NOT_IMPLEMENTED;
+}
+
+/**
+ * Boolean queries of the given browser runtime to discovery different
+ * features about the given browser window.
+ * @param {IS_REQUEST} request The request of different browser properties.
+ * @returns {boolean} true if the given property is supported, false
+ * otherwise.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
+ */
+export function ui_is(request) {
+  if (!runtime_is_browser()) {
+    throw API_UNSUPPORTED_PLATFORM;
+  }
+  switch (request) {
+    case IS_REQUEST.PWA:
+      return globalThis.matchMedia("(display-mode: standalone)").matches;
+    case IS_REQUEST.SecureContext:
+      return globalThis.isSecureContext;
+    case IS_REQUEST.TouchEnabled:
+      return globalThis.navigator.maxTouchPoints > 0;
+    default:
+      throw API_MISUSE;
+  }
+}
+
+/**
+ * Wraps the browser provided messaging mechanisms.
+ * @param {object} params The named parameters
+ * @param {MESSAGE_REQUEST} params.request The type of messaging to perform.
+ * @param {string | any} params.data String for the Alert / Confirm / Prompt
+ * request. Serializable data for Post communication between browser windows.
+ * @param {string} [params.targetOrigin="*"] Which window to send the data when
+ * utilizing the Post request. Not setting it will send to all open windows.
+ * @returns {boolean | string | null | void} Alert is void / Confirm
+ * is boolean / Prompt is string, null / Post is void.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
+ */
+export function ui_message({request, data, targetOrigin = "*"}) {
+  if (!runtime_is_browser()) {
+    throw API_UNSUPPORTED_PLATFORM;
+  }
+  switch (request) {
+    case MESSAGE_REQUEST.Alert:
+      globalThis.window.alert(data);
+      break;
+    case MESSAGE_REQUEST.Confirm:
+      return globalThis.confirm(data);
+    case MESSAGE_REQUEST.Prompt:
+      return globalThis.prompt(data);
+    case MESSAGE_REQUEST.Post:
+      globalThis.postMessage(data, targetOrigin);
+    default:
+      throw API_MISUSE;
+  }
 }
 
 /**
@@ -2262,8 +3377,10 @@ export function ui_is_pwa() {
  * @param {number} [params.height=600] The height of a popup window. Defaulted to
  * 600.0 when not set.
  * @returns {Window | null} Reference to the newly opened browser window.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -2353,13 +3470,15 @@ export function ui_open({
       }
     }
   } else {
-    throw API_MISUSE_ERROR;
+    throw API_MISUSE;
   }
 
   // Determine how we are opening the item.
   if (popupWindow) {
-    let top = (ui_height() - height) / 2;
-    let left = (ui_width() - width) / 2;
+    // @ts-ignore Will return a number.
+    let top = (ui_screen(SCREEN_REQUEST.Height) - height) / 2;
+    // @ts-ignore Will return a number.
+    let left = (ui_screen(SCREEN_REQUEST.Width) - width) / 2;
     let settings = `toolbar=no, location=no, ` +
       `directories=no, status=no, menubar=no, ` +
       `scrollbars=no, resizable=yes, copyhistory=no, ` +
@@ -2372,10 +3491,16 @@ export function ui_open({
 }
 
 /**
- * Will print the current loaded browser document.
- * @returns {void}
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
+ * Provides a mechanism for discovering information about the current browser
+ * screen the web app is running in.
+ * @param {SCREEN_REQUEST} request Enumeration identifying the different
+ * aspects to request information about.
+ * @returns {number | string} Number for all requests except
+ * ScreenOrientationType request.
+ * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
+ * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
+ * violations. You should not try-catch these as these serve as asserts to the
+ * developer.
  * </p>
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
@@ -2386,88 +3511,58 @@ export function ui_open({
  * @example
  * // TBD
  */
-export function ui_print() {
+export function ui_screen(request) {
   if (!runtime_is_browser()) {
     throw API_UNSUPPORTED_PLATFORM;
   }
-    // @ts-ignore Property exists in a browser runtime.
-  globalThis.print();
+  switch (request) {
+    case SCREEN_REQUEST.AvailableHeight:
+      return globalThis.screen.availHeight;
+    case SCREEN_REQUEST.AvailableWidth:
+      return globalThis.screen.availWidth;
+    case SCREEN_REQUEST.ColorDepth:
+      return globalThis.screen.colorDepth;
+    case SCREEN_REQUEST.DevicePixelRatio:
+      return globalThis.devicePixelRatio;
+    case SCREEN_REQUEST.Height:
+      return globalThis.screen.height;
+    case SCREEN_REQUEST.InnerHeight:
+      return globalThis.innerHeight;
+    case SCREEN_REQUEST.InnerWidth:
+      return globalThis.innerWidth;
+    case SCREEN_REQUEST.OuterHeight:
+      return globalThis.outerHeight;
+    case SCREEN_REQUEST.OuterWidth:
+      return globalThis.outerWidth;
+    case SCREEN_REQUEST.PixelDepth:
+      return globalThis.screen.pixelDepth;
+    case SCREEN_REQUEST.ScreenLeft:
+      return globalThis.screenLeft;
+    case SCREEN_REQUEST.ScreenOrientationAngle:
+      return globalThis.screen.orientation.angle;
+    case SCREEN_REQUEST.ScreenOrientationType:
+      return globalThis.screen.orientation.type;
+    case SCREEN_REQUEST.ScreenTop:
+      return globalThis.screenTop;
+    case SCREEN_REQUEST.ScreenX:
+      return globalThis.screenX
+    case SCREEN_REQUEST.ScreenY:
+      return globalThis.screenY
+    case SCREEN_REQUEST.ScrollX:
+      return globalThis.scrollX;
+    case SCREEN_REQUEST.ScrollY:
+      return globalThis.scrollY;
+    case SCREEN_REQUEST.Width:
+      return globalThis.screen.width;
+    default:
+      throw API_MISUSE;
+  }
 }
 
 /**
- * Provides the ability to share items via the share services. You specify
- * options via the shareData object parameters. Only available on the browser
- * environment.
- * @see https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share
- * @param {object} data See the reference URL for the object fields.
- * @returns {Promise<CResult>} The result of the transaction.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
- * </p>
- * <b>Supported Platforms:</b>
- * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
- * <input type="checkbox" onclick="return false;" unchecked><label>Deno</label>
- * <input type="checkbox" onclick="return false;" unchecked><label>NodeJS</label>
- * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
- * </p>
- * @example
- * // TBD
+ * @private
  */
-export async function ui_share(data) {
-  if (!runtime_is_browser()) {
-    throw API_UNSUPPORTED_PLATFORM;
-  }
-  try {
-    // @ts-ignore Property exists in a browser runtime.
-    await globalThis.navigator.share(data);
-    return new CResult();
-  } catch (err) {
-    return new CResult({error: err});
-  }
-}
-
-/**
- * Used to determine if the browser app is running on a touch enabled device.
- * @returns {boolean} if the browser app is touch enabled, false otherwise.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
- * </p>
- * <b>Supported Platforms:</b>
- * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
- * <input type="checkbox" onclick="return false;" unchecked><label>Deno</label>
- * <input type="checkbox" onclick="return false;" unchecked><label>NodeJS</label>
- * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
- * </p>
- * @example
- * // TBD
- */
-export function ui_touch_enabled() {
-  if (runtime_is_browser()) {
-    // @ts-ignore Property exists in browser context.
-    return globalThis.navigator.maxTouchPoints > 0;
-  }
-  throw API_UNSUPPORTED_PLATFORM;
-}
-
-/**
- * Retrieves the width of the running browser window.
- * @returns {number} The current width of the window.
- * @throws {API_TYPE_VIOLATION | API_UNSUPPORTED_PLATFORM} On API violation
- * or if called on an unsupported platform.
- * </p>
- * <b>Supported Platforms:</b>
- * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
- * <input type="checkbox" onclick="return false;" unchecked><label>Deno</label>
- * <input type="checkbox" onclick="return false;" unchecked><label>NodeJS</label>
- * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
- * </p>
- * @example
- * // TBD
- */
-export function ui_width() {
-  if (!runtime_is_browser()) {
-    throw API_UNSUPPORTED_PLATFORM;
-  }
-  // @ts-ignore This property exists in browser.
-  return globalThis.screen.width;
+function ui_widget() {
+  // TODO: My own custom HTML Elements for simple SPA designs.
+  throw API_NOT_IMPLEMENTED;
 }
