@@ -877,7 +877,7 @@ export class COrientationProtocol extends CProtocolHandler {
  * [CSerialPortProtocol::post_message] function calls to communicate with the
  * connected serial port.
  * @typedef {object} CSerialPortPostRequest
- * @property {SERIAL_PORT_DATA_REQUEST} request The requested data to either
+ * @property {string} request The SERIAL_PORT_DATA_REQUEST to either
  * read or write to the serial port via the [CSerialPortProtocol].
  * @property {any} data The data associated with the request.
  */
@@ -896,7 +896,8 @@ export class CSerialPortProtocol extends CProtocolHandler {
 
   /**
    * Reads the requested data from the currently connected serial port.
-   * @param {SERIAL_PORT_DATA_REQUEST} request The request to read the current
+   * @override
+   * @param {string} request The SERIAL_PORT_DATA_REQUEST to read the current
    * state of the serial port or actual data. The supported items to query are
    * ClearToSend, CarrierDetect, DataSetReady, RingIndicator, and DataBytes.
    * @returns {Promise<CResult>} holding the data associated with the request.
@@ -1028,10 +1029,24 @@ export class CSerialPortProtocol extends CProtocolHandler {
     }
     this.#port.close();
   }
+
+  /**
+   * Constructor for the class.
+   * @param {SerialPort} port The port that we are connecting to.
+   */
+  constructor(port) {
+    super(
+      `CSerialPort_${port.getInfo().usbVendorId}` + 
+      `_${[port.getInfo().usbProductId]}`
+    );
+    this.#port = port;
+  }  
 }
 
 /**
  * Defined to support proper typing in the JSDocs when type checking in a
+ * TypeScript environment.
+ * NOTE: Defined to support proper typing in the JSDocs when type checking in a
  * TypeScript environment.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/DeviceOrientationEvent
  * @typedef {object} DeviceOrientationEvent
@@ -1081,10 +1096,11 @@ export class CSerialPortProtocol extends CProtocolHandler {
  * of the device in meters per second. This value can be null.
  */
 
-
 /**
  * The SerialPort interface of the Web Serial API provides access to a serial
  * port on the host device.
+ * NOTE: Defined to support proper typing in the JSDocs when type checking in a
+ * TypeScript environment.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SerialPort
  * @typedef {object} SerialPort
  * @property {boolean} connected Returns a boolean value that indicates
@@ -2773,17 +2789,17 @@ export const AUDIO_REQUEST = Object.freeze({
  * [ui_audio] to get a new audio player.
  */
 export class CAudioPlayer {
-  /** @type {HTMLAudioElement} */
-  #audioPlayer;
-  /** @type {SpeechSynthesisUtterance} */
-  #ttsUtterance;
+  /** @type {HTMLAudioElement | null} */
+  #audioPlayer = null;
+  /** @type {SpeechSynthesisUtterance | null} */
+  #ttsUtterance = null;
   /** @type {string} */
   #state;
 
   /**
    * Sets an error handler to listen for errors that may occur when
    * utilizing the audio player.
-   * @param {OnErrorEventHandler} handler The handler to listen for errors
+   * @param {function} handler The handler to listen for errors
    * with the audio player.
    */
   set onerror(handler) {
@@ -2794,15 +2810,17 @@ export class CAudioPlayer {
       shouldThrow: true
     });
     if (this.#audioPlayer) {
+      // @ts-ignore Exists in the browser context.
       this.#audioPlayer.onerror = handler;
     } else {
+      // @ts-ignore Exists in the browser context.
       this.#ttsUtterance.onerror = handler;
     }
   }
 
   /**
    * Signal fired when the audio player has completed the audio source.
-   * @param {object} handler Handler that signals the audio player has
+   * @param {function} handler Handler that signals the audio player has
    * completed playing the data source.
    */
   set onended(handler) {
@@ -2812,8 +2830,10 @@ export class CAudioPlayer {
       shouldThrow: true
     });
     if (this.#audioPlayer) {
+      // @ts-ignore This is in a browser context
       this.#audioPlayer.onended = handler;
     } else {
+      // @ts-ignore This is in a browser context
       this.#ttsUtterance.onend = handler;
     }
   }
@@ -2823,8 +2843,11 @@ export class CAudioPlayer {
    * @type {number}
    */
   get rate() {
+    // @ts-ignore Exists in the browser context.
     return this.#audioPlayer != null
+    // @ts-ignore This is in a browser context
       ? this.#audioPlayer.playbackRate
+      // @ts-ignore This is in a browser context
       : this.#ttsUtterance.rate;
   }
   set rate(v) {
@@ -2834,8 +2857,10 @@ export class CAudioPlayer {
         ? 0.1
         : v;
     if (this.#audioPlayer) {
+      // @ts-ignore This is in a browser context
       this.#audioPlayer.playbackRate = rate;
     } else {
+      // @ts-ignore This is in a browser context
       this.#ttsUtterance.rate = rate;
     }
   }
@@ -2854,8 +2879,11 @@ export class CAudioPlayer {
    * @type {number}
    */
   get volume() {
+    // @ts-ignore This is in a browser context
     return this.#audioPlayer != null
+      // @ts-ignore This is in a browser context
       ? this.#audioPlayer.volume
+      // @ts-ignore This is in a browser context
       : this.#ttsUtterance.volume;
   }
   set volume(v) {
@@ -2865,8 +2893,10 @@ export class CAudioPlayer {
         ? 1
         : v;
     if (this.#audioPlayer) {
+      // @ts-ignore This is in a browser context
       this.#audioPlayer.volume = volume;
     } else {
+      // @ts-ignore This is in a browser context
       this.#ttsUtterance.volume = volume;
     }
   }
@@ -2883,8 +2913,10 @@ export class CAudioPlayer {
     }
     try {
       if (this.#audioPlayer) {
+        // @ts-ignore This is in a browser context
         await this.#audioPlayer.play();
       } else {
+        // @ts-ignore This is in a browser context
         globalThis.speechSynthesis.resume();
       }
       this.#state = "playing";
@@ -2906,8 +2938,10 @@ export class CAudioPlayer {
     }
     try {
       if (this.#audioPlayer) {
+        // @ts-ignore This is in a browser context
         this.#audioPlayer.pause();
       } else {
+        // @ts-ignore This is in a browser context
         globalThis.speechSynthesis.pause();
       }
       this.#state = "paused";
@@ -2929,8 +2963,10 @@ export class CAudioPlayer {
     }
     try {
       if (this.#audioPlayer) {
+        // @ts-ignore This is in a browser context
         await this.#audioPlayer.play();
       } else {
+        // @ts-ignore This is in a browser context
         globalThis.speechSynthesis.speak(this.#ttsUtterance);
       }
       this.#state = "playing";
@@ -2952,9 +2988,12 @@ export class CAudioPlayer {
     }
     try {
       if (this.#audioPlayer) {
+        // @ts-ignore This is in a browser context
         this.#audioPlayer.load();
+        // @ts-ignore This is in a browser context
         this.#audioPlayer.currentTime = 0;
       } else {
+        // @ts-ignore This is in a browser context
         globalThis.speechSynthesis.cancel();
       }
       this.#state = "stopped";
@@ -2966,16 +3005,19 @@ export class CAudioPlayer {
 
   /**
    * Constructor for the class.
-   * @param {AUDIO_REQUEST} request Identifies which audio source to utilize.
+   * @param {string} request AUDIO_REQUEST property identifying which audio 
+   * source to utilize.
    * @param {string} data The data associated with the request.
    */
   constructor(request, data) {
     json_check_type({type: "string", data: data, shouldThrow: true});
     switch (request) {
       case AUDIO_REQUEST.File:
+        // @ts-ignore This is in a browser context
         this.#audioPlayer = new Audio(data);
         break;
       case AUDIO_REQUEST.TextToSpeech:
+        // @ts-ignore This is in a browser context
         this.#ttsUtterance = new SpeechSynthesisUtterance(data);
         break;
       default:
@@ -3012,6 +3054,14 @@ export const DIALOG_REQUEST = Object.freeze({
   Loading: "loading",
   Prompt: "prompt",
 });
+
+/**
+ * TODO: Fully define and remove //ts-ignore items.
+ * NOTE: Defined to support proper typing in the JSDocs when type checking in a
+ * TypeScript environment.
+ * @typedef {object} HTMLAudioElement
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLAudioElement
+ */
 
 /**
  * Provides the request actions of the [ui_is] function call.
@@ -3121,10 +3171,18 @@ export const SCREEN_REQUEST = Object.freeze({
 });
 
 /**
+ * TODO: Fully define and remove //ts-ignore items.
+ * NOTE: Defined to support proper typing in the JSDocs when type checking in a
+ * TypeScript environment.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance
+ * @typedef {object} SpeechSynthesisUtterance
+ */
+
+/**
  * Provides the ability to carry out actions with the open browser window.
  * @param {object} params The named parameters.
- * @param {ACTION_REQUEST} params.request The action to carry out with the
- * open browser window.
+ * @param {string} params.request The ACTION_REQUEST enumerated value to 
+ * carry out with the open browser window.
  * @param {object} [params.options] The optional data associated with the
  * Share / OpenFilePicker / SaveFilePicker requests. See <ul>
  * <li> https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share#data </li>
@@ -3158,6 +3216,7 @@ export async function ui_action({request, options, x, y}) {
   let value = null;
   switch (request) {
     case ACTION_REQUEST.Focus:
+      // @ts-ignore This is in a browser context
       globalThis.focus();
       break;
     case ACTION_REQUEST.MoveBy:
@@ -3174,6 +3233,7 @@ export async function ui_action({request, options, x, y}) {
       break;
     case ACTION_REQUEST.OpenFilePicker:
       if ("showOpenFilePicker" in globalThis) {
+        // @ts-ignore This is in a browser context
         value = globalThis.showOpenFilePicker(options);
       } else {
         throw API_NOT_IMPLEMENTED;
@@ -3181,6 +3241,7 @@ export async function ui_action({request, options, x, y}) {
       }
       break;
     case ACTION_REQUEST.Print:
+      // @ts-ignore This is in a browser context
       globalThis.print();
       break;
     case ACTION_REQUEST.ResizeBy:
@@ -3197,6 +3258,7 @@ export async function ui_action({request, options, x, y}) {
       break;
     case ACTION_REQUEST.SaveFilePicker:
       if ("showSaveFilePicker" in globalThis) {
+        // @ts-ignore This is in a browser context
         value = globalThis.showSaveFilePicker(options);
       } else {
         throw API_NOT_IMPLEMENTED;
@@ -3223,6 +3285,7 @@ export async function ui_action({request, options, x, y}) {
       break;
     case ACTION_REQUEST.Share:
       try {
+        // @ts-ignore This is in a browser context
         await globalThis.navigator.share(options);
       } catch (err) {
         return new CResult({error: err});
@@ -3237,7 +3300,7 @@ export async function ui_action({request, options, x, y}) {
  * Constructs a [CAudioPlayer] to assist in either performing text to speech
  * or playback of an audio file.
  * @param {object} params The named parameters.
- * @param {AUDIO_REQUEST} params.request The audio request to carry out.
+ * @param {string} params.request The AUDIO_REQUEST to carry out.
  * @param {string} params.data The string url for audio file or string of text
  * to perform text to speech.
  * @returns {CAudioPlayer} Reflecting success or failure of the given
@@ -3276,7 +3339,8 @@ function ui_dialog() {
 /**
  * Boolean queries of the given browser runtime to discovery different
  * features about the given browser window.
- * @param {IS_REQUEST} request The request of different browser properties.
+ * @param {string} request IS_REQUEST enumerated value of different browser 
+ * properties.
  * @returns {boolean} true if the given property is supported, false
  * otherwise.
  * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
@@ -3299,10 +3363,13 @@ export function ui_is(request) {
   }
   switch (request) {
     case IS_REQUEST.PWA:
+      // @ts-ignore This is in a browser context
       return globalThis.matchMedia("(display-mode: standalone)").matches;
     case IS_REQUEST.SecureContext:
+      // @ts-ignore This is in a browser context
       return globalThis.isSecureContext;
     case IS_REQUEST.TouchEnabled:
+      // @ts-ignore This is in a browser context
       return globalThis.navigator.maxTouchPoints > 0;
     default:
       throw API_MISUSE;
@@ -3312,7 +3379,8 @@ export function ui_is(request) {
 /**
  * Wraps the browser provided messaging mechanisms.
  * @param {object} params The named parameters
- * @param {MESSAGE_REQUEST} params.request The type of messaging to perform.
+ * @param {string} params.request  MESSAGE_REQUEST enumerated value 
+ * identifying the type of messaging to perform.
  * @param {string | any} params.data String for the Alert / Confirm / Prompt
  * request. Serializable data for Post communication between browser windows.
  * @param {string} [params.targetOrigin="*"] Which window to send the data when
@@ -3339,13 +3407,17 @@ export function ui_message({request, data, targetOrigin = "*"}) {
   }
   switch (request) {
     case MESSAGE_REQUEST.Alert:
+      // @ts-ignore This is in a browser context
       globalThis.window.alert(data);
       break;
     case MESSAGE_REQUEST.Confirm:
+      // @ts-ignore This is in a browser context
       return globalThis.confirm(data);
     case MESSAGE_REQUEST.Prompt:
+      // @ts-ignore This is in a browser context
       return globalThis.prompt(data);
     case MESSAGE_REQUEST.Post:
+      // @ts-ignore This is in a browser context
       globalThis.postMessage(data, targetOrigin);
     default:
       throw API_MISUSE;
@@ -3493,8 +3565,8 @@ export function ui_open({
 /**
  * Provides a mechanism for discovering information about the current browser
  * screen the web app is running in.
- * @param {SCREEN_REQUEST} request Enumeration identifying the different
- * aspects to request information about.
+ * @param {string} request SCREEN_REQUESTED enumerated value identifying the 
+ * different aspects to request information about.
  * @returns {number | string} Number for all requests except
  * ScreenOrientationType request.
  * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
@@ -3517,42 +3589,61 @@ export function ui_screen(request) {
   }
   switch (request) {
     case SCREEN_REQUEST.AvailableHeight:
+      // @ts-ignore This is in a browser context
       return globalThis.screen.availHeight;
     case SCREEN_REQUEST.AvailableWidth:
+      // @ts-ignore This is in a browser context
       return globalThis.screen.availWidth;
     case SCREEN_REQUEST.ColorDepth:
+      // @ts-ignore This is in a browser context
       return globalThis.screen.colorDepth;
     case SCREEN_REQUEST.DevicePixelRatio:
+      // @ts-ignore This is in a browser context
       return globalThis.devicePixelRatio;
     case SCREEN_REQUEST.Height:
+      // @ts-ignore This is in a browser context
       return globalThis.screen.height;
     case SCREEN_REQUEST.InnerHeight:
+      // @ts-ignore This is in a browser context
       return globalThis.innerHeight;
     case SCREEN_REQUEST.InnerWidth:
+      // @ts-ignore This is in a browser context
       return globalThis.innerWidth;
     case SCREEN_REQUEST.OuterHeight:
+      // @ts-ignore This is in a browser context
       return globalThis.outerHeight;
     case SCREEN_REQUEST.OuterWidth:
+      // @ts-ignore This is in a browser context
       return globalThis.outerWidth;
     case SCREEN_REQUEST.PixelDepth:
+      // @ts-ignore This is in a browser context
       return globalThis.screen.pixelDepth;
     case SCREEN_REQUEST.ScreenLeft:
+      // @ts-ignore This is in a browser context
       return globalThis.screenLeft;
     case SCREEN_REQUEST.ScreenOrientationAngle:
+       // @ts-ignore This is in a browser context
       return globalThis.screen.orientation.angle;
     case SCREEN_REQUEST.ScreenOrientationType:
+      // @ts-ignore This is in a browser context
       return globalThis.screen.orientation.type;
     case SCREEN_REQUEST.ScreenTop:
+      // @ts-ignore This is in a browser context
       return globalThis.screenTop;
     case SCREEN_REQUEST.ScreenX:
+      // @ts-ignore This is in a browser context
       return globalThis.screenX
     case SCREEN_REQUEST.ScreenY:
+      // @ts-ignore This is in a browser context
       return globalThis.screenY
     case SCREEN_REQUEST.ScrollX:
+      // @ts-ignore This is in a browser context
       return globalThis.scrollX;
     case SCREEN_REQUEST.ScrollY:
+      // @ts-ignore This is in a browser context
       return globalThis.scrollY;
     case SCREEN_REQUEST.Width:
+      // @ts-ignore This is in a browser context
       return globalThis.screen.width;
     default:
       throw API_MISUSE;

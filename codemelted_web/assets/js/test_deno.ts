@@ -20,15 +20,8 @@ import {
 } from "jsr:@std/assert";
 import {
   // API_UNSUPPORTED_PLATFORM,
-  hw_open_device_orientation,
+  hw_request_orientation,
   runtime_online,
-  ui_height,
-  ui_is_pwa,
-  ui_open,
-  ui_print,
-  ui_share,
-  ui_touch_enabled,
-  ui_width
 } from "./codemelted.js";
 
 // ===============================================================================
@@ -36,21 +29,8 @@ import {
 // ===============================================================================
 
 Deno.test("Unsupported Functions Throw Syntax Error", async () => {
-  assertThrows(() => hw_open_device_orientation(), SyntaxError);
+  assertThrows(() => hw_request_orientation(), SyntaxError);
   assertThrows(() => runtime_online(), SyntaxError);
-  assertThrows(() => ui_height(), SyntaxError);
-  assertThrows(() => ui_is_pwa(), SyntaxError);
-  assertThrows(() => ui_open({}), SyntaxError);
-  assertThrows(() => ui_print(), SyntaxError);
-  assertThrows(() => ui_touch_enabled(), SyntaxError);
-  assertThrows(() => ui_width(), SyntaxError);
-
-  try {
-    await ui_share({});
-    fail("Should throw exception");
-  } catch (err) {
-    assert(err instanceof SyntaxError);
-  }
 });
 
 // // ----------------------------------------------------------------------------

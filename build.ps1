@@ -63,8 +63,7 @@ function build([string[]]$params) {
 
     if ($IsLinux -or $IsMacOS) {
       genhtml -o coverage --ignore-errors unused,inconsistent --dark-mode coverage/lcov.info
-    }
-    else {
+    } else {
       $exists = Test-Path -Path $GEN_HTML_PERL_SCRIPT -PathType Leaf
       if ($exists) {
         perl $GEN_HTML_PERL_SCRIPT -o coverage coverage/lcov.info
