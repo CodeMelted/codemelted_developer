@@ -578,7 +578,7 @@ export function console_prompt(message = "") {
  * <b>Supported Platforms:</b>
  * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
  * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
- * <input type="checkbox" onclick="return false;" unchecked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" check><label>NodeJS</label>
  * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
  * </p>
  * @example
@@ -586,10 +586,8 @@ export function console_prompt(message = "") {
  */
 export function console_writeln(message = "") {
   json_check_type({type: "string", data: message, shouldThrow: true});
-  if (runtime_is_deno()) {
+  if (runtime_is_deno() || runtime_is_nodejs()) {
     globalThis.console.log(message);
-  } else if (runtime_is_nodejs()) {
-    throw API_NOT_IMPLEMENTED;
   } else {
     throw API_UNSUPPORTED_PLATFORM;
   }
@@ -1036,11 +1034,11 @@ export class CSerialPortProtocol extends CProtocolHandler {
    */
   constructor(port) {
     super(
-      `CSerialPort_${port.getInfo().usbVendorId}` + 
+      `CSerialPort_${port.getInfo().usbVendorId}` +
       `_${[port.getInfo().usbProductId]}`
     );
     this.#port = port;
-  }  
+  }
 }
 
 /**
@@ -1257,7 +1255,8 @@ export function hw_request_orientation(options) {
 /**
  * Provides the mechanism to request permission to connect to an attached
  * serial port device.
- * @returns {Promise<CSerialPortProtocol>} The requested connected serial port.
+ * @returns {Promise<CSerialPortProtocol?>} The requested connected serial
+ * port or null if request was canceled or could not be connected.
  * @throws {SyntaxError} Reflecting either API_MISUSE, API_NOT_IMPLEMENTED,
  * API_TYPE_VIOLATION, or API_UNSUPPORTED_PLATFORM codemelted.js module API
  * violations. You should not try-catch these as these serve as asserts to the
@@ -1270,15 +1269,27 @@ export function hw_request_orientation(options) {
  * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
  * </p>
  * @example
- * // TBD
+ * // Determine if serial port processing is supported.
+ * const supported = hw_serial_ports_supported();
+ * if (supported) {
+ *    const port = await hw_request_serial_port();
+ *    if (port) {
+ *      // Do something with port
+ *    }
+ * }
  */
 export async function hw_request_serial_port() {
-  if (hw_serial_port_supported()) {
+  if (!hw_serial_port_supported()) {
+    throw API_UNSUPPORTED_PLATFORM;
+  }
+
+  try {
     // @ts-ignore This is available in some web browsers
     const port = await globalThis.navigator.serial.requestPort();
     return new CSerialPortProtocol(port);
+  } catch (err) {
+    return null;
   }
-  throw API_UNSUPPORTED_PLATFORM;
 }
 
 /**
@@ -1300,11 +1311,10 @@ export async function hw_request_serial_port() {
  * // Determine if serial port processing is supported.
  * const supported = hw_serial_ports_supported();
  * if (supported) {
- *   try {
- *      const port = await hw_request_serial_port();
- *   } catch (err) {
- *      // Handle promise rejection
- *   }
+ *    const port = await hw_request_serial_port();
+ *    if (port) {
+ *      // Do something with port!
+ *    }
  * }
  */
 export function hw_serial_port_supported() {
@@ -1331,6 +1341,7 @@ export function hw_serial_port_supported() {
 export function hw_usb_supported() {
   return "navigator" in globalThis && "usb" in globalThis.navigator;
 }
+
 // ============================================================================
 // [JSON UC IMPLEMENTATION] ===================================================
 // ============================================================================
@@ -2043,7 +2054,7 @@ function npu_compute() {
  * Executes a specified mathematical formula with the specified parameters
  * returning the calculated results.
  * @param {object} params The named parameters
- * @param {MATH_FORMULA} params.formula The formula to execute.
+ * @param {function} params.formula The MATH_FORMULA enumeration to execute.
  * @param {Array<number>} params.args The arguments needed for the formula.
  * @returns {number} The calculated result or NaN if something in the args
  * force that value (i.e. division by 0).
@@ -2070,7 +2081,6 @@ export function npu_math({formula, args}) {
   });
   json_check_type({type: Array, data: args, shouldThrow: true});
   try {
-    // @ts-ignore This is a map of formulas in the dictionary.
     return formula(args);
   } catch (err) {
     if (err instanceof RangeError) {
@@ -2810,10 +2820,9 @@ export class CAudioPlayer {
       shouldThrow: true
     });
     if (this.#audioPlayer) {
-      // @ts-ignore Exists in the browser context.
       this.#audioPlayer.onerror = handler;
     } else {
-      // @ts-ignore Exists in the browser context.
+      // @ts-ignore This object won't be null
       this.#ttsUtterance.onerror = handler;
     }
   }
@@ -2830,10 +2839,9 @@ export class CAudioPlayer {
       shouldThrow: true
     });
     if (this.#audioPlayer) {
-      // @ts-ignore This is in a browser context
       this.#audioPlayer.onended = handler;
     } else {
-      // @ts-ignore This is in a browser context
+      // @ts-ignore This object won't be null
       this.#ttsUtterance.onend = handler;
     }
   }
@@ -2843,11 +2851,9 @@ export class CAudioPlayer {
    * @type {number}
    */
   get rate() {
-    // @ts-ignore Exists in the browser context.
     return this.#audioPlayer != null
-    // @ts-ignore This is in a browser context
       ? this.#audioPlayer.playbackRate
-      // @ts-ignore This is in a browser context
+      // @ts-ignore This object won't be null
       : this.#ttsUtterance.rate;
   }
   set rate(v) {
@@ -2857,10 +2863,9 @@ export class CAudioPlayer {
         ? 0.1
         : v;
     if (this.#audioPlayer) {
-      // @ts-ignore This is in a browser context
       this.#audioPlayer.playbackRate = rate;
     } else {
-      // @ts-ignore This is in a browser context
+      // @ts-ignore Object won't be null
       this.#ttsUtterance.rate = rate;
     }
   }
@@ -2879,11 +2884,9 @@ export class CAudioPlayer {
    * @type {number}
    */
   get volume() {
-    // @ts-ignore This is in a browser context
     return this.#audioPlayer != null
-      // @ts-ignore This is in a browser context
       ? this.#audioPlayer.volume
-      // @ts-ignore This is in a browser context
+      // @ts-ignore This object won't be null
       : this.#ttsUtterance.volume;
   }
   set volume(v) {
@@ -2893,7 +2896,6 @@ export class CAudioPlayer {
         ? 1
         : v;
     if (this.#audioPlayer) {
-      // @ts-ignore This is in a browser context
       this.#audioPlayer.volume = volume;
     } else {
       // @ts-ignore This is in a browser context
@@ -2913,7 +2915,6 @@ export class CAudioPlayer {
     }
     try {
       if (this.#audioPlayer) {
-        // @ts-ignore This is in a browser context
         await this.#audioPlayer.play();
       } else {
         // @ts-ignore This is in a browser context
@@ -2938,7 +2939,6 @@ export class CAudioPlayer {
     }
     try {
       if (this.#audioPlayer) {
-        // @ts-ignore This is in a browser context
         this.#audioPlayer.pause();
       } else {
         // @ts-ignore This is in a browser context
@@ -2963,7 +2963,6 @@ export class CAudioPlayer {
     }
     try {
       if (this.#audioPlayer) {
-        // @ts-ignore This is in a browser context
         await this.#audioPlayer.play();
       } else {
         // @ts-ignore This is in a browser context
@@ -2988,9 +2987,7 @@ export class CAudioPlayer {
     }
     try {
       if (this.#audioPlayer) {
-        // @ts-ignore This is in a browser context
         this.#audioPlayer.load();
-        // @ts-ignore This is in a browser context
         this.#audioPlayer.currentTime = 0;
       } else {
         // @ts-ignore This is in a browser context
@@ -3005,7 +3002,7 @@ export class CAudioPlayer {
 
   /**
    * Constructor for the class.
-   * @param {string} request AUDIO_REQUEST property identifying which audio 
+   * @param {string} request AUDIO_REQUEST property identifying which audio
    * source to utilize.
    * @param {string} data The data associated with the request.
    */
@@ -3013,11 +3010,10 @@ export class CAudioPlayer {
     json_check_type({type: "string", data: data, shouldThrow: true});
     switch (request) {
       case AUDIO_REQUEST.File:
-        // @ts-ignore This is in a browser context
         this.#audioPlayer = new Audio(data);
         break;
       case AUDIO_REQUEST.TextToSpeech:
-        // @ts-ignore This is in a browser context
+        // @ts-ignore Type definition has all the complaints.
         this.#ttsUtterance = new SpeechSynthesisUtterance(data);
         break;
       default:
@@ -3056,11 +3052,34 @@ export const DIALOG_REQUEST = Object.freeze({
 });
 
 /**
- * TODO: Fully define and remove //ts-ignore items.
- * NOTE: Defined to support proper typing in the JSDocs when type checking in a
- * TypeScript environment.
+ * Interface adds to HTMLElement the properties and methods needed to support
+ * basic media-related capabilities that are common to audio and video.
+ * NOTE: Defined to support proper typing in the JSDocs when type checking in
+ * a TypeScript environment.
  * @typedef {object} HTMLAudioElement
  * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLAudioElement
+ * @property {number} currentTime specifies the current playback time in
+ * seconds.
+ * @property {number} playbackRate property sets the rate at which the media
+ * is being played back. This is used to implement user controls for fast
+ * forward, slow motion, and so forth. The normal playback rate is multiplied
+ * by this value to obtain the current rate, so a value of 1.0 indicates
+ * normal speed.
+ * @property {number} volume sets the volume at which the media will be
+ * played.
+ * @property {function} load resets the media element to its initial state
+ * and begins the process of selecting a media source and loading the media
+ * in preparation for playback to begin at the beginning.
+ * @property {function} pause will pause playback of the media, if the media
+ * is already in a paused state this method will have no effect.
+ * @property {function} play method attempts to begin playback of the media.
+ * It returns a Promise which is resolved when playback has been successfully
+ * started.
+ * @property {Event} error event is fired when the resource could not be
+ * loaded due to an error (for example, a network connectivity problem).
+ * @property {Event} ended event is fired when playback or streaming has
+ * stopped because the end of the media was reached or because no further data
+ * is available.
  */
 
 /**
@@ -3171,17 +3190,26 @@ export const SCREEN_REQUEST = Object.freeze({
 });
 
 /**
- * TODO: Fully define and remove //ts-ignore items.
- * NOTE: Defined to support proper typing in the JSDocs when type checking in a
- * TypeScript environment.
+ * Represents a speech request. It contains the content the speech service
+ * should read and information about how to read it (e.g., language,
+ * pitch and volume.)
+ * NOTE: Defined to support proper typing in the JSDocs when type checking in
+ *       a TypeScript environment.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesisUtterance
  * @typedef {object} SpeechSynthesisUtterance
+ * @property {number} rate gets and sets the speed at which the utterance will
+ * be spoken.
+ * @property {number} volume gets and sets the volume that the utterance will
+ * be spoken.
+ * @property {Event} end fired when the utterance has finished being spoken.
+ * @property {Event} error fired when an error occurs that prevents the
+ * utterance from being successfully spoken.
  */
 
 /**
  * Provides the ability to carry out actions with the open browser window.
  * @param {object} params The named parameters.
- * @param {string} params.request The ACTION_REQUEST enumerated value to 
+ * @param {string} params.request The ACTION_REQUEST enumerated value to
  * carry out with the open browser window.
  * @param {object} [params.options] The optional data associated with the
  * Share / OpenFilePicker / SaveFilePicker requests. See <ul>
@@ -3339,7 +3367,7 @@ function ui_dialog() {
 /**
  * Boolean queries of the given browser runtime to discovery different
  * features about the given browser window.
- * @param {string} request IS_REQUEST enumerated value of different browser 
+ * @param {string} request IS_REQUEST enumerated value of different browser
  * properties.
  * @returns {boolean} true if the given property is supported, false
  * otherwise.
@@ -3379,7 +3407,7 @@ export function ui_is(request) {
 /**
  * Wraps the browser provided messaging mechanisms.
  * @param {object} params The named parameters
- * @param {string} params.request  MESSAGE_REQUEST enumerated value 
+ * @param {string} params.request  MESSAGE_REQUEST enumerated value
  * identifying the type of messaging to perform.
  * @param {string | any} params.data String for the Alert / Confirm / Prompt
  * request. Serializable data for Post communication between browser windows.
@@ -3565,7 +3593,7 @@ export function ui_open({
 /**
  * Provides a mechanism for discovering information about the current browser
  * screen the web app is running in.
- * @param {string} request SCREEN_REQUESTED enumerated value identifying the 
+ * @param {string} request SCREEN_REQUESTED enumerated value identifying the
  * different aspects to request information about.
  * @returns {number | string} Number for all requests except
  * ScreenOrientationType request.
