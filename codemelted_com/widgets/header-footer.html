@@ -81,6 +81,14 @@
     height: 30px;
     width: 30px;
   }
+  .header-newsletter {
+    text-align: center;
+  }
+  .header-newsletter button {
+    cursor: pointer;
+    background-color: #333333;
+    color: white;
+  }
 </style>
 <div class="content-main">
   <header class="header-layout">
@@ -95,6 +103,9 @@
       <a title="CodeMelted DEV on GitHub" onclick="onOpenLinkClicked('developer.codemelted.com'); return false;"><img src="https://codemelted.com/assets/images/icon-github.png" /></a>
       <a title="Follow on X" onclick="onOpenLinkClicked('x.com/codemelted'); return false;"><img src="https://codemelted.com/assets/images/icon-twitterx.png" /></a>
       <a title="CodeMelted Media on YouTube" onclick="onOpenLinkClicked('media.codemelted.com'); return false;" target="_blank"><img src="https://codemelted.com/assets/images/icon-youtube.png" /></a>
+    </div>
+    <div class="header-newsletter">
+      <button onclick="onOpenLinkClicked('newsletter.codemelted.com'); return false;">📧 Newsletter 📧</button>
     </div>
   </header>
 </div>
