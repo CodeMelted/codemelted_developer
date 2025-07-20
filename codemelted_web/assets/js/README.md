@@ -51,18 +51,44 @@ The table below identifies what use case functions are supported in which JavaSc
 
 | Function                   |  B  |  D  |  N  |  W  |
 | -------------------------- | --- | --- | --- | --- |
-| async_sleep                |  X  |  X  |     |  X  |
-| async_task                 |  X  |  X  |     |  X  |
-| async_timer                |  X  |  X  |     |  X  |
+| async_sleep                |  X  |  X  |  X  |  X  |
+| async_task                 |  X  |  X  |  X  |  X  |
+| async_timer                |  X  |  X  |  X  |  X  |
+| async_worker               |     |     |     |     |
 | console_alert              |     |  X  |     |     |
 | console_choose             |     |  X  |     |     |
 | console_confirm            |     |  X  |     |     |
 | console_password           |     |  X  |     |     |
 | console_prompt             |     |  X  |     |     |
-| console_writeln            |     |  X  |     |     |
-| hw_open_device_orientation |  X  |     |     |     |
+| console_writeln            |     |  X  |  X  |     |
+| db_exists                  |     |     |     |     |
+| db_manage                  |     |     |     |     |
+| db_query                   |     |     |     |     |
+| db_update                  |     |     |     |     |
+| db_version                 |     |     |     |     |
+| disk_cp                    |     |     |     |     |
+| disk_exists                |     |     |     |     |
+| disk_metadata              |     |     |     |     |
+| disk_mkdir                 |     |     |     |     |
+| disk_mv                    |     |     |     |     |
+| disk_read_file             |     |     |     |     |
+| disk_rm                    |     |     |     |     |
+| disk_write_file            |     |     |     |     |
+| hw_bluetooth_supported     |  X  |  X  |  X  |  X  |
+| hw_midi_supported          |  X  |  X  |  X  |  X  |
+| hw_orientation_supported   |  X  |  X  |  X  |  X  |
+| hw_request_bluetooth       |     |     |     |     |
+| hw_request_midi            |     |     |     |     |
+| hw_request_orientation     |  X  |     |     |     |
+| hw_request_serial_port     |  X  |     |     |  X  |
+| hw_request_usb             |     |     |     |     |
 | hw_serial_ports_supported  |  X  |  X  |  X  |  X  |
+| hw_usb_supported           |  X  |  X  |  X  |  X  |
+| json_atob                  |  X  |  X  |  X  |  X  |
+| json_btoa                  |  X  |  X  |  X  |  X  |
 | json_check_type            |  X  |  X  |  X  |  X  |
+| json_create_array          |  X  |  X  |  X  |  X  |
+| json_create_object         |  X  |  X  |  X  |  X  |
 | json_has_key               |  X  |  X  |  X  |  X  |
 | json_parse                 |  X  |  X  |  X  |  X  |
 | json_stringify             |  X  |  X  |  X  |  X  |
@@ -70,7 +96,16 @@ The table below identifies what use case functions are supported in which JavaSc
 | logger_handler             |  X  |  X  |  X  |  X  |
 | logger_level               |  X  |  X  |  X  |  X  |
 | logger_log                 |  X  |  X  |  X  |  X  |
+| monitor_performance        |     |     |     |     |  
+| network_connect            |     |     |     |     |
+| network_fetch              |     |     |     |     |
+| network_serve              |     |     |     |     |
+| network_upgrade_web_socket |     |     |     |     |
+| npu_compute                |     |     |     |     |
 | npu_math                   |  X  |  X  |  X  |  X  |
+| process_exists             |     |     |     |     |
+| process_run                |     |     |     |     |
+| process_spawn              |     |     |     |     |
 | runtime_cpu_arc            |     |  X  |  X  |     |
 | runtime_cpu_count          |  X  |  X  |  X  |  X  |
 | runtime_environment        |  X  |  X  |  X  |     |
@@ -90,16 +125,18 @@ The table below identifies what use case functions are supported in which JavaSc
 | runtime_user               |     |  X  |  X  |     |
 | storage_clear              |  X  |  X  |     |     |
 | storage_get                |  X  |  X  |     |     |
+| storage_key                |  X  |  X  |     |     |
 | storage_length             |  X  |  X  |     |     |
 | storage_remove             |  X  |  X  |     |     |
 | storage_set                |  X  |  X  |     |     |
-| ui_height                  |  X  |     |     |     |
-| ui_is_pwa                  |  X  |     |     |     |
+| ui_action                  |  X  |     |     |     |
+| ui_audio                   |  X  |     |     |     |
+| ui_dialog                  |  X  |     |     |     |
+| ui_is                      |  X  |     |     |     |
+| ui_message                 |  X  |     |     |     |
 | ui_open                    |  X  |     |     |     |
-| ui_print                   |  X  |     |     |     |
-| ui_share                   |  X  |     |     |     |
-| ui_touch_enabled           |  X  |     |     |     |
-| ui_width                   |  X  |     |     |     |
+| ui_screen                  |  X  |     |     |     |
+| ui_widget                  |     |     |     |     |
 
 ## Usage
 

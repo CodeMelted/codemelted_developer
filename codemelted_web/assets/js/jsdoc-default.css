@@ -78,7 +78,7 @@ tt, code, kbd, samp {
 
 #main {
     float: left;
-    width: 75%;
+    width: 73%;
 }
 
 article dl {
@@ -123,7 +123,7 @@ nav
     display: block;
     float: right;
     margin-top: 28px;
-    width: 25%;
+    width: 27%;
     box-sizing: border-box;
     border-left: 1px solid #ccc;
     padding-left: 5px;

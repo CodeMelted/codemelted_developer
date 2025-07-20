@@ -105,7 +105,8 @@ can show all testing efforts with the module.
       runtime_os_name,
       runtime_path_separator,
       runtime_temp_path,
-      runtime_user
+      runtime_user,
+      ui_dialog
     } from "./codemelted.js";
 
     // ------------------------------------------------------------------------
@@ -129,6 +130,12 @@ can show all testing efforts with the module.
         assert.throws(() => runtime_path_separator(), SyntaxError);
         assert.throws(() => runtime_temp_path(), SyntaxError);
         assert.throws(() => runtime_user(), SyntaxError);
+      });
+    });
+
+    describe("UI Use Case Validation", () => {
+      it("ui_dialog({request: 'init'}) Demo", () => {
+        assert.doesNotThrow(() => ui_dialog({request: "init"}), Error, 'This function should not throw an error');
       });
     });
 
