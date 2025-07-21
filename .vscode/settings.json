@@ -33,6 +33,7 @@
     "jsify",
     "keepalive",
     "LASTEXITCODE",
+    "latr",
     "lerp",
     "libc",
     "libstdc",
@@ -71,6 +72,7 @@
     "USERPROFILE",
     "usize",
     "webrtc",
-    "winget"
+    "winget",
+    "writeln"
   ]
 }

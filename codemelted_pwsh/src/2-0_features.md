@@ -13,9 +13,9 @@ The last section is the `MAIN CLI API`. This defines the mapping between the `--
 ## 2.2 codemelted --version
 
 ```
-Name       Version Author                      Description
-----       ------- ------                      -----------
-codemelted 25.1.1.0 mark.shaffer@codemelted.com   A CLI to facilitate common developer use cases on Mac / Linux / Windows OS.
+Name       Version  Author                      Description
+----       -------  ------                      -----------
+codemelted 25.1.1.0 mark.shaffer@codemelted.com     A CLI to facilitate common developer use cases on Mac / Linux / Windows.
 ```
 
 ## 2.3 codemelted --help
@@ -56,19 +56,19 @@ SYNOPSIS
         The optional set of named arguments wrapped within a [hashtable]
 
     USE CASES:
-      async     : TBD
+      async     : IN DEVELOPMENT
       console   : COMPLETED
       db        : TBD
       developer : TBD
-      disk      : TBD
+      disk      : IN DEVELOPMENT
       hw        : TBD
-      json      : TBD
-      logger    : TBD
+      json      : COMPLETED
+      logger    : COMPLETED
       monitor   : TBD
-      network   : TBD
+      network   : IN DEVELOPMENT
       npu       : TBD
-      process   : TBD
-      runtime   : TBD
+      process   : IN DEVELOPMENT
+      runtime   : COMPLETED
       setup     : TBD
       storage   : TBD
       ui        : TBD
@@ -84,5 +84,3 @@ RELATED LINKS
     GitHub Source:
     https://github.com/CodeMelted/codemelted_developer
 ```
-
-*NOTE: Current version is frozen and usable. But it will be going through a refactor. Stay Tuned*

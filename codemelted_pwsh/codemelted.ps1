@@ -3,16 +3,21 @@
 # =============================================================================
 <#PSScriptInfo
 .AUTHOR mark.shaffer@codemelted.com
-.COPYRIGHT © 2024 Mark Shaffer. All Rights Reserved. MIT License
+.COPYRIGHT © 2025 Mark Shaffer. All Rights Reserved. MIT License
 .LICENSEURI https://github.com/CodeMelted/codemelted_developer/blob/main/LICENSE
 .PROJECTURI https://github.com/codemelted/codemelted_developer
 .ICONURI https://codemelted.com/assets/images/icon-codemelted-pwsh.png
 .EXTERNALMODULEDEPENDENCIES Microsoft.PowerShell.ConsoleGuiTools
-.TAGS pwsh pwsh-scripts pwsh-modules CodeMeltedDEV codemelted
+.TAGS pwsh pwsh-scripts pwsh-modules CodeMeltedDEV codemelted codemelted.ps1
 .GUID c757fe44-4ed5-46b0-8e24-9a9aaaad872c
 .VERSION 25.1.1
 .RELEASENOTES
-TBD
+  v25.1.1 (2025-07-20)
+  - Completed refactor to the new system to match the use case fleshed out
+    design.
+  - This supersedes the previous v0.8.0 version going forward.
+  - See the website for details of the new semantic versioning details and new
+    CLI structure.
 #>
 
 # =============================================================================
@@ -21,7 +26,7 @@ TBD
 
 <#
   .DESCRIPTION
-  A CLI to facilitate common developer use cases on Mac / Linux / Windows OS.
+    A CLI to facilitate common developer use cases on Mac / Linux / Windows.
 #>
 param(
   [Parameter(
@@ -33,6 +38,10 @@ param(
     # Module Definition
     "--version",
     "--help",
+    # Async Use Case
+    "--async-sleep",
+    "--async-task",
+    "--async-timer",
     # Console Use Case
     "--console-alert",
     "--console-confirm",
@@ -41,6 +50,20 @@ param(
     "--console-prompt",
     "--console-write",
     "--console-writeln",
+    # DB Use Case
+    # TBD
+    # Developer Use Case
+    # TBD
+    # Disk Use Case
+    "--disk-cp",
+    "--disk-exists",
+    "--disk-ls",
+    "--disk-mkdir",
+    "--disk-mv",
+    "--disk-rm",
+    "--disk-size",
+    # HW Use Case
+    # TBD
     # JSON Use Case
     "--json-check-type",
     "--json-create-array",
@@ -54,7 +77,31 @@ param(
     "--logger-handler",
     "--logger-log",
     # Network Use Case
-    "--network-fetch"
+    "--network-fetch",
+    # NPU Use Case
+    # TBD
+    # Process Use Case
+    "--process-exists",
+    "--process-run",
+    # Runtime Use Case
+    "--runtime-cpu-arch",
+    "--runtime-cpu-count",
+    "--runtime-environment",
+    "--runtime-home-path",
+    "--runtime-hostname",
+    "--runtime-newline",
+    "--runtime-online",
+    "--runtime-os-name",
+    "--runtime-os-version",
+    "--runtime-path-separator",
+    "--runtime-temp-path",
+    "--runtime-user"
+    # Setup Use Case
+    # TBD
+    # Storage Use Case
+    # TBD
+    # UI Use Case
+    # TBD
   )]
   [string] $Action,
 
@@ -65,6 +112,9 @@ param(
   )]
   [hashtable]$Params
 )
+
+# .NET Assemblies
+Add-Type -AssemblyName Microsoft.PowerShell.Commands.Utility
 
 function codemelted_help {
   <#
@@ -100,18 +150,18 @@ function codemelted_help {
         The optional set of named arguments wrapped within a [hashtable]
 
     USE CASES:
-      async     : COMPLETED
+      async     : IN DEVELOPMENT
       console   : COMPLETED
       db        : TBD
       developer : TBD
-      disk      : COMPLETED
+      disk      : IN DEVELOPMENT
       hw        : TBD
       json      : COMPLETED
       logger    : COMPLETED
       monitor   : TBD
       network   : IN DEVELOPMENT
       npu       : TBD
-      process   : COMPLETED
+      process   : IN DEVELOPMENT
       runtime   : COMPLETED
       setup     : TBD
       storage   : TBD
@@ -139,14 +189,31 @@ function codemelted_help {
   [hashtable] $helpLookup = @{
     # async use case functions
     "async" = {
-      Write-Host "TBD"
+      Write-Host "==============================="
+      Write-Host "codemelted CLI (async) Use Case"
+      Write-Host "==============================="
+      Write-Host
+      Write-Host "This use case provides the ability to schedule background"
+      Write-Host "work off the main thread to provide asynchronous processing"
+      Write-Host "within a PowerShell script / terminal."
+      Write-Host
+      Write-Host "--async-sleep"
+      Write-Host "--async-task"
+      Write-Host "--async-timer"
+      Write-Host "--async-worker (TBD)"
+      Write-Host
+      Write-Host "Execute 'codemelted --help @ { action = ""--uc-name"" }'"
+      Write-Host "for more details."
     };
+    "--async-sleep" = { Get-Help async_sleep };
+    "--async-task" = { Get-Help async_task };
+    "--async-timer" = { Get-Help async_timer };
 
     # console use case functions
     "console" = {
-      Write-Host "=================================="
+      Write-Host "================================="
       Write-Host "codemelted CLI (console) Use Case"
-      Write-Host "=================================="
+      Write-Host "================================="
       Write-Host
       Write-Host "This use case provides the ability to interact with a user"
       Write-Host "via STDIN and STDOUT to provide an interactive console"
@@ -160,7 +227,7 @@ function codemelted_help {
       Write-Host "--console-write"
       Write-Host "--console-writeln"
       Write-Host
-      Write-Host "Execute 'codemelted --help @ {action = ""--uc-name""}'"
+      Write-Host "Execute 'codemelted --help @ { action = ""--uc-name"" }'"
       Write-Host "for more details."
     };
     "--console-alert" = { Get-Help console_alert };
@@ -183,8 +250,32 @@ function codemelted_help {
 
     # disk use case functions
     "disk" = {
-      Write-Host "TBD"
+      Write-Host "================================="
+      Write-Host "codemelted CLI (disk) Use Case"
+      Write-Host "================================="
+      Write-Host
+      Write-Host "This use case provides the ability to interact with a user"
+      Write-Host
+      Write-Host "--disk-cp"
+      Write-Host "--disk-exists"
+      Write-Host "--disk-ls"
+      Write-Host "--disk-mkdir"
+      Write-Host "--disk-mv"
+      Write-Host "--disk-read-file (IN DEVELOPMENT)"
+      Write-Host "--disk-rm"
+      Write-Host "--disk-size"
+      Write-Host "--disk-write-file (IN DEVELOPMENT)"
+      Write-Host
+      Write-Host "Execute 'codemelted --help @ { action = ""--uc-name"" }'"
+      Write-Host "for more details."
     };
+    "--disk-cp" = { Get-Help disk_cp };
+    "--disk-exists" = { Get-Help disk_exists };
+    "--disk-ls" = { Get-Help disk_ls };
+    "--disk-mkdir" = { Get-Help disk_mkdir };
+    "--disk-mv" = { Get-Help disk_mv };
+    "--disk-rm" = { Get-Help disk_rm };
+    "--disk-size" = { Get-Help disk_size };
 
     # hw use case functions
     "hw" = {
@@ -193,9 +284,9 @@ function codemelted_help {
 
     # json use case functions
     "json" = {
-      Write-Host "================================="
+      Write-Host "=============================="
       Write-Host "codemelted CLI (json) Use Case"
-      Write-Host "================================="
+      Write-Host "=============================="
       Write-Host
       Write-Host "This use case provides the ability to work with JSON data."
       Write-Host "This includes creating compliant JSON container objects,"
@@ -210,7 +301,7 @@ function codemelted_help {
       Write-Host "--json-stringify"
       Write-Host "--json-valid-url"
       Write-Host
-      Write-Host "Execute 'codemelted --help @ {action = ""--uc-name""}'"
+      Write-Host "Execute 'codemelted --help @{ action = ""--uc-name"" }'"
       Write-Host "for more details."
     };
     "--json-check-type" = { Get-Help json_check_type };
@@ -237,7 +328,7 @@ function codemelted_help {
       Write-Host "--logger-handler"
       Write-Host "--logger-log"
       Write-Host
-      Write-Host "Execute 'codemelted --help @ {action = ""--uc-name""}'"
+      Write-Host "Execute 'codemelted --help @{ action = ""--uc-name"" }'"
       Write-Host "for more details."
     };
     "--logger-level" = { Get-Help logger_level };
@@ -261,11 +352,12 @@ function codemelted_help {
       Write-Host "creating a web socket server for web sockets. The use case"
       Write-Host "available are:"
       Write-Host
+      Write-Host "--network-connect (TBD)"
       Write-Host "--network-fetch"
       Write-Host "--network-serve (TBD)"
       Write-Host "--upgrade-web-socket (TBD)"
       Write-Host
-      Write-Host "Execute 'codemelted --help @ {action = ""--uc-name""}'"
+      Write-Host "Execute 'codemelted --help @{ action = ""--uc-name"" }'"
       Write-Host "for more details."
     };
     "--network-fetch" = { Get-Help network_fetch };
@@ -277,13 +369,63 @@ function codemelted_help {
 
     # process use case functions
     "process" = {
-      Write-Host "TBD"
+      Write-Host "================================="
+      Write-Host "codemelted CLI (process) Use Case"
+      Write-Host "================================="
+      Write-Host
+      Write-Host "This use case facilitates the ability to kick-off other"
+      Write-Host "operating system commands and process their output. This"
+      Write-Host "is done either as a one-off run or a spawned bi-direction"
+      Write-Host "process where you interact with said process via "
+      Write-Host "STDIN / STDOUT until the process is terminated."
+      Write-Host
+      Write-Host "--process-exists"
+      Write-Host "--process-run"
+      Write-Host "--process-spawn (TBD)"
+      Write-Host
+      Write-Host "Execute 'codemelted --help @{ action = ""--uc-name"" }'"
+      Write-Host "for more details."
     };
+    "--process-exists" = { Get-Help process_exists };
+    "--process-run" = { Get-Help process_run };
 
     # runtime use case functions
     "runtime" = {
-      Write-Host "TBD"
+      Write-Host "================================="
+      Write-Host "codemelted CLI (runtime) Use Case"
+      Write-Host "================================="
+      Write-Host
+      Write-Host "This use case provides queryable information about the host"
+      Write-Host "operating system running the pwsh terminal shell."
+      Write-Host
+      Write-Host "--runtime-cpu-arch"
+      Write-Host "--runtime-cpu-count"
+      Write-Host "--runtime-environment"
+      Write-Host "--runtime-home-path"
+      Write-Host "--runtime-hostname"
+      Write-Host "--runtime-newline"
+      Write-Host "--runtime-online"
+      Write-Host "--runtime-os-name"
+      Write-Host "--runtime-os-version"
+      Write-Host "--runtime-path-separator"
+      Write-Host "--runtime-temp-path"
+      Write-Host "--runtime-user"
+      Write-Host
+      Write-Host "Execute 'codemelted --help @{ action = ""--uc-name"" }'"
+      Write-Host "for more details."
     };
+    "--runtime-cpu-arch" = { Get-Help runtime_cpu_arch };
+    "--runtime-cpu-count" = { Get-Help runtime_cpu_count };
+    "--runtime-environment" = { Get-Help runtime_environment };
+    "--runtime-home-path" = { Get-Help runtime_home_path };
+    "--runtime-hostname" = { Get-Help runtime_hostname };
+    "--runtime-newline" = { Get-Help runtime_newline };
+    "--runtime-online" = { Get-Help runtime_online };
+    "--runtime-os-name" = { Get-Help runtime_os_name };
+    "--runtime-os-version" = { Get-Help runtime_os_version };
+    "--runtime-path-separator" = { Get-Help runtime_path_separator };
+    "--runtime-temp-path" = { Get-Help runtime_temp_path };
+    "--runtime-user" = { Get-Help runtime_user };
 
     # setup use case functions
     "setup" = {
@@ -302,9 +444,9 @@ function codemelted_help {
   }
   if ($null -ne $Params) {
     if (-not $Params.ContainsKey("action")) {
-      throw "--help expects action key to be specified"
+      throw "expects action key to be specified"
     } elseif ($null -eq $helpLookup[$Params["action"]]) {
-      throw "--help action specified did not find a help specification"
+      throw "action specified did not find a help specification"
     }
     Invoke-Command -ScriptBlock $helpLookup[$Params["action"]]
   } else {
@@ -315,6 +457,204 @@ function codemelted_help {
 # =============================================================================
 # [ASYNC UC IMPLEMENTATION] ===================================================
 # =============================================================================
+
+# Holds the results of a codemelted_task 'run' action. This happens in a
+# background thread.
+class CTaskResult {
+  # Member Fields
+  hidden [object] $threadJob = $null
+
+  # Will contain the final result of the ran task. Will block if called
+  # before the task has completed.
+  [object] value() {
+    $this.threadJob | Wait-Job
+    $answer = ($this.threadJob | Receive-Job)
+    $this.threadJob | Remove-Job
+    return $answer
+  }
+
+  # Provides the ability to check if the task has completed.
+  [bool] has_completed() {
+    return $this.threadJob.State.ToLower() -eq "completed"
+  }
+
+  # Constructor for the class.
+  CTaskResult([scriptblock] $task, [object] $data, [int] $delay) {
+    $this.threadJob = Start-ThreadJob -ScriptBlock {
+      param($taskRunner, $taskData, $taskDelay)
+      Start-Sleep -Milliseconds $taskDelay
+      $answer = Invoke-Command -ScriptBlock $taskRunner -ArgumentList $taskData
+      return $answer
+    } -ArgumentList $task, $data, $delay
+  }
+}
+
+# Object for tracking codemelted_task 'start_timer' action. This happens in a
+# background thread.
+class CTimerResult {
+  # Member Fields
+  [int] $id = -1
+  hidden [object] $threadJob = $null
+
+  # Provides the ability to check if the task is running or not.
+  [bool] is_running() {
+    return $this.threadJob.State.ToLower() -eq "running"
+  }
+
+  # Stops the running timer.
+  [void] stop() {
+    if ($this.is_running()) {
+      Stop-Job -Job $this.threadJob
+      Remove-Job -Job $this.threadJob
+    }
+  }
+
+  # Constructor for the class.
+  CTimerResult([scriptblock] $task, [int] $interval) {
+    # Setup the background thread job to call the task on the given
+    # interval.
+    $this.threadJob = Start-ThreadJob -ScriptBlock {
+      param([scriptblock] $timerTask, [int] $timerDelay)
+      while ($true) {
+        Start-Sleep -Milliseconds $timerDelay
+        Invoke-Command -ScriptBlock $timerTask
+      }
+    } -ArgumentList $task, $interval
+  }
+}
+
+function async_sleep {
+  <#
+  .SYNOPSIS
+    Will delay a given script task for the specified time in milliseconds.
+
+    SYNTAX:
+      codemelted --async-sleep @{
+        delay = [int]; # required
+      }
+
+    RETURNS:
+      [void]
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  $delay = $Params["delay"] ?? 0
+
+  # Do validity checks of said parameters
+  if ($delay -lt 0) {
+    throw "Params 'delay' key needs to be an [int] >= 0."
+  }
+  Start-Sleep -Milliseconds $delay
+}
+
+function async_task {
+  <#
+  .SYNOPSIS
+    Starts a background processing task that will run to completion and
+    provide the answer to the returned from the task.
+
+    SYNTAX:
+      # 'task' Example:
+      $task = {
+        param($data)
+        return $data + 5
+      }
+
+      $scheduledTask = codemelted --async-task @{
+        task = $task;    # [scriptblock] required
+        data = [object]; # optional
+        delay = [int];   # optional
+      }
+
+      # Some processing later...
+      if ($scheduleTask.has_completed()) {
+        # This blocks if it has not completed.
+        $value = $scheduledTask.value()
+      }
+
+    RETURNS:
+      [CTaskResult] object that will hold the task running in the background
+        until completed. You can check if it has completed via the
+        has_completed() function call and access the final calculated value
+        via the value() function.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+
+  # Get the named parameters and validate them.
+  $task = $Params["task"]
+  $data = $Params["data"]
+  $delay = $Params["delay"] ?? 0
+  if ($delay -lt 0) {
+    throw "Params 'delay' key needs to be an [int] >= 0."
+  } elseif (-not ($task -is [scriptblock])) {
+    throw "Params 'task' key needs to be a [scriptblock]"
+  }
+
+  # Return the task running in the background
+  return [CTaskResult]::new($task, $data, $delay)
+}
+
+function async_timer {
+  <#
+  .SYNOPSIS
+    Kicks off a repeating background timer on a given interval in
+    milliseconds.
+
+    SYNTAX:
+      $timer = codemelted --async-timer @{
+        task = [scriptblock]; # required
+        interval = [int]; # required
+      }
+
+      # Some processing later...
+      if ($timer.is_running()) {
+        $timer.stop()
+      }
+
+    RETURNS:
+      [CTimerResult] object with the methods of is_running() and stop() to
+      determine if the timer is running and stopping it altogether.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+
+  # Get the named parameters and validate them.
+  $task = $Params["task"]
+  $interval = $Params["interval"] ?? 0
+  if ($interval -lt 99) {
+    throw "Params 'interval' key needs to be an [int] >= 100."
+  } elseif (-not ($task -is [scriptblock])) {
+    throw "Params 'task' key needs to be a [scriptblock]"
+  }
+  return [CTimerResult]::new($task, $interval)
+}
+
+# TODO async_worker()
+#   Items needs to be synchronized.
+#   Also need to "copy" the array list into thread job for it to work
+#   properly.
+#   queued = [System.Collections.ArrayList]::Synchronized( `
+#     [System.Collections.ArrayList]::new()
+#   );
 
 # =============================================================================
 # [CONSOLE UC IMPLEMENTATION] =================================================
@@ -409,8 +749,7 @@ function console_choose {
   $message = $Params["message"]
   $choices = $params["choices"]
   if ((-not ($choices -is [array])) -or $choices.Length -eq 0) {
-    throw "SyntaxError: codemelted --console-choose Params expects a " +
-      "choices key with an array of string values."
+    throw "Params expects a choices key with an array of string values."
   }
 
   [int] $answer = -1
@@ -547,13 +886,414 @@ function console_writeln {
 # [DB UC IMPLEMENTATION] ======================================================
 # =============================================================================
 
+# TO BE DEVELOPED
+
 # =============================================================================
 # [DISK UC IMPLEMENTATION] ====================================================
 # =============================================================================
 
+function disk_cp {
+  <#
+  .SYNOPSIS
+    Copies a file / directory from one location on disk to another.
+
+    SYNTAX:
+      $success = codemelted --disk-cp @{
+        src = [string];  # required
+        dest = [string]; # required
+        report = [bool]; # optional, to write a warning on failure.
+      }
+
+    RETURNS:
+      [bool] $true if successful, $false otherwise.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+
+  # Grab and validate the parameters.
+  $src = $Params["src"]
+  $dest = $Params["dest"]
+  $report = $Params["report"] ?? $false
+  if ([string]::IsNullOrEmpty($src) `
+      -or [string]::IsNullOrWhiteSpace($src)) {
+    throw "Params requires a src key / value"
+  } elseif ([string]::IsNullOrEmpty($dest) `
+      -or [string]::IsNullOrWhiteSpace($dest)) {
+    throw "Params requires a dest key / value"
+  } elseif (-not ($report -is [bool])) {
+    throw "Params report key must be a [bool] value"
+  }
+
+  # Carry our the transaction
+  try {
+    $isSrcADirectory = (Test-Path $src -PathType Container)
+    if ($isSrcADirectory) {
+      Copy-Item -Path $src -Destination $dest -Recurse -Force `
+        -ErrorAction Stop
+      return $true
+    }
+    Copy-Item -Path $src -Destination $dest -Force -ErrorAction Stop
+    return $true
+  } catch {
+    if ($report) {
+      Write-Warning $_.Exception.Message
+    }
+    return $false
+  }
+}
+
+function disk_exists {
+  <#
+  .SYNOPSIS
+    Determines if the specified src item exists on the system disk and is of
+    a particular type (if specified).
+
+    SYNTAX:
+      $exists = codemelted --disk-exists @{
+        src = [string];  # required
+        type = [string]; # optional, 'directory' / 'file'
+        report = [bool]; # optional, to write a warning on failure.
+      }
+
+    RETURNS:
+      [bool] $true if it exists and is of the specified type (if specified),
+        $false otherwise.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  # Grab and validate the parameters.
+  $src = $Params["src"]
+  $type = $Params["type"] ?? ""
+  $report = $Params["report"] ?? $false
+  if ([string]::IsNullOrEmpty($src) `
+      -or [string]::IsNullOrWhiteSpace($src)) {
+    throw "Params requires a src key / value"
+  } elseif (-not ($report -is [bool])) {
+    throw "Params report key must be a [bool] value"
+  }
+
+  # Try the transaction
+  try {
+    $answer = $type -eq "directory" `
+      ? (Test-Path $src -PathType Container)
+      : $type -eq  "file" `
+        ? (Test-Path $src -PathType Leaf)
+        : (Test-Path $src)
+    return $answer
+  } catch {
+    if ($report) {
+      Write-Warning $_.Exception.Message
+    }
+    return $false
+  }
+}
+
+function disk_ls {
+  <#
+  .SYNOPSIS
+    Gets a listing of the src item specified. Also provides the ability to
+    get a recursive listing if specified.
+
+    SYNTAX:
+      $info = codemelted --disk-ls @{
+        src = [string];  # required
+        type = [string]; # optional, 'directory' / 'file' / 'recurse
+        report = [bool]; # optional, to write a warning on failure.
+      }
+
+    RETURNS:
+      [System.IO.DirectoryInfo] when listing the specified src parameter or
+        $null if an error occurs.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+
+  # Grab and validate the parameters.
+  $src = $Params["src"]
+  $type = $Params["type"] ?? ""
+  $report = $Params["report"] ?? $false
+  if ([string]::IsNullOrEmpty($src) `
+      -or [string]::IsNullOrWhiteSpace($src)) {
+    throw "Params requires a src key / value"
+  } elseif (-not ($report -is [bool])) {
+    throw "Params report key must be a [bool] value"
+  }
+
+  # Execute the transaction
+  try {
+    $answer = $type -eq "directory" `
+      ? (Get-ChildItem -Path $src -Directory -ErrorAction Stop)
+      : $type -eq "file" `
+        ? (Get-ChildItem -Path $src -File -ErrorAction Stop)
+        : $type -eq "recurse" `
+          ? (Get-ChildItem -Path $src -Recurse -ErrorAction Stop)
+          : (Get-ChildItem -Path $src -ErrorAction Stop)
+    return $answer
+  } catch {
+    if ($report) {
+      Write-Warning $_.Exception.Message
+    }
+    return $null
+  }
+}
+
+function disk_mkdir {
+  <#
+  .SYNOPSIS
+    Creates the src specified directory (including parents) on the designated
+    disk.
+
+    SYNTAX:
+      $success = codemelted --disk-mkdir @{
+        src = [string];  # required
+        report = [bool]; # optional, to write a warning on failure.
+      }
+
+    RETURNS:
+      [bool] $true if the transaction was successful, $false otherwise.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+
+  # Grab and validate the parameters.
+  $src = $Params["src"]
+  $report = $Params["report"] ?? $false
+  if ([string]::IsNullOrEmpty($src) `
+      -or [string]::IsNullOrWhiteSpace($src)) {
+    throw "Params requires a src key / value"
+  } elseif (-not ($report -is [bool])) {
+    throw "Params report key must be a [bool] value"
+  }
+
+  # Execute the transaction
+  try {
+    New-Item -ItemType Directory -Path $src -Force -ErrorAction Stop
+    return $true
+  } catch {
+    if ($report) {
+      Write-Warning $_.Exception.Message
+    }
+    return $false
+  }
+}
+
+function disk_mv {
+  <#
+  .SYNOPSIS
+    Moves a file / directory from one location on disk to the other.
+
+    SYNTAX:
+      $success = codemelted --disk-mv @{
+        src = [string];  # required
+        dest = [string]; # required
+        report = [bool]; # optional, to write a warning on failure.
+      }
+
+    RETURNS:
+      [bool] $true if successfully moved, $false otherwise.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+
+  # Grab and validate the parameters.
+  $src = $Params["src"]
+  $dest = $Params["dest"]
+  $report = $Params["report"] ?? $false
+  if ([string]::IsNullOrEmpty($src) `
+      -or [string]::IsNullOrWhiteSpace($src)) {
+    throw "Params requires a src key / value"
+  } elseif ([string]::IsNullOrEmpty($dest) `
+      -or [string]::IsNullOrWhiteSpace($dest)) {
+    throw "Params requires a dest key / value"
+  } elseif (-not ($report -is [bool])) {
+    throw "Params report key must be a [bool] value"
+  }
+
+  # Execute the transaction
+  try {
+    Move-Item -Path $src -Destination $dest -Force -ErrorAction Stop
+    return $true
+  } catch {
+    if ($report) {
+      Write-Warning $_.Exception.Message
+    }
+    return $false
+  }
+}
+
+# TBD: Build out read_file, different formats.
+# function disk_read_file {
+#   <#
+#   .SYNOPSIS
+#     Something Something Star Wars.
+
+#     SYNTAX:
+
+#     RETURNS:
+
+#   #>
+#   param(
+#     [Parameter(
+#       Mandatory = $true,
+#       ValueFromPipeline = $false,
+#       Position = 0
+#     )]
+#     [hashtable]$Params
+#   )
+# }
+
+function disk_rm {
+  <#
+  .SYNOPSIS
+    Removes a file / directory from disk.
+
+    SYNTAX:
+      $success = codemelted --disk-rm @{
+        src = [string];  # required
+        report = [bool]; # optional, to write a warning on failure.
+      }
+
+    RETURNS:
+      [bool] $true if successfully moved, $false otherwise.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+
+  # Grab and validate the parameters.
+  $src = $Params["src"]
+  $report = $Params["report"] ?? $false
+  if ([string]::IsNullOrEmpty($src) `
+      -or [string]::IsNullOrWhiteSpace($src)) {
+    throw "Params requires a src key / value"
+  } elseif (-not ($report -is [bool])) {
+    throw "Params report key must be a [bool] value"
+  }
+
+  # Execute the transaction
+  try {
+    Remove-Item -Path $src -Recurse -Force -ErrorAction Stop
+    return $true
+  } catch {
+    if ($report) {
+      Write-Warning $_.Exception.Message
+    }
+    return $false
+  }
+}
+
+function disk_size {
+  <#
+  .SYNOPSIS
+    Retrieves the size of the file / directory on disk.
+
+    SYNTAX:
+      $sizeInBytes = codemelted --disk-size @{
+        src = [string];  # required
+        report = [bool]; # optional, to write a warning on failure.
+      }
+
+    RETURNS:
+      [int] The size in bytes on disk of the item specified whether directory
+            or file or -1 if an error occurs.
+  #>
+  param(
+    [Parameter(
+      Mandatory = $true,
+      ValueFromPipeline = $false,
+      Position = 0
+    )]
+    [hashtable]$Params
+  )
+  # Grab and validate the parameters.
+  $src = $Params["src"]
+  $report = $Params["report"] ?? $false
+  if ([string]::IsNullOrEmpty($src) `
+      -or [string]::IsNullOrWhiteSpace($src)) {
+    throw "Params requires a src key / value"
+  } elseif (-not ($report -is [bool])) {
+    throw "Params report key must be a [bool] value"
+  }
+
+  # Go execute the transaction
+  try {
+    $isFile = Test-Path $src -PathType Leaf
+    if ($isFile) {
+      $sizeInBytes = (Get-ChildItem $src -ErrorAction Stop).Length
+      return $sizeInBytes
+    }
+    $sizeInBytes = (Get-ChildItem -Path $directoryPath -Recurse | `
+      Measure-Object -Property Length -Sum -ErrorAction Stop).Sum
+    return $sizeInBytes
+  } catch {
+    if ($report) {
+      Write-Warning $_.Exception.Message
+    }
+    return -1
+  }
+}
+
+# TBD: Build out write_file, different formats.
+# function disk_write_file {
+#   <#
+#   .SYNOPSIS
+#     Something Something Star Wars.
+
+#     SYNTAX:
+
+#     RETURNS:
+
+#   #>
+#   param(
+#     [Parameter(
+#       Mandatory = $true,
+#       ValueFromPipeline = $false,
+#       Position = 0
+#     )]
+#     [hashtable]$Params
+#   )
+# }
+
 # =============================================================================
 # [HW UC IMPLEMENTATION] ======================================================
 # =============================================================================
+
+# TO BE DEVELOPED
 
 # =============================================================================
 # [JSON UC IMPLEMENTATION] ====================================================
@@ -598,17 +1338,14 @@ function json_check_type {
     ? $Params["should_throw"]
     : $false
   if ($null -eq $data) {
-    throw "SyntaxError: codemelted --json-check-type Params 'data' key " +
-      "was not set."
+    throw "Params 'data' key was not set."
   } elseif ([string]::IsNullOrEmpty($type) -or
             [string]::IsNullOrWhiteSpace($type)) {
-    throw "SyntaxError: codemelted --json-check-type Params 'type' key "
-      "was not set."
+    throw "Params 'type' key was not set."
   }
 
   # Carry out the data check
-  $throwMessage = "$type was not the expected type for the codemelted " +
-      "--json-check-type action."
+  $throwMessage = "$type was not the expected type."
   $answer = $type.ToString().ToLower().Contains(
     $data.GetType().Name.ToLower()
   )
@@ -726,17 +1463,14 @@ function json_has_key {
     ? $Params["should_throw"]
     : $false
   if (-not ($data -is [hashtable])) {
-    throw "SyntaxError: codemelted --json-has-key Params 'data' key was " +
-      "not a [hashtable] value."
+    throw "Params 'data' key was not a [hashtable] value."
   } elseif ([string]::IsNullOrEmpty($key) `
             -or [string]::IsNullOrWhiteSpace($key)) {
-    throw "SyntaxError: codemelted --json-has-key Params 'key' key " +
-      "was not set."
+    throw "Params 'key' key was not set."
   }
 
   # Carry out the request
-  $throwMessage = "$key did not exist for the codemelted --json-has-key " +
-    "request."
+  $throwMessage = "$key did not exist."
   $answer = $data.ContainsKey($key)
 
   # Handle how we are returning from this function whether to throw or return
@@ -777,8 +1511,7 @@ function json_parse {
   )
   $data = $Params["data"]
   if ([string]::IsNullOrEmpty($data) -or [string]::IsNullOrWhiteSpace($data)) {
-    throw "SyntaxError: codemelted --json-parse Params expects a 'data' key " +
-      "with a string value."
+    throw "Params expects a 'data' key with a string value."
   }
   try {
     return ConvertFrom-Json -InputObject $data -Depth 100
@@ -810,8 +1543,7 @@ function json_stringify {
   )
   $data = $Params["data"]
   if ($null -eq $data) {
-    throw "SyntaxError: codemelted --json-stringify Params expects a 'data' " +
-      "key and value."
+    throw "Params expects a 'data' key and value."
   }
   try {
     if ($data.GetType().Name.ToLower() -eq "arraylist") {
@@ -854,8 +1586,7 @@ function json_valid_url {
     ? $Params["should_throw"]
     : $false
   if ([string]::IsNullOrEmpty($data) -or [string]::IsNullOrWhiteSpace($data)) {
-    throw "SyntaxError: codemelted --json-valid-url Params 'data' key " +
-      "expected a [string] value."
+    throw "Params 'data' key expected a [string] value."
   }
 
   # Carry out the url request.
@@ -933,13 +1664,11 @@ class CLogRecord {
     $this.moduleLogLevel = $moduleLogLevel
     $this.logLevel = $logLevel
     if ($logLevel -eq -1) {
-      throw "SyntaxError: codemelted --logger-log expects Params 'level' " +
-        "key to be set.";
+      throw "Params 'level' key is expected to be set.";
     }
     $this.data = $data
     if ($null -eq $data) {
-      throw "SyntaxError: codemelted --logger-log expects Params 'data' " +
-        "key to be set.";
+      throw "Params 'data' key is expected to be set.";
     }
   }
 
@@ -998,9 +1727,8 @@ function logger_level {
   # and set it in the global store.
   $level = [CLogRecord]::logLevelInt($log_level)
   if ($level -eq -1) {
-    throw "SyntaxError: codemelted --logger-level Params data 'key' " +
-      "not a valid value for setting log level. Valid values are " +
-      "'debug' / 'info' / 'warning' / 'error'"
+    throw "Params data 'key' not a valid value for setting log level. " +
+      "Valid values are 'debug' / 'info' / 'warning' / 'error'"
   }
   $Global:CodeMeltedLogger.level = $level
 }
@@ -1032,10 +1760,9 @@ function logger_handler {
   if ($null -eq $handler -and $null -eq $Params) {
     $Global:CodeMeltedLogger.handler = $null
   } elseif ($data -is [scriptblock]) {
-    $Global:CodeMeltedAPI.logger.handler = $data
+    $Global:CodeMeltedLogger.handler = $data
   } else {
-    throw "SyntaxError: codemelted --logger-handler Params 'handler' key " +
-      "value was not $null or [scriptblock]"
+    throw "Params 'handler' key value was not $null or [scriptblock]"
   }
 }
 
@@ -1091,6 +1818,10 @@ function logger_log {
 # =============================================================================
 # [MONITOR UC IMPLEMENTATION] =================================================
 # =============================================================================
+
+# TO BE DEVELOPED
+#    Will bind with Rust codemelted-monitor program I will eventually
+#    right.
 
 # =============================================================================
 # [NETWORK UC IMPLEMENTATION] =================================================
@@ -1179,30 +1910,25 @@ function network_fetch {
   $data = $Params["data"]
 
   if ([string]::IsNullOrEmpty($url) -or [string]::IsNullOrWhiteSpace($url)) {
-    throw "SyntaxError: codemelted --network-fetch Params expects a url " +
-      "key with a [string] URL / IP address"
+    throw "Params expects a url key with a [string] URL / IP address"
   } elseif (-not ($data -is [hashtable])) {
-    throw "SyntaxError: codemelted --network-fetch Params expects a data " +
-      "[hashtable] entry."
+    throw "Params expects a data [hashtable] entry."
   }
 
-  try {
-    # Go carry out the fetch.
-    [hashtable] $request = json_create_object @{
-      "data" = $data
-    }
-    $request.Add("uri", $url)
-    $resp = Invoke-WebRequest @request -SkipHttpErrorCheck
-    return [CFetchResponse]::new($resp)
-  } catch {
-    throw "SyntaxError: codemelted --network-fetch encountered an issue. " +
-      $_.Exception.Message
+  # Go carry out the fetch.
+  [hashtable] $request = json_create_object @{
+    "data" = $data
   }
+  $request.Add("uri", $url)
+  $resp = Invoke-WebRequest @request -SkipHttpErrorCheck
+  return [CFetchResponse]::new($resp)
 }
 
 # =============================================================================
 # [NPU UC IMPLEMENTATION] =====================================================
 # =============================================================================
+
+# TO BE DEVELOPED
 
 # =============================================================================
 # [PROCESS UC IMPLEMENTATION] =================================================
@@ -1313,7 +2039,7 @@ function process_exists {
 function process_run {
   <#
   .SYNOPSIS
-    Something Something Star Wars.
+    Runs a one-off operating system process and captures its STDOUT output.
 
     SYNTAX:
       # Example listing files on a linux terminal.
@@ -1347,25 +2073,25 @@ function process_run {
   return $IsWindows ? (cmd /c $cmd) : (sh -c $cmd)
 }
 
-function process_spawn {
-  <#
-  .SYNOPSIS
-    Something Something Star Wars.
+# function process_spawn {
+#   <#
+#   .SYNOPSIS
+#     Something Something Star Wars.
 
-    SYNTAX:
+#     SYNTAX:
 
-    RETURNS:
+#     RETURNS:
 
-  #>
-  param(
-    [Parameter(
-      Mandatory = $true,
-      ValueFromPipeline = $false,
-      Position = 0
-    )]
-    [hashtable]$Params
-  )
-}
+#   #>
+#   param(
+#     [Parameter(
+#       Mandatory = $true,
+#       ValueFromPipeline = $false,
+#       Position = 0
+#     )]
+#     [hashtable]$Params
+#   )
+# }
 
 # =============================================================================
 # [RUNTIME UC IMPLEMENTATION] =================================================
@@ -1664,9 +2390,13 @@ function runtime_user {
 # [STORAGE UC IMPLEMENTATION] =================================================
 # =============================================================================
 
+# TO BE DEVELOPED
+
 # =============================================================================
 # [UI UC IMPLEMENTATION] ======================================================
 # =============================================================================
+
+# TO BE DEVELOPED
 
 # =============================================================================
 # [MAIN CLI API] ==============================================================
@@ -1676,600 +2406,77 @@ try {
   # OK, go parse the command.
   switch ($Action) {
     # Module Information
-    "--version" { Get-PSScriptFileInfo -Path $PSScriptRoot/codemelted.ps1 }
-    "--help" { codemelted_help $Params }
+    "--version"            {
+      Get-PSScriptFileInfo -Path $PSScriptRoot/codemelted.ps1
+    }
+    "--help"                  { codemelted_help $Params }
+    # Async Use Case
+    "--async-sleep"           { async_sleep $Params }
+    "--async-task"            { async_task $Params }
+    "--async-timer"           { async_timer $Params }
     # Console Use Case
-    "--console-alert" { console_alert $Params }
-    "--console-confirm" { console_confirm $Params }
-    "--console-choose" { console_choose $Params }
-    "--console-password" { console_password $Params }
-    "--console-prompt" { console_prompt $Params }
-    "--console-write" { console_write $Params }
-    "--console-writeln" { console_writeln $Params }
+    "--console-alert"         { console_alert $Params }
+    "--console-confirm"       { console_confirm $Params }
+    "--console-choose"        { console_choose $Params }
+    "--console-password"      { console_password $Params }
+    "--console-prompt"        { console_prompt $Params }
+    "--console-write"         { console_write $Params }
+    "--console-writeln"       { console_writeln $Params }
+    # DB Use Case
+    # TBD
+    # Developer Use Case
+    # TBD
+    # Disk Use Case
+    "--disk-cp"               { disk_cp $Params }
+    "--disk-exists"           { disk_exists $Params }
+    "--disk-ls"               { disk_ls $Params }
+    "--disk-mkdir"            { disk_mkdir $Params }
+    "--disk-mv"               { disk_mv $Params }
+    "--disk-rm"               { disk_rm $Params }
+    "--disk-size"             { disk_size $Params }
+    # HW Use Case
+    # TBD
     # JSON Use Case
-    "--json-check-type" { json_check_type $Params }
-    "--json-create-array" { json_create_array $Params }
-    "--json-create-object" { json_create_object $Params }
-    "--json-check-type" { json_check_type $Params }
-    "--json-parse" { json_parse $Params }
-    "--json-stringify" { json_stringify $Params }
-    "--json-valid-url" { json_valid_url $Params }
+    "--json-check-type"        { json_check_type $Params }
+    "--json-create-array"      { json_create_array $Params }
+    "--json-create-object"     { json_create_object $Params }
+    "--json-check-type"        { json_check_type $Params }
+    "--json-parse"             { json_parse $Params }
+    "--json-stringify"         { json_stringify $Params }
+    "--json-valid-url"         { json_valid_url $Params }
     # Logger Use Case
-    "--logger-level" { logger_level $Params }
-    "--logger-handler" { logger_handler $Params }
-    "--logger-log" { Get-Help logger_log $Params }
+    "--logger-level"           { logger_level $Params }
+    "--logger-handler"         { logger_handler $Params }
+    "--logger-log"             { logger_log $Params }
+    # Monitor Use Case
+    # TBD
     # Network Use Case
-    "--network-fetch" { network_fetch $Params }
+    "--network-fetch"          { network_fetch $Params }
+    # NPU Use Case
+    # TBD
+    # Process Use Case
+    "--process-exists"         { process_exists $Params }
+    "--process-run"            { process_run $Params }
+    # Runtime Use Case
+    "--runtime-cpu-arch"       { runtime_cpu_arch $Params }
+    "--runtime-cpu-count"      { runtime_cpu_count $Params }
+    "--runtime-environment"    { runtime_environment $Params }
+    "--runtime-home-path"      { runtime_home_path $Params }
+    "--runtime-hostname"       { runtime_hostname $Params }
+    "--runtime-newline"        { runtime_newline $Params }
+    "--runtime-online"         { runtime_online $Params }
+    "--runtime-os-name"        { runtime_os_name $Params }
+    "--runtime-os-version"     { runtime_os_version $Params }
+    "--runtime-path-separator" { runtime_path_separator $Params }
+    "--runtime-temp-path"      { runtime_temp_path $Params }
+    "--runtime-user"           { runtime_user $Params }
+    # Setup Use Case
+    # TBD
+    # Storage Use Case
+    # TBD
+    # UI Use Case
+    # TBD
   }
 } catch {
   Write-Warning ("SyntaxError: codemelted $Action " + $_.Exception.Message)
-}
-
-# ---- REFACTORS BELOW INTO NEW USE CASE STRUCTURE ABOVE ----
-
-# -----------------------------------------------------------------------------
-# [Data Types] ----------------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# .NET Assemblies
-Add-Type -AssemblyName Microsoft.PowerShell.Commands.Utility
-
-# Setup our module API for tracking items and supporting each of the use case
-# functions.
-if ($null -eq $Global:CodeMeltedAPI) {
-  $Global:CodeMeltedAPI = @{
-    tracker = @{
-      id = 0;
-      map = @{};
-    };
-    process = @{};
-    worker = @{
-      threadJob = $null;
-      queued = [System.Collections.ArrayList]::Synchronized( `
-        [System.Collections.ArrayList]::new()
-      );
-      scheduled = [System.Collections.ArrayList]::Synchronized( `
-        [System.Collections.ArrayList]::new()
-      );
-      task = $null;
-      handler = $null;
-    };
-  }
-}
-
-# Holds the results of a codemelted_task 'run' action. This happens in a
-# background thread.
-class CTaskRunResult {
-  # Member Fields
-  hidden [object] $threadJob = $null
-
-  # Will contain the final result of the ran task. Will block if called
-  # before the task has completed.
-  [object] result() {
-    $this.threadJob | Wait-Job
-    $answer = ($this.threadJob | Receive-Job)
-    $this.threadJob | Remove-Job
-    return $answer
-  }
-
-  # Provides the ability to check if the task has completed.
-  [bool] hasCompleted() {
-    return $this.threadJob.State.ToLower() -eq "completed"
-  }
-
-  # Constructor for the class.
-  CTaskRunResult([scriptblock] $task, [object] $data, [int] $delay) {
-    $this.threadJob = Start-ThreadJob -ScriptBlock {
-      param($taskRunner, $taskData, $taskDelay)
-      Start-Sleep -Milliseconds $taskDelay
-      $answer = Invoke-Command -ScriptBlock $taskRunner -ArgumentList $taskData
-      return $answer
-    } -ArgumentList $task, $data, $delay
-  }
-}
-
-# Object for tracking codemelted_task 'start_timer' action. This happens in a
-# background thread.
-class CTaskTimer {
-  # Member Fields
-  [int] $id = -1
-  hidden [object] $threadJob = $null
-
-  # Provides the ability to check if the task is running or not.
-  [bool] isRunning() {
-    return $this.threadJob.State.ToLower() -eq "running"
-  }
-
-  # Stops the running timer.
-  [void] stop() {
-    Stop-Job -Job $this.threadJob
-    Remove-Job -Job $this.threadJob
-  }
-
-  # Constructor for the class.
-  CTaskTimer([int] $id, [scriptblock] $task, [int] $delay) {
-    # Setup the background thread job to call the task on the given
-    # delay interval.
-    $this.id = $id
-    $this.threadJob = Start-ThreadJob -ScriptBlock {
-      param([scriptblock] $timerTask, [int] $timerDelay)
-      while ($true) {
-        Start-Sleep -Milliseconds $timerDelay
-        Invoke-Command -ScriptBlock $timerTask
-      }
-    } -ArgumentList $task, $delay
-  }
-}
-
-
-# =============================================================================
-# [USE CASE DEFINITIONS] ======================================================
-# =============================================================================
-
-# -----------------------------------------------------------------------------
-# [Async I/O Use Cases] -------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-function codemelted_task {
-  <#
-    .SYNOPSIS
-    Provides the ability to kick-off background threaded tasks. Either a
-    one-off that returns a promise, a repeating timer that can stopped later,
-    and the ability to sleep the given background tasks in milliseconds.
-
-    SYNTAX:
-      # Kicks off a one off background processing task that returns a
-      # promise that will eventually hold the answer. The two required
-      # are the action and task. Utilize the param() within the task
-      # scriptblock to receive data for the task. Make sure to return the
-      # answer for the promise to contain the result.
-      $answer = codemelted --task @{
-        action = "run";        # required
-        task = [scriptblock];  # required
-        data = [object];       # optional
-        delay = [int];         # optional
-      }
-
-        'task' Example:
-          $task = {
-            param($data)
-            return $data + 5
-          }
-
-      # To sleep the processing within the given code specify the action
-      # and a delay in milliseconds. The delay is required and must be >= 0.
-      codemelted --task @{
-        action = "sleep";  # required
-        delay = [int];     # required
-      }
-
-      # Kick-off a background repeating timer that kicks of the given
-      # delay interval.
-      $id = codemelted --task @{
-        action = "start_timer";  # required
-        task = [scriptblock];    # required
-        delay = [int];           # required
-      }
-
-      codemelted --task @{
-        action = "stop_timer";  # required
-        data = $id;             # required
-      }
-
-    RETURNS:
-      [CTaskRunResult] 'run' action result that represents a promise with
-        two methods. The hasCompleted() will return $true if the answer is
-        ready or $false. The result() is a blocking call that will return
-        the result. It is of an [object] type so any data type can be
-        returned.
-
-      [int] 'start_timer' action with a successfully created repeating
-        background timer.
-
-      [void] 'sleep' action delays processing for a specified milliseconds.
-        'stop_timer' action will end a 'start_timer' action repeating task.
-  #>
-  param(
-    [Parameter(
-      Mandatory = $true,
-      ValueFromPipeline = $false,
-      Position = 0
-    )]
-    [hashtable]$Params
-  )
-
-  # Get the parameters to support the requested action.
-  $action = $Params["action"]
-  $task = $Params["task"]
-  $data = $Params["data"]
-  $delay = $Params["delay"] ?? 0
-
-  # Do validity checks of said parameters
-  if ($delay -lt 0) {
-    throw "SyntaxError: codemelted --task expects the Params 'delay' key " +
-      "to be a [int] >= 0"
-  } elseif ($action -eq "run" -or $action -eq "sleep" -or `
-            $action -eq "start_timer") {
-    if (-not ($task -is [scriptblock])) {
-      throw "SyntaxError: codemelted --task expects the Params 'task' key " +
-        "to be a [scriptblock]"
-    }
-  }
-
-  # Carry out the requested action.
-  if ($action -eq "run") {
-    return [CTaskRunResult]::new($task, $data, $delay)
-  } elseif ($action -eq "sleep") {
-    Start-Sleep -Milliseconds $delay
-  } elseif ($action -eq "start_timer") {
-    if ($delay -lt 100) {
-      throw "SyntaxError: codemelted --task 'start_timer' action requires " +
-        "delay to be >= 100"
-    }
-    $id = $Global:CodeMeltedAPI.tracker.id += 1
-    $Global:CodeMeltedAPI.tracker.map.Add($id, [CTaskTimer]::new(
-      $id,
-      $task,
-      $delay
-    ))
-    return $id
-  } elseif ($action -eq "stop_timer") {
-    $timerTask = $Global:CodeMeltedAPI.tracker.map[$data]
-    $timerTask.stop()
-    $Global:CodeMeltedAPI.tracker.map.Remove($data)
-  } else {
-    throw "SyntaxError: codemelted --task Params did not have a " +
-      "supported action key specified. Valid actions are run / sleep / " +
-      "start_timer / stop_timer"
-  }
-}
-
-function codemelted_worker {
-  <#
-    .SYNOPSIS
-    Sets up a background worker pool that supports queuing JSON based objects
-    to process with your own custom ID system and communicate the results
-    once the background worker has completed the processing. The number of
-    workers for the pool are based on the number of physical processors
-    available on the host system. If the queued work exceeds the number of
-    available workers, it is queued up in FIFO order so as work completes,
-    a worker will pick up its processing.
-
-    NOTE 1: The scheduling of work is FIFO. The completion of work is not
-      guaranteed to complete in that order. Hence a custom ID system is
-      necessary.
-
-    NOTE 2: Only one worker pool may be running. If you attempt to start
-      a new pool before stopping an existing one will result in a
-      SyntaxError. This is also true if you attempt to stop or post work
-      to be done on a pool that is not running.
-
-    SYNTAX:
-      # Check to see if a worker pool is running
-      $isRunning = codemelted --worker @{
-        action = "is_running" # required
-      }
-
-      # Post message (a.k.a.) work to the pool to process. The result of the
-      # worker completing the worker will be received via the 'handler'
-      # setup via the Params for the 'start' action.
-      #
-      # data must be a [hashtable] in whatever construct you setup.
-      codemelted --worker @{
-        action = "post_message";           # required
-        data = @{ id = "add"; data = 25; } # required
-      }
-
-      # To terminate the worker pool.
-      codemelted --worker @{
-        action = "terminate"; # required
-      }
-
-      # To start a worker pool for custom background work processing.
-      codemelted --worker @{
-        # required
-        action = "start";
-
-        # required, The common background worker logic for all queued work.
-        task = [scriptblock] {
-          param([hashtable] $evt)
-          $id = $evt["id"]
-          $data = $evt["data"]
-          if ($id -eq "add") {
-            return @{
-              id = "add";
-              data = 25 + $data
-            }
-          }
-        };
-
-        # required, where you will receive the completed work
-        handler = [scriptblock] {
-          param([hashtable] $evt)
-          Write-Host $evt["data"]
-        };
-
-        # optional (how often to check queues)
-        delay = 500;
-      }
-
-    RETURNS:
-      [boolean] action 'is_running' $true if a pool is running,
-        $false otherwise.
-
-      [void] for all other actions.
-  #>
-  param(
-    [Parameter(
-      Mandatory = $true,
-      ValueFromPipeline = $false,
-      Position = 0
-    )]
-    [hashtable]$Params
-  )
-  # Go get our actions and supporting variables to carry them out.
-  $action = $Params["action"]
-  $data = $Params["data"]
-  $task = $Params["task"]
-  $handler = $Params["handler"]
-  $delay = $Params["delay"] ?? 500
-  $isRunning = $null -eq $Global:CodeMeltedAPI.worker.threadJob `
-    ? $false
-    : ($Global:CodeMeltedAPI.worker.threadJob.State.ToLower() -eq "running")
-
-  # Carry out the action requested.
-  if ($action -eq "is_running") {
-    return $isRunning
-  } elseif ($action -eq "start") {
-    # Validate our given parameters to start a worker pool.
-    if (-not ($task -is [scriptblock])) {
-      throw "SyntaxError: codemelted --worker Params 'start' action " +
-        "expects 'task' [scriptblock] key / value entry."
-    } elseif (-not ($handler -is [scriptblock])) {
-      throw "SyntaxError: codemelted --worker Params 'start' action " +
-        "expects 'handler' [scriptblock] key / value entry."
-    } elseif ((-not ($delay -is [int])) -or $delay -lt 100) {
-      throw "SyntaxError: codemelted --worker Params 'start' action " +
-        "expects 'delay' [int] key / value entry if specified to be > 99."
-    } elseif ($isRunning) {
-      throw "SyntaxError: codemelted --worker pool is already running."
-    }
-
-    # Setup the handler for when tasks are completed.
-    $Global:CodeMeltedAPI.worker.handler = $handler
-
-    # Starter the worker pool thread that will process through the queues
-    # as work is received for processing.
-    $Global:CodeMeltedAPI.worker.threadJob = Start-ThreadJob -ScriptBlock {
-      param($delayTime, $inQueue, $outQueue)
-
-      # We will not allow more than processorCount of work tasks.
-      $processorCount = codemelted --runtime @{
-        action = "processor_count"
-      }
-
-      "Processor Count = $processorCount" | Out-File -FilePath "workerThread.txt"
-      # Run the worker pool until we are terminated.
-      while ($true) {
-        # Delay before processing our queues.
-        Start-Sleep -Milliseconds $delayTime
-
-        # See what our completed tasks are, report the answer, and
-        # dequeue for the next batch of tasks.
-        "Before outQueue $($outQueue.Count)" | Out-File -FilePath "workerThread.txt" -Append
-        for ($i = $outQueue.Count - 1; `
-            $i -ge 0; $i--) {
-          $task = $outQueue[$i]
-          "Dequeuing task" | Out-File -FilePath "workerThread.txt" -Append
-          "Has Completed $($task.hasCompleted())" | Out-File -FilePath "workerThread.txt" -Append
-          if ($task.hasCompleted()) {
-            "It completed" | Out-File -FilePath "workerThread.txt" -Append
-            $answer = $task.result()
-            "Answer is $answer" | Out-File -FilePath "workerThread.txt" -Append
-            Invoke-Command -ScriptBlock $Global:CodeMeltedAPI.worker.handler `
-              -ArgumentList $answer
-            "ScriptBlock invoked" | Out-File -FilePath "workerThread.txt" -Append
-            $outQueue.RemoveAt($i)
-            Write-Host "outQueue dequeued $($outQueue.Count)" | Out-File -FilePath "workerThread.txt" -Append
-          }
-        }
-
-        # Now go see what queued work there is to go process and kick off
-        # those tasks.
-        "Before inQueue $($inQueue.Count)" | Out-File -FilePath "workerThread.txt" -Append
-        for ($i = $inQueue.Count - 1; `
-            $i -ge 0; $i--) {
-          # If our currently processing work is the same as our processor count,
-          # then break loop.
-          "Checking outQueue for work $($outQueue.Count)" | Out-File -FilePath "workerThread.txt" -Append
-          if ($outQueue.Count -ge $processorCount) {
-            break
-          }
-
-          # Nope we have room for work, lets go queue up some work.
-          $data = $inQueue[$i]
-          $task = [CTaskRunResult]::new($task, $data, 0)
-          $outQueue.Add($task)
-          $inQueue.RemoveAt($i)
-        }
-      }
-    } -ArgumentList ($delay, $Global:CodeMeltedAPI.worker.inQueue, $Global:CodeMeltedAPI.worker.outQueue)
-  } elseif ($action -eq "post_message") {
-    # Validate our conditions before carrying out the post.
-    if (-not ($data -is [hashtable])) {
-      throw "SyntaxError: codemelted --worker Params 'post_message' action " +
-        "expects a data [hashtable] entry for worker processing."
-    } elseif (-not $isRunning) {
-      throw "SyntaxError: codemelted --worker pool is not running."
-    }
-
-    # We are good, go post the message for later processing.
-    $Global:CodeMeltedAPI.worker.inQueue.Insert(0, $data)
-  } elseif ($action -eq "terminate") {
-    # Make sure we are actually running before terminating.
-    if (-not $isRunning) {
-      throw "SyntaxError: codemelted --worker pool is not running."
-    }
-
-    # We are, go clear our global module.
-    $Global:CodeMeltedAPI.worker.threadJob | Stop-Job
-    $Global:CodeMeltedAPI.worker.threadJob | Remove-Job
-    $Global:CodeMeltedAPI.worker.threadJob = $null
-    $Global:CodeMeltedAPI.worker.inQueue.Clear()
-    $Global:CodeMeltedAPI.worker.outQueue.Clear()
-    $Global:CodeMeltedAPI.worker.handler = $null
-  } else {
-    throw "SyntaxError: codemelted --worker Params did not have a " +
-      "supported action key specified. Valid actions are is_running / " +
-      "start / post_message / terminate"
-  }
-}
-
-function codemelted_disk {
-  <#
-    .SYNOPSIS
-    Provides the actions to manage files and directories on disk. This
-    includes getting a listing, determining if an item exists, what type it is
-    along with being able to copy, delete, and moving items. Lastly you can
-    determine the size of an item in bytes on disk.
-
-    SYNTAX:
-      # Copy or move a file / directory from the identified "src" location to
-      # the specified "dest" location. The "mv" can also be used as a rename.
-      $success = codemelted --disk @{
-        "action" = "cp" / "mv"; # required
-        "src" = [string];       # required
-        "dest" = [string];      # required
-        "report" = $true        # optional - warning if command fails
-      }
-
-      # Create a "src" directory or delete a "src" file / directory
-      $success = codemelted --disk @{
-        "action" = "mkdir" / "rm";  # required
-        "src" = [string];           # required
-        "report" = $false           # optional - warning if command fails
-      }
-
-      # Determine if a "src" file / directory exists or if it is of a
-      # given type.
-      $exists = codemelted --disk @{
-        "action" = "exists";           # required
-        "src" = [string];              # required
-        "type" = "file" / "directory"; # optional that type vs. just existing
-        "report" = $false              # optional - warning if command fails
-      }
-
-      # Get a listing of "src" directory for only the specified "type". This
-      # means either only the directories, files, or recurse to get all
-      # files and directories from the specified "src".
-      $listing = codemelted --disk @{
-        "action" = "ls";                            # required
-        "src" = [string];                           # required
-        "type" = "directory" / "file" / "recurse";  # optional
-        "report" = $false                           # optional
-      }
-
-      # Gets the size in bytes of a "src" file / directory.
-      $sizeInBytes = codemelted --disk @{
-        "action" = "size";  # required
-        "src" = [string];   # required
-        "report" = $false   # optional
-      }
-
-    RETURNS:
-      [boolean] $true for successful actions of 'cp' / 'exists' / 'mkdir' /
-                'mv' / 'rm'. $false otherwise.
-
-      [System.IO.DirectoryInfo] When executing an 'ls' action.
-
-      [int] When executing a 'size' action.
-  #>
-  param(
-    [Parameter(
-      Mandatory = $true,
-      ValueFromPipeline = $false,
-      Position = 0
-    )]
-    [hashtable]$Params
-  )
-
-  $action = $Params["action"]
-  $src = $Params["src"]
-  $dest = $Params["dest"]
-  $type = $Params["type"]
-  $report = $Params["report"] ?? $false
-
-  if ([string]::IsNullOrEmpty($src) `
-      -or [string]::IsNullOrWhiteSpace($src)) {
-    throw "SyntaxError: codemelted --disk Params requires a src key / value"
-  } elseif (-not ($report -is [boolean])) {
-    throw "SyntaxError: codemelted --disk Params optional report key is " +
-      "expected to be a [boolean] value"
-  }
-
-  try {
-    if ($action -eq "cp") {
-      if ([string]::IsNullOrEmpty($dest) `
-            -or [string]::IsNullOrWhiteSpace($dest)) {
-        throw "SyntaxError: codemelted --disk Params dest key is expected."
-      }
-      $isSrcADirectory = (Test-Path $src -PathType Container)
-      if ($isSrcADirectory) {
-        Copy-Item -Path $src -Destination $dest -Recurse -Force `
-          -ErrorAction Stop
-        return $true
-      }
-      Copy-Item -Path $src -Destination $dest -Force -ErrorAction Stop
-      return $true
-    } elseif ($action -eq "exists") {
-      $answer = $type -eq "directory" `
-        ? (Test-Path $src -PathType Container)
-        : $type -eq  "file" `
-          ? (Test-Path $src -PathType Leaf)
-          : (Test-Path $src)
-      return $answer
-    } elseif ($action -eq "ls") {
-      $answer = $type -eq "directory" `
-        ? (Get-ChildItem -Path $src -Directory -ErrorAction Stop)
-        : $type -eq "file" `
-          ? (Get-ChildItem -Path $src -File -ErrorAction Stop)
-          : $type -eq "recurse" `
-            ? (Get-ChildItem -Path $src -Recurse -ErrorAction Stop)
-            : (Get-ChildItem -Path $src -ErrorAction Stop)
-      return $answer
-    } elseif ($action -eq "mkdir") {
-      New-Item -ItemType Directory -Path $src -Force -ErrorAction Stop
-      return $true
-    } elseif ($action -eq "mv") {
-      if ([string]::IsNullOrEmpty($dest) `
-            -or [string]::IsNullOrWhiteSpace($dest)) {
-        throw "SyntaxError: codemelted --disk Params dest key is expected."
-      }
-      Move-Item -Path $src -Destination $dest -Force -ErrorAction Stop
-      return $true
-    } elseif ($action -eq "rm") {
-      Remove-Item -Path $src -Recurse -Force -ErrorAction Stop
-      return $true
-    } elseif ($action -eq "size") {
-      $isFile = Test-Path $src -PathType Leaf
-      if ($isFile) {
-        $sizeInBytes = (Get-ChildItem $src -ErrorAction Stop).Length
-        return $sizeInBytes
-      }
-      $sizeInBytes = (Get-ChildItem -Path $directoryPath -Recurse | `
-        Measure-Object -Property Length -Sum -ErrorAction Stop).Sum
-      return $sizeInBytes
-    } else {
-      throw "SyntaxError: codemelted --disk Params did not have a " +
-        "supported action key specified. Valid actions are cp / exists / ls " +
-        "mkdir / mv / rm / size"
-    }
-  } catch [string] {
-    throw
-  } catch {
-    if ($report) {
-      Write-Warning $_.Exception.Message
-    }
-    return $false
-  }
 }
