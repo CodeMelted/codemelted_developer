@@ -69,7 +69,7 @@ const API_UNSUPPORTED_PLATFORM = new SyntaxError(
 );
 
 /**
- * The event handler utilized within a given JavaScript runtime. This 
+ * The event handler utilized within a given JavaScript runtime. This
  * represents a global event handler that should suffice any JavaScript
  * event callback.
  * @callback CEventHandler
@@ -252,9 +252,9 @@ export class CTimerResult {
  * @param {number} delay The delay in milliseconds to wait before processing
  * the next asynchronous task.
  * @returns {Promise<void>} The promise to await on for the delay.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -287,9 +287,9 @@ export function async_sleep(delay) {
  * future.
  * @returns {Promise<CResult>} A future promise with the result of the
  * task.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -325,9 +325,9 @@ export function async_task({task, data, delay = 0}) {
  * the given task.
  * @returns {CTimerResult} The timer that runs the task on the specified
  * interval.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -353,9 +353,9 @@ export function async_timer({task, interval}) {
 
 /**
  * <mark>IN DEVELOPMENT! DON'T USE!!</mark
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -381,9 +381,9 @@ export function async_worker() {
  * press via STDIN.
  * @param {string} [message=""] The message to prompt out or "ALERT".
  * @returns {void}
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -415,9 +415,9 @@ export function console_alert(message = "") {
  * @param {string[]} params.choices The choices to choose from
  * written to STDOUT.
  * @returns {number} The index of the selection in [params.choices].
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -469,9 +469,9 @@ export function console_choose({message = "", choices}) {
  * Prompts (via STDOUT) for a user confirmation (via STDIN).
  * @param {string} [message=""] The confirmation you are looking for.
  * @returns {boolean} The choice made.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -502,9 +502,9 @@ export function console_confirm(message = "") {
  * Prompts (via STDOUT) for a user to enter their password via STDIN.
  * @param {string} [message=""] The custom prompt to write out to STDOUT.
  * @returns {string} the password entered via STDIN.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -554,9 +554,9 @@ export function console_password(message = "") {
  * Write a prompt to STDOUT to receive an answer via STDIN.
  * @param {string} [message=""] The custom prompt message for STDOUT.
  * @returns {string} The typed in answer received via STDIN.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -588,9 +588,9 @@ export function console_prompt(message = "") {
  * Writes the given message to STDOUT.
  * @param {string} [message=""] The message to write or a blank line.
  * @returns {void}
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1290,9 +1290,9 @@ export const SERIAL_PORT_DATA_REQUEST = Object.freeze({
  * Determines if the JavaScript runtime support connecting to external devices
  * via bluetooth protocol.
  * @returns {boolean} Indication of runtime support.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1313,9 +1313,9 @@ export function hw_bluetooth_supported() {
  * Determines if the JavaScript runtime support connecting to Musical
  * Instrument Digital Interface (MIDI) Devices.
  * @returns {boolean} Indication of runtime support.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1337,9 +1337,9 @@ export function hw_midi_supported() {
  * Determines if the JavaScript runtime will support the ability to retrieve
  * device orientation.
  * @returns {boolean} Indication of runtime support.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1380,9 +1380,9 @@ export function hw_request_midi() {
  * watch for geolocation position updates.
  * @return {COrientationProtocol} The protocol that handles device
  * orientation changes until terminated.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1407,9 +1407,9 @@ export function hw_request_orientation(options) {
  * serial port device.
  * @returns {Promise<CSerialPortProtocol?>} The requested connected serial
  * port or null if request was canceled or could not be connected.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1455,9 +1455,9 @@ export function hw_request_usb() {
  * Determines if the JavaScript runtime will provide the ability to connect
  * with serial ports.
  * @returns {boolean} true if available, false otherwise.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1484,9 +1484,9 @@ export function hw_serial_port_supported() {
 /**
  * Determines if the JavaScript runtime supports connecting to a usb device.
  * @returns {boolean} Indication of runtime support.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1512,9 +1512,9 @@ export function hw_usb_supported() {
  * @param {string} data Base64 encoded string.
  * @returns {string | null} The decoded string or null if the encoding
  * failed.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1542,9 +1542,9 @@ export function json_atob(data) {
  * @param {string} data The binary string.
  * @returns {string | null} The base64 encoded string or null if the encoding
  * failed.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1571,9 +1571,9 @@ export function json_btoa(data) {
  * a previous array.
  * @param {any[]} [data] An optional array of data to copy
  * @returns {any[]} The newly created array with optional data.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1601,9 +1601,9 @@ export function json_create_array(data) {
  * a previous array.
  * @param {object} [data] An optional object of data to copy
  * @returns {object} The newly created object with optional data.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1634,9 +1634,9 @@ export function json_create_object(data) {
  * @param {boolean} [params.shouldThrow=false] Whether to throw instead of
  * returning a value upon failure.
  * @returns {boolean} true if it meets the expectations, false otherwise.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1679,9 +1679,9 @@ export function json_check_type({
  * @param {boolean} [params.shouldThrow=false] Whether to throw instead of
  * returning a value upon failure.
  * @returns {boolean} true if property was found, false otherwise.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1708,9 +1708,9 @@ export function json_has_key({data, key, shouldThrow = false}) {
  * Converts a string to a supported JSON data type.
  * @param {string} data The data to parse.
  * @returns {any | null} The JSON data type or null if the parsing fails.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1736,9 +1736,9 @@ export function json_parse(data) {
  * @param {any} data The data to convert.
  * @returns {string | null} The string representation or null if the
  * stringify failed.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1766,9 +1766,9 @@ export function json_stringify(data) {
  * @param {boolean} [params.shouldThrow=false] Whether to throw instead of
  * returning a value upon failure.
  * @returns {boolean} true if valid, false otherwise.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1885,9 +1885,9 @@ let _loggerHandler = null;
  * Sets the logger handler for post logging processing.
  * @param {CLogHandler | null} handler The handler to utilize.
  * @returns {void}
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1915,9 +1915,9 @@ export function logger_handler(handler) {
  * @param {object | undefined} [level] The optional log level to set based on
  * the [CLogLevel] object configuration.
  * @returns {string} The string representation of the log level.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1947,9 +1947,9 @@ export function logger_level(level) {
  * @param {LOGGER} params.level The log level for the logged event.
  * @param {any} params.data The data to log with the event.
  * @returns {void}
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2021,7 +2021,7 @@ export function logger_log({level, data}) {
 export function monitor_performance() {
   // TODO: Deno performance monitor for sure.
   //       Will need to check if NodeJS exposes anything
-  //       Also need to see if any other monitors make sense. See Rust.  
+  //       Also need to see if any other monitors make sense. See Rust.
   throw API_NOT_IMPLEMENTED;
 }
 
@@ -2147,8 +2147,8 @@ export function network_fetch() {
 export function network_serve() {
   // TODO: Deno.serve() for HTTP. Also support upgrade of websocket.
   //       NodeJS if no 3rd party items needed.
-  //       Will also need to see if NodeJS has support without 3rd party 
-  //       library.  
+  //       Will also need to see if NodeJS has support without 3rd party
+  //       library.
   throw API_NOT_IMPLEMENTED;
 }
 
@@ -2158,7 +2158,7 @@ export function network_serve() {
 export function network_upgrade_web_socket() {
   // TODO: Deno.upgradeWebSocket() for HTTP. Also support upgrade of websocket.
   //       NodeJS if no 3rd party items needed.
-  //       Will also need to see if NodeJS has support without 3rd party 
+  //       Will also need to see if NodeJS has support without 3rd party
   //       library.
   throw API_NOT_IMPLEMENTED;
 }
@@ -2289,9 +2289,9 @@ export function npu_compute() {
  * @param {Array<number>} params.args The arguments needed for the formula.
  * @returns {number} The calculated result or NaN if something in the args
  * force that value (i.e. division by 0).
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2357,9 +2357,9 @@ export function process_spawn() {
 /**
  * Determines the CPU architecture.
  * @returns {string} identifier of the architecture.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2385,9 +2385,9 @@ export function runtime_cpu_arch() {
 /**
  * Determines the available CPU processors for background workers.
  * @returns {number} The available hardware processors.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2413,9 +2413,9 @@ export function runtime_cpu_count() {
  * value.
  * @param {string} name The name of the operating system variable to lookup.
  * @returns {string?} The value associated with the name or null if not found.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2458,9 +2458,9 @@ export function runtime_environment(name) {
  * @param {EventSource} [params.obj] An optional element to attach an event
  * handler to if it supports it.
  * @returns {void}
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2504,9 +2504,9 @@ export function runtime_event_listener({
 /**
  * Determines the home path of the logged in user.
  * @returns {string?} The identified home path on disk.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2532,9 +2532,9 @@ export function runtime_home_path() {
 /**
  * Determines the hostname of the host operating system.
  * @returns {string} The hostname of the computer.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2559,9 +2559,9 @@ export function runtime_hostname() {
 /**
  * Determines if the JavaScript runtime is web browser.
  * @returns {boolean} true if web browser, false otherwise.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2581,9 +2581,9 @@ export function runtime_is_browser() {
 /**
  * Determines if the JavaScript runtime is Deno runtime.
  * @returns {boolean} true if Deno, false otherwise.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2603,9 +2603,9 @@ export function runtime_is_deno() {
 /**
  * Determines if the JavaScript runtime is a NodeJS runtime.
  * @returns {boolean} true if NodeJS, false otherwise.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2625,9 +2625,9 @@ export function runtime_is_nodejs() {
 /**
  * Determines if the JavaScript runtime is a Worker thread.
  * @returns {boolean} true if worker, false otherwise.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2649,9 +2649,9 @@ export function runtime_is_worker() {
  * @returns {string} Either "deno" / "nodejs" for backend or
  * the name of the actual browser. Or "UNDETERMINED" if it could not
  * be determined.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2695,9 +2695,9 @@ export function runtime_name() {
 /**
  * Retrieves the host operating systems newline character.
  * @returns {string} of the newline character for strings.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2724,9 +2724,9 @@ export function runtime_newline() {
 /**
  * Determines if the web app has access to the Internet.
  * @returns {boolean} true if path to Internet available, false otherwise.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2750,9 +2750,9 @@ export function runtime_online() {
 /**
  * Determines the name of the host operating system.
  * @returns {string} The identification of the OS.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2775,9 +2775,9 @@ export function runtime_os_name() {
 /**
  * Gets the path separator of directories on disk.
  * @returns {string} representing the separation.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2802,9 +2802,9 @@ export function runtime_path_separator() {
 /**
  * Gets the temporary directory location of the host operating system.
  * @returns {string} representing the directory on disk.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2829,9 +2829,9 @@ export function runtime_temp_path() {
  * Identifies the logged in user running the application on the host operating
  * system.
  * @returns {string} user name on disk or "UNDETERMINED".
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2875,7 +2875,7 @@ class CCookieStorage {
     let cookies = globalThis.document.cookie.split(";");
     for (let i = 0; i < cookies.length; i++) {
       // @ts-ignore Will exist in the browser context
-      globalThis.document.cookie = 
+      globalThis.document.cookie =
         `${cookies[i]}=;expires=Thu, 01 Jan 1970 00:00:00 UTC`;
     }
     CCookieStorage.initKeyList();
@@ -2906,7 +2906,7 @@ class CCookieStorage {
   /**
    * Retrieves the key name at the specified index.
    * @param {number} index The key to retrieve from the given index
-   * @returns {string | null} The key entry or null if index went beyond 
+   * @returns {string | null} The key entry or null if index went beyond
    * length.
    */
   static key(index) {
@@ -2944,7 +2944,7 @@ class CCookieStorage {
    */
   static removeItem(key) {
     // @ts-ignore Will exist in the browser context
-    globalThis.document.cookie = 
+    globalThis.document.cookie =
       `${key}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
     CCookieStorage.initKeyList();
   }
@@ -2952,7 +2952,7 @@ class CCookieStorage {
   /**
    * Provides the ability to get a list of keys to support the length
    * property and key method of the Storage interface.
-   * @private 
+   * @private
    * @returns {void}
    */
   static initKeyList() {
@@ -2987,9 +2987,9 @@ export const STORAGE_TYPE = Object.freeze({
  * Clears the local storage of the module.
  * @param {string} [type=STORAGE_TYPE.Local] The STORAGE_TYPE to act upon.
  * @returns {void}
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -3024,13 +3024,13 @@ export function storage_clear(type = STORAGE_TYPE.Local) {
 /**
  * Gets the value associated with the key from the module's local storage.
  * @param {object} params The named parameters.
- * @param {string} [params.type=STORAGE_TYPE.Local] The STORAGE_TYPE to act 
+ * @param {string} [params.type=STORAGE_TYPE.Local] The STORAGE_TYPE to act
  * upon.
  * @param {string} params.key The key to search.
  * @returns {string?} The value associated with the key if found.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -3057,20 +3057,20 @@ export function storage_get({type = STORAGE_TYPE.Local, key}) {
       return globalThis.sessionStorage.getItem(key);
     default:
       throw API_MISUSE;
-  }  
+  }
 }
 
 /**
  * Retrieves the key at the specified index.
  * @param {object} params The named parameters
- * @param {string} [params.type=STORAGE_TYPE.Local] The STORAGE_TYPE to act 
+ * @param {string} [params.type=STORAGE_TYPE.Local] The STORAGE_TYPE to act
  * upon.
  * @param {number} params.index The key entry to look up.
- * @returns {string?} The key at the specified index or null if beyond the 
+ * @returns {string?} The key at the specified index or null if beyond the
  * storage capacity.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -3092,25 +3092,25 @@ export function storage_key({type, index}) {
     case STORAGE_TYPE.Cookie:
       return CCookieStorage.key(index);
     case STORAGE_TYPE.Local:
-      return index < globalThis.localStorage.length 
+      return index < globalThis.localStorage.length
         ? globalThis.localStorage.key(index)
         : null;
     case STORAGE_TYPE.Session:
-      return index < globalThis.sessionStorage.length 
+      return index < globalThis.sessionStorage.length
         ? globalThis.sessionStorage.key(index)
         : null;
     default:
       throw API_MISUSE;
-  }    
+  }
 }
 
 /**
  * Retrieves the number of entries within the module's local storage.
  * @param {string} [type=STORAGE_TYPE.Local] The STORAGE_TYPE to act upon.
  * @returns {number} The number of entries.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -3142,13 +3142,13 @@ export function storage_length(type = STORAGE_TYPE.Local) {
 /**
  * Removes a given entry from the module's local storage.
  * @param {object} params The named parameters.
- * @param {string} [params.type=STORAGE_TYPE.Local] The STORAGE_TYPE to act 
+ * @param {string} [params.type=STORAGE_TYPE.Local] The STORAGE_TYPE to act
  * upon.
  * @param {string} params.key The key to remove.
  * @returns {void}
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -3178,20 +3178,20 @@ export function storage_remove({type = STORAGE_TYPE.Local, key}) {
       break;
     default:
       throw API_MISUSE;
-  }  
+  }
 }
 
 /**
  * Sets a key/value pair within the module's local storage.
  * @param {object} params The named parameters
- * @param {string} [params.type=STORAGE_TYPE.Local] The STORAGE_TYPE to act 
+ * @param {string} [params.type=STORAGE_TYPE.Local] The STORAGE_TYPE to act
  * upon.
  * @param {string} params.value The storage entry.
  * @param {string} params.key The key to store.
  * @returns {void}
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -3222,7 +3222,7 @@ export function storage_set({type = STORAGE_TYPE.Local, key, value}) {
       break;
     default:
       throw API_MISUSE;
-  }  
+  }
 }
 
 // ============================================================================
@@ -3262,10 +3262,10 @@ export function storage_set({type = STORAGE_TYPE.Local, key, value}) {
  * device to share data such as text, URLs, or files. The available share
  * targets depend on the device, but might include the clipboard, contacts
  * and email applications, websites, Bluetooth, etc.
- * @property {string} Vibrate Most modern mobile devices include vibration 
- * hardware, which lets software code provide physical feedback to the user 
- * by causing the device to shake. The Vibration API offers Web apps the 
- * ability to access this hardware, if it exists, and does nothing if the 
+ * @property {string} Vibrate Most modern mobile devices include vibration
+ * hardware, which lets software code provide physical feedback to the user
+ * by causing the device to shake. The Vibration API offers Web apps the
+ * ability to access this hardware, if it exists, and does nothing if the
  * device doesn't support it.
  */
 export const ACTION_REQUEST = Object.freeze({
@@ -3532,7 +3532,7 @@ export class CAudioPlayer {
 }
 
 /**
- * Utility class to control the showing / hiding of dialogs on an HTML 
+ * Utility class to control the showing / hiding of dialogs on an HTML
  * document via the [ui_dialog] function.
  * @private
  */
@@ -3546,7 +3546,7 @@ class CDialog {
    * @param {any} [returnValue] The optional return values associated
    * with the dialog.
    * @returns {void}
-   */  
+   */
   static close(id, returnValue) {
     // @ts-ignore In browser context, will not be null
     const dlg = globalThis.document.getElementById(id);
@@ -3569,7 +3569,7 @@ class CDialog {
    * @param {string} [width] The width as px / % to size the dialog to.
    * @param {string} [height] The width as px / % to size the dialog to.
    * @returns {void}
-   */  
+   */
   static show(icon, id, title, content, width, height) {
     const style = `
       <style>
@@ -3603,7 +3603,7 @@ class CDialog {
           margin: 0;
           padding: 0;
           width: 100%;
-          flex: 1 1 auto;      
+          flex: 1 1 auto;
         }
         .codemelted-dialog-content div {
           padding: 10px;
@@ -3616,7 +3616,7 @@ class CDialog {
           margin-left: 10px;
           margin-right: 10px;
           margin-bottom: 10px;
-          width: 150px;      
+          width: 150px;
         }
         .codemelted-dialog-content button {
           cursor: pointer;
@@ -3634,14 +3634,14 @@ class CDialog {
       ${content}
     `;
     // @ts-ignore In browser context
-    const dialog = globalThis.document.createElement("dialog");    
-    // @ts-ignore In browser context    
+    const dialog = globalThis.document.createElement("dialog");
+    // @ts-ignore In browser context
     dialog.id = id;
-    // @ts-ignore In browser context    
+    // @ts-ignore In browser context
     dialog.innerHTML = html;
     // @ts-ignore In browser context
     dialog.style = style;
-    // @ts-ignore In browser context    
+    // @ts-ignore In browser context
     dialog.classList.add("codemelted-dialog");
     // @ts-ignore In browser context
     globalThis.document.body.appendChild(dialog);
@@ -3854,7 +3854,7 @@ export const SCREEN_REQUEST = Object.freeze({
 /**
  * Provides the ability to carry out actions with the open browser window.
  * @param {object} params The named parameters.
- * @param {string} params.request The {@link ACTION_REQUEST} enumerated value 
+ * @param {string} params.request The {@link ACTION_REQUEST} enumerated value
  * to carry out with the open browser window.
  * @param {object} [params.options] The optional data associated with the
  * Share / OpenFilePicker / SaveFilePicker requests. See <ul>
@@ -3862,20 +3862,20 @@ export const SCREEN_REQUEST = Object.freeze({
  * <li> https://developer.mozilla.org/en-US/docs/Web/API/Window/showOpenFilePicker#parameters </li>
  * <li> https://developer.mozilla.org/en-US/docs/Web/API/Window/showSaveFilePicker#parameters </li>
  * </ul>
- * @param {number[]} [params.pattern] Provides a pattern of vibration and pause 
- * intervals. Each value indicates a number of milliseconds to vibrate or pause, 
- * in alternation. 
- * @param {number} [params.x] An X coordinate or delta coordinate for a given 
- * action that moves / sets position of the browser window or item on the 
+ * @param {number[]} [params.pattern] Provides a pattern of vibration and pause
+ * intervals. Each value indicates a number of milliseconds to vibrate or pause,
+ * in alternation.
+ * @param {number} [params.x] An X coordinate or delta coordinate for a given
+ * action that moves / sets position of the browser window or item on the
  * browser window.
- * @param {number} [params.y] An X coordinate or delta coordinate for a given 
- * action that moves / sets position of the browser window or item on the 
+ * @param {number} [params.y] An X coordinate or delta coordinate for a given
+ * action that moves / sets position of the browser window or item on the
  * browser window.
  * @returns {Promise<CResult>} Reflecting success or failure of the given
  * request.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -3992,9 +3992,9 @@ export async function ui_action({request, options, pattern=[], x, y}) {
  * to perform text to speech.
  * @returns {CAudioPlayer} Reflecting success or failure of the given
  * request.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -4020,7 +4020,7 @@ export function ui_audio({request, data}) {
  * @param {object} params The named parameters
  * @param {string} params.request The {@link DIALOG_REQUEST} to carry out.
  * @param {string} params.title A unique way of identifying the dialog.
- * @param {string | HTMLElement} [params.message] The message to use with all 
+ * @param {string | HTMLElement} [params.message] The message to use with all
  * DIALOG_REQUEST options except .Browser / .Close / .Loading
  * @param {string[]} [params.choices=[]] The choices to utilize with the
  * DIALOG_REQUEST.Choose option.
@@ -4031,9 +4031,9 @@ export function ui_audio({request, data}) {
  * @param {string} [params.height] The optional height to set of the dialog
  * either by percentage or pixel.
  * @returns {Promise<CResult>} The returned value from the dialog.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -4047,10 +4047,10 @@ export function ui_audio({request, data}) {
  * // TBD
  */
 export function ui_dialog({
-  request, 
+  request,
   title,
-  message, 
-  choices = [], 
+  message,
+  choices = [],
   returnValue,
   width,
   height
@@ -4058,10 +4058,10 @@ export function ui_dialog({
   if (!runtime_is_browser()) {
     throw API_UNSUPPORTED_PLATFORM;
   }
-  json_check_type({type: Array, data: choices, shouldThrow: true});  
+  json_check_type({type: Array, data: choices, shouldThrow: true});
   json_check_type({type: "string", data: request, shouldThrow: true});
   json_check_type({type: "string", data: title, shouldThrow: true});
-  if (!json_check_type({type: "string", data: message}) && 
+  if (!json_check_type({type: "string", data: message}) &&
       // @ts-ignore This will exist in a browser context
       !json_check_type({type: globalThis.HTMLElement, data: message})) {
     throw API_TYPE_VIOLATION;
@@ -4131,7 +4131,7 @@ export function ui_dialog({
           };
         });
         CDialog.show("💻", id, title, content, width, height);
-      });     
+      });
     case DIALOG_REQUEST.Choose:
       return new Promise((resolve) => {
         /** @type {string[]} */
@@ -4193,7 +4193,7 @@ export function ui_dialog({
           };
         });
         CDialog.show("🤔", id, title, content, width, height);
-      });     
+      });
     case DIALOG_REQUEST.Close:
       return new Promise((resolve) => {
         CDialog.close(id, returnValue);
@@ -4245,7 +4245,7 @@ export function ui_dialog({
           };
         });
         CDialog.show("🙋‍♂️", id, title, content, width, height);
-      });     
+      });
     case DIALOG_REQUEST.Custom:
       return new Promise((resolve) => {
         // @ts-ignore Will exist in the browser context.
@@ -4274,7 +4274,7 @@ export function ui_dialog({
         });
         // @ts-ignore It will not be null.
         CDialog.show("🛃", id, title, content, width, height);
-      });               
+      });
     case DIALOG_REQUEST.Loading:
       return new Promise((resolve) => {
         const content = `
@@ -4313,7 +4313,7 @@ export function ui_dialog({
           }
         });
         CDialog.show("⏳", id, title, content, width, height);
-      });      
+      });
     case DIALOG_REQUEST.Prompt:
       return new Promise((resolve) => {
         const content = `
@@ -4345,7 +4345,7 @@ export function ui_dialog({
           };
 
           // @ts-ignore Will exist in a browser context
-          const txtField = globalThis.document.getElementById(`${id}Text`);            
+          const txtField = globalThis.document.getElementById(`${id}Text`);
           // @ts-ignore Will exist in a browser context
           const ok = globalThis.document.getElementById(`${id}OK`);
           // @ts-ignore Won't be null
@@ -4366,8 +4366,8 @@ export function ui_dialog({
             resolve(new CResult({value: CDialog.returnValue}));
           };
         });
-        CDialog.show("🤨", id, title, content, width, height);        
-      });      
+        CDialog.show("🤨", id, title, content, width, height);
+      });
     default:
       throw API_MISUSE;
   }
@@ -4376,13 +4376,13 @@ export function ui_dialog({
 /**
  * Boolean queries of the given browser runtime to discovery different
  * features about the given browser window.
- * @param {string} request {@link IS_REQUEST} enumerated value of different 
+ * @param {string} request {@link IS_REQUEST} enumerated value of different
  * browser properties.
  * @returns {boolean} true if the given property is supported, false
  * otherwise.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -4421,14 +4421,14 @@ export function ui_is(request) {
  * identifying the type of messaging to perform.
  * @param {string | any} params.data String for the Alert / Confirm / Prompt
  * request. Serializable data for Post communication between browser windows.
- * @param {string} [params.targetOrigin="*"] Which window to send the data 
- * when utilizing the Post request. Not setting it will send to all open 
+ * @param {string} [params.targetOrigin="*"] Which window to send the data
+ * when utilizing the Post request. Not setting it will send to all open
  * windows.
  * @returns {boolean | string | null | void} Alert is void / Confirm
  * is boolean / Prompt is string, null / Post is void.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -4489,9 +4489,9 @@ export function ui_message({request, data, targetOrigin = "*"}) {
  * @param {number} [params.height=600] The height of a popup window. Defaulted to
  * 600.0 when not set.
  * @returns {Window | null} Reference to the newly opened browser window.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -4610,9 +4610,9 @@ export function ui_open({
  * different aspects to request information about.
  * @returns {number | string} Number for all requests except
  * ScreenOrientationType request.
- * @throws {SyntaxError} Reflecting either {@link API_MISUSE}, 
- * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or 
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You 
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -4699,7 +4699,7 @@ export function ui_widget() {
   if ("HTMLElement" in globalThis) {
     // TODO: This is how we will define our custom components.
     // @ts-ignore Exists in a browser context.
-    // globalThis.customElements.define("codemelted-something", 
+    // globalThis.customElements.define("codemelted-something",
     //     class extends globalThis.HTMLElement {
     //   // Define something cool.
     // });

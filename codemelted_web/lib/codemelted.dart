@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names, camel_case_types
+
 /*
 ===============================================================================
 MIT License
@@ -49,9 +51,8 @@ import "package:web/web.dart" as web;
 // [MODULE DATA DEFINITION] ===================================================
 // ============================================================================
 
-/// Support object for the [CProtocolHandler] and any other object to provide
-/// a result where either the value or the error can be signaled for later
-/// checking by a user.
+/// Support object for any object to provide a result where either the value
+/// or the error can be signaled for later checking by a user.
 class CResult<T> {
   /// Hold the value of the given result or nothing if the [CResult] is being
   /// used to signal there was no error.
@@ -64,10 +65,10 @@ class CResult<T> {
   final StackTrace? st;
 
   /// Signals the transaction completed with no errors.
-  bool get isOk => error == null;
+  bool get is_ok => error == null;
 
   /// Signals whether an error was captured or not.
-  bool get isError => error != null && error!.isNotEmpty;
+  bool get is_error => error != null && error!.isNotEmpty;
 
   /// Constructor for the object.
   CResult({
@@ -76,29 +77,132 @@ class CResult<T> {
     this.st,
   }) {
     assert(
-      ((value != null && error == null) || (value == null && error != null)),
+      ((value != null && error == null) ||
+       (value == null && error != null) ||
+       (value == null && error == null)),
       "SyntaxError: Only value or error can be set. Not both!",
     );
   }
 }
 
-/// Defines the "rules" for objects that will setup a protocol that directly
-/// exchanges data with an external item, will continuously run until
-/// terminated, requires the ability to know it is running, and get any errors
-/// that have occurred during its run.
-abstract class CProtocolHandler<T> {
-  /// Retrieves any currently processed messages.
-  Future<CResult<T>> getMessage([String? request]);
+// ============================================================================
+// [codemelted.js BINDING] ====================================================
+// ============================================================================
 
-  /// Signals if the protocol is running or not.
-  bool get isRunning;
-
-  /// Handles the sending od data to the protocol for processing.
-  CResult<void> postMessage(T data);
-
-  /// Signal for the protocol to terminate.
-  void terminate();
+/// Mapping of `codemelted.js` module formulas to support the
+/// [CodeMeltedJS.npu_math] call.
+enum MATH_FORMULA {
+  /// °F = (°C x 9/5) + 32
+  TemperatureCelsiusToFahrenheit;
 }
+
+/// Provides the flutter binding to the `codemelted.js` module providing
+/// method accessors to the web runtime functions of the module. Accessible
+/// via the [codemelted_js] object binding.
+class CodeMeltedJS {
+  /// Holds the `codemelted.js` location when codemelted_web module is built.
+  static const scriptFile = "assets/packages/codemelted_web/assets/js"
+    "/codemelted.js";
+
+  /// Static instance for the factory.
+  static CodeMeltedJS? _instance;
+
+  /// Holds the JSObject `codemelted.js` exported module reference.
+  JSObject? _module;
+
+  /// Accesses the `codemelted.js` Flutter binding.
+  JSObject get module {
+    assert(_module != null, "codemelted.js module was not loaded!");
+    return _module!;
+  }
+
+  /// Executes the specified [MATH_FORMULA] based on the given arguments to
+  /// retrieve the calculated answer. NaN is returned in the event of
+  /// division by 0 or squaring of a negative number.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// 0 °C == 32 °F
+  /// var answer = codemelted_js.npu_math(
+  ///   formula: MATH_FORMULA.TemperatureCelsiusToFahrenheit,
+  ///   args: [0.0]
+  /// );
+  /// ```
+  double npu_math({required MATH_FORMULA formula, required List<double> args}) {
+    var formulaObj = module.getProperty<JSObject>("MATH_FORMULA".toJS);
+    var formulaArgs = <JSNumber>[];
+    for (var v in args) {
+      formulaArgs.add(v.toJS);
+    }
+    var theFormula = formulaObj.getProperty<JSFunction>(formula.name.toJS);
+    var params = <String, dynamic>{
+      "formula": theFormula,
+      "args": formulaArgs.toJS
+    };
+    var answer = module.callMethod<JSNumber>("npu_math".toJS, params.jsify());
+    return answer.toDartDouble;
+  }
+
+  /// Determines the available CPU processors for background workers.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// var cpuCount = codemelted_js.runtime_cpu_count();
+  /// ```
+  int runtime_cpu_count() {
+    return module.callMethod<JSNumber>("runtime_cpu_count".toJS).toDartInt;
+  }
+
+  /// Provides the ability to search the document search parameters for
+  /// queryable parameters on the web document.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// var value = codemelted_js.runtime_environment("username");
+  /// ```
+  String? runtime_environment(String name) {
+    var value = module.callMethod<JSString?>(
+      "runtime_environment".toJS,
+      name.toJS
+    );
+    return value.isUndefinedOrNull ? null : value!.toDart;
+  }
+
+  /// Responsible for loading the `codemelted.js` script file to provide
+  /// the flutter bindings for the `codemelted.dart` module.
+  Future<CResult> loadScript([String script = scriptFile]) async {
+    try {
+      _module = await importModule(script.toJS).toDart;
+      return CResult();
+    } catch (err, st) {
+      return CResult(error: err.toString(), st: st);
+    }
+  }
+
+  /// Factory constructor for the object.
+  factory CodeMeltedJS() => _instance ?? CodeMeltedJS._();
+
+  /// Constructor for the object.
+  CodeMeltedJS._() {
+    _instance = this;
+  }
+}
+
+/// The binding access to the [CodeMeltedJS] representing the `codemelted_js`
+/// namespace within the Flutter application.
+///
+/// /// **Example:**
+/// ```dart
+/// Future<void> main() async {
+///   var result = await codemelted_js.loadScript();
+///   if (result.is_error) {
+///     // Handle the error. The module assumes it is initialized at the
+///     // beginning of app loading.
+///   }
+///   // Then use the codemelted_ui. later in the code.
+/// }
+/// ```
+var codemelted_js = CodeMeltedJS();
 
 // ============================================================================
 // [ASYNC UC IMPLEMENTATION] ==================================================

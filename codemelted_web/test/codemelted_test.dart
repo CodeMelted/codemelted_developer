@@ -31,7 +31,12 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   // This is called once after ALL tests
-  setUpAll(() {});
+  setUpAll(() async {
+    var result = await codemelted_js.loadScript("/codemelted.js");
+    expect(result.is_ok, isTrue);
+    expect(result.is_error, isFalse);
+    expect(codemelted_js.module, isNotNull);
+  });
 
   // This is called once before EVERY test
   setUp(() {});
@@ -41,6 +46,24 @@ void main() {
 
   // This is called once after EVERY test
   tearDown(() {});
+
+  // ==========================================================================
+  // [codemelted.js BINDING] ==================================================
+  // ==========================================================================
+
+  group("codemelted_js Validation", () {
+    test("codemelted_js.npu_math Test", () {
+      expect(codemelted_js.npu_math(formula: MATH_FORMULA.TemperatureCelsiusToFahrenheit, args: [0.0]), equals(32.0));
+    });
+
+    test("codemelted_js.runtime_cpu_count() Test", () {
+      expect(codemelted_js.runtime_cpu_count(), greaterThanOrEqualTo(1));
+    });
+
+    test("codemelted_js.runtime_environment() Test", () {
+      expect(codemelted_js.runtime_environment("username"), isNull);
+    });
+  });
 
   // --------------------------------------------------------------------------
   // [JSON Use Case] ----------------------------------------------------------
@@ -63,8 +86,8 @@ void main() {
         },
         data: 37,
       );
-      expect(result.isOk, isTrue);
-      expect(result.isError, isFalse);
+      expect(result.is_ok, isTrue);
+      expect(result.is_error, isFalse);
       expect(result.value, equals(42));
 
       // An error case
@@ -74,8 +97,8 @@ void main() {
         },
         data: "a",
       );
-      expect(result.isOk, isFalse);
-      expect(result.isError, isTrue);
+      expect(result.is_ok, isFalse);
+      expect(result.is_error, isTrue);
       expect(result.value, isNull);
     });
 
@@ -93,20 +116,6 @@ void main() {
       expect(count, greaterThanOrEqualTo(4));
       expect(timer.isRunning, isFalse);
     });
-
-    // To Be Updated.
-    // test("asyncWorker Validation", () async {
-    //   var worker = asyncWorker(workerUrl: "worker.js", isModule: false);
-    //   expect(worker.isRunning, isTrue);
-    //   expect(worker.postMessage(42).isOk, isTrue);
-    //   expect(worker.postMessage("a").isError, isTrue);
-    //   var message = await worker.getMessage();
-    //   expect(message.isOk, isTrue);
-    //   expect(message.isError, isFalse);
-    //   expect(message.value, equals(42));
-    //   worker.terminate();
-    //   expect(worker.isRunning, isFalse);
-    // });
   });
 
   group("JSON Use Case Tests", () {
