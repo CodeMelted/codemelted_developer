@@ -73,7 +73,7 @@ const API_UNSUPPORTED_PLATFORM = new SyntaxError(
  * represents a global event handler that should suffice any JavaScript
  * event callback.
  * @callback CEventHandler
- * @param {Event | string} e The event object that was triggered
+ * @param {Event} e The event object that was triggered
  * @returns {void}
  */
 
@@ -2473,7 +2473,7 @@ export function runtime_environment(name) {
  * @example
  * // TBD
  */
-export function runtime_event_listener({
+export function runtime_event({
   action,
   type,
   listener,
@@ -2498,6 +2498,8 @@ export function runtime_event_listener({
     } else {
       globalThis.removeEventListener(type, listener);
     }
+  } else {
+    throw API_MISUSE;
   }
 }
 

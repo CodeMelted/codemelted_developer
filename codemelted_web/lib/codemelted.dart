@@ -89,6 +89,10 @@ class CResult<T> {
 // [codemelted.js BINDING] ====================================================
 // ============================================================================
 
+/// Provides a general event handler for the
+/// [CodeMeltedJS.runtime_event] attachment.
+typedef CEventHandler = void Function(web.Event);
+
 /// Mapping of `codemelted.js` module formulas to support the
 /// [CodeMeltedJS.npu_math] call.
 enum MATH_FORMULA {
@@ -116,13 +120,71 @@ class CodeMeltedJS {
     return _module!;
   }
 
+  // ==========================================================================
+  // [ASYNC UC BINDING] =======================================================
+  // ==========================================================================
+
+  // TO BE DEVELOPED.
+
+  // ==========================================================================
+  // [CONSOLE UC BINDING] =====================================================
+  // ==========================================================================
+
+  // NOT APPLICABLE TO FLUTTER WEB TARGET
+
+  // ==========================================================================
+  // [DB UC BINDING] ==========================================================
+  // ==========================================================================
+
+  // TO BE DEVELOPED.
+
+  // ==========================================================================
+  // [DISK UC BINDING] ========================================================
+  // ==========================================================================
+
+  // TO BE DEVELOPED.
+
+  // ==========================================================================
+  // [HW UC BINDING] ==========================================================
+  // ==========================================================================
+
+  // TO BE DEVELOPED.
+
+  // ==========================================================================
+  // [JSON UC BINDING] ==========================================================
+  // ==========================================================================
+
+  // NOT APPLICABLE TO FLUTTER. FLUTTER ALREADY PROVIDES.
+
+  // ==========================================================================
+  // [LOGGER UC BINDING] ======================================================
+  // ==========================================================================
+
+  // TO BE DEVELOPED.
+
+  // ==========================================================================
+  // [MONITOR UC BINDING] =====================================================
+  // ==========================================================================
+
+  // NOT APPLICABLE TO FLUTTER WEB TARGET
+
+  // ==========================================================================
+  // [NETWORK UC BINDING] =====================================================
+  // ==========================================================================
+
+  // TO BE DEVELOPED.
+
+  // ==========================================================================
+  // [NPU UC BINDING] =========================================================
+  // ==========================================================================
+
   /// Executes the specified [MATH_FORMULA] based on the given arguments to
   /// retrieve the calculated answer. NaN is returned in the event of
   /// division by 0 or squaring of a negative number.
   ///
   /// **Example:**
   /// ```dart
-  /// 0 °C == 32 °F
+  /// // 0 °C == 32 °F
   /// var answer = codemelted_js.npu_math(
   ///   formula: MATH_FORMULA.TemperatureCelsiusToFahrenheit,
   ///   args: [0.0]
@@ -142,6 +204,16 @@ class CodeMeltedJS {
     var answer = module.callMethod<JSNumber>("npu_math".toJS, params.jsify());
     return answer.toDartDouble;
   }
+
+  // ==========================================================================
+  // [PROCESS UC BINDING] =====================================================
+  // ==========================================================================
+
+  // NOT APPLICABLE TO FLUTTER WEB TARGET
+
+  // ==========================================================================
+  // [RUNTIME UC BINDING] =====================================================
+  // ==========================================================================
 
   /// Determines the available CPU processors for background workers.
   ///
@@ -167,6 +239,93 @@ class CodeMeltedJS {
     );
     return value.isUndefinedOrNull ? null : value!.toDart;
   }
+
+  /// Adds or removes an event listener to the JavaScript browser runtime or
+  /// individual EventSource object. The action parameter will take either
+  /// "add" or "remove". The type parameter corresponds to the event you are
+  /// registering to handle. The listener represents the listener to respond
+  /// to the events.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// // To add an event to react to when the web document is loaded
+  /// void listener(web.Event e) {
+  ///   // Do something with the events...
+  /// }
+  ///
+  /// codemelted_js.runtime_event(
+  ///   action: "add",
+  ///   type: "DOMContentLoaded",
+  ///   listener: listener
+  /// );
+  ///
+  /// // To eventually remove the event
+  /// codemelted_js.runtime_event(
+  ///   action: "remove",
+  ///   type: "DOMContentLoaded",
+  ///   listener: listener
+  /// );
+  /// ```
+  void runtime_event({
+    required String action,
+    required String type,
+    required CEventHandler listener,
+    web.EventSource? obj
+  }) {
+    var params = <String, dynamic>{
+      "action": action.toJS,
+      "type": type.toJS,
+      "listener": listener.jsify(),
+      "obj": obj.jsify()
+    };
+    module.callMethod("runtime_event".toJS, params.jsify());
+  }
+
+  /// Determines the hostname of the browser runtime.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// var hostname = codemelted_js.hostname();
+  /// ```
+  String runtime_hostname() {
+    return module.callMethod<JSString>("runtime_hostname".toJS).toDart;
+  }
+
+  /// Determines what browser the JavaScript runtime represents.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// var runtime = codemelted_js.runtime_name();
+  /// ```
+  String runtime_name() {
+    return module.callMethod<JSString>("runtime_name".toJS).toDart;
+  }
+
+  /// Determines if the web document has access to the Internet.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// var online = codemelted_js.runtime_online();
+  /// ```
+  bool runtime_online() {
+    return module.callMethod<JSBoolean>("runtime_online".toJS).toDart;
+  }
+
+  // ==========================================================================
+  // [STORAGE UC BINDING] =====================================================
+  // ==========================================================================
+
+  // TO BE DEVELOPED.
+
+  // ==========================================================================
+  // [UI UC BINDING] ==========================================================
+  // ==========================================================================
+
+  // TO BE DEVELOPED.
+
+  // ==========================================================================
+  // [SETUP / LOAD SCRIPT] ====================================================
+  // ==========================================================================
 
   /// Responsible for loading the `codemelted.js` script file to provide
   /// the flutter bindings for the `codemelted.dart` module.

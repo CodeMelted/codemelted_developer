@@ -26,6 +26,7 @@ DEALINGS IN THE SOFTWARE.
 
 import 'package:codemelted_web/codemelted.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:web/web.dart' as web;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -62,6 +63,28 @@ void main() {
 
     test("codemelted_js.runtime_environment() Test", () {
       expect(codemelted_js.runtime_environment("username"), isNull);
+    });
+
+    test("codemelted_js.runtime_event Test", () {
+      try {
+        void listener(web.Event e) { }
+        codemelted_js.runtime_event(action: "add", type: "DOMContentLoaded", listener: listener);
+        codemelted_js.runtime_event(action: "remove", type: "DOMContentLoaded", listener: listener);
+      } catch (err) {
+        fail("Should not throw");
+      }
+    });
+
+    test("codemelted_js.runtime_hostname() Test", () {
+      expect(codemelted_js.runtime_hostname(), equals("localhost"));
+    });
+
+    test("codemelted_js.runtime_name() Test", () {
+      expect(codemelted_js.runtime_name(), equals("chrome"));
+    });
+
+    test("codemelted_js.runtime_online() Test", () {
+      expect(codemelted_js.runtime_online(), isTrue);
     });
   });
 
