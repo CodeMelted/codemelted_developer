@@ -64,7 +64,7 @@ const API_TYPE_VIOLATION = new SyntaxError(
  * unsupported runtime.
  * @constant {SyntaxError}
  */
-const API_UNSUPPORTED_PLATFORM = new SyntaxError(
+const API_UNSUPPORTED_RUNTIME = new SyntaxError(
   "codemelted.js module function called on an unsupported JavaScript runtime!"
 );
 
@@ -114,7 +114,7 @@ export class CProtocolHandler {
    * @param {any} data
    * @returns {Promise<CResult>}
    */
-  post_message(data) { throw API_NOT_IMPLEMENTED; }
+  async post_message(data) { throw API_NOT_IMPLEMENTED; }
 
   /**
    * Terminates the given protocol.
@@ -138,7 +138,7 @@ export class CProtocolHandler {
  * checking by a user.
  */
 class CResult {
-  /** @type {Error | string | null} */
+  /** @type {any} */
   #error = null;
 
   /** @type {any} */
@@ -147,7 +147,7 @@ class CResult {
   /**
    * Holds any error message associated with a failed transaction request.
    * @readonly
-   * @type {Error | string | null}
+   * @type {any}
    */
   get error() { return this.#error; }
 
@@ -254,7 +254,7 @@ export class CTimerResult {
  * @returns {Promise<void>} The promise to await on for the delay.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -289,7 +289,7 @@ export function async_sleep(delay) {
  * task.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -327,7 +327,7 @@ export function async_task({task, data, delay = 0}) {
  * interval.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -355,7 +355,7 @@ export function async_timer({task, interval}) {
  * <mark>IN DEVELOPMENT! DON'T USE!!</mark
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -383,7 +383,7 @@ export function async_worker() {
  * @returns {void}
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -403,7 +403,7 @@ export function console_alert(message = "") {
   } else if (runtime_is_nodejs()) {
     throw API_NOT_IMPLEMENTED;
   } else {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
 }
 
@@ -417,7 +417,7 @@ export function console_alert(message = "") {
  * @returns {number} The index of the selection in [params.choices].
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -461,7 +461,7 @@ export function console_choose({message = "", choices}) {
   } else if (runtime_is_nodejs()) {
     throw API_NOT_IMPLEMENTED;
   } else {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
 }
 
@@ -471,7 +471,7 @@ export function console_choose({message = "", choices}) {
  * @returns {boolean} The choice made.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -494,7 +494,7 @@ export function console_confirm(message = "") {
   } else if (runtime_is_nodejs()) {
     throw API_NOT_IMPLEMENTED;
   } else {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
 }
 
@@ -504,7 +504,7 @@ export function console_confirm(message = "") {
  * @returns {string} the password entered via STDIN.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -546,7 +546,7 @@ export function console_password(message = "") {
   } else if (runtime_is_nodejs()) {
     throw API_NOT_IMPLEMENTED;
   } else {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
 }
 
@@ -556,7 +556,7 @@ export function console_password(message = "") {
  * @returns {string} The typed in answer received via STDIN.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -580,7 +580,7 @@ export function console_prompt(message = "") {
   } else if (runtime_is_nodejs()) {
     throw API_NOT_IMPLEMENTED;
   } else {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
 }
 
@@ -590,7 +590,7 @@ export function console_prompt(message = "") {
  * @returns {void}
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -608,7 +608,7 @@ export function console_writeln(message = "") {
   if (runtime_is_deno() || runtime_is_nodejs()) {
     globalThis.console.log(message);
   } else {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
 }
 
@@ -1292,7 +1292,7 @@ export const SERIAL_PORT_DATA_REQUEST = Object.freeze({
  * @returns {boolean} Indication of runtime support.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1315,7 +1315,7 @@ export function hw_bluetooth_supported() {
  * @returns {boolean} Indication of runtime support.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1339,7 +1339,7 @@ export function hw_midi_supported() {
  * @returns {boolean} Indication of runtime support.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1382,7 +1382,7 @@ export function hw_request_midi() {
  * orientation changes until terminated.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1397,7 +1397,7 @@ export function hw_request_midi() {
  */
 export function hw_request_orientation(options) {
   if (!hw_orientation_supported()) {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
   return new COrientationProtocol(options)
 }
@@ -1409,7 +1409,7 @@ export function hw_request_orientation(options) {
  * port or null if request was canceled or could not be connected.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1431,7 +1431,7 @@ export function hw_request_orientation(options) {
  */
 export async function hw_request_serial_port() {
   if (!hw_serial_port_supported()) {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
 
   try {
@@ -1457,7 +1457,7 @@ export function hw_request_usb() {
  * @returns {boolean} true if available, false otherwise.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1486,7 +1486,7 @@ export function hw_serial_port_supported() {
  * @returns {boolean} Indication of runtime support.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1514,7 +1514,7 @@ export function hw_usb_supported() {
  * failed.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1544,7 +1544,7 @@ export function json_atob(data) {
  * failed.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1573,7 +1573,7 @@ export function json_btoa(data) {
  * @returns {any[]} The newly created array with optional data.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1603,7 +1603,7 @@ export function json_create_array(data) {
  * @returns {object} The newly created object with optional data.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1636,7 +1636,7 @@ export function json_create_object(data) {
  * @returns {boolean} true if it meets the expectations, false otherwise.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1681,7 +1681,7 @@ export function json_check_type({
  * @returns {boolean} true if property was found, false otherwise.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1710,7 +1710,7 @@ export function json_has_key({data, key, shouldThrow = false}) {
  * @returns {any | null} The JSON data type or null if the parsing fails.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1738,7 +1738,7 @@ export function json_parse(data) {
  * stringify failed.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1768,7 +1768,7 @@ export function json_stringify(data) {
  * @returns {boolean} true if valid, false otherwise.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1887,7 +1887,7 @@ let _loggerHandler = null;
  * @returns {void}
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1917,7 +1917,7 @@ export function logger_handler(handler) {
  * @returns {string} The string representation of the log level.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -1949,7 +1949,7 @@ export function logger_level(level) {
  * @returns {void}
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2028,6 +2028,246 @@ export function monitor_performance() {
 // ============================================================================
 // [NETWORK UC IMPLEMENTATION] ================================================
 // ============================================================================
+
+/**
+ * The BroadcastChannel interface represents a named channel that any browsing
+ * context of a given origin can subscribe to. It allows communication between
+ * different documents (in different windows, tabs, frames or iframes) of the
+ * same origin.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API
+ * @extends {CProtocolHandler}
+ */
+export class CBroadcastChannelProtocol extends CProtocolHandler {
+  /** @type {BroadcastChannel} */
+  #channel
+
+  /** @type {MessageEvent[]} */
+  #rxData = [];
+
+  /** @type {MessageEvent[]} */
+  #rxError = [];
+
+  /**
+   * Gets the latest data received from the protocol.
+   * @override
+   * @param {string} [request=""] NOT USED.
+   * @returns {Promise<CResult>} The result containing the given information.
+   * Errors are processed first if they have been received.
+   */
+  async get_message(request="") {
+    if (!this.is_running) {
+      throw API_MISUSE;
+    }
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (this.#rxError.length > 0) {
+          resolve(new CResult({error: this.#rxError.shift()}));
+        } else {
+          if (this.#rxData.length > 0) {
+            resolve(new CResult({value: this.#rxData.shift()}));
+          } else {
+            resolve(new CResult());
+          }
+        }
+      });
+    });
+  }
+
+  /**
+   * @override
+   * @inheritdoc
+   */
+  get is_running() {
+    return this.#channel.onmessage !=null
+      && this.#channel.onmessageerror != null;
+  }
+
+  /**
+   * Sends a message, which can be of any kind of Object, to each listener
+   * in any browsing context with the same origin. The message is transmitted
+   * as a message event targeted at each BroadcastChannel bound to the
+   * channel.
+   * @override
+   * @param {any} data Data to be sent to the other window. The data is
+   * serialized using the structured clone algorithm. This means you can
+   * pass a broad variety of data objects safely to the destination window
+   * without having to serialize them yourself.
+   * @returns {Promise<CResult>} The result of the transmission.
+   */
+  async post_message(data) {
+    if (!this.is_running) {
+      throw API_MISUSE;
+    }
+    try {
+      this.#channel.postMessage(data);
+      return new CResult();
+    } catch (err) {
+      return new CResult({error: err});
+    }
+  }
+
+  /**
+   * @override
+   * @inheritdoc
+   */
+  terminate() {
+    if (!this.is_running) {
+      throw API_MISUSE;
+    }
+    // Close the connection and clear the channel items.
+    this.#channel.onmessage = null;
+    this.#channel.onmessageerror = null;
+    this.#channel.close();
+    this.#rxData.length = 0;
+    this.#rxError.length = 0;
+  }
+
+  /**
+   * Constructor for the class.
+   * @param {string} url The URL to open a connection to broadcast data to
+   * other listeners.
+   */
+  constructor(url) {
+    super(`CBroadcastChannelProtocol-${url}`);
+    this.#channel = new globalThis.BroadcastChannel(url);
+    this.#channel.onmessage = (evt) => {
+      setTimeout(() => {
+        this.#rxData.push(evt);
+      });
+    };
+    this.#channel.onmessageerror = (evt) => {
+      setTimeout(() => {
+        this.#rxError.push(evt);
+      });
+    };
+  }
+}
+
+/**
+ * Opens a persistent connection to an HTTP server, which sends events in
+ * text/event-stream format. The connection remains open until terminate is
+ * called.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/EventSource
+ * @extends {CProtocolHandler}
+ */
+export class CEventSourceProtocol extends CProtocolHandler {
+  /**
+   * Supports the [CEventSourceProtocol.state] function.
+   * @constant {number}
+   */
+  static get CONNECTING() { return  0; }
+
+  /**
+   * Supports the [CEventSourceProtocol.state] function.
+   * @constant {number}
+   */
+  static get OPEN() { return  1; }
+
+  /**
+   * Supports the [CEventSourceProtocol.state] function.
+   * @constant {number}
+   */
+  static get CLOSED() { return  2; }
+
+  /** @type {EventSource} */
+  #sse
+
+  /** @type {MessageEvent[]} */
+  #rxData = [];
+
+  /** @type {Event[]} */
+  #rxError = [];
+
+  /**
+   * Retrieves the current state of the [CEventSourceProtocol]. -1 returns
+   * if protocol has been terminated.
+   * @readonly
+   * @type {number}
+   */
+  get state() {
+    return this.is_running ?
+      this.#sse.readyState
+      : -1;
+  }
+
+  /**
+   * Gets the latest data received from the protocol.
+   * @override
+   * @param {string} [request=""] NOT USED.
+   * @returns {Promise<CResult>} The result containing the given information.
+   * Errors are processed first if they have been received.
+   */
+  async get_message(request="") {
+    if (!this.is_running) {
+      throw API_MISUSE;
+    }
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (this.#rxError.length > 0) {
+          resolve(new CResult({error: this.#rxError.shift()}));
+        } else {
+          if (this.#rxData.length > 0) {
+            resolve(new CResult({value: this.#rxData.shift()}));
+          } else {
+            resolve(new CResult());
+          }
+        }
+      });
+    });
+  }
+
+  /**
+   * @override
+   * @inheritdoc
+   */
+  get is_running() {
+    return this.#sse.onmessage !=null
+      && this.#sse.onerror != null;
+  }
+
+  /**
+   * NOT USED. DON'T CALL.
+   * @override
+   * @param {any} data
+   * @returns {Promise<CResult>}
+   */
+  async post_message(data) { throw API_NOT_IMPLEMENTED; }
+
+  /**
+   * @override
+   * @inheritdoc
+   */
+  terminate() {
+    if (!this.is_running) {
+      throw API_MISUSE;
+    }
+    // Close the connection and clear the channel items.
+    this.#sse.close();
+    this.#sse.onerror = null;
+    this.#sse.onmessage = null;
+    this.#rxData.length = 0;
+    this.#rxError.length = 0;
+  }
+
+  /**
+   * Constructor for the protocol
+   * @param {string} url The URL to connect to receive events.
+   */
+  constructor(url) {
+    super(`CEventSourceProtocol-${url}`);
+    this.#sse = new globalThis.EventSource(url);
+    this.#sse.onerror = (evt) => {
+      setTimeout(() => {
+        this.#rxError.push(evt);
+      });
+    }
+    this.#sse.onmessage = (evt) => {
+      setTimeout(() => {
+        this.#rxData.push(evt);
+      });
+    }
+  }
+}
 
 /**
  * The result object from a [network_fetch] call containing any data from the
@@ -2116,7 +2356,7 @@ export class CFetchResult extends CResult {
    * @param {object} params
    * @param {number} params.status
    * @param {any} [params.data]
-   * @param {string | null} [params.error]
+   * @param {any} [params.error]
    */
   constructor({status, data, error=null}) {
     super({value: data, error: error});
@@ -2125,41 +2365,522 @@ export class CFetchResult extends CResult {
 }
 
 /**
-* <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
+ * Provides the ability to connect to different server protocols.
+ * @enum {object}
+ * @property {string} BroadcastChannel The Broadcast Channel API allows basic
+ * communication between browsing contexts (that is, windows, tabs, frames,
+ * or iframes) and workers on the same origin.
+ * @property {string} EventSource An EventSource instance opens a persistent
+ * connection to an HTTP server, which sends events in text/event-stream
+ * format.
+ * @property {string} WebSocket  provides the API for creating and managing a
+ * WebSocket connection to a server, as well as for sending and receiving
+ * data on the connection.
  */
-export function network_connect() {
-  // TODO: All client socket protocols. Browser worker, deno for sure.
-  //       Need to double check nodejs.
-  throw API_NOT_IMPLEMENTED;
+export const CONNECT_REQUEST = Object.freeze({
+  BroadcastChannel: "broadcast_channel",
+  EventSource: "event_source",
+  WebSocket: "web_socket",
+});
+
+/**
+ * Handles REST API requests from the [network_serve] function call.
+ * @callback CNetworkServeCB
+ * @param {Request} req The request being received.
+ * @returns {Response} The response to the request.
+ */
+
+/**
+ * Wrapper for the [Deno.HttpServer] object providing the return to the
+ * [network_serve] call.
+ * @see https://docs.deno.com/api/deno/~/Deno.HttpServer
+ */
+export class CHttpServer {
+  /** @type {any} */
+  #server;
+
+  /**
+   * The binding information of the server.
+   * @readonly
+   * @type {object}
+   */
+  get addr() {
+    // @ts-ignore Will have an addr property.
+    return this.#server.addr;
+  }
+
+  /**
+   * Make the server block the event loop from finishing. Note: the server
+   * blocks the event loop from finishing by default. This method is only
+   * meaningful after .unblock() is called.
+   */
+  block() {
+    // @ts-ignore Will have a ref() method.
+    this.#server.ref();
+  }
+
+  /**
+   * Make the server not block the event loop from finishing.
+   */
+  unblock() {
+    // @ts-ignore Will have an unref() method.
+    this.#server.unref();
+  }
+
+  /**
+   * Gracefully close the server. No more new connections will be accepted,
+   * while pending requests will be allowed to finish.
+   * @returns {Promise<CResult>}
+   */
+  async shutdown() {
+    try {
+      // @ts-ignore Will have a shutdown() method.
+      await this.#server.shutdown();
+      return new CResult();
+    } catch (err) {
+      return new CResult({error: err});
+    }
+  }
+
+  /**
+   * Constructor for the object.
+   * @param {any} server The Deno.HttpServer created and wrapped.
+   */
+  constructor(server) {
+    this.#server = server;
+  }
 }
 
 /**
-* <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
+ * Provides the API for creating and managing a WebSocket connection to a
+ * server, as well as for sending and receiving data on the connection.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
+ * @extends {CProtocolHandler}
  */
-export function network_fetch() {
-  // TODO: a fetch wrapper. Should be same in all targets.
-  throw API_NOT_IMPLEMENTED;
+export class CWebSocketProtocol extends CProtocolHandler {
+  /**
+   * Supports the [CWebSocketProtocol.state] function.
+   * @constant {number}
+   */
+  static get CONNECTING() { return  0; }
+
+  /**
+   * Supports the [CWebSocketProtocol.state] function.
+   * @constant {number}
+   */
+  static get OPEN() { return  1; }
+
+  /**
+   * Supports the [CWebSocketProtocol.state] function.
+   * @constant {number}
+   */
+  static get CLOSING() { return  2; }
+
+  /**
+   * Supports the [CWebSocketProtocol.state] function.
+   * @constant {number}
+   */
+  static get CLOSED() { return  3; }
+
+  /** @type {boolean} */
+  #isServer;
+
+  /** @type {string | null} */
+  #url = null;
+
+  /** @type {any} */
+  #socket
+
+  /** @type {MessageEvent[]} */
+  #rxData = [];
+
+  /** @type {Event[]} */
+  #rxError = [];
+
+  /**
+   * Identifies if this protocol represents a server or client Web Socket.
+   * Clients will automatically reconnect on fail [post_message] calls.
+   * Servers will not requiring a [terminate] call.
+   * @readonly
+   * @type {boolean}
+   */
+  get isServer() { return this.#isServer; }
+
+  /**
+   * Retrieves the current state of the [CWebSocketProtocol]. -1 returns
+   * if protocol has been terminated.
+   * @readonly
+   * @type {number}
+   */
+  get state() {
+    return this.is_running ?
+      this.#socket.readyState
+      : -1;
+  }
+
+  /**
+   * Gets the latest data received from the protocol.
+   * @override
+   * @param {string} [request=""] NOT USED.
+   * @returns {Promise<CResult>} The result containing the given information.
+   * Errors are processed first if they have been received.
+   */
+  async get_message(request="") {
+    if (!this.is_running) {
+      throw API_MISUSE;
+    }
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (this.#rxError.length > 0) {
+          resolve(new CResult({error: this.#rxError.shift()}));
+        } else {
+          if (this.#rxData.length > 0) {
+            resolve(new CResult({value: this.#rxData.shift()}));
+          } else {
+            resolve(new CResult());
+          }
+        }
+      });
+    });
+  }
+
+  /**
+   * @override
+   * @inheritdoc
+   */
+  get is_running() {
+    return this.#socket.onmessage !=null
+      && this.#socket.onerror != null;
+  }
+
+  /**
+   * Enqueues the specified data to be transmitted to the server over the
+   * WebSocket connection, increasing the value of bufferedAmount by the
+   * number of bytes needed to contain the data. If the data can't be sent
+   * (for example, because it needs to be buffered but the buffer is full),
+   * the socket is closed automatically.
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/send#data
+   * @override
+   * @param {string | ArrayBuffer | Blob } data Data to send to the server for
+   * further processing.
+   * @returns {Promise<CResult>} The result of the transmission. A failure
+   * will result in a disconnect and reconnect of the underlying protocol
+   * socket.
+   */
+  async post_message(data) {
+    if (!this.is_running) {
+      throw API_MISUSE;
+    }
+    try {
+      this.#socket.send(data);
+      return new CResult();
+    } catch (err) {
+      // We had an issue with the connection, go re-establish the socket if
+      // we are a client.
+      if (!this.#isServer) {
+        this.#closeSocket();
+        this.#connectSocket();
+      }
+      return new CResult({error: err});
+    }
+  }
+
+  /**
+   * @override
+   * @inheritdoc
+   */
+  terminate() {
+    if (!this.is_running) {
+      throw API_MISUSE;
+    }
+    this.#closeSocket();
+  }
+
+  /**
+   * Constructs the given protocol connecting it to the server at url.
+   * @param {object} params The named parameters
+   * @param {string} [params.url] The url to connect to a server.
+   * @param {any} [params.socket] A socket as a result of the
+   * [network_upgrade_websocket] call.
+   */
+  constructor({url, socket}) {
+    super(`CWebSocketProtocol-${url ?? 'server'}`);
+    if (url) {
+      this.#isServer = false;
+      this.#url = url;
+      this.#connectSocket();
+    } else {
+      this.#isServer = true;
+      this.#socket = socket;
+      this.#socket.onmessage = (/** @type {MessageEvent<any>} */ evt) => {
+        setTimeout(() => {
+          this.#rxData.push(evt);
+        });
+      }
+      this.#socket.onerror = (/** @type {Event} */ evt) => {
+        setTimeout(() => {
+          this.#rxError.push(evt);
+        });
+      }
+    }
+  }
+
+  /**
+   * Handles creating a web socket to connect to a server.
+   */
+  #connectSocket() {
+    // @ts-ignore URL will not be null.
+    this.#socket = new globalThis.WebSocket(this.#url);
+    this.#socket.onmessage = (/** @type {MessageEvent<any>} */ evt) => {
+      setTimeout(() => {
+        this.#rxData.push(evt);
+      });
+    }
+    this.#socket.onerror = (/** @type {Event} */ evt) => {
+      setTimeout(() => {
+        this.#rxError.push(evt);
+      });
+    }
+  }
+
+  /**
+   * Closes the socket.
+   */
+  #closeSocket() {
+    this.#socket.close();
+    this.#socket.onmessage = null;
+    this.#socket.onerror = null;
+    this.#rxData.length = 0;
+    this.#rxError.length = 0;
+  }
 }
 
 /**
-* <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
+ * Sends an HTTP POST request containing a small amount of data to a web
+ * server.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon
+ * @param {object} params The named parameters
+ * @param {string} params.url Where to send the beacon.
+ * @param {any | null} [params.data] The data to send with the beacon.
+ * @returns {boolean} true if queued up by user agent, false otherwise.
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
+ * should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
  */
-export function network_serve() {
-  // TODO: Deno.serve() for HTTP. Also support upgrade of websocket.
-  //       NodeJS if no 3rd party items needed.
-  //       Will also need to see if NodeJS has support without 3rd party
-  //       library.
-  throw API_NOT_IMPLEMENTED;
+export function network_beacon({url, data}) {
+  if (!runtime_is_browser()) {
+    throw API_UNSUPPORTED_RUNTIME;
+  }
+  // @ts-ignore Will exist in a browser context.
+  return globalThis.navigator.sendBeacon(url, data);
 }
 
 /**
-* <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
+ * Provides the ability to create client side protocols to send / receive
+ * data with other items within the network / Internet.
+ * @param {object} params The named parameters.
+ * @param {string} params.request The {@link CONNECT_REQUEST} protocol to
+ * connect.
+ * @param {string} params.url The server hosting the protocol to connect.
+ * @returns {CBroadcastChannelProtocol | CEventSourceProtocol
+ *  | CWebSocketProtocol } The protocol to communicate with the connected
+ * server.
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
+ * should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" checked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
  */
-export function network_upgrade_web_socket() {
-  // TODO: Deno.upgradeWebSocket() for HTTP. Also support upgrade of websocket.
-  //       NodeJS if no 3rd party items needed.
-  //       Will also need to see if NodeJS has support without 3rd party
-  //       library.
+export function network_connect({request, url}) {
+  switch (request) {
+    case CONNECT_REQUEST.BroadcastChannel:
+      return new CBroadcastChannelProtocol(url);
+    case CONNECT_REQUEST.EventSource:
+      return new CEventSourceProtocol(url);
+    case CONNECT_REQUEST.WebSocket:
+      return new CWebSocketProtocol({url: url});
+    default:
+      throw API_MISUSE;
+  }
+}
+
+/**
+ * Provides the ability to make requests from a hosted server REST API.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/RequestInit
+ * @param {object} params The named parameters
+ * @param {string} params.url The URL to the server REST API to communicate.
+ * @param {object} params.options The data to configure / go along with the
+ * request. See the attached URL for detailed
+ * @returns {Promise<CFetchResult>} The result of the request.
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
+ * should not try-catch these as these serve as asserts to the developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" checked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
+ */
+export async function network_fetch({url, options}) {
+  try {
+    const resp = await globalThis.fetch(url, options);
+      const contentType = resp.headers.get("Content-Type") ?? "";
+      const status = resp.status;
+      const data = contentType.includes("application/json")
+          ? await resp.json()
+          : contentType.includes("form-data")
+          ? await resp.formData()
+          : contentType.includes("application/octet-stream")
+          ? await resp.blob()
+          : contentType.includes("text/")
+          ? await resp.text()
+          : "";
+      return new CFetchResult({status: status, data: data});
+  } catch (err) {
+    return new CFetchResult({status: 418, error: err});
+  }
+}
+
+/**
+ * Creates a HTTP Server REST API endpoint within a Deno Runtime.
+ * @see https://docs.deno.com/api/deno/~/Deno.TlsCertifiedKeyPem
+ * @param {object} params The named parameters.
+ * @param {CNetworkServeCB} params.handler The callback to determine what to
+ * do with the request and communicate a response.
+ * @param {string} [params.hostname="0.0.0.0"] The binding address of the
+ * REST API.
+ * @param {number} [params.port=8000] The binding port of the REST API.
+ * @param {string} [params.key] Private key in PEM format. RSA, EC, and PKCS8-format keys
+ * are supported.
+ * @param {string} [params.cert] Certificate chain in PEM format.
+ * @returns {CHttpServer} The constructed server.
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
+ * should not try-catch these as these serve as asserts to the developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
+ */
+export function network_serve({
+  handler,
+  hostname="0.0.0.0",
+  port=8000,
+  key,
+  cert,
+}) {
+  if (!runtime_is_deno()) {
+    throw API_UNSUPPORTED_RUNTIME;
+  }
+  json_check_type({
+    type: "function",
+    data: handler,
+    count: 1,
+    shouldThrow: true
+  });
+  json_check_type({type: "string", data: hostname, shouldThrow: true});
+  json_check_type({type: "number", data: port, shouldThrow: true});
+  let serveOptions = {
+    hostname: hostname,
+    port: port,
+    handler: handler,
+  };
+  if (key && cert) {
+    // @ts-ignore It is just an object.
+    serveOptions["key"] = key;
+    // @ts-ignore It is just an object.
+    serveOptions["cert"] = cert;
+  }
+  // @ts-ignore serve will be attached to globalThis.
+  const server = globalThis.serve(serveOptions);
+  return new CHttpServer(server);
+}
+
+/**
+ * Upgrade an incoming HTTP request to a WebSocket.
+ * @param {Request} req The initial request asking to upgrade to a
+ * @returns {CResult} The result of the upgrade with a CWebSocketProtocol or
+ * the error if the upgrade failed.
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
+ * should not try-catch these as these serve as asserts to the developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
+ */
+export function network_upgrade_web_socket(req) {
+  try {
+    const { socket, /** @type {Response} */ response } =
+      // @ts-ignore upgradeWebSocket will be available.
+      globalThis.upgradeWebSocket(req);
+    if (response.ok) {
+      return new CResult({value: new CWebSocketProtocol({socket: socket})});
+    } else {
+      return new CResult({
+        error: `Failed to upgrade to a web socket ${response.status}`
+      });
+    }
+  } catch (err) {
+    return new CResult({error: err});
+  }
+}
+
+/**
+ * <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
+ * should not try-catch these as these serve as asserts to the developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" checked><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
+ */
+export function network_webrtc() {
+  // TODO: Will only be available in the browser.
   throw API_NOT_IMPLEMENTED;
 }
 
@@ -2291,7 +3012,7 @@ export function npu_compute() {
  * force that value (i.e. division by 0).
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2359,7 +3080,7 @@ export function process_spawn() {
  * @returns {string} identifier of the architecture.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2379,7 +3100,7 @@ export function runtime_cpu_arch() {
     // @ts-ignore Property exists in a browser runtime.
     return globalThis.process.arch;
   }
-  throw API_UNSUPPORTED_PLATFORM;
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
@@ -2387,7 +3108,7 @@ export function runtime_cpu_arch() {
  * @returns {number} The available hardware processors.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2415,7 +3136,7 @@ export function runtime_cpu_count() {
  * @returns {string?} The value associated with the name or null if not found.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2444,7 +3165,7 @@ export function runtime_environment(name) {
       ? globalThis.process.env[name]
       : null;
   }
-  throw API_UNSUPPORTED_PLATFORM;
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
@@ -2460,7 +3181,7 @@ export function runtime_environment(name) {
  * @returns {void}
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2508,7 +3229,7 @@ export function runtime_event({
  * @returns {string?} The identified home path on disk.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2528,7 +3249,7 @@ export function runtime_home_path() {
     return runtime_environment("USERPROFILE") ||
       runtime_environment("USER");
   }
-  throw API_UNSUPPORTED_PLATFORM;
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
@@ -2536,7 +3257,7 @@ export function runtime_home_path() {
  * @returns {string} The hostname of the computer.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2555,7 +3276,7 @@ export function runtime_hostname() {
   } else if (runtime_is_deno()) {
     return globalThis.Deno.hostname();
   }
-  throw API_UNSUPPORTED_PLATFORM;
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
@@ -2563,7 +3284,7 @@ export function runtime_hostname() {
  * @returns {boolean} true if web browser, false otherwise.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2585,7 +3306,7 @@ export function runtime_is_browser() {
  * @returns {boolean} true if Deno, false otherwise.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2607,7 +3328,7 @@ export function runtime_is_deno() {
  * @returns {boolean} true if NodeJS, false otherwise.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2629,7 +3350,7 @@ export function runtime_is_nodejs() {
  * @returns {boolean} true if worker, false otherwise.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2653,7 +3374,7 @@ export function runtime_is_worker() {
  * be determined.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2699,7 +3420,7 @@ export function runtime_name() {
  * @returns {string} of the newline character for strings.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2720,7 +3441,7 @@ export function runtime_newline() {
       ? "\r\n"
       : "\n"
   }
-  throw API_UNSUPPORTED_PLATFORM;
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
@@ -2728,7 +3449,7 @@ export function runtime_newline() {
  * @returns {boolean} true if path to Internet available, false otherwise.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2746,7 +3467,7 @@ export function runtime_online() {
     // @ts-ignore Property exists in a browser runtime.
     return globalThis.navigator.onLine;
   }
-  throw API_UNSUPPORTED_PLATFORM;
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
@@ -2754,7 +3475,7 @@ export function runtime_online() {
  * @returns {string} The identification of the OS.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2771,7 +3492,7 @@ export function runtime_os_name() {
   if (runtime_is_deno()) {
     return globalThis.Deno.build.os;
   }
-  throw API_UNSUPPORTED_PLATFORM;
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
@@ -2779,7 +3500,7 @@ export function runtime_os_name() {
  * @returns {string} representing the separation.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2798,7 +3519,7 @@ export function runtime_path_separator() {
       ? "\\"
       : "/"
   }
-  throw API_UNSUPPORTED_PLATFORM;
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
@@ -2806,7 +3527,7 @@ export function runtime_path_separator() {
  * @returns {string} representing the directory on disk.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2824,7 +3545,7 @@ export function runtime_temp_path() {
     return runtime_environment("TMPDIR") || runtime_environment("TMP") ||
       runtime_environment("TEMP") || "/tmp";
   }
-  throw API_UNSUPPORTED_PLATFORM;
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
@@ -2833,7 +3554,7 @@ export function runtime_temp_path() {
  * @returns {string} user name on disk or "UNDETERMINED".
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -2851,7 +3572,7 @@ export function runtime_user() {
     return runtime_environment("USERNAME") || runtime_environment("USER") ||
       "UNDETERMINED";
   }
-  throw API_UNSUPPORTED_PLATFORM;
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 // ============================================================================
@@ -2991,7 +3712,7 @@ export const STORAGE_TYPE = Object.freeze({
  * @returns {void}
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -3006,7 +3727,7 @@ export const STORAGE_TYPE = Object.freeze({
  */
 export function storage_clear(type = STORAGE_TYPE.Local) {
   if (runtime_is_nodejs() || runtime_is_worker()) {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
   switch (type) {
     case STORAGE_TYPE.Cookie:
@@ -3032,7 +3753,7 @@ export function storage_clear(type = STORAGE_TYPE.Local) {
  * @returns {string?} The value associated with the key if found.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -3047,7 +3768,7 @@ export function storage_clear(type = STORAGE_TYPE.Local) {
  */
 export function storage_get({type = STORAGE_TYPE.Local, key}) {
   if (runtime_is_nodejs() || runtime_is_worker()) {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
   json_check_type({type: "string", data: key, shouldThrow: true});
   switch (type) {
@@ -3072,7 +3793,7 @@ export function storage_get({type = STORAGE_TYPE.Local, key}) {
  * storage capacity.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -3087,7 +3808,7 @@ export function storage_get({type = STORAGE_TYPE.Local, key}) {
  */
 export function storage_key({type, index}) {
   if (runtime_is_nodejs() || runtime_is_worker()) {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
   json_check_type({type: "number", data: index, shouldThrow: true});
   switch (type) {
@@ -3112,7 +3833,7 @@ export function storage_key({type, index}) {
  * @returns {number} The number of entries.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -3127,7 +3848,7 @@ export function storage_key({type, index}) {
  */
 export function storage_length(type = STORAGE_TYPE.Local) {
   if (runtime_is_nodejs() || runtime_is_worker()) {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
   switch (type) {
     case STORAGE_TYPE.Cookie:
@@ -3150,7 +3871,7 @@ export function storage_length(type = STORAGE_TYPE.Local) {
  * @returns {void}
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -3165,7 +3886,7 @@ export function storage_length(type = STORAGE_TYPE.Local) {
  */
 export function storage_remove({type = STORAGE_TYPE.Local, key}) {
   if (runtime_is_nodejs() || runtime_is_worker()) {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
   json_check_type({type: "string", data: key, shouldThrow: true});
   switch (type) {
@@ -3193,7 +3914,7 @@ export function storage_remove({type = STORAGE_TYPE.Local, key}) {
  * @returns {void}
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -3208,7 +3929,7 @@ export function storage_remove({type = STORAGE_TYPE.Local, key}) {
  */
 export function storage_set({type = STORAGE_TYPE.Local, key, value}) {
   if (runtime_is_nodejs() || runtime_is_worker()) {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
   json_check_type({type: "string", data: key, shouldThrow: true});
   json_check_type({type: "string", data: value, shouldThrow: true});
@@ -3877,7 +4598,7 @@ export const SCREEN_REQUEST = Object.freeze({
  * request.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -3892,7 +4613,7 @@ export const SCREEN_REQUEST = Object.freeze({
  */
 export async function ui_action({request, options, pattern=[], x, y}) {
   if (!runtime_is_browser()) {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
   let value = null;
   switch (request) {
@@ -3996,7 +4717,7 @@ export async function ui_action({request, options, pattern=[], x, y}) {
  * request.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -4011,7 +4732,7 @@ export async function ui_action({request, options, pattern=[], x, y}) {
  */
 export function ui_audio({request, data}) {
   if (!runtime_is_browser()) {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
   return new CAudioPlayer(request, data);
 }
@@ -4035,7 +4756,7 @@ export function ui_audio({request, data}) {
  * @returns {Promise<CResult>} The returned value from the dialog.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -4058,7 +4779,7 @@ export function ui_dialog({
   height
 }) {
   if (!runtime_is_browser()) {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
   json_check_type({type: Array, data: choices, shouldThrow: true});
   json_check_type({type: "string", data: request, shouldThrow: true});
@@ -4384,7 +5105,7 @@ export function ui_dialog({
  * otherwise.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -4399,7 +5120,7 @@ export function ui_dialog({
  */
 export function ui_is(request) {
   if (!runtime_is_browser()) {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
   switch (request) {
     case IS_REQUEST.PWA:
@@ -4430,7 +5151,7 @@ export function ui_is(request) {
  * is boolean / Prompt is string, null / Post is void.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -4445,7 +5166,7 @@ export function ui_is(request) {
  */
 export function ui_message({request, data, targetOrigin = "*"}) {
   if (!runtime_is_browser()) {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
   switch (request) {
     case MESSAGE_REQUEST.Alert:
@@ -4493,7 +5214,7 @@ export function ui_message({request, data, targetOrigin = "*"}) {
  * @returns {Window | null} Reference to the newly opened browser window.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -4521,7 +5242,7 @@ export function ui_open({
 }) {
   // Basic validation of runtime and required parameters.
   if (!runtime_is_browser()) {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
   json_check_type({type: "boolean", data: popupWindow, shouldThrow: true});
   json_check_type({type: "string", data: target, shouldThrow: true});
@@ -4614,7 +5335,7 @@ export function ui_open({
  * ScreenOrientationType request.
  * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
  * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
- * {@link API_UNSUPPORTED_PLATFORM} codemelted.js module API violations. You
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
  * should not try-catch these as these serve as asserts to the
  * developer.
  * </p>
@@ -4629,7 +5350,7 @@ export function ui_open({
  */
 export function ui_screen(request) {
   if (!runtime_is_browser()) {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
   switch (request) {
     case SCREEN_REQUEST.AvailableHeight:
@@ -4706,6 +5427,6 @@ export function ui_widget() {
     //   // Define something cool.
     // });
   } else {
-    throw API_UNSUPPORTED_PLATFORM;
+    throw API_UNSUPPORTED_RUNTIME;
   }
 }
