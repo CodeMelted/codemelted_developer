@@ -4461,9 +4461,9 @@ export const DIALOG_REQUEST = Object.freeze({
  * a touch device.
  */
 export const IS_REQUEST = Object.freeze({
-  PWA: "pwa",
-  SecureContext: "secureContext",
-  TouchEnabled: "touchEnabled",
+  PWA: "PWA",
+  SecureContext: "SecureContext",
+  TouchEnabled: "TouchEnabled",
 });
 
 /**
@@ -5186,6 +5186,8 @@ export function ui_message({request, data, targetOrigin = "*"}) {
       throw API_MISUSE;
   }
 }
+
+// TODO: Break out SCHEMA and TARGET enumerations.
 
 /**
  * Opens the specified protocol to a browser window or native app

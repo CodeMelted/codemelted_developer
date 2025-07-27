@@ -33,10 +33,10 @@ void main() {
 
   // This is called once after ALL tests
   setUpAll(() async {
-    var result = await codemelted_js.loadScript("/codemelted.js");
+    var result = await codemelted.loadScript("/codemelted.js");
     expect(result.is_ok, isTrue);
     expect(result.is_error, isFalse);
-    expect(codemelted_js.module, isNotNull);
+    expect(codemelted.module, isNotNull);
   });
 
   // This is called once before EVERY test
@@ -49,61 +49,21 @@ void main() {
   tearDown(() {});
 
   // ==========================================================================
-  // [codemelted.js BINDING] ==================================================
+  // [ASYNC UC TESTING] =======================================================
   // ==========================================================================
 
-  group("codemelted_js Validation", () {
-    test("codemelted_js.npu_math Test", () {
-      expect(codemelted_js.npu_math(formula: MATH_FORMULA.TemperatureCelsiusToFahrenheit, args: [0.0]), equals(32.0));
-    });
-
-    test("codemelted_js.runtime_cpu_count() Test", () {
-      expect(codemelted_js.runtime_cpu_count(), greaterThanOrEqualTo(1));
-    });
-
-    test("codemelted_js.runtime_environment() Test", () {
-      expect(codemelted_js.runtime_environment("username"), isNull);
-    });
-
-    test("codemelted_js.runtime_event Test", () {
-      try {
-        void listener(web.Event e) { }
-        codemelted_js.runtime_event(action: "add", type: "DOMContentLoaded", listener: listener);
-        codemelted_js.runtime_event(action: "remove", type: "DOMContentLoaded", listener: listener);
-      } catch (err) {
-        fail("Should not throw");
-      }
-    });
-
-    test("codemelted_js.runtime_hostname() Test", () {
-      expect(codemelted_js.runtime_hostname(), equals("localhost"));
-    });
-
-    test("codemelted_js.runtime_name() Test", () {
-      expect(codemelted_js.runtime_name(), equals("chrome"));
-    });
-
-    test("codemelted_js.runtime_online() Test", () {
-      expect(codemelted_js.runtime_online(), isTrue);
-    });
-  });
-
-  // --------------------------------------------------------------------------
-  // [JSON Use Case] ----------------------------------------------------------
-  // --------------------------------------------------------------------------
-
   group("Async Use Case Tests", () {
-    test("asyncSleep Validation", () async {
+    test("codemelted.async_sleep Validation", () async {
       var start = DateTime.now();
-      await asyncSleep(1000);
+      await codemelted.async_sleep(1000);
       var delay =
           DateTime.now().millisecondsSinceEpoch - start.millisecondsSinceEpoch;
       expect(delay, greaterThanOrEqualTo(950));
     });
 
-    test("asyncTask Validation", () async {
+    test("codemelted.async_task Validation", () async {
       // A good result.
-      var result = await asyncTask<int>(
+      var result = await codemelted.async_task<int>(
         task: ([data]) async {
           return data + 5;
         },
@@ -114,7 +74,7 @@ void main() {
       expect(result.value, equals(42));
 
       // An error case
-      result = await asyncTask<int>(
+      result = await codemelted.async_task<int>(
         task: ([data]) {
           return data + 5;
         },
@@ -125,28 +85,32 @@ void main() {
       expect(result.value, isNull);
     });
 
-    test("asyncTimer Validation", () async {
+    test("codemelted.async_timer Validation", () async {
       var count = 0;
-      var timer = asyncTimer(
+      var timer = codemelted.async_timer(
         task: () {
           count += 1;
         },
         interval: 250,
       );
       expect(timer.isRunning, isTrue);
-      await asyncSleep(1100);
+      await codemelted.async_sleep(1100);
       timer.stop();
       expect(count, greaterThanOrEqualTo(4));
       expect(timer.isRunning, isFalse);
     });
   });
 
+  // ==========================================================================
+  // [JSON UC TESTING] ========================================================
+  // ==========================================================================
+
   group("JSON Use Case Tests", () {
     test("CArray Validation", () {
       var listenerCount = 0;
       onDataChanged() => listenerCount += 1;
 
-      var array = jsonCreateArray();
+      var array = codemelted.json_create_array();
       array.addListener(listener: onDataChanged);
       expect(array.isEmpty, isTrue);
 
@@ -189,7 +153,7 @@ void main() {
       var listenerCount = 0;
       onDataChanged() => listenerCount += 1;
 
-      var obj = jsonCreateObject();
+      var obj = codemelted.json_create_object();
       obj.addListener(listener: onDataChanged);
       expect(obj.isEmpty, isTrue);
 
@@ -218,61 +182,114 @@ void main() {
       expect(success, isTrue);
     });
 
-    test("jsonParse Validation", () {
+    test("codemelted.json_parse Validation", () {
       // bool parsing
-      expect(jsonParse<bool>("42"), isFalse);
-      expect(jsonParse<bool>("1"), isTrue);
-      expect(jsonParse<bool>("yes"), isTrue);
-      expect(jsonParse<bool>("no"), isFalse);
+      expect(codemelted.json_parse<bool>("42"), isFalse);
+      expect(codemelted.json_parse<bool>("1"), isTrue);
+      expect(codemelted.json_parse<bool>("yes"), isTrue);
+      expect(codemelted.json_parse<bool>("no"), isFalse);
 
       // double validation
-      expect(jsonParse<double>("a"), isNull);
-      expect(jsonParse<double>("42.2"), isNotNull);
-      expect(jsonParse<double>("42"), isNotNull);
+      expect(codemelted.json_parse<double>("a"), isNull);
+      expect(codemelted.json_parse<double>("42.2"), isNotNull);
+      expect(codemelted.json_parse<double>("42"), isNotNull);
 
       // int validation
-      expect(jsonParse<int>("a"), isNull);
-      expect(jsonParse<int>("42.2"), isNull);
-      expect(jsonParse<int>("42"), isNotNull);
+      expect(codemelted.json_parse<int>("a"), isNull);
+      expect(codemelted.json_parse<int>("42.2"), isNull);
+      expect(codemelted.json_parse<int>("42"), isNotNull);
     });
 
-    test("jsonHasKey Validation", () {
-      var obj = jsonCreateObject({
+    test("codemelted.json_has_key Validation", () {
+      var obj = codemelted.json_create_object({
         "one": 1,
         "two": "two",
         "three": null,
       });
 
-      expect(jsonHasKey(obj: obj, key: "one"), isTrue);
-      expect(jsonHasKey(obj: obj, key: "4"), isFalse);
+      expect(codemelted.json_has_key(obj: obj, key: "one"), isTrue);
+      expect(codemelted.json_has_key(obj: obj, key: "4"), isFalse);
       try {
-        jsonHasKey(obj: obj, key: "4", shouldThrow: true);
+        codemelted.json_has_key(obj: obj, key: "4", shouldThrow: true);
         fail("should throw exception");
       } catch (ex) {
         expect(ex, isA<String>());
       }
     });
 
-    test("jsonCheckType Validation", () {
-      expect(jsonCheckType<String>(data: 42), isFalse);
-      expect(jsonCheckType<String>(data: "42"), isTrue);
+    test("codemelted.json_check_type Validation", () {
+      expect(codemelted.json_check_type<String>(data: 42), isFalse);
+      expect(codemelted.json_check_type<String>(data: "42"), isTrue);
       try {
-        jsonCheckType<String>(data: 42, shouldThrow: true);
+        codemelted.json_check_type<String>(data: 42, shouldThrow: true);
         fail("should throw exception");
       } catch (ex) {
         expect(ex, isA<String>());
       }
     });
 
-    test("jsonValidUrl Validation", () {
-      expect(jsonValidUrl(url: "https://codemelted.com"), isTrue);
-      expect(jsonValidUrl(url: "j;,ht:/b;l42"), isFalse);
+    test("codemelted.json_valid_url Validation", () {
+      expect(codemelted.json_valid_url(url: "https://codemelted.com"), isTrue);
+      expect(codemelted.json_valid_url(url: "j;,ht:/b;l42"), isFalse);
       try {
-        jsonValidUrl(url: "j;,ht:/b;l42", shouldThrow: true);
+        codemelted.json_valid_url(url: "j;,ht:/b;l42", shouldThrow: true);
         fail("should throw exception");
       } catch (ex) {
         expect(ex, isA<String>());
       }
     });
   });
+
+  // ==========================================================================
+  // [RUNTIME UC TESTING] =====================================================
+  // ==========================================================================
+
+  group("Runtime UC Validation", () {
+    test("codemelted.npu_math Test", () {
+      expect(codemelted.npu_math(formula: MATH_FORMULA.TemperatureCelsiusToFahrenheit, args: [0.0]), equals(32.0));
+    });
+
+    test("codemelted.runtime_cpu_count() Test", () {
+      expect(codemelted.runtime_cpu_count(), greaterThanOrEqualTo(1));
+    });
+
+    test("codemelted.runtime_environment() Test", () {
+      expect(codemelted.runtime_environment("username"), isNull);
+    });
+
+    test("codemelted.runtime_event Test", () {
+      try {
+        void listener(web.Event e) { }
+        codemelted.runtime_event(action: "add", type: "DOMContentLoaded", listener: listener);
+        codemelted.runtime_event(action: "remove", type: "DOMContentLoaded", listener: listener);
+      } catch (err) {
+        fail("Should not throw");
+      }
+    });
+
+    test("codemelted.runtime_hostname() Test", () {
+      expect(codemelted.runtime_hostname(), equals("localhost"));
+    });
+
+    test("codemelted.runtime_name() Test", () {
+      expect(codemelted.runtime_name(), equals("chrome"));
+    });
+
+    test("codemelted.runtime_online() Test", () {
+      expect(codemelted.runtime_online(), isTrue);
+    });
+  });
+
+  // ==========================================================================
+  // [UI UC TESTING] ==========================================================
+  // ==========================================================================
+
+  group("UI Use Case Tests", ()  {
+    test("codemelted.ui_is() Validation", ()  {
+      expect(codemelted.ui_is(IS_REQUEST.PWA), isA<bool>());
+      expect(codemelted.ui_is(IS_REQUEST.SecureContext), isA<bool>());
+      expect(codemelted.ui_is(IS_REQUEST.TouchEnabled), isA<bool>());
+    });
+  });
+
 }

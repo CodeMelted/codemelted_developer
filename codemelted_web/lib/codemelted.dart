@@ -48,596 +48,102 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import "package:web/web.dart" as web;
 
 // ============================================================================
-// [MODULE DATA DEFINITION] ===================================================
+// [MODULE REQUEST DEFINITIONS] ===============================================
 // ============================================================================
 
-/// Support object for any object to provide a result where either the value
-/// or the error can be signaled for later checking by a user.
-class CResult<T> {
-  /// Hold the value of the given result or nothing if the [CResult] is being
-  /// used to signal there was no error.
-  final T? value;
+/// Identifies the [CodeMeltedAPI.ui_dialog] function supported dialog types.
+enum DIALOG_REQUEST {
+  /// Displays an about dialog for the constructed [CUiAppView]
+  About,
 
-  /// The error encountered that requires an action by the user.
-  final String? error;
+  /// Displays a snack bar to alert the user of a condition.
+  Alert,
 
-  /// Stack trace associated with the handled error.
-  final StackTrace? st;
+  /// Opens a full page browser iFrame.
+  Browser,
 
-  /// Signals the transaction completed with no errors.
-  bool get is_ok => error == null;
+  /// Provides a half page selection of options.
+  Choose,
 
-  /// Signals whether an error was captured or not.
-  bool get is_error => error != null && error!.isNotEmpty;
+  /// Will asynchronously close an open dialog.
+  Close,
 
-  /// Constructor for the object.
-  CResult({
-    this.value,
-    this.error,
-    this.st,
-  }) {
-    assert(
-      ((value != null && error == null) ||
-       (value == null && error != null) ||
-       (value == null && error == null)),
-      "SyntaxError: Only value or error can be set. Not both!",
-    );
-  }
+  /// Provides a confirmation Yes / No question to the user.
+  Confirm,
+
+  /// Provides a full page custom dialog to the [CUiAppView].
+  Custom,
+
+  /// Provides a loading half-page dialog closed via a [DIALOG_REQUEST.close].
+  Loading,
+
+  /// Provides a single text field prompt input box.
+  Prompt;
 }
 
-// ============================================================================
-// [codemelted.js BINDING] ====================================================
-// ============================================================================
-
-/// Provides a general event handler for the
-/// [CodeMeltedJS.runtime_event] attachment.
-typedef CEventHandler = void Function(web.Event);
+/// Provides queryable parameters of the browser runtime environment.
+enum IS_REQUEST {
+  /// Determines if the browser window represents an installed Progressive
+  /// Web Application.
+  PWA,
+  /// Indicates whether the current context is secure (true) or not (false).
+  SecureContext,
+  /// Identifies if the browser is accessible via a touch device.
+  TouchEnabled,
+}
 
 /// Mapping of `codemelted.js` module formulas to support the
-/// [CodeMeltedJS.npu_math] call.
+/// [CodeMeltedAPI.npu_math] call.
 enum MATH_FORMULA {
   /// °F = (°C x 9/5) + 32
   TemperatureCelsiusToFahrenheit;
 }
 
-/// Provides the flutter binding to the `codemelted.js` module providing
-/// method accessors to the web runtime functions of the module. Accessible
-/// via the [codemelted_js] object binding.
-class CodeMeltedJS {
-  /// Holds the `codemelted.js` location when codemelted_web module is built.
-  static const scriptFile = "assets/packages/codemelted_web/assets/js"
-    "/codemelted.js";
+/// Identifies the different schemas a browser may be able to handle. This
+/// supports the [CodeMeltedAPI.ui_open] function.
+enum SCHEMA {
+  /// Opens an app that can handle the identified file.
+  File("file:"),
+  /// Opens a browser window in a non-secure context.
+  Http("http://"),
+  /// Opens a browser window in a secure context.
+  Https("https://"),
+  /// Opens an app associated with email.
+  Mailto("mailto:"),
+  /// Opens an app associated with handling SMS text messages.
+  SMS("sms:"),
+  /// Opens an app associated with handling telephone calls.
+  Tel("tel:");
 
-  /// Static instance for the factory.
-  static CodeMeltedJS? _instance;
+  /// Holds the binding schema for the `codemelted.js` module to process.
+  final String schema;
 
-  /// Holds the JSObject `codemelted.js` exported module reference.
-  JSObject? _module;
-
-  /// Accesses the `codemelted.js` Flutter binding.
-  JSObject get module {
-    assert(_module != null, "codemelted.js module was not loaded!");
-    return _module!;
-  }
-
-  // ==========================================================================
-  // [ASYNC UC BINDING] =======================================================
-  // ==========================================================================
-
-  // TO BE DEVELOPED.
-
-  // ==========================================================================
-  // [CONSOLE UC BINDING] =====================================================
-  // ==========================================================================
-
-  // NOT APPLICABLE TO FLUTTER WEB TARGET
-
-  // ==========================================================================
-  // [DB UC BINDING] ==========================================================
-  // ==========================================================================
-
-  // TO BE DEVELOPED.
-
-  // ==========================================================================
-  // [DISK UC BINDING] ========================================================
-  // ==========================================================================
-
-  // TO BE DEVELOPED.
-
-  // ==========================================================================
-  // [HW UC BINDING] ==========================================================
-  // ==========================================================================
-
-  // TO BE DEVELOPED.
-
-  // ==========================================================================
-  // [JSON UC BINDING] ==========================================================
-  // ==========================================================================
-
-  // NOT APPLICABLE TO FLUTTER. FLUTTER ALREADY PROVIDES.
-
-  // ==========================================================================
-  // [LOGGER UC BINDING] ======================================================
-  // ==========================================================================
-
-  // TO BE DEVELOPED.
-
-  // ==========================================================================
-  // [MONITOR UC BINDING] =====================================================
-  // ==========================================================================
-
-  // NOT APPLICABLE TO FLUTTER WEB TARGET
-
-  // ==========================================================================
-  // [NETWORK UC BINDING] =====================================================
-  // ==========================================================================
-
-  // TO BE DEVELOPED.
-
-  // ==========================================================================
-  // [NPU UC BINDING] =========================================================
-  // ==========================================================================
-
-  /// Executes the specified [MATH_FORMULA] based on the given arguments to
-  /// retrieve the calculated answer. NaN is returned in the event of
-  /// division by 0 or squaring of a negative number.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// // 0 °C == 32 °F
-  /// var answer = codemelted_js.npu_math(
-  ///   formula: MATH_FORMULA.TemperatureCelsiusToFahrenheit,
-  ///   args: [0.0]
-  /// );
-  /// ```
-  double npu_math({required MATH_FORMULA formula, required List<double> args}) {
-    var formulaObj = module.getProperty<JSObject>("MATH_FORMULA".toJS);
-    var formulaArgs = <JSNumber>[];
-    for (var v in args) {
-      formulaArgs.add(v.toJS);
-    }
-    var theFormula = formulaObj.getProperty<JSFunction>(formula.name.toJS);
-    var params = <String, dynamic>{
-      "formula": theFormula,
-      "args": formulaArgs.toJS
-    };
-    var answer = module.callMethod<JSNumber>("npu_math".toJS, params.jsify());
-    return answer.toDartDouble;
-  }
-
-  // ==========================================================================
-  // [PROCESS UC BINDING] =====================================================
-  // ==========================================================================
-
-  // NOT APPLICABLE TO FLUTTER WEB TARGET
-
-  // ==========================================================================
-  // [RUNTIME UC BINDING] =====================================================
-  // ==========================================================================
-
-  /// Determines the available CPU processors for background workers.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// var cpuCount = codemelted_js.runtime_cpu_count();
-  /// ```
-  int runtime_cpu_count() {
-    return module.callMethod<JSNumber>("runtime_cpu_count".toJS).toDartInt;
-  }
-
-  /// Provides the ability to search the document search parameters for
-  /// queryable parameters on the web document.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// var value = codemelted_js.runtime_environment("username");
-  /// ```
-  String? runtime_environment(String name) {
-    var value = module.callMethod<JSString?>(
-      "runtime_environment".toJS,
-      name.toJS
-    );
-    return value.isUndefinedOrNull ? null : value!.toDart;
-  }
-
-  /// Adds or removes an event listener to the JavaScript browser runtime or
-  /// individual EventSource object. The action parameter will take either
-  /// "add" or "remove". The type parameter corresponds to the event you are
-  /// registering to handle. The listener represents the listener to respond
-  /// to the events.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// // To add an event to react to when the web document is loaded
-  /// void listener(web.Event e) {
-  ///   // Do something with the events...
-  /// }
-  ///
-  /// codemelted_js.runtime_event(
-  ///   action: "add",
-  ///   type: "DOMContentLoaded",
-  ///   listener: listener
-  /// );
-  ///
-  /// // To eventually remove the event
-  /// codemelted_js.runtime_event(
-  ///   action: "remove",
-  ///   type: "DOMContentLoaded",
-  ///   listener: listener
-  /// );
-  /// ```
-  void runtime_event({
-    required String action,
-    required String type,
-    required CEventHandler listener,
-    web.EventSource? obj
-  }) {
-    var params = <String, dynamic>{
-      "action": action.toJS,
-      "type": type.toJS,
-      "listener": listener.jsify(),
-      "obj": obj.jsify()
-    };
-    module.callMethod("runtime_event".toJS, params.jsify());
-  }
-
-  /// Determines the hostname of the browser runtime.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// var hostname = codemelted_js.hostname();
-  /// ```
-  String runtime_hostname() {
-    return module.callMethod<JSString>("runtime_hostname".toJS).toDart;
-  }
-
-  /// Determines what browser the JavaScript runtime represents.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// var runtime = codemelted_js.runtime_name();
-  /// ```
-  String runtime_name() {
-    return module.callMethod<JSString>("runtime_name".toJS).toDart;
-  }
-
-  /// Determines if the web document has access to the Internet.
-  ///
-  /// **Example:**
-  /// ```dart
-  /// var online = codemelted_js.runtime_online();
-  /// ```
-  bool runtime_online() {
-    return module.callMethod<JSBoolean>("runtime_online".toJS).toDart;
-  }
-
-  // ==========================================================================
-  // [STORAGE UC BINDING] =====================================================
-  // ==========================================================================
-
-  // TO BE DEVELOPED.
-
-  // ==========================================================================
-  // [UI UC BINDING] ==========================================================
-  // ==========================================================================
-
-  // TO BE DEVELOPED.
-
-  // ==========================================================================
-  // [SETUP / LOAD SCRIPT] ====================================================
-  // ==========================================================================
-
-  /// Responsible for loading the `codemelted.js` script file to provide
-  /// the flutter bindings for the `codemelted.dart` module.
-  Future<CResult> loadScript([String script = scriptFile]) async {
-    try {
-      _module = await importModule(script.toJS).toDart;
-      return CResult();
-    } catch (err, st) {
-      return CResult(error: err.toString(), st: st);
-    }
-  }
-
-  /// Factory constructor for the object.
-  factory CodeMeltedJS() => _instance ?? CodeMeltedJS._();
-
-  /// Constructor for the object.
-  CodeMeltedJS._() {
-    _instance = this;
-  }
+  /// Constructor for the enumeration.
+  const SCHEMA(this.schema);
 }
 
-/// The binding access to the [CodeMeltedJS] representing the `codemelted_js`
-/// namespace within the Flutter application.
-///
-/// /// **Example:**
-/// ```dart
-/// Future<void> main() async {
-///   var result = await codemelted_js.loadScript();
-///   if (result.is_error) {
-///     // Handle the error. The module assumes it is initialized at the
-///     // beginning of app loading.
-///   }
-///   // Then use the codemelted_ui. later in the code.
-/// }
-/// ```
-var codemelted_js = CodeMeltedJS();
+/// Specifies where to open the linked document. This supports the
+/// [CodeMeltedAPI.ui_open] function.
+enum TARGET {
+  /// Opens the linked document in a new window or tab.
+  Blank("_blank"),
+  /// Opens the linked document in the same frame as it was clicked
+  /// (this is default).
+  Self("_self"),
+  /// Opens the linked document in the parent frame.
+  Parent("_parent"),
+  /// Opens the linked document in the full body of the window
+  Top("_top");
 
-// ============================================================================
-// [ASYNC UC IMPLEMENTATION] ==================================================
-// ============================================================================
+  /// Holds the [TARGET] enumerated value translation.
+  final String target;
 
-/// The task to run as part of the [asyncTask] call.
-typedef CTaskCB<T> = Future<T> Function([dynamic]);
-
-/// The task to run as part of the [asyncTimer] call.
-typedef CTimerCB = void Function();
-
-/// The result object from the [asyncTimer] call to allow for
-/// stopping the running timer in the future.
-class CTimerResult {
-  /// Holds the constructed flutter timer.
-  late Timer _timer;
-
-  /// Determines if the timer is still running or not.
-  bool get isRunning => _timer.isActive;
-
-  /// Stops the held running timer.
-  void stop() {
-    _timer.cancel();
-  }
-
-  /// Constructor for the class.
-  CTimerResult(Timer timer) {
-    _timer = timer;
-  }
+  /// Constructor for the enumeration.
+  const TARGET(this.target);
 }
 
-// TODO: Will utilize codemelted.js instead of native wrapping.
-// /// Wraps a Web Worker API to provide a background worker thread via
-// /// JavaScript. This provides the Flutter interface to interact with that
-// /// JavaScript. The [CWorkerProtocol.getMessage] will retrieve
-// /// [web.MessageEvent] objects from the worker while the
-// /// [CWorkerProtocol.getError] will retrieve either [web.MessageEvent] or
-// /// [web.Event] objects. If no data is retrieved, then null is returned. The
-// /// [asyncWorker] function.
-// ///
-// /// **See:**
-// /// - https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API)
-// ///
-// class CWorkerProtocol implements CProtocolHandler<Object> {
-//   /// Holds the processed errors by the worker.
-//   final _errors = <CResult<Object>>[];
-
-//   /// The reference to the held worker.
-//   late web.Worker _worker;
-
-//   /// Holds the received messages by the worker.
-//   final _messages = <Object>[];
-
-//   /// Determines if the worker has been terminated or not.
-//   bool _isRunning = true;
-
-//   @override
-//   Future<CResult<Object>> getMessage([String? request]) async {
-//     assert(isRunning, "SyntaxError: CWorkerProtocol should be running!");
-
-//     if (_errors.isNotEmpty) {
-//       // We have errors, return those first.
-//       return _errors.removeAt(0);
-//     } else if (_messages.isNotEmpty) {
-//       // We got data, go retrieve and return that.
-//       return CResult(value: _messages.removeAt(0));
-//     }
-//     // No messages, signal OK but with no data.
-//     return CResult();
-//   }
-
-//   @override
-//   bool get isRunning => _isRunning;
-
-//   @override
-//   CResult<void> postMessage(Object data) {
-//     assert(isRunning, "SyntaxError: CWorkerProtocol should be running!");
-
-//     // If there are any errors, return that instead of trying transaction.
-//     // Something may need handling before attempting to perform the
-//     // transaction.
-//     if (_errors.isNotEmpty) {
-//       return _errors.removeAt(0);
-//     }
-
-//     // Attempt the transaction but if something does not serialize, return the
-//     // error.
-//     try {
-//       _worker.postMessage(data.jsify());
-//     } catch (err, st) {
-//       return CResult(error: err.toString(), st: st);
-//     }
-
-//     // Everything did as we expected.
-//     return CResult();
-//   }
-
-//   @override
-//   void terminate() {
-//     assert(isRunning, "SyntaxError: CWorkerProtocol should be running!");
-//     _isRunning = false;
-//     _worker.terminate();
-//   }
-
-//   /// Constructor invoked via the [asyncWorker] function.
-//   CWorkerProtocol._(String workerUrl, bool isModule) {
-//     web.WorkerOptions workerOptions = web.WorkerOptions();
-//     workerOptions["type"] = isModule ? "module".toJS : "classic".toJS;
-//     _worker = web.Worker(workerUrl.toJS, workerOptions);
-//     _worker.onmessage = (web.MessageEvent evt) {
-//       Future.delayed(Duration.zero, () {
-//         var data = evt.data.dartify();
-//         if (data != null) {
-//           _messages.add(data);
-//         }
-//       });
-//     }.toJS;
-//     _worker.onmessageerror = (web.MessageEvent evt) {
-//       Future.delayed(Duration.zero, () {
-//         _errors.add(CResult(error: evt.toString(), st: StackTrace.current));
-//       });
-//     }.toJS;
-//     _worker.onerror = (web.Event evt) {
-//       Future.delayed(Duration.zero, () {
-//         _errors.add(CResult(error: evt.toString(), st: StackTrace.current));
-//       });
-//     }.toJS;
-//   }
-// }
-
-/// Will put a currently running async task to sleep for a specified delay
-/// in milliseconds.
-///
-/// **Example:**
-/// ```dart
-/// /// Sleeps an asynchronous task for 1 second.
-/// await asyncSleep(1000);
-/// ```
-Future<void> asyncSleep(int delay) async {
-  return Future.delayed(Duration(milliseconds: delay));
-}
-
-/// Schedules an asynchronous [CTaskCB] for a given delay in milliseconds
-/// into the future with the ability to process the specified data and return
-/// a result.
-///
-/// **Example:**
-/// ```dart
-/// // Schedule a task to run a calculation in the future to learn about
-/// // the answer to life.
-/// var result = await asyncTask<int>(
-///   task: ([data]) {
-///     return data + 5;
-///   },
-///   data: 37,
-/// );
-/// if (result.isOk) {
-///   print(result.value);
-/// } else {
-///   print("${result.error}\n${result.st}");
-/// }
-/// ```
-Future<CResult<T>> asyncTask<T>({
-  required CTaskCB<T> task,
-  dynamic data,
-  int delay = 0,
-}) async {
-  return Future.delayed(
-    Duration(milliseconds: delay),
-    () async {
-      try {
-        var answer = await task(data);
-        return CResult(value: answer);
-      } catch (err, st) {
-        return CResult(error: err.toString(), st: st);
-      }
-    },
-  );
-}
-
-/// Creates a repeating [CTimerCB] on the specified interval in milliseconds.
-/// You top the task by calling the [CTimerResult.stop] returned by the
-/// call.
-///
-/// **Example:**
-/// ```dart
-/// // Do some repeating task on a 1 second boundary.
-/// var timer = asyncTimer(
-///   task: () {
-///     // Do a repeating task.
-///   },
-///   interval: 1000,
-/// );
-///
-/// // Sometime later after the repeating task is no longer needed.
-/// timer.stop();
-/// ```
-CTimerResult asyncTimer({required CTimerCB task, required int interval}) {
-  return CTimerResult(
-    Timer.periodic(
-      Duration(milliseconds: interval),
-      (timer) {
-        task();
-      },
-    ),
-  );
-}
-
-// TODO: Broken, will bring back with codemelted.js integration.
-// / Creates a [CWorkerProtocol] object that has a dedicated background
-// / thread for processing data types supported by Web Workers. The
-// / [CWorkerProtocol] backend processing is implemented in JavaScript.
-// / The backend JavaScript is a First In First Out (FIFO) message channel.
-// / Calling [CWorkerProtocol.postMessage] will schedule data for processing.
-// / Any received messages are accessed via the [CWorkerProtocol.getMessage].
-// /
-// / *Example:*
-// / ```
-// / // Setup a worker where the worker.js is implemented as a module.
-// / let worker = asyncWorker(
-// /   workerUrl: "worker.js",
-// /   isModule: true,
-// / );
-// /
-// / // To schedule work with the module. This example utilizes an object
-// / // as the serialized work. NOTE: The work must support JavaScript
-// / // Message Channel serialization.
-// / var success = worker.postMessage({
-// /   "task": 1,
-// /   "data": 42
-// / }).isOk;
-// /
-// / // To retrieve and process any messages
-// / var result = await worker.getMessage();
-// / if (result.isOk) {
-// /   print(result.value);
-// / } else {
-// /   print("${result.error}\n${result.st}");
-// / }
-// /
-// / // And when the worker is no longer needed.
-// / worker.terminate();
-// / ```
-// CWorkerProtocol asyncWorker({
-//   required String workerUrl,
-//   bool isModule = false,
-// }) {
-//   return CWorkerProtocol._(workerUrl = workerUrl, isModule = isModule);
-// }
-
 // ============================================================================
-// [CONSOLE UC IMPLEMENTATION] ================================================
-// ============================================================================
-
-// NOT APPLICABLE TO THIS MODULE.
-
-// ============================================================================
-// [DB UC IMPLEMENTATION] =====================================================
-// ============================================================================
-
-// TBD
-
-// ============================================================================
-// [DISK UC IMPLEMENTATION] ===================================================
-// ============================================================================
-
-// TBD
-
-// ============================================================================
-// [HW UC IMPLEMENTATION] =====================================================
-// ============================================================================
-
-// TBD
-
-// ============================================================================
-// [JSON UC IMPLEMENTATION] ===================================================
+// [MODULE DATA DEFINITION] ===================================================
 // ============================================================================
 
 /// Defines an array definition to match JSON Array construct.
@@ -692,6 +198,10 @@ extension CArrayExtension on CArray {
   /// Converts the JSON object to a string returning null if it cannot
   String? stringify() => jsonEncode(this);
 }
+
+/// Provides a general event handler for the
+/// [CodeMeltedAPI.runtime_event] attachment.
+typedef CEventHandler = void Function(web.Event);
 
 /// Defines an object definition to match a valid JSON Object construct.
 typedef CObject = Map<String, dynamic>;
@@ -767,6 +277,40 @@ extension CObjectExtension on CObject {
   }
 }
 
+/// Support object for any object to provide a result where either the value
+/// or the error can be signaled for later checking by a user.
+class CResult<T> {
+  /// Hold the value of the given result or nothing if the [CResult] is being
+  /// used to signal there was no error.
+  final T? value;
+
+  /// The error encountered that requires an action by the user.
+  final String? error;
+
+  /// Stack trace associated with the handled error.
+  final StackTrace? st;
+
+  /// Signals the transaction completed with no errors.
+  bool get is_ok => error == null;
+
+  /// Signals whether an error was captured or not.
+  bool get is_error => error != null && error!.isNotEmpty;
+
+  /// Constructor for the object.
+  CResult({
+    this.value,
+    this.error,
+    this.st,
+  }) {
+    assert(
+      ((value != null && error == null) ||
+       (value == null && error != null) ||
+       (value == null && error == null)),
+      "SyntaxError: Only value or error can be set. Not both!",
+    );
+  }
+}
+
 /// Provides a series of asXXX() conversion from a string data type and do non
 /// case sensitive compares.
 extension CStringExtension on String {
@@ -819,364 +363,35 @@ extension CStringExtension on String {
   bool equalsIgnoreCase(String v) => toLowerCase() == v.toLowerCase();
 }
 
-/// Checks the type of the dynamic data to ensure it is of an expected type
-/// with an option to throw rather then checking the returned bool.
-///
-/// **Example:**
-/// ```dart
-/// // Some random data received somehow that is dynamic and you would not
-/// // know the type.
-/// var data = "duh";
-///
-/// // Go perform a check of the type. Remember you can specify to throw
-/// // vs. checking this way.
-/// var isExpectedType = jsonCheckType<bool>(data: data);
-/// if (!isExpectedType) {
-///   // Handle that it is not what you expected.
-/// }
-/// ```
-bool jsonCheckType<T>({required dynamic data, bool shouldThrow = false}) {
-  var result = data is T;
-  if (shouldThrow && !result) {
-    throw "data was not an expected type.";
+/// The task to run as part of the [CodeMeltedAPI.async_task] call.
+typedef CTaskCB<T> = Future<T> Function([dynamic]);
+
+/// The task to run as part of the [CodeMeltedAPI.async_timer] call.
+typedef CTimerCB = void Function();
+
+/// The result object from the [CodeMeltedAPI.async_timer] call to allow for
+/// stopping the running timer in the future.
+class CTimerResult {
+  /// Holds the constructed flutter timer.
+  late Timer _timer;
+
+  /// Determines if the timer is still running or not.
+  bool get isRunning => _timer.isActive;
+
+  /// Stops the held running timer.
+  void stop() {
+    _timer.cancel();
   }
-  return result;
-}
 
-/// Creates a JSON compliant [CArray] object.
-///
-/// **Example:**
-/// ```dart
-/// // To get a new CArray
-/// var data = jsonCreateArray();
-///
-/// // To get a copy of a CArray
-/// var data2 = <CArray>[1, true, "false", 42.2, null];
-/// var copy = jsonCreateArray(data2);
-/// ```
-CArray jsonCreateArray([CArray? data]) {
-  return data != null ? data.copy() : [];
-}
-
-/// Creates a JSON compliant [CObject] object.
-///
-/// **Example:**
-/// ```dart
-/// // To create a new CObject
-/// var obj = jsonCreateObject();
-///
-/// // To copy an existing object to a new object
-/// var obj2 = <CObject>{
-///   "field1": 1,
-///   "field2": true,
-///   "field3": "duh",
-///   "field4": [1, 2, null, 4, false],
-///   "field5": {
-///     "life_answer": 42.2,
-///     "other_answers": null,
-///   }
-/// };
-/// var copy = jsonCreateObject(obj2);
-/// ```
-CObject jsonCreateObject([CObject? data]) {
-  return data != null ? CObject.from(data) : CObject();
-}
-
-/// Determines if a particular [CObject] has an expected key.
-///
-/// **Example:**
-/// ```dart
-/// // Given some data
-/// var obj = <CObject>{
-///   "field1": 1,
-///   "field2": true,
-///   "field3": "duh",
-///   "field4": [1, 2, null, 4, false],
-///   "field5": {
-///     "life_answer": 42.2,
-///     "other_answers": null,
-///   }
-/// };
-///
-/// // Do what you will with the check
-/// // You can also throw
-/// var hasProperty = jsonHasKey(
-///   obj: obj,
-///   key: "field6"
-/// );
-/// print(hasProperty);
-/// ```
-bool jsonHasKey({
-  required CObject obj,
-  required String key,
-  bool shouldThrow = false,
-}) {
-  var result = obj.containsKey(key);
-  if (shouldThrow && !result) {
-    throw "data did not contain expected key.";
-  }
-  return result;
-}
-
-/// Will parse the given string data into a JSON compliant data type.
-///
-/// **Example:**
-/// ```dart
-/// // Given some string data
-/// var data = "duh";
-/// var parsed = jsonParse<int>(data);
-/// if (parsed != null) {
-///   // Do something with the parsed data.
-/// } else {
-///   print("Data not as expected");
-/// }
-/// ```
-T? jsonParse<T>(String data) {
-  if (T.toString().containsIgnoreCase("carray")) {
-    return data.asArray() as T?;
-  } else if (T.toString().containsIgnoreCase("bool")) {
-    return data.asBool() as T;
-  } else if (T.toString().containsIgnoreCase("double")) {
-    return data.asDouble() as T?;
-  } else if (T.toString().containsIgnoreCase("int")) {
-    return data.asInt() as T?;
-  } else if (T.toString().containsIgnoreCase("cobject")) {
-    return data.asObject() as T?;
-  }
-  throw "SyntaxError: T was not a compliant JSON type.";
-}
-
-/// Will stringify either [CArray] or [CObject] data to a JSON compliant
-/// string. Null is returned if it cannot be stringified.
-///
-/// **Example:**
-/// ```dart
-/// // Given some data
-/// var obj = <CObject>{
-///   "field1": 1,
-///   "field2": true,
-///   "field3": "duh",
-///   "field4": [1, 2, null, 4, false],
-///   "field5": {
-///     "life_answer": 42.2,
-///     "other_answers": null,
-///   }
-/// };
-///
-/// var stringified = jsonStringify(obj);
-/// print(stringified);
-/// ```
-String? jsonStringify(dynamic data) {
-  assert(
-    data is CArray || data is CObject,
-    "data must be CArray or CObject types",
-  );
-  return data.stringify();
-}
-
-/// Validates that a given string URL is valid with an option to throw vs
-/// checking the return bool.
-///
-/// **Example:**
-/// ```dart
-/// // Given some url.
-/// var url = "https://something.com";
-/// jsonValidUrl(
-///   url: url,
-///   shouldThrow: true, // Throw because we never expect it to be bad.
-/// );
-/// ```
-bool jsonValidUrl({required String url, bool shouldThrow = false}) {
-  var valid = Uri.tryParse(url) != null;
-  if (shouldThrow && !valid) {
-    throw "url was not valid.";
-  }
-  return valid;
-}
-
-// ============================================================================
-// [LOGGER UC IMPLEMENTATION] =================================================
-// ============================================================================
-
-// TBD
-
-// ============================================================================
-// [MONITOR UC IMPLEMENTATION] ================================================
-// ============================================================================
-
-// TBD
-
-// ============================================================================
-// [NETWORK UC IMPLEMENTATION] ================================================
-// ============================================================================
-
-// TBD
-
-// ============================================================================
-// [NPU Use Case] =============================================================
-// ============================================================================
-
-// TBD
-
-// ============================================================================
-// [PROCESS UC IMPLEMENTATION =================================================
-// ============================================================================
-
-// NOT APPLICABLE TO THIS MODULE
-
-// ============================================================================
-// [RUNTIME UC IMPLEMENTATION] ================================================
-// ============================================================================
-
-/// Identifies the schema for usage with the [runtimeOpen] function.
-enum CSchemaType {
-  /// Represents the file protocol for accessing a local file.
-  file("file:"),
-
-  /// Represents the HTTP protocol for a web server not secured.
-  http("http://"),
-
-  /// Represents the HTTP protocol for a web server that is secured.
-  https("https://"),
-
-  /// Represents the mailto protocol to open a desktop native service for
-  /// email.
-  mailto("mailto:"),
-
-  /// Represents the SMS protocol opening the app associated with texting.
-  sms("sms:"),
-
-  /// Represents the TEL protocol opening the app for making phone calls.
-  tel("tel:");
-
-  /// Holds the formatted protocol for the [runtimeOpen] call.
-  final String schema;
-
-  /// Constructor for the enumeration.
-  const CSchemaType(this.schema);
-
-  /// Utility function to format the [CSchemaType.mailto] parameter url.
-  static String formatMailToParams({
-    List<String> mailto = const [],
-    List<String> cc = const [],
-    List<String> bcc = const [],
-    String subject = "",
-    String body = "",
-  }) {
-    var url = "";
-
-    if (mailto.isNotEmpty) {
-      for (var addr in mailto) {
-        url += "$addr;";
-      }
-      url = url.substring(0, url.length - 1);
-    }
-
-    var delimiter = "?";
-    if (cc.isNotEmpty) {
-      url += "${delimiter}cc=";
-      delimiter = "&";
-      for (var addr in cc) {
-        url += "$addr;";
-      }
-      url = url.substring(0, url.length - 1);
-    }
-
-    if (bcc.isNotEmpty) {
-      url += "${delimiter}bcc=";
-      delimiter = "&";
-      for (var addr in bcc) {
-        url += "$addr;";
-      }
-      url = url.substring(0, url.length - 1);
-    }
-
-    if (subject.trim().isNotEmpty) {
-      url += "${delimiter}subject=${subject.trim()}";
-      delimiter = "&";
-    }
-
-    if (body.trim().isNotEmpty) {
-      url += "${delimiter}body=${body.trim()}";
-      delimiter = "&";
-    }
-
-    return url;
+  /// Constructor for the class.
+  CTimerResult(Timer timer) {
+    _timer = timer;
   }
 }
 
-/// Identifies the architecture of the host operating system. Always
-/// UNDETERMINED as we await Browser Web API support.
-///
-/// **See:**
-/// - https://developer.mozilla.org/en-US/docs/Web/API/Navigator/userAgentData
-String get runtimeCpuArch => "UNDETERMINED";
-
-/// Identifies how many threads are available with the host operating system.
-int get runtimeCpuCount => web.window.navigator.hardwareConcurrency;
-
-/// Determines if the flutter app is a PWA or not.
-bool get runtimeIsPWA {
-  return web.window.matchMedia("(display-mode: standalone)").matches;
-}
-
-/// Determines if the browser is a touch interface or not.
-bool get runtimeIsTouchEnabled {
-  return web.window.has("touchstart") ||
-      web.window.navigator.maxTouchPoints > 0;
-}
-
-/// Opens the specified protocol to a browser window or native app
-/// configured to handle the given [CSchemaType]. Returns the [web.Window]
-/// opened for later control.
-web.Window? runtimeOpen({
-  required CSchemaType schema,
-  bool popupWindow = false,
-  String? mailtoParams,
-  String? url,
-  String target = "_blank",
-  double? width,
-  double? height,
-}) {
-  var urlToLaunch = schema.schema;
-  if (schema == CSchemaType.file ||
-      schema == CSchemaType.http ||
-      schema == CSchemaType.https ||
-      schema == CSchemaType.sms ||
-      schema == CSchemaType.tel) {
-    urlToLaunch += url!;
-  } else if (schema == CSchemaType.mailto) {
-    urlToLaunch += mailtoParams ?? url!;
-  }
-
-  if (popupWindow) {
-    var w = width ?? 900.0;
-    var h = height ?? 600.0;
-    var top = (web.window.screen.height - h) / 2;
-    var left = (web.window.screen.width - w) / 2;
-    var settings = "toolbar=no, location=no, "
-        "directories=no, status=no, menubar=no, "
-        "scrollbars=no, resizable=yes, copyhistory=no, "
-        "width=$w, height=$h, top=$top, left=$left";
-    return web.window.open(urlToLaunch, "_blank", settings);
-  }
-
-  return web.window.open(urlToLaunch, target);
-}
-
-// ============================================================================
-// [STORAGE UC IMPLEMENTATION] ================================================
-// ============================================================================
-
-// TBD
-
-// ============================================================================
-// [UI UC IMPLEMENTATION] =====================================================
-// ============================================================================
-
-/// Identifies the ability to open a close [CAppDrawerConfig] configured
+/// Identifies the ability to open a close [CUiAppDrawerConfig] configured
 /// widgets.
-enum CAppDrawerAction {
+enum CUiAppDrawerAction {
   /// Opens the widget.
   open,
 
@@ -1188,15 +403,15 @@ enum CAppDrawerAction {
 /// change to the UI state is necessary for the SPA. Return true if you are
 /// handling the resize event, false to propagate the event up the widget
 /// tree.
-typedef CAppViewResizeEventHandler = bool Function(Size);
+typedef CUiAppViewResizeEventHandler = bool Function(Size);
 
-/// Provides the Single Page Application for the [uiAppRun] function. This is
-/// built via the [uiAppConfig] function call which makes use of the
-/// [CAppViewConfig] objects to setup the SPA.
+/// Provides the Single Page Application for the [CodeMeltedAPI.ui_app_run]
+/// function. This is built via the [CodeMeltedAPI.ui_app_config] function
+/// call which makes use of the [CUiAppViewConfig] objects to setup the SPA.
 ///
 /// **NOTE: It is recommended to not use this class directly and to use the
 /// function.**
-class CAppView extends StatefulWidget {
+class CUiAppView extends StatefulWidget {
   /// Tracks if the app has already been called.
   static bool _isInitialized = false;
 
@@ -1208,33 +423,33 @@ class CAppView extends StatefulWidget {
   };
 
   /// Sets / gets the ability to detect resize events with the
-  /// [CAppView] to update the main body if necessary.
-  static CAppViewResizeEventHandler? get onResizeEvent =>
-      uiState.get<CAppViewResizeEventHandler?>(key: "onResizeEvent");
-  static set onResizeEvent(CAppViewResizeEventHandler? v) =>
-      uiState.set<CAppViewResizeEventHandler?>(key: "onResizeEvent", value: v);
+  /// [CUiAppView] to update the main body if necessary.
+  static CUiAppViewResizeEventHandler? get onResizeEvent =>
+      uiState.get<CUiAppViewResizeEventHandler?>(key: "onResizeEvent");
+  static set onResizeEvent(CUiAppViewResizeEventHandler? v) =>
+      uiState.set<CUiAppViewResizeEventHandler?>(key: "onResizeEvent", value: v);
 
-  /// Sets / gets the dark theme for the [CAppView].
+  /// Sets / gets the dark theme for the [CUiAppView].
   static ThemeData get darkTheme => uiState.get<ThemeData>(key: "darkTheme");
   static set darkTheme(ThemeData v) =>
       uiState.set<ThemeData?>(key: "darkTheme", value: v, notify: true);
 
-  /// Sets / gets the light theme for the [CAppView].
+  /// Sets / gets the light theme for the [CUiAppView].
   static ThemeData get theme => uiState.get<ThemeData>(key: "theme");
   static set theme(ThemeData v) =>
       uiState.set<ThemeData>(key: "theme", value: v, notify: true);
 
-  /// Sets / gets the theme mode for the [CAppView].
+  /// Sets / gets the theme mode for the [CUiAppView].
   static ThemeMode get themeMode => uiState.get<ThemeMode>(key: "themeMode");
   static set themeMode(ThemeMode v) =>
       uiState.set<ThemeMode>(key: "themeMode", value: v, notify: true);
 
-  /// Sets / gets the app title for the [CAppView].
+  /// Sets / gets the app title for the [CUiAppView].
   static String? get title => uiState.get<String?>(key: "title");
   static set title(String? v) =>
       uiState.set<String?>(key: "title", value: v, notify: true);
 
-  /// Sets / removes the header area of the [CAppView].
+  /// Sets / removes the header area of the [CUiAppView].
   static void header({
     List<Widget>? actions,
     bool automaticallyImplyLeading = true,
@@ -1275,7 +490,7 @@ class CAppView extends StatefulWidget {
     }
   }
 
-  /// Sets / removes the content area of the [CAppView].
+  /// Sets / removes the content area of the [CUiAppView].
   static void content({
     required Widget? body,
     bool extendBody = false,
@@ -1292,7 +507,7 @@ class CAppView extends StatefulWidget {
     );
   }
 
-  /// Sets / removes the footer area of the [CAppView].
+  /// Sets / removes the footer area of the [CUiAppView].
   static void footer({
     List<Widget>? actions,
     bool automaticallyImplyLeading = true,
@@ -1340,7 +555,7 @@ class CAppView extends StatefulWidget {
     }
   }
 
-  /// Sets / removes a floating action button for the [CAppView].
+  /// Sets / removes a floating action button for the [CUiAppView].
   static void floatingActionButton({
     Widget? button,
     FloatingActionButtonLocation? location,
@@ -1361,7 +576,7 @@ class CAppView extends StatefulWidget {
     );
   }
 
-  /// Sets / removes a left sided drawer for the [CAppView].
+  /// Sets / removes a left sided drawer for the [CUiAppView].
   static void drawer({Widget? header, List<Widget>? items}) {
     if (header == null && items == null) {
       uiState.set<Widget?>(key: "drawer", value: null);
@@ -1384,7 +599,7 @@ class CAppView extends StatefulWidget {
     }
   }
 
-  /// Sets / removes a right sided drawer from the [CAppView].
+  /// Sets / removes a right sided drawer from the [CUiAppView].
   static void endDrawer({Widget? header, List<Widget>? items}) {
     if (header == null && items == null) {
       uiState.set<Widget?>(key: "endDrawer", value: null);
@@ -1407,41 +622,41 @@ class CAppView extends StatefulWidget {
     }
   }
 
-  /// Will programmatically close an open drawer on the [CAppView].
+  /// Will programmatically close an open drawer on the [CUiAppView].
   static void closeDrawer() {
-    if (uiScaffoldKey.currentState!.isDrawerOpen) {
-      uiScaffoldKey.currentState!.closeDrawer();
+    if (CodeMeltedAPI.uiScaffoldKey.currentState!.isDrawerOpen) {
+      CodeMeltedAPI.uiScaffoldKey.currentState!.closeDrawer();
     }
-    if (uiScaffoldKey.currentState!.isEndDrawerOpen) {
-      uiScaffoldKey.currentState!.closeEndDrawer();
+    if (CodeMeltedAPI.uiScaffoldKey.currentState!.isEndDrawerOpen) {
+      CodeMeltedAPI.uiScaffoldKey.currentState!.closeEndDrawer();
     }
   }
 
-  /// Will programmatically open a drawer on the [CAppView].
+  /// Will programmatically open a drawer on the [CUiAppView].
   static void openDrawer({bool isEndDrawer = false}) {
-    if (!isEndDrawer && uiScaffoldKey.currentState!.hasDrawer) {
-      uiScaffoldKey.currentState!.openDrawer();
-    } else if (uiScaffoldKey.currentState!.hasEndDrawer) {
-      uiScaffoldKey.currentState!.openEndDrawer();
+    if (!isEndDrawer && CodeMeltedAPI.uiScaffoldKey.currentState!.hasDrawer) {
+      CodeMeltedAPI.uiScaffoldKey.currentState!.openDrawer();
+    } else if (CodeMeltedAPI.uiScaffoldKey.currentState!.hasEndDrawer) {
+      CodeMeltedAPI.uiScaffoldKey.currentState!.openEndDrawer();
     }
   }
 
   @override
-  State<StatefulWidget> createState() => _CAppViewState();
+  State<StatefulWidget> createState() => _CUiAppViewState();
 
-  CAppView({super.key}) {
+  CUiAppView({super.key}) {
     assert(
       !_isInitialized,
-      "Only one CAppView can be created. It sets up a SPA.",
+      "Only one CUiAppView can be created. It sets up a SPA.",
     );
     _isInitialized = true;
   }
 }
 
-class _CAppViewState extends State<CAppView> {
+class _CUiAppViewState extends State<CUiAppView> {
   @override
   void initState() {
-    CAppView.uiState.addListener(listener: () => setState(() {}));
+    CUiAppView.uiState.addListener(listener: () => setState(() {}));
     super.initState();
   }
 
@@ -1449,40 +664,40 @@ class _CAppViewState extends State<CAppView> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      darkTheme: CAppView.darkTheme,
-      navigatorKey: uiNavigationKey,
-      theme: CAppView.theme,
-      themeMode: CAppView.themeMode,
-      title: CAppView.title ?? "",
+      darkTheme: CUiAppView.darkTheme,
+      navigatorKey: CodeMeltedAPI.uiNavigationKey,
+      theme: CUiAppView.theme,
+      themeMode: CUiAppView.themeMode,
+      title: CUiAppView.title ?? "",
       home: NotificationListener<SizeChangedLayoutNotification>(
         onNotification: (notification) {
-          var handler = CAppView.onResizeEvent;
+          var handler = CUiAppView.onResizeEvent;
           if (handler != null) {
             return handler(MediaQuery.of(context).size);
           }
           return false;
         },
         child: Scaffold(
-          appBar: CAppView.uiState.get<AppBar?>(key: "appBar"),
+          appBar: CUiAppView.uiState.get<AppBar?>(key: "appBar"),
           body: SizeChangedLayoutNotifier(
-            child: CAppView.uiState.get<CObject?>(key: "content")?['body'],
+            child: CUiAppView.uiState.get<CObject?>(key: "content")?['body'],
           ),
           extendBody:
-              CAppView.uiState.get<CObject?>(key: "content")?['extendBody'] ??
+              CUiAppView.uiState.get<CObject?>(key: "content")?['extendBody'] ??
                   false,
-          extendBodyBehindAppBar: CAppView.uiState
+          extendBodyBehindAppBar: CUiAppView.uiState
                   .get<CObject?>(key: "content")?["extendBodyBehindAppBar"] ??
               false,
           bottomNavigationBar:
-              CAppView.uiState.get<BottomAppBar?>(key: "bottomAppBar"),
-          drawer: CAppView.uiState.get<Widget?>(key: "drawer"),
-          endDrawer: CAppView.uiState.get<Widget?>(key: "endDrawer"),
+              CUiAppView.uiState.get<BottomAppBar?>(key: "bottomAppBar"),
+          drawer: CUiAppView.uiState.get<Widget?>(key: "drawer"),
+          endDrawer: CUiAppView.uiState.get<Widget?>(key: "endDrawer"),
           floatingActionButton:
-              CAppView.uiState.get<Widget?>(key: "floatingActionButton"),
-          floatingActionButtonLocation: CAppView.uiState
+              CUiAppView.uiState.get<Widget?>(key: "floatingActionButton"),
+          floatingActionButtonLocation: CUiAppView.uiState
               .get<FloatingActionButtonLocation?>(
                   key: "floatingActionButtonLocation"),
-          key: uiScaffoldKey,
+          key: CodeMeltedAPI.uiScaffoldKey,
         ),
       ),
     );
@@ -1490,15 +705,15 @@ class _CAppViewState extends State<CAppView> {
 }
 
 /// Base class for setting up the Single Page App (SPA) via the
-/// [CAppView] function.
-abstract class CAppViewConfig {
+/// [CUiAppView] function.
+abstract class CUiAppViewConfig {
   /// Function that carries out the configuration request in the child object.
   void _execute();
 }
 
-/// Defines the [CAppView] content area of the SPA.
-class CAppContentConfig extends CAppViewConfig {
-  /// Sets up the widget to display in the main area of the [CAppView] widget.
+/// Defines the [CUiAppView] content area of the SPA.
+class CUiAppContentConfig extends CUiAppViewConfig {
+  /// Sets up the widget to display in the main area of the [CUiAppView] widget.
   final Widget? body;
 
   /// Determines whether to extend the body or not.
@@ -1510,7 +725,7 @@ class CAppContentConfig extends CAppViewConfig {
 
   @override
   void _execute() {
-    CAppView.content(
+    CUiAppView.content(
       body: body,
       extendBody: extendBody,
       extendBodyBehindAppBar: extendBodyBehindAppBar,
@@ -1518,15 +733,15 @@ class CAppContentConfig extends CAppViewConfig {
   }
 
   /// Constructor for the class.
-  CAppContentConfig({
+  CUiAppContentConfig({
     required this.body,
     this.extendBody = false,
     this.extendBodyBehindAppBar = false,
   });
 }
 
-/// Provides the [CAppView] drawer / end drawer setup.
-class CAppDrawerConfig extends CAppViewConfig {
+/// Provides the [CUiAppView] drawer / end drawer setup.
+class CUiAppDrawerConfig extends CUiAppViewConfig {
   /// True to set the left hand drawer. False to set the right hand drawer.
   final bool isEndDrawer;
 
@@ -1538,20 +753,20 @@ class CAppDrawerConfig extends CAppViewConfig {
 
   @override
   void _execute() {
-    var exec = isEndDrawer ? CAppView.endDrawer : CAppView.drawer;
+    var exec = isEndDrawer ? CUiAppView.endDrawer : CUiAppView.drawer;
     exec(header: header, items: items);
   }
 
   /// Constructor for the class. Set header and items to null to remove the
   /// drawer.
-  CAppDrawerConfig({required this.isEndDrawer, this.header, this.items});
+  CUiAppDrawerConfig({required this.isEndDrawer, this.header, this.items});
 }
 
-/// Provides the [CAppView] floating action button. This can also be
+/// Provides the [CUiAppView] floating action button. This can also be
 /// achieved with a [codemelted_ui] function utilizing a stack and a
 /// position widget for exact X / Y placement.
 /// @nodoc
-class CAppFloatingActionButtonConfig extends CAppViewConfig {
+class CUiAppFloatingActionButtonConfig extends CUiAppViewConfig {
   /// The widget that represents the floating action button.
   final Widget? button;
 
@@ -1560,15 +775,15 @@ class CAppFloatingActionButtonConfig extends CAppViewConfig {
 
   @override
   void _execute() {
-    CAppView.floatingActionButton(button: button, location: location);
+    CUiAppView.floatingActionButton(button: button, location: location);
   }
 
   /// Constructor for the class.
-  CAppFloatingActionButtonConfig({this.button, this.location});
+  CUiAppFloatingActionButtonConfig({this.button, this.location});
 }
 
-/// Provides the [CAppView] header / footer configuration.
-class CAppToolbarConfig extends CAppViewConfig {
+/// Provides the [CUiAppView] header / footer configuration.
+class CUiAppToolbarConfig extends CUiAppViewConfig {
   /// True for being the header, false for being the footer.
   final bool isHeader;
 
@@ -1590,7 +805,7 @@ class CAppToolbarConfig extends CAppViewConfig {
 
   @override
   void _execute() {
-    var exec = isHeader ? CAppView.header : CAppView.footer;
+    var exec = isHeader ? CUiAppView.header : CUiAppView.footer;
     exec(
       actions: actions,
       automaticallyImplyLeading: false,
@@ -1603,7 +818,7 @@ class CAppToolbarConfig extends CAppViewConfig {
 
   /// Constructor for the class. Set actions leading, title to null to clear
   /// the header / footer.
-  CAppToolbarConfig({
+  CUiAppToolbarConfig({
     required this.isHeader,
     this.actions,
     this.leading,
@@ -1613,9 +828,9 @@ class CAppToolbarConfig extends CAppViewConfig {
   });
 }
 
-/// Sets the overall SPA theme of the [CAppView] via the
-/// [uiTheme] function.
-class CAppThemeConfig extends CAppViewConfig {
+/// Sets the overall SPA theme of the [CUiAppView] via the
+/// [CodeMeltedAPI.ui_theme] function.
+class CUiAppThemeConfig extends CUiAppViewConfig {
   /// Sets up the light theme for the overall SPA.
   final ThemeData? theme;
 
@@ -1630,13 +845,13 @@ class CAppThemeConfig extends CAppViewConfig {
 
   @override
   void _execute() {
-    CAppView.darkTheme = darkTheme ?? CAppView.darkTheme;
-    CAppView.theme = theme ?? CAppView.theme;
-    CAppView.themeMode = themeMode ?? CAppView.themeMode;
-    CAppView.title = title ?? CAppView.title;
+    CUiAppView.darkTheme = darkTheme ?? CUiAppView.darkTheme;
+    CUiAppView.theme = theme ?? CUiAppView.theme;
+    CUiAppView.themeMode = themeMode ?? CUiAppView.themeMode;
+    CUiAppView.title = title ?? CUiAppView.title;
   }
 
-  CAppThemeConfig({
+  CUiAppThemeConfig({
     this.darkTheme,
     this.theme,
     this.themeMode,
@@ -1644,271 +859,7 @@ class CAppThemeConfig extends CAppViewConfig {
   });
 }
 
-/// Identifies the [uiDialog] function supported dialog types.
-enum CDialogAction {
-  /// Displays an about dialog for the constructed [CAppView]
-  about,
-
-  /// Displays a snack bar to alert the user of a condition.
-  alert,
-
-  /// Opens a full page browser iFrame.
-  browser,
-
-  /// Provides a half page selection of options.
-  choose,
-
-  /// Will asynchronously close an open dialog.
-  close,
-
-  /// Provides a confirmation Yes / No question to the user.
-  confirm,
-
-  /// Provides a full page custom dialog to the [CAppView].
-  custom,
-
-  /// Provides a loading half-page dialog closed via a [CDialogAction.close].
-  loading,
-
-  /// Provides a single text field prompt input box.
-  prompt;
-}
-
-// ----------------------------------------------------------------------------
-// [Theme Data Definitions] ---------------------------------------------------
-// ----------------------------------------------------------------------------
-
-/// Provides theming of the regular [InputDecorationTheme] but expands to
-/// the input style and other attributes of styling. Modeled off the
-/// [DropdownMenuTheme] to be consistent with that control.
-class CInputDecorationTheme extends InputDecorationTheme {
-  /// Adds the items associated with the input field so it is in line with
-  /// other material3 widgets. See DropdownMenu as an example.
-  final TextStyle? inputStyle;
-
-  /// Identifies how to capitalize text entered into the field.
-  final TextCapitalization textCapitalization;
-
-  /// Specifies the text direction.
-  final TextDirection? textDirection;
-
-  /// Specifies the alignment of the text within the field.
-  final TextAlign textAlign;
-
-  /// Specifies the vertical alignment of the text within the text field.
-  final TextAlignVertical? textAlignVertical;
-
-  /// The max number of lines to apply to the text field.
-  final int? maxLines;
-
-  /// The minimum number of lines to apply to the text field.
-  final int? minLines;
-
-  /// Whether this control expands or not.
-  final bool expands;
-
-  /// The maximum number of characters allowed within the widget.
-  final int? maxLength;
-
-  /// Scroll padding applied if a multi-line text field is created.
-  final EdgeInsets scrollPadding;
-
-  /// Clipping behavior to apply if the text exceeds what can be displayed.
-  final Clip clipBehavior;
-
-  /// Sets the maximum lines for the hint field.
-  final int? hintMaxLines;
-
-  /// Sets the text direction of the hint text.
-  final TextDirection? hintTextDirection;
-
-  @override
-  CInputDecorationTheme copyWith({
-    // Items added to make it possible to match other theme styles.
-    TextStyle? inputStyle,
-    TextCapitalization? textCapitalization,
-    TextDirection? textDirection,
-    TextAlign? textAlign,
-    TextAlignVertical? textAlignVertical,
-    int? maxLines,
-    int? minLines,
-    bool? expands,
-    int? maxLength,
-    EdgeInsets? scrollPadding,
-    Clip? clipBehavior,
-    int? hintMaxLines,
-    TextDirection? hintTextDirection,
-
-    // From the original object
-    TextStyle? labelStyle,
-    TextStyle? floatingLabelStyle,
-    TextStyle? helperStyle,
-    int? helperMaxLines,
-    TextStyle? hintStyle,
-    Duration? hintFadeDuration,
-    TextStyle? errorStyle,
-    int? errorMaxLines,
-    FloatingLabelBehavior? floatingLabelBehavior,
-    FloatingLabelAlignment? floatingLabelAlignment,
-    bool? isDense,
-    EdgeInsetsGeometry? contentPadding,
-    bool? isCollapsed,
-    Color? iconColor,
-    TextStyle? prefixStyle,
-    Color? prefixIconColor,
-    BoxConstraints? prefixIconConstraints,
-    TextStyle? suffixStyle,
-    Color? suffixIconColor,
-    BoxConstraints? suffixIconConstraints,
-    TextStyle? counterStyle,
-    bool? filled,
-    Color? fillColor,
-    BorderSide? activeIndicatorBorder,
-    BorderSide? outlineBorder,
-    Color? focusColor,
-    Color? hoverColor,
-    InputBorder? errorBorder,
-    InputBorder? focusedBorder,
-    InputBorder? focusedErrorBorder,
-    InputBorder? disabledBorder,
-    InputBorder? enabledBorder,
-    InputBorder? border,
-    bool? alignLabelWithHint,
-    BoxConstraints? constraints,
-  }) {
-    return CInputDecorationTheme(
-      inputStyle: inputStyle ?? this.inputStyle,
-      textCapitalization: textCapitalization ?? this.textCapitalization,
-      textAlign: textAlign ?? this.textAlign,
-      textAlignVertical: textAlignVertical ?? this.textAlignVertical,
-      textDirection: textDirection ?? this.textDirection,
-      maxLines: maxLines == null
-          ? this.maxLines
-          : maxLines == 0
-              ? null
-              : maxLines,
-      minLines: minLines == null
-          ? this.minLines
-          : minLines == 0
-              ? null
-              : minLines,
-      expands: expands ?? this.expands,
-      maxLength: maxLength == null
-          ? this.maxLength
-          : maxLength == 0
-              ? null
-              : maxLength,
-      scrollPadding: scrollPadding ?? this.scrollPadding,
-      clipBehavior: clipBehavior ?? this.clipBehavior,
-      hintMaxLines: hintMaxLines ?? this.hintMaxLines,
-      hintTextDirection: hintTextDirection ?? this.hintTextDirection,
-
-      // The existing InputDecorationTheme
-      labelStyle: labelStyle ?? this.labelStyle,
-      floatingLabelStyle: floatingLabelStyle ?? this.floatingLabelStyle,
-      helperStyle: helperStyle ?? this.helperStyle,
-      helperMaxLines: helperMaxLines ?? this.helperMaxLines,
-      hintStyle: hintStyle ?? this.hintStyle,
-      hintFadeDuration: hintFadeDuration ?? this.hintFadeDuration,
-      errorStyle: errorStyle ?? this.errorStyle,
-      errorMaxLines: errorMaxLines ?? this.errorMaxLines,
-      floatingLabelBehavior:
-          floatingLabelBehavior ?? this.floatingLabelBehavior,
-      floatingLabelAlignment:
-          floatingLabelAlignment ?? this.floatingLabelAlignment,
-      isDense: isDense ?? this.isDense,
-      contentPadding: contentPadding ?? this.contentPadding,
-      isCollapsed: isCollapsed ?? this.isCollapsed,
-      iconColor: iconColor ?? this.iconColor,
-      prefixStyle: prefixStyle ?? this.prefixStyle,
-      prefixIconColor: prefixIconColor ?? this.prefixIconColor,
-      suffixStyle: suffixStyle ?? this.suffixStyle,
-      suffixIconColor: suffixIconColor ?? this.suffixIconColor,
-      counterStyle: counterStyle ?? this.counterStyle,
-      filled: filled ?? this.filled,
-      fillColor: fillColor ?? this.fillColor,
-      activeIndicatorBorder:
-          activeIndicatorBorder ?? this.activeIndicatorBorder,
-      outlineBorder: outlineBorder ?? this.outlineBorder,
-      focusColor: focusColor ?? this.focusColor,
-      hoverColor: hoverColor ?? this.hoverColor,
-      errorBorder: errorBorder ?? this.errorBorder,
-      focusedBorder: focusedBorder ?? this.focusedBorder,
-      focusedErrorBorder: focusedErrorBorder ?? this.focusedErrorBorder,
-      disabledBorder: disabledBorder ?? this.errorBorder,
-      enabledBorder: enabledBorder ?? this.enabledBorder,
-      border: border ?? this.border,
-      alignLabelWithHint: alignLabelWithHint ?? this.alignLabelWithHint,
-      constraints: constraints ?? this.constraints,
-    );
-  }
-
-  /// Constructor for the class.
-  const CInputDecorationTheme({
-    // Styles attached to the InputDecorationTheme.
-    this.inputStyle,
-    this.textCapitalization = TextCapitalization.none,
-    this.textAlign = TextAlign.start,
-    this.textAlignVertical,
-    this.textDirection,
-    this.maxLines = 1,
-    this.minLines,
-    this.expands = false,
-    this.maxLength,
-    this.scrollPadding = const EdgeInsets.all(20.0),
-    this.clipBehavior = Clip.hardEdge,
-    this.hintMaxLines,
-    this.hintTextDirection,
-
-    // The existing InputDecorationTheme
-    super.labelStyle,
-    super.floatingLabelStyle,
-    super.helperStyle,
-    super.helperMaxLines,
-    super.hintStyle,
-    super.hintFadeDuration,
-    super.errorStyle,
-    super.errorMaxLines,
-    super.floatingLabelBehavior = FloatingLabelBehavior.auto,
-    super.floatingLabelAlignment = FloatingLabelAlignment.start,
-    super.isDense = false,
-    super.contentPadding,
-    super.isCollapsed = false,
-    super.iconColor,
-    super.prefixStyle,
-    super.prefixIconColor,
-    super.suffixStyle,
-    super.suffixIconColor,
-    super.counterStyle,
-    super.filled = false,
-    super.fillColor,
-    super.activeIndicatorBorder,
-    super.outlineBorder,
-    super.focusColor,
-    super.hoverColor,
-    super.errorBorder,
-    super.focusedBorder,
-    super.focusedErrorBorder,
-    super.disabledBorder,
-    super.enabledBorder,
-    super.border,
-    super.alignLabelWithHint = false,
-    super.constraints,
-  });
-}
-
-/// Provides a wrapper around the Flutter ThemeData object that isolates
-/// the application theming to the material3 constructs of Flutter. Extended
-/// existing ThemeData objects utilized to provide a similar theming experience.
-/// The theme is created via the [uiTheme] function.
-extension ThemeDataExtension on ThemeData {
-  /// Gets access to the specialized input decoration theme to pick up styles
-  /// for all items that may utilize it.
-  CInputDecorationTheme get cInputDecorationTheme =>
-      inputDecorationTheme as CInputDecorationTheme;
-}
-
-/// Base Widget configuration for the [CodeMeltedUI.widget] widget building
+/// Base Widget configuration for the [CodeMeltedAPI.ui_widget] widget building
 /// function.
 abstract class CUiWidget {
   /// Function to build the actual widget based on the configuration.
@@ -2223,7 +1174,6 @@ class CUiComboBoxWidget<T> extends CUiWidget {
 /// UI. This widget can be utilized to setup padding, margins, or build custom
 /// stylized widgets combining said widget or layouts to build a more complex
 /// widget.
-/// @nodoc
 class CUiContainerWidget extends CUiWidget {
   /// The key to group a series of widgets as a singular group.
   final Key? key;
@@ -2599,6 +1549,225 @@ class CUiImageWidget extends CUiWidget {
   });
 }
 
+/// Provides theming of the regular [InputDecorationTheme] but expands to
+/// the input style and other attributes of styling. Modeled off the
+/// [DropdownMenuTheme] to be consistent with that control.
+class CUiInputDecorationTheme extends InputDecorationTheme {
+  /// Adds the items associated with the input field so it is in line with
+  /// other material3 widgets. See DropdownMenu as an example.
+  final TextStyle? inputStyle;
+
+  /// Identifies how to capitalize text entered into the field.
+  final TextCapitalization textCapitalization;
+
+  /// Specifies the text direction.
+  final TextDirection? textDirection;
+
+  /// Specifies the alignment of the text within the field.
+  final TextAlign textAlign;
+
+  /// Specifies the vertical alignment of the text within the text field.
+  final TextAlignVertical? textAlignVertical;
+
+  /// The max number of lines to apply to the text field.
+  final int? maxLines;
+
+  /// The minimum number of lines to apply to the text field.
+  final int? minLines;
+
+  /// Whether this control expands or not.
+  final bool expands;
+
+  /// The maximum number of characters allowed within the widget.
+  final int? maxLength;
+
+  /// Scroll padding applied if a multi-line text field is created.
+  final EdgeInsets scrollPadding;
+
+  /// Clipping behavior to apply if the text exceeds what can be displayed.
+  final Clip clipBehavior;
+
+  /// Sets the maximum lines for the hint field.
+  final int? hintMaxLines;
+
+  /// Sets the text direction of the hint text.
+  final TextDirection? hintTextDirection;
+
+  @override
+  CUiInputDecorationTheme copyWith({
+    // Items added to make it possible to match other theme styles.
+    TextStyle? inputStyle,
+    TextCapitalization? textCapitalization,
+    TextDirection? textDirection,
+    TextAlign? textAlign,
+    TextAlignVertical? textAlignVertical,
+    int? maxLines,
+    int? minLines,
+    bool? expands,
+    int? maxLength,
+    EdgeInsets? scrollPadding,
+    Clip? clipBehavior,
+    int? hintMaxLines,
+    TextDirection? hintTextDirection,
+
+    // From the original object
+    TextStyle? labelStyle,
+    TextStyle? floatingLabelStyle,
+    TextStyle? helperStyle,
+    int? helperMaxLines,
+    TextStyle? hintStyle,
+    Duration? hintFadeDuration,
+    TextStyle? errorStyle,
+    int? errorMaxLines,
+    FloatingLabelBehavior? floatingLabelBehavior,
+    FloatingLabelAlignment? floatingLabelAlignment,
+    bool? isDense,
+    EdgeInsetsGeometry? contentPadding,
+    bool? isCollapsed,
+    Color? iconColor,
+    TextStyle? prefixStyle,
+    Color? prefixIconColor,
+    BoxConstraints? prefixIconConstraints,
+    TextStyle? suffixStyle,
+    Color? suffixIconColor,
+    BoxConstraints? suffixIconConstraints,
+    TextStyle? counterStyle,
+    bool? filled,
+    Color? fillColor,
+    BorderSide? activeIndicatorBorder,
+    BorderSide? outlineBorder,
+    Color? focusColor,
+    Color? hoverColor,
+    InputBorder? errorBorder,
+    InputBorder? focusedBorder,
+    InputBorder? focusedErrorBorder,
+    InputBorder? disabledBorder,
+    InputBorder? enabledBorder,
+    InputBorder? border,
+    bool? alignLabelWithHint,
+    BoxConstraints? constraints,
+  }) {
+    return CUiInputDecorationTheme(
+      inputStyle: inputStyle ?? this.inputStyle,
+      textCapitalization: textCapitalization ?? this.textCapitalization,
+      textAlign: textAlign ?? this.textAlign,
+      textAlignVertical: textAlignVertical ?? this.textAlignVertical,
+      textDirection: textDirection ?? this.textDirection,
+      maxLines: maxLines == null
+          ? this.maxLines
+          : maxLines == 0
+              ? null
+              : maxLines,
+      minLines: minLines == null
+          ? this.minLines
+          : minLines == 0
+              ? null
+              : minLines,
+      expands: expands ?? this.expands,
+      maxLength: maxLength == null
+          ? this.maxLength
+          : maxLength == 0
+              ? null
+              : maxLength,
+      scrollPadding: scrollPadding ?? this.scrollPadding,
+      clipBehavior: clipBehavior ?? this.clipBehavior,
+      hintMaxLines: hintMaxLines ?? this.hintMaxLines,
+      hintTextDirection: hintTextDirection ?? this.hintTextDirection,
+
+      // The existing InputDecorationTheme
+      labelStyle: labelStyle ?? this.labelStyle,
+      floatingLabelStyle: floatingLabelStyle ?? this.floatingLabelStyle,
+      helperStyle: helperStyle ?? this.helperStyle,
+      helperMaxLines: helperMaxLines ?? this.helperMaxLines,
+      hintStyle: hintStyle ?? this.hintStyle,
+      hintFadeDuration: hintFadeDuration ?? this.hintFadeDuration,
+      errorStyle: errorStyle ?? this.errorStyle,
+      errorMaxLines: errorMaxLines ?? this.errorMaxLines,
+      floatingLabelBehavior:
+          floatingLabelBehavior ?? this.floatingLabelBehavior,
+      floatingLabelAlignment:
+          floatingLabelAlignment ?? this.floatingLabelAlignment,
+      isDense: isDense ?? this.isDense,
+      contentPadding: contentPadding ?? this.contentPadding,
+      isCollapsed: isCollapsed ?? this.isCollapsed,
+      iconColor: iconColor ?? this.iconColor,
+      prefixStyle: prefixStyle ?? this.prefixStyle,
+      prefixIconColor: prefixIconColor ?? this.prefixIconColor,
+      suffixStyle: suffixStyle ?? this.suffixStyle,
+      suffixIconColor: suffixIconColor ?? this.suffixIconColor,
+      counterStyle: counterStyle ?? this.counterStyle,
+      filled: filled ?? this.filled,
+      fillColor: fillColor ?? this.fillColor,
+      activeIndicatorBorder:
+          activeIndicatorBorder ?? this.activeIndicatorBorder,
+      outlineBorder: outlineBorder ?? this.outlineBorder,
+      focusColor: focusColor ?? this.focusColor,
+      hoverColor: hoverColor ?? this.hoverColor,
+      errorBorder: errorBorder ?? this.errorBorder,
+      focusedBorder: focusedBorder ?? this.focusedBorder,
+      focusedErrorBorder: focusedErrorBorder ?? this.focusedErrorBorder,
+      disabledBorder: disabledBorder ?? this.errorBorder,
+      enabledBorder: enabledBorder ?? this.enabledBorder,
+      border: border ?? this.border,
+      alignLabelWithHint: alignLabelWithHint ?? this.alignLabelWithHint,
+      constraints: constraints ?? this.constraints,
+    );
+  }
+
+  /// Constructor for the class.
+  const CUiInputDecorationTheme({
+    // Styles attached to the InputDecorationTheme.
+    this.inputStyle,
+    this.textCapitalization = TextCapitalization.none,
+    this.textAlign = TextAlign.start,
+    this.textAlignVertical,
+    this.textDirection,
+    this.maxLines = 1,
+    this.minLines,
+    this.expands = false,
+    this.maxLength,
+    this.scrollPadding = const EdgeInsets.all(20.0),
+    this.clipBehavior = Clip.hardEdge,
+    this.hintMaxLines,
+    this.hintTextDirection,
+
+    // The existing InputDecorationTheme
+    super.labelStyle,
+    super.floatingLabelStyle,
+    super.helperStyle,
+    super.helperMaxLines,
+    super.hintStyle,
+    super.hintFadeDuration,
+    super.errorStyle,
+    super.errorMaxLines,
+    super.floatingLabelBehavior = FloatingLabelBehavior.auto,
+    super.floatingLabelAlignment = FloatingLabelAlignment.start,
+    super.isDense = false,
+    super.contentPadding,
+    super.isCollapsed = false,
+    super.iconColor,
+    super.prefixStyle,
+    super.prefixIconColor,
+    super.suffixStyle,
+    super.suffixIconColor,
+    super.counterStyle,
+    super.filled = false,
+    super.fillColor,
+    super.activeIndicatorBorder,
+    super.outlineBorder,
+    super.focusColor,
+    super.hoverColor,
+    super.errorBorder,
+    super.focusedBorder,
+    super.focusedErrorBorder,
+    super.disabledBorder,
+    super.enabledBorder,
+    super.border,
+    super.alignLabelWithHint = false,
+    super.constraints,
+  });
+}
+
 /// Provides the [CUiWidget] a basic text label with the ability to make
 /// it multi-line, clip it if to long.
 class CUiLabelWidget extends CUiWidget {
@@ -2804,7 +1973,6 @@ class CUiRowWidget extends CUiWidget {
 /// Provides the [CUiWidget] a stacked widget based on the children
 /// allowing for a custom look and feel for "special" widgets that stack
 /// bottom to top and overlap.
-/// @nodoc
 class CUiStackWidget extends CUiWidget {
   /// The widgets to stack on each other to create the super widget.
   final List<Widget> children;
@@ -2878,7 +2046,7 @@ class CUiTabItem {
 //       material3 widgets.
 
 /// Widget associated with the [CUiTabbedViewWidget] to build a tabbed
-/// interface of content via the [uiWidget] function.
+/// interface of content via the [CodeMeltedAPI.ui_widget] function.
 class CUiTabbedView extends StatefulWidget {
   /// The list of [CUiTabItem] definitions of the tabbed content.
   final List<CUiTabItem> tabItems;
@@ -3154,7 +2322,7 @@ class CUiTextFieldWidget extends CUiWidget {
   final Widget? trailingWidget;
 
   /// An override style to apply vs. the overall app theme.
-  final CInputDecorationTheme? style;
+  final CUiInputDecorationTheme? style;
 
   /// A way of grouping like minded widgets together.
   final Key? key;
@@ -3406,483 +2574,1045 @@ class CUiWebViewWidget extends CUiWidget {
   CUiWebViewWidget({required this.controller});
 }
 
-/// Sets up a global navigator key for usage with dialogs rendered with the
-/// [uiDialog] function.
-final uiNavigationKey = GlobalKey<NavigatorState>();
-
-/// Sets up a global scaffold key for opening drawers and such on the
-/// [CAppView] widget..
-final uiScaffoldKey = GlobalKey<ScaffoldState>();
-
-/// Configures the [CAppView] utilizing the [CAppViewConfig] objects to setup
-/// the SPA.
-void uiAppConfig(CAppViewConfig config) {
-  config._execute();
+/// Provides a wrapper around the Flutter ThemeData object that isolates
+/// the application theming to the material3 constructs of Flutter. Extended
+/// existing ThemeData objects utilized to provide a similar theming experience.
+/// The theme is created via the [CodeMeltedAPI.ui_theme] function.
+extension ThemeDataExtension on ThemeData {
+  /// Gets access to the specialized input decoration theme to pick up styles
+  /// for all items that may utilize it.
+  CUiInputDecorationTheme get cUiInputDecorationTheme =>
+      inputDecorationTheme as CUiInputDecorationTheme;
 }
 
-/// Handles the opening / closing of the drawer areas of the [CAppView].
-void uiAppDrawer({
-  required CAppDrawerAction action,
-  required bool isEndDrawer,
-}) {
-  if (action == CAppDrawerAction.open) {
-    CAppView.openDrawer(isEndDrawer: isEndDrawer);
-  } else if (action == CAppDrawerAction.close) {
-    CAppView.closeDrawer();
+// ============================================================================
+// [MODULE API IMPLEMENTATION] ================================================
+// ============================================================================
+
+/// Something Something star wars.
+class CodeMeltedAPI {
+  // ==========================================================================
+  // [API DATA DEFINITIONS] ===================================================
+  // ==========================================================================
+
+  /// Holds the `codemelted.js` location when codemelted_web module is built.
+  static const scriptFile = "/assets/packages/codemelted_web/assets/"
+    "js/codemelted.js";
+
+  /// Sets up a global navigator key for usage with dialogs rendered with the
+  /// [ui_dialog] function.
+  static final uiNavigationKey = GlobalKey<NavigatorState>();
+
+  /// Sets up a global scaffold key for opening drawers and such on the
+  /// [CUiAppView] widget..
+  static final uiScaffoldKey = GlobalKey<ScaffoldState>();
+
+  /// Holds the instance reference for the factory.
+  static CodeMeltedAPI? _instance;
+
+  /// Holds the JSObject `codemelted.js` exported module reference.
+  JSObject? _module;
+
+  /// Accesses the `codemelted.js` Flutter binding.
+  JSObject get module {
+    assert(_module != null, "codemelted.js module was not loaded!");
+    return _module!;
   }
-}
 
-/// Provides the ability to get items from the global app state.
-T uiAppStateGet<T>({required String key}) {
-  return CAppView.uiState.get<T>(key: key);
-}
-
-/// Provides the ability to set items on the global app state.
-void uiAppStateSet<T>({required String key, required T value}) {
-  CAppView.uiState.set<T>(key: key, value: value);
-}
-
-// TODO: Future instead of appRun when running full PWA the runWidget.
-
-/// Kicks off the running of a web applications within a runZoneGuarded
-/// so any errors during runtime are logged. Specify the webApp parameter if
-/// you have your own UI you are using or leave null if you are utilizing the
-/// [CAppView] construct of this module setup via the [appConfig] method.
-void uiAppRun({
-  Future<void> Function()? preInit,
-  Widget? webApp,
-  Future<void> Function()? postInit,
-}) {
-  runZonedGuarded<Future<void>>(() async {
-    // Ensure flutter is initialized.
-    WidgetsFlutterBinding.ensureInitialized();
-
-    // Do any pre-initialization
-    await preInit?.call();
-
-    // Kick-off the application.
-    runApp(webApp ?? CAppView());
-
-    // Do any post-initialization
-    await postInit?.call();
-  }, (error, stack) {
-    // TODO: Run with logging
-    print("$error, $stack");
-  });
-}
-
-/// Provides the ability utilize Flutter's [BottomSheet] / [SnackBar] /
-/// [LicensePage] constructs to interact with a user. The different
-/// [CDialogAction] actions in combination with the named parameters provide
-/// this interaction. Certain [CDialogAction] will return values with their
-/// own close action vs. other actions where you will need to call the
-/// [CDialogAction.close] to properly return values.
-Future<T?> uiDialog<T>({
-  required CDialogAction action,
-  Widget? appIcon,
-  String? appName,
-  String? appVersion,
-  String? appLegalese,
-  Widget? leading,
-  List<Widget>? actions,
-  List<String>? choices,
-  String? title,
-  String? message,
-  Widget? content,
-  double? height,
-  T? returnValue,
-}) async {
-  if (action == CDialogAction.about) {
-    showLicensePage(
-      context: uiNavigationKey.currentContext!,
-      applicationIcon: appIcon,
-      applicationName: appName,
-      applicationVersion: appVersion,
-      applicationLegalese: appLegalese,
-      useRootNavigator: true,
-    );
-  } else if (action == CDialogAction.close) {
-    Navigator.of(
-      uiNavigationKey.currentContext!,
-      rootNavigator: true,
-    ).pop(returnValue);
-  } else {
-    // Setup our widgets for the dialog
-    var closeButton = uiWidget(
-      CUiButtonWidget(
-        icon: Icons.close,
-        type: CUiButtonType.icon,
-        title: "Close",
-        onPressed: () => uiDialog<void>(action: CDialogAction.close),
-      ),
-    );
-    List<Widget>? sheetActions;
-    Widget? sheetContent;
-    double maxHeight = height ?? 300.0;
-
-    // Determine the type of dialog we are going to build.
-    if (action == CDialogAction.alert) {
-      sheetContent = uiWidget(
-        CUiCenterWidget(
-          child: uiWidget(
-            CUiContainerWidget(
-              padding: EdgeInsets.all(15.0),
-              child: uiWidget(
-                CUiLabelWidget(
-                  data: message!,
-                  softWrap: true,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-      ScaffoldMessenger.of(
-        uiNavigationKey.currentContext!,
-      ).showSnackBar(SnackBar(content: sheetContent));
-      return null;
-    } else if (action == CDialogAction.browser) {
-      sheetActions = [closeButton];
-      if (actions != null) {
-        sheetActions.insertAll(0, actions);
-      }
-      sheetContent = uiWidget(
-        CUiWebViewWidget(
-          controller: CUiWebViewController(
-            initialUrl: message!,
-          ),
-        ),
-      );
-    } else if (action == CDialogAction.choose) {
-      int answer = 0;
-      sheetActions = [
-        uiWidget(
-          CUiButtonWidget(
-            type: CUiButtonType.text,
-            title: "OK",
-            onPressed: () => uiDialog<int>(
-              action: CDialogAction.close,
-              returnValue: answer,
-            ),
-          ),
-        ),
-      ];
-
-      final dropdownItems = <DropdownMenuEntry<int>>[];
-      for (final (index, choices) in choices!.indexed) {
-        dropdownItems.add(DropdownMenuEntry(label: choices, value: index));
-      }
-
-      sheetContent = uiWidget(
-        CUiCenterWidget(
-          child: uiWidget(
-            CUiContainerWidget(
-              padding: EdgeInsets.all(15.0),
-              child: uiWidget(
-                CUiComboBoxWidget<int>(
-                  width: double.maxFinite,
-                  label: uiWidget(
-                    CUiLabelWidget(
-                      data: message ?? "",
-                      softWrap: true,
-                    ),
-                  ),
-                  dropdownMenuEntries: dropdownItems,
-                  enableSearch: false,
-                  initialSelection: 0,
-                  onSelected: (v) {
-                    answer = v!;
-                  },
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    } else if (action == CDialogAction.confirm) {
-      sheetActions = [
-        uiWidget(
-          CUiButtonWidget(
-            type: CUiButtonType.text,
-            title: "Yes",
-            onPressed: () => uiDialog<bool>(
-              action: CDialogAction.close,
-              returnValue: true,
-            ),
-          ),
-        ),
-        uiWidget(
-          CUiButtonWidget(
-            type: CUiButtonType.text,
-            title: "No",
-            onPressed: () => uiDialog<bool>(
-              action: CDialogAction.close,
-              returnValue: true,
-            ),
-          ),
-        ),
-      ];
-      sheetContent = uiWidget(
-        CUiCenterWidget(
-          child: uiWidget(
-            CUiContainerWidget(
-              padding: EdgeInsets.all(15.0),
-              child: uiWidget(
-                CUiLabelWidget(
-                  data: message!,
-                  softWrap: true,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    } else if (action == CDialogAction.custom) {
-      sheetActions = actions;
-      sheetContent = content!;
-    } else if (action == CDialogAction.loading) {
-      sheetContent = uiWidget(
-        CUiCenterWidget(
-          child: uiWidget(
-            CUiContainerWidget(
-              padding: EdgeInsets.all(15.0),
-              child: uiWidget(
-                CUiColumnWidget(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 25.0,
-                      width: 25.0,
-                      child: CircularProgressIndicator(),
-                    ),
-                    uiWidget(CUiDividerWidget(height: 5.0)),
-                    uiWidget(
-                      CUiLabelWidget(
-                        data: message!,
-                        softWrap: true,
-                        style: TextStyle(overflow: TextOverflow.ellipsis),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    } else if (action == CDialogAction.prompt) {
-      String answer = "";
-      sheetActions = [
-        uiWidget(
-          CUiButtonWidget(
-            type: CUiButtonType.text,
-            title: "OK",
-            onPressed: () => uiDialog<String>(
-              action: CDialogAction.close,
-              returnValue: answer,
-            ),
-          ),
-        ),
-      ];
-      sheetContent = uiWidget(
-        CUiCenterWidget(
-          child: uiWidget(
-            CUiContainerWidget(
-              padding: EdgeInsets.all(15.0),
-              child: uiWidget(
-                CUiTextFieldWidget(
-                  labelText: message ?? "",
-                  onChanged: (v) => answer = v,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
+  /// Responsible for loading the `codemelted.js` script file to provide
+  /// the flutter bindings for the `codemelted.dart` module.
+  /// YOU SHOULD NOT NEED TO CALL THIS. THE JS MODULE IS PACKAGED AND DEPLOYED
+  /// WITH THE `codemelted.dart` MODULE.
+  Future<CResult> loadScript([String script = scriptFile]) async {
+    try {
+      _module ??= await importModule(script.toJS).toDart;
+      return CResult();
+    } catch (err, st) {
+      return CResult(error: err.toString(), st: st);
     }
+  }
 
-    // Now go show the dialog as a bottom sheet to the page.
-    return showModalBottomSheet<T>(
-      constraints: BoxConstraints(
-        maxHeight: maxHeight,
-      ),
-      enableDrag: false,
-      isDismissible: false,
-      isScrollControlled: true,
-      useSafeArea: true,
-      useRootNavigator: true,
-      context: uiNavigationKey.currentContext!,
-      builder: (context) {
-        return PointerInterceptor(
-          child: Scaffold(
-            appBar: AppBar(
-              leading: leading,
-              automaticallyImplyLeading: false,
-              actions: sheetActions,
-              centerTitle: false,
-              title: Text(title ?? action.name.toUpperCase()),
-              titleSpacing: 15.0,
-            ),
-            body: sheetContent!,
-          ),
-        );
+  // ==========================================================================
+  // [ASYNC UC BINDING] =======================================================
+  // ==========================================================================
+
+  /// Will put a currently running async task to sleep for a specified delay
+  /// in milliseconds.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// /// Sleeps an asynchronous task for 1 second.
+  /// await async_sleep(1000);
+  /// ```
+  Future<void> async_sleep(int delay) async {
+    return Future.delayed(Duration(milliseconds: delay));
+  }
+
+  /// Schedules an asynchronous [CTaskCB] for a given delay in milliseconds
+  /// into the future with the ability to process the specified data and return
+  /// a result.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// // Schedule a task to run a calculation in the future to learn about
+  /// // the answer to life.
+  /// var result = await async_task<int>(
+  ///   task: ([data]) {
+  ///     return data + 5;
+  ///   },
+  ///   data: 37,
+  /// );
+  /// if (result.isOk) {
+  ///   print(result.value);
+  /// } else {
+  ///   print("${result.error}\n${result.st}");
+  /// }
+  /// ```
+  Future<CResult<T>> async_task<T>({
+    required CTaskCB<T> task,
+    dynamic data,
+    int delay = 0,
+  }) async {
+    return Future.delayed(
+      Duration(milliseconds: delay),
+      () async {
+        try {
+          var answer = await task(data);
+          return CResult(value: answer);
+        } catch (err, st) {
+          return CResult(error: err.toString(), st: st);
+        }
       },
     );
   }
-  return null;
+
+  /// Creates a repeating [CTimerCB] on the specified interval in milliseconds.
+  /// You top the task by calling the [CTimerResult.stop] returned by the
+  /// call.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// // Do some repeating task on a 1 second boundary.
+  /// var timer = async_timer(
+  ///   task: () {
+  ///     // Do a repeating task.
+  ///   },
+  ///   interval: 1000,
+  /// );
+  ///
+  /// // Sometime later after the repeating task is no longer needed.
+  /// timer.stop();
+  /// ```
+  CTimerResult async_timer({required CTimerCB task, required int interval}) {
+    return CTimerResult(
+      Timer.periodic(
+        Duration(milliseconds: interval),
+        (timer) {
+          task();
+        },
+      ),
+    );
+  }
+
+  // ==========================================================================
+  // [CONSOLE UC BINDING] =====================================================
+  // ==========================================================================
+
+  // NOT APPLICABLE TO FLUTTER WEB TARGET
+
+  // ==========================================================================
+  // [DB UC BINDING] ==========================================================
+  // ==========================================================================
+
+  // TO BE DEVELOPED.
+
+  // ==========================================================================
+  // [DISK UC BINDING] ========================================================
+  // ==========================================================================
+
+  // TO BE DEVELOPED.
+
+  // ==========================================================================
+  // [HW UC BINDING] ==========================================================
+  // ==========================================================================
+
+  // TO BE DEVELOPED.
+
+  // ==========================================================================
+  // [JSON UC BINDING] ==========================================================
+  // ==========================================================================
+
+  /// Checks the type of the dynamic data to ensure it is of an expected type
+  /// with an option to throw rather then checking the returned bool.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// // Some random data received somehow that is dynamic and you would not
+  /// // know the type.
+  /// var data = "duh";
+  ///
+  /// // Go perform a check of the type. Remember you can specify to throw
+  /// // vs. checking this way.
+  /// var isExpectedType = json_check_type<bool>(data: data);
+  /// if (!isExpectedType) {
+  ///   // Handle that it is not what you expected.
+  /// }
+  /// ```
+  bool json_check_type<T>({required dynamic data, bool shouldThrow = false}) {
+    var result = data is T;
+    if (shouldThrow && !result) {
+      throw "data was not an expected type.";
+    }
+    return result;
+  }
+
+  /// Creates a JSON compliant [CArray] object.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// // To get a new CArray
+  /// var data = json_create_array();
+  ///
+  /// // To get a copy of a CArray
+  /// var data2 = <CArray>[1, true, "false", 42.2, null];
+  /// var copy = json_create_array(data2);
+  /// ```
+  CArray json_create_array([CArray? data]) {
+    return data != null ? data.copy() : [];
+  }
+
+  /// Creates a JSON compliant [CObject] object.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// // To create a new CObject
+  /// var obj = json_create_object();
+  ///
+  /// // To copy an existing object to a new object
+  /// var obj2 = <CObject>{
+  ///   "field1": 1,
+  ///   "field2": true,
+  ///   "field3": "duh",
+  ///   "field4": [1, 2, null, 4, false],
+  ///   "field5": {
+  ///     "life_answer": 42.2,
+  ///     "other_answers": null,
+  ///   }
+  /// };
+  /// var copy = json_create_object(obj2);
+  /// ```
+  CObject json_create_object([CObject? data]) {
+    return data != null ? CObject.from(data) : CObject();
+  }
+
+  /// Determines if a particular [CObject] has an expected key.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// // Given some data
+  /// var obj = <CObject>{
+  ///   "field1": 1,
+  ///   "field2": true,
+  ///   "field3": "duh",
+  ///   "field4": [1, 2, null, 4, false],
+  ///   "field5": {
+  ///     "life_answer": 42.2,
+  ///     "other_answers": null,
+  ///   }
+  /// };
+  ///
+  /// // Do what you will with the check
+  /// // You can also throw
+  /// var hasProperty = json_has_key(
+  ///   obj: obj,
+  ///   key: "field6"
+  /// );
+  /// print(hasProperty);
+  /// ```
+  bool json_has_key({
+    required CObject obj,
+    required String key,
+    bool shouldThrow = false,
+  }) {
+    var result = obj.containsKey(key);
+    if (shouldThrow && !result) {
+      throw "data did not contain expected key.";
+    }
+    return result;
+  }
+
+  /// Will parse the given string data into a JSON compliant data type.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// // Given some string data
+  /// var data = "duh";
+  /// var parsed = json_parse<int>(data);
+  /// if (parsed != null) {
+  ///   // Do something with the parsed data.
+  /// } else {
+  ///   print("Data not as expected");
+  /// }
+  /// ```
+  T? json_parse<T>(String data) {
+    if (T.toString().containsIgnoreCase("carray")) {
+      return data.asArray() as T?;
+    } else if (T.toString().containsIgnoreCase("bool")) {
+      return data.asBool() as T;
+    } else if (T.toString().containsIgnoreCase("double")) {
+      return data.asDouble() as T?;
+    } else if (T.toString().containsIgnoreCase("int")) {
+      return data.asInt() as T?;
+    } else if (T.toString().containsIgnoreCase("cobject")) {
+      return data.asObject() as T?;
+    }
+    throw "SyntaxError: T was not a compliant JSON type.";
+  }
+
+  /// Will stringify either [CArray] or [CObject] data to a JSON compliant
+  /// string. Null is returned if it cannot be stringified.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// // Given some data
+  /// var obj = <CObject>{
+  ///   "field1": 1,
+  ///   "field2": true,
+  ///   "field3": "duh",
+  ///   "field4": [1, 2, null, 4, false],
+  ///   "field5": {
+  ///     "life_answer": 42.2,
+  ///     "other_answers": null,
+  ///   }
+  /// };
+  ///
+  /// var stringified = json_stringify(obj);
+  /// print(stringified);
+  /// ```
+  String? json_stringify(dynamic data) {
+    assert(
+      data is CArray || data is CObject,
+      "data must be CArray or CObject types",
+    );
+    return data.stringify();
+  }
+
+  /// Validates that a given string URL is valid with an option to throw vs
+  /// checking the return bool.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// // Given some url.
+  /// var url = "https://something.com";
+  /// json_valid_url(
+  ///   url: url,
+  ///   shouldThrow: true, // Throw because we never expect it to be bad.
+  /// );
+  /// ```
+  bool json_valid_url({required String url, bool shouldThrow = false}) {
+    var valid = Uri.tryParse(url) != null;
+    if (shouldThrow && !valid) {
+      throw "url was not valid.";
+    }
+    return valid;
+  }
+
+  // ==========================================================================
+  // [LOGGER UC BINDING] ======================================================
+  // ==========================================================================
+
+  // TO BE DEVELOPED.
+
+  // ==========================================================================
+  // [MONITOR UC BINDING] =====================================================
+  // ==========================================================================
+
+  // NOT APPLICABLE TO FLUTTER WEB TARGET
+
+  // ==========================================================================
+  // [NETWORK UC BINDING] =====================================================
+  // ==========================================================================
+
+  // TO BE DEVELOPED.
+
+  // ==========================================================================
+  // [NPU UC BINDING] =========================================================
+  // ==========================================================================
+
+  /// Executes the specified [MATH_FORMULA] based on the given arguments to
+  /// retrieve the calculated answer. NaN is returned in the event of
+  /// division by 0 or squaring of a negative number.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// // 0 °C == 32 °F
+  /// var answer = codemelted_js.npu_math(
+  ///   formula: MATH_FORMULA.TemperatureCelsiusToFahrenheit,
+  ///   args: [0.0]
+  /// );
+  /// ```
+  double npu_math({required MATH_FORMULA formula, required List<double> args}) {
+    var formulaObj = module.getProperty<JSObject>("MATH_FORMULA".toJS);
+    var formulaArgs = <JSNumber>[];
+    for (var v in args) {
+      formulaArgs.add(v.toJS);
+    }
+    var theFormula = formulaObj.getProperty<JSFunction>(formula.name.toJS);
+    var params = <String, dynamic>{
+      "formula": theFormula,
+      "args": formulaArgs.toJS
+    };
+    var answer = module.callMethod<JSNumber>("npu_math".toJS, params.jsify());
+    return answer.toDartDouble;
+  }
+
+  // ==========================================================================
+  // [PROCESS UC BINDING] =====================================================
+  // ==========================================================================
+
+  // NOT APPLICABLE TO FLUTTER WEB TARGET
+
+  // ==========================================================================
+  // [RUNTIME UC BINDING] =====================================================
+  // ==========================================================================
+
+  /// Determines the available CPU processors for background workers.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// var cpuCount = codemelted_js.runtime_cpu_count();
+  /// ```
+  int runtime_cpu_count() {
+    return module.callMethod<JSNumber>("runtime_cpu_count".toJS).toDartInt;
+  }
+
+  /// Provides the ability to search the document search parameters for
+  /// queryable parameters on the web document.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// var value = codemelted_js.runtime_environment("username");
+  /// ```
+  String? runtime_environment(String name) {
+    var value = module.callMethod<JSString?>(
+      "runtime_environment".toJS,
+      name.toJS
+    );
+    return value.isUndefinedOrNull ? null : value!.toDart;
+  }
+
+  /// Adds or removes an event listener to the JavaScript browser runtime or
+  /// individual EventSource object. The action parameter will take either
+  /// "add" or "remove". The type parameter corresponds to the event you are
+  /// registering to handle. The listener represents the listener to respond
+  /// to the events.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// // To add an event to react to when the web document is loaded
+  /// void listener(web.Event e) {
+  ///   // Do something with the events...
+  /// }
+  ///
+  /// codemelted_js.runtime_event(
+  ///   action: "add",
+  ///   type: "DOMContentLoaded",
+  ///   listener: listener
+  /// );
+  ///
+  /// // To eventually remove the event
+  /// codemelted_js.runtime_event(
+  ///   action: "remove",
+  ///   type: "DOMContentLoaded",
+  ///   listener: listener
+  /// );
+  /// ```
+  void runtime_event({
+    required String action,
+    required String type,
+    required CEventHandler listener,
+    web.EventSource? obj
+  }) {
+    var params = <String, dynamic>{
+      "action": action.toJS,
+      "type": type.toJS,
+      "listener": listener.jsify(),
+      "obj": obj.jsify()
+    };
+    module.callMethod("runtime_event".toJS, params.jsify());
+  }
+
+  /// Determines the hostname of the browser runtime.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// var hostname = codemelted_js.hostname();
+  /// ```
+  String runtime_hostname() {
+    return module.callMethod<JSString>("runtime_hostname".toJS).toDart;
+  }
+
+  /// Determines what browser the JavaScript runtime represents.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// var runtime = codemelted_js.runtime_name();
+  /// ```
+  String runtime_name() {
+    return module.callMethod<JSString>("runtime_name".toJS).toDart;
+  }
+
+  /// Determines if the web document has access to the Internet.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// var online = codemelted_js.runtime_online();
+  /// ```
+  bool runtime_online() {
+    return module.callMethod<JSBoolean>("runtime_online".toJS).toDart;
+  }
+
+  // ==========================================================================
+  // [STORAGE UC BINDING] =====================================================
+  // ==========================================================================
+
+  // TO BE DEVELOPED.
+
+  // ==========================================================================
+  // [UI UC BINDING] ==========================================================
+  // ==========================================================================
+
+  /// Configures the [CUiAppView] utilizing the [CUiAppViewConfig] objects to setup
+  /// the SPA.
+  void ui_app_config(CUiAppViewConfig config) {
+    config._execute();
+  }
+
+  /// Handles the opening / closing of the drawer areas of the [CUiAppView].
+  void ui_app_drawer({
+    required CUiAppDrawerAction action,
+    required bool isEndDrawer,
+  }) {
+    if (action == CUiAppDrawerAction.open) {
+      CUiAppView.openDrawer(isEndDrawer: isEndDrawer);
+    } else if (action == CUiAppDrawerAction.close) {
+      CUiAppView.closeDrawer();
+    }
+  }
+
+  /// Provides the ability to get items from the global app state.
+  T ui_app_state_get<T>({required String key}) {
+    return CUiAppView.uiState.get<T>(key: key);
+  }
+
+  /// Provides the ability to set items on the global app state.
+  void ui_app_state_set<T>({required String key, required T value}) {
+    CUiAppView.uiState.set<T>(key: key, value: value);
+  }
+
+  // TODO: Future instead of appRun when running full PWA the runWidget.
+
+  /// Kicks off the running of a web applications within a runZoneGuarded
+  /// so any errors during runtime are logged. Specify the webApp parameter if
+  /// you have your own UI you are using or leave null if you are utilizing the
+  /// [CUiAppView] construct of this module setup via the
+  /// [CodeMeltedAPI.ui_app_config] method.
+  void ui_app_run({
+    Future<void> Function()? preInit,
+    Widget? webApp,
+    Future<void> Function()? postInit,
+  }) {
+    runZonedGuarded<Future<void>>(() async {
+      // Ensure flutter is initialized.
+      WidgetsFlutterBinding.ensureInitialized();
+
+      // Do any pre-initialization
+      await loadScript();
+      await preInit?.call();
+
+      // Kick-off the application.
+      runApp(webApp ?? CUiAppView());
+
+      // Do any post-initialization
+      await postInit?.call();
+    }, (error, stack) {
+      // TODO: Run with logging
+      print("$error, $stack");
+    });
+  }
+
+  /// Provides the ability utilize Flutter's [BottomSheet] / [SnackBar] /
+  /// [LicensePage] constructs to interact with a user. The different
+  /// [DIALOG_REQUEST] actions in combination with the named parameters provide
+  /// this interaction. Certain [DIALOG_REQUEST] will return values with their
+  /// own close action vs. other actions where you will need to call the
+  /// [DIALOG_REQUEST.close] to properly return values.
+  Future<T?> ui_dialog<T>({
+    required DIALOG_REQUEST action,
+    Widget? appIcon,
+    String? appName,
+    String? appVersion,
+    String? appLegalese,
+    Widget? leading,
+    List<Widget>? actions,
+    List<String>? choices,
+    String? title,
+    String? message,
+    Widget? content,
+    double? height,
+    T? returnValue,
+  }) async {
+    if (action == DIALOG_REQUEST.About) {
+      showLicensePage(
+        context: uiNavigationKey.currentContext!,
+        applicationIcon: appIcon,
+        applicationName: appName,
+        applicationVersion: appVersion,
+        applicationLegalese: appLegalese,
+        useRootNavigator: true,
+      );
+    } else if (action == DIALOG_REQUEST.Close) {
+      Navigator.of(
+        uiNavigationKey.currentContext!,
+        rootNavigator: true,
+      ).pop(returnValue);
+    } else {
+      // Setup our widgets for the dialog
+      var closeButton = ui_widget(
+        CUiButtonWidget(
+          icon: Icons.close,
+          type: CUiButtonType.icon,
+          title: "Close",
+          onPressed: () => ui_dialog<void>(action: DIALOG_REQUEST.Close),
+        ),
+      );
+      List<Widget>? sheetActions;
+      Widget? sheetContent;
+      double maxHeight = height ?? 300.0;
+
+      // Determine the type of dialog we are going to build.
+      if (action == DIALOG_REQUEST.Alert) {
+        sheetContent = ui_widget(
+          CUiCenterWidget(
+            child: ui_widget(
+              CUiContainerWidget(
+                padding: EdgeInsets.all(15.0),
+                child: ui_widget(
+                  CUiLabelWidget(
+                    data: message!,
+                    softWrap: true,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        ScaffoldMessenger.of(
+          uiNavigationKey.currentContext!,
+        ).showSnackBar(SnackBar(content: sheetContent));
+        return null;
+      } else if (action == DIALOG_REQUEST.Browser) {
+        sheetActions = [closeButton];
+        if (actions != null) {
+          sheetActions.insertAll(0, actions);
+        }
+        sheetContent = ui_widget(
+          CUiWebViewWidget(
+            controller: CUiWebViewController(
+              initialUrl: message!,
+            ),
+          ),
+        );
+      } else if (action == DIALOG_REQUEST.Choose) {
+        int answer = 0;
+        sheetActions = [
+          ui_widget(
+            CUiButtonWidget(
+              type: CUiButtonType.text,
+              title: "OK",
+              onPressed: () => ui_dialog<int>(
+                action: DIALOG_REQUEST.Close,
+                returnValue: answer,
+              ),
+            ),
+          ),
+        ];
+
+        final dropdownItems = <DropdownMenuEntry<int>>[];
+        for (final (index, choices) in choices!.indexed) {
+          dropdownItems.add(DropdownMenuEntry(label: choices, value: index));
+        }
+
+        sheetContent = ui_widget(
+          CUiCenterWidget(
+            child: ui_widget(
+              CUiContainerWidget(
+                padding: EdgeInsets.all(15.0),
+                child: ui_widget(
+                  CUiComboBoxWidget<int>(
+                    width: double.maxFinite,
+                    label: ui_widget(
+                      CUiLabelWidget(
+                        data: message ?? "",
+                        softWrap: true,
+                      ),
+                    ),
+                    dropdownMenuEntries: dropdownItems,
+                    enableSearch: false,
+                    initialSelection: 0,
+                    onSelected: (v) {
+                      answer = v!;
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      } else if (action == DIALOG_REQUEST.Confirm) {
+        sheetActions = [
+          ui_widget(
+            CUiButtonWidget(
+              type: CUiButtonType.text,
+              title: "Yes",
+              onPressed: () => ui_dialog<bool>(
+                action: DIALOG_REQUEST.Close,
+                returnValue: true,
+              ),
+            ),
+          ),
+          ui_widget(
+            CUiButtonWidget(
+              type: CUiButtonType.text,
+              title: "No",
+              onPressed: () => ui_dialog<bool>(
+                action: DIALOG_REQUEST.Close,
+                returnValue: true,
+              ),
+            ),
+          ),
+        ];
+        sheetContent = ui_widget(
+          CUiCenterWidget(
+            child: ui_widget(
+              CUiContainerWidget(
+                padding: EdgeInsets.all(15.0),
+                child: ui_widget(
+                  CUiLabelWidget(
+                    data: message!,
+                    softWrap: true,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      } else if (action == DIALOG_REQUEST.Custom) {
+        sheetActions = actions;
+        sheetContent = content!;
+      } else if (action == DIALOG_REQUEST.Loading) {
+        sheetContent = ui_widget(
+          CUiCenterWidget(
+            child: ui_widget(
+              CUiContainerWidget(
+                padding: EdgeInsets.all(15.0),
+                child: ui_widget(
+                  CUiColumnWidget(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 25.0,
+                        width: 25.0,
+                        child: CircularProgressIndicator(),
+                      ),
+                      ui_widget(CUiDividerWidget(height: 5.0)),
+                      ui_widget(
+                        CUiLabelWidget(
+                          data: message!,
+                          softWrap: true,
+                          style: TextStyle(overflow: TextOverflow.ellipsis),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      } else if (action == DIALOG_REQUEST.Prompt) {
+        String answer = "";
+        sheetActions = [
+          ui_widget(
+            CUiButtonWidget(
+              type: CUiButtonType.text,
+              title: "OK",
+              onPressed: () => ui_dialog<String>(
+                action: DIALOG_REQUEST.Close,
+                returnValue: answer,
+              ),
+            ),
+          ),
+        ];
+        sheetContent = ui_widget(
+          CUiCenterWidget(
+            child: ui_widget(
+              CUiContainerWidget(
+                padding: EdgeInsets.all(15.0),
+                child: ui_widget(
+                  CUiTextFieldWidget(
+                    labelText: message ?? "",
+                    onChanged: (v) => answer = v,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      // Now go show the dialog as a bottom sheet to the page.
+      return showModalBottomSheet<T>(
+        constraints: BoxConstraints(
+          maxHeight: maxHeight,
+        ),
+        enableDrag: false,
+        isDismissible: false,
+        isScrollControlled: true,
+        useSafeArea: true,
+        useRootNavigator: true,
+        context: uiNavigationKey.currentContext!,
+        builder: (context) {
+          return PointerInterceptor(
+            child: Scaffold(
+              appBar: AppBar(
+                leading: leading,
+                automaticallyImplyLeading: false,
+                actions: sheetActions,
+                centerTitle: false,
+                title: Text(title ?? action.name.toUpperCase()),
+                titleSpacing: 15.0,
+              ),
+              body: sheetContent!,
+            ),
+          );
+        },
+      );
+    }
+    return null;
+  }
+
+  /// Boolean queries of the given browser runtime to discover different
+  /// features about the given browser window.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// var isTouchEnabled = codemelted.ui_is(IS_REQUEST.TouchEnabled);
+  /// ```
+  bool ui_is(IS_REQUEST request) {
+    return module.callMethod<JSBoolean>("ui_is".toJS, request.name.toJS).toDart;
+  }
+
+  /// Opens the specified schema to a browser window or native app configured
+  /// to handle the specified schema.
+  ///
+  /// **Example:**
+  /// ```dart
+  ///
+  /// ```
+  web.Window? ui_open({
+    required SCHEMA schema,
+    bool popupWindow = false,
+    String? url,
+    List<String> mailto = const [],
+    List<String> cc = const [],
+    List<String> bcc = const [],
+    String subject = "",
+    String body = "",
+    TARGET target = TARGET.Blank,
+    double width = 900.0,
+    double height = 600.0,
+  }) {
+    var params = {
+      "schema": schema.schema,
+      "popupWindow": popupWindow,
+      "url": url,
+      "mailto": mailto,
+      "cc": cc,
+      "bcc": bcc,
+      "subject": subject,
+      "body": body,
+      "target": target.target,
+      "width": width,
+      "height": height,
+    };
+    var result = module.callMethod<web.Window?>("ui_open".toJS, params.jsify());
+    return result;
+  }
+
+  /// Creates a [ThemeData] object but it only exposes the material3 themes so
+  /// that any application theming is done with the future in mind.
+  ThemeData ui_theme({
+    ActionIconThemeData? actionIconTheme,
+    AppBarTheme? appBarTheme,
+    BadgeThemeData? badgeTheme,
+    MaterialBannerThemeData? bannerTheme,
+    BottomAppBarTheme? bottomAppBarTheme,
+    BottomNavigationBarThemeData? bottomNavigationBarTheme,
+    BottomSheetThemeData? bottomSheetTheme,
+    Brightness? brightness,
+    ButtonThemeData? buttonTheme,
+    CardThemeData? cardTheme,
+    CheckboxThemeData? checkboxTheme,
+    ChipThemeData? chipTheme,
+    ColorScheme? colorScheme,
+    DataTableThemeData? dataTableTheme,
+    DatePickerThemeData? datePickerTheme,
+    DividerThemeData? dividerTheme,
+    DialogThemeData? dialogTheme,
+    DrawerThemeData? drawerTheme,
+    DropdownMenuThemeData? dropdownMenuTheme,
+    ElevatedButtonThemeData? elevatedButtonTheme,
+    ExpansionTileThemeData? expansionTileTheme,
+    FilledButtonThemeData? filledButtonTheme,
+    FloatingActionButtonThemeData? floatingActionButtonTheme,
+    IconButtonThemeData? iconButtonTheme,
+    IconThemeData? iconTheme,
+    InputDecorationTheme? inputDecorationTheme,
+    ListTileThemeData? listTileTheme,
+    MaterialTapTargetSize? materialTapTargetSize,
+    MenuBarThemeData? menuBarTheme,
+    MenuButtonThemeData? menuButtonTheme,
+    MenuThemeData? menuTheme,
+    NavigationBarThemeData? navigationBarTheme,
+    NavigationDrawerThemeData? navigationDrawerTheme,
+    NavigationRailThemeData? navigationRailTheme,
+    OutlinedButtonThemeData? outlinedButtonTheme,
+    PageTransitionsTheme? pageTransitionsTheme,
+    PopupMenuThemeData? popupMenuTheme,
+    IconThemeData? primaryIconTheme,
+    ProgressIndicatorThemeData? progressIndicatorTheme,
+    TextTheme? primaryTextTheme,
+    RadioThemeData? radioTheme,
+    ScrollbarThemeData? scrollbarTheme,
+    SearchBarThemeData? searchBarTheme,
+    SearchViewThemeData? searchViewTheme,
+    SegmentedButtonThemeData? segmentedButtonTheme,
+    SnackBarThemeData? snackBarTheme,
+    SliderThemeData? sliderTheme,
+    InteractiveInkFeatureFactory? splashFactory,
+    SwitchThemeData? switchTheme,
+    TabBarThemeData? tabBarTheme,
+    TextButtonThemeData? textButtonTheme,
+    TextSelectionThemeData? textSelectionTheme,
+    TextTheme? textTheme,
+    TimePickerThemeData? timePickerTheme,
+    ToggleButtonsThemeData? toggleButtonsTheme,
+    TooltipThemeData? tooltipTheme,
+    Typography? typography,
+    VisualDensity? visualDensity,
+  }) {
+    return ThemeData(
+      actionIconTheme: actionIconTheme,
+      appBarTheme: appBarTheme,
+      badgeTheme: badgeTheme,
+      bannerTheme: bannerTheme,
+      bottomAppBarTheme: bottomAppBarTheme,
+      bottomNavigationBarTheme: bottomNavigationBarTheme,
+      bottomSheetTheme: bottomSheetTheme,
+      brightness: brightness,
+      buttonTheme: buttonTheme,
+      cardTheme: cardTheme,
+      checkboxTheme: checkboxTheme,
+      chipTheme: chipTheme,
+      colorScheme: colorScheme,
+      dataTableTheme: dataTableTheme,
+      datePickerTheme: datePickerTheme,
+      dialogTheme: dialogTheme,
+      dividerTheme: dividerTheme,
+      drawerTheme: drawerTheme,
+      dropdownMenuTheme: dropdownMenuTheme,
+      elevatedButtonTheme: elevatedButtonTheme,
+      expansionTileTheme: expansionTileTheme,
+      filledButtonTheme: filledButtonTheme,
+      floatingActionButtonTheme: floatingActionButtonTheme,
+      iconButtonTheme: iconButtonTheme,
+      iconTheme: iconTheme,
+      inputDecorationTheme: inputDecorationTheme,
+      listTileTheme: listTileTheme,
+      materialTapTargetSize: materialTapTargetSize,
+      menuBarTheme: menuBarTheme,
+      menuButtonTheme: menuButtonTheme,
+      menuTheme: menuTheme,
+      navigationBarTheme: navigationBarTheme,
+      navigationDrawerTheme: navigationDrawerTheme,
+      navigationRailTheme: navigationRailTheme,
+      outlinedButtonTheme: outlinedButtonTheme,
+      pageTransitionsTheme: pageTransitionsTheme,
+      popupMenuTheme: popupMenuTheme,
+      primaryIconTheme: primaryIconTheme,
+      primaryTextTheme: primaryTextTheme,
+      progressIndicatorTheme: progressIndicatorTheme,
+      radioTheme: radioTheme,
+      scrollbarTheme: scrollbarTheme,
+      searchBarTheme: searchBarTheme,
+      searchViewTheme: searchViewTheme,
+      segmentedButtonTheme: segmentedButtonTheme,
+      sliderTheme: sliderTheme,
+      snackBarTheme: snackBarTheme,
+      splashFactory: splashFactory,
+      switchTheme: switchTheme,
+      tabBarTheme: tabBarTheme,
+      textButtonTheme: textButtonTheme,
+      textSelectionTheme: textSelectionTheme,
+      textTheme: textTheme,
+      timePickerTheme: timePickerTheme,
+      toggleButtonsTheme: toggleButtonsTheme,
+      tooltipTheme: tooltipTheme,
+      useMaterial3: true,
+      visualDensity: visualDensity,
+    );
+  }
+
+  /// Provides the ability to define [CUiWidget] objects to define a Fluter
+  /// user interface. This does not prevent the use of regular Flutter widgets.
+  /// It simply provides a mechanism of vetted reusable widgets for this
+  /// module.
+  ///
+  /// **Example:**
+  /// ```dart
+  /// // Example building a button laid out declarative style
+  /// // if you were building a UI.
+  /// ui_widget(
+  ///   CUiButtonWidget(
+  ///     title: "POST",
+  ///     type: CUiButtonType.elevated,
+  ///     onPressed: () {},
+  ///   ),
+  /// ),
+  /// ```
+  Widget ui_widget(CUiWidget widget) {
+    return widget._build();
+  }
+
+  // ==========================================================================
+  // [SINGLETON BINDING] ======================================================
+  // ==========================================================================
+
+  /// Factory constructor for the object.
+  factory CodeMeltedAPI() => _instance ?? CodeMeltedAPI._();
+
+  /// Constructor for the object.
+  CodeMeltedAPI._() {
+    _instance = this;
+    Future.delayed(Duration(milliseconds: 500), loadScript);
+  }
 }
 
-/// Retrieves the height of the overall browser window.
-double uiHeight(BuildContext context) {
-  return MediaQuery.of(context).size.height;
-}
-
-/// Creates a [ThemeData] object but it only exposes the material3 themes so
-/// that any application theming is done with the future in mind.
-ThemeData uiTheme({
-  ActionIconThemeData? actionIconTheme,
-  AppBarTheme? appBarTheme,
-  BadgeThemeData? badgeTheme,
-  MaterialBannerThemeData? bannerTheme,
-  BottomAppBarTheme? bottomAppBarTheme,
-  BottomNavigationBarThemeData? bottomNavigationBarTheme,
-  BottomSheetThemeData? bottomSheetTheme,
-  Brightness? brightness,
-  ButtonThemeData? buttonTheme,
-  CardThemeData? cardTheme,
-  CheckboxThemeData? checkboxTheme,
-  ChipThemeData? chipTheme,
-  ColorScheme? colorScheme,
-  DataTableThemeData? dataTableTheme,
-  DatePickerThemeData? datePickerTheme,
-  DividerThemeData? dividerTheme,
-  DialogThemeData? dialogTheme,
-  DrawerThemeData? drawerTheme,
-  DropdownMenuThemeData? dropdownMenuTheme,
-  ElevatedButtonThemeData? elevatedButtonTheme,
-  ExpansionTileThemeData? expansionTileTheme,
-  FilledButtonThemeData? filledButtonTheme,
-  FloatingActionButtonThemeData? floatingActionButtonTheme,
-  IconButtonThemeData? iconButtonTheme,
-  IconThemeData? iconTheme,
-  InputDecorationTheme? inputDecorationTheme,
-  ListTileThemeData? listTileTheme,
-  MaterialTapTargetSize? materialTapTargetSize,
-  MenuBarThemeData? menuBarTheme,
-  MenuButtonThemeData? menuButtonTheme,
-  MenuThemeData? menuTheme,
-  NavigationBarThemeData? navigationBarTheme,
-  NavigationDrawerThemeData? navigationDrawerTheme,
-  NavigationRailThemeData? navigationRailTheme,
-  OutlinedButtonThemeData? outlinedButtonTheme,
-  PageTransitionsTheme? pageTransitionsTheme,
-  PopupMenuThemeData? popupMenuTheme,
-  IconThemeData? primaryIconTheme,
-  ProgressIndicatorThemeData? progressIndicatorTheme,
-  TextTheme? primaryTextTheme,
-  RadioThemeData? radioTheme,
-  ScrollbarThemeData? scrollbarTheme,
-  SearchBarThemeData? searchBarTheme,
-  SearchViewThemeData? searchViewTheme,
-  SegmentedButtonThemeData? segmentedButtonTheme,
-  SnackBarThemeData? snackBarTheme,
-  SliderThemeData? sliderTheme,
-  InteractiveInkFeatureFactory? splashFactory,
-  SwitchThemeData? switchTheme,
-  TabBarThemeData? tabBarTheme,
-  TextButtonThemeData? textButtonTheme,
-  TextSelectionThemeData? textSelectionTheme,
-  TextTheme? textTheme,
-  TimePickerThemeData? timePickerTheme,
-  ToggleButtonsThemeData? toggleButtonsTheme,
-  TooltipThemeData? tooltipTheme,
-  Typography? typography,
-  VisualDensity? visualDensity,
-}) {
-  return ThemeData(
-    actionIconTheme: actionIconTheme,
-    appBarTheme: appBarTheme,
-    badgeTheme: badgeTheme,
-    bannerTheme: bannerTheme,
-    bottomAppBarTheme: bottomAppBarTheme,
-    bottomNavigationBarTheme: bottomNavigationBarTheme,
-    bottomSheetTheme: bottomSheetTheme,
-    brightness: brightness,
-    buttonTheme: buttonTheme,
-    cardTheme: cardTheme,
-    checkboxTheme: checkboxTheme,
-    chipTheme: chipTheme,
-    colorScheme: colorScheme,
-    dataTableTheme: dataTableTheme,
-    datePickerTheme: datePickerTheme,
-    dialogTheme: dialogTheme,
-    dividerTheme: dividerTheme,
-    drawerTheme: drawerTheme,
-    dropdownMenuTheme: dropdownMenuTheme,
-    elevatedButtonTheme: elevatedButtonTheme,
-    expansionTileTheme: expansionTileTheme,
-    filledButtonTheme: filledButtonTheme,
-    floatingActionButtonTheme: floatingActionButtonTheme,
-    iconButtonTheme: iconButtonTheme,
-    iconTheme: iconTheme,
-    inputDecorationTheme: inputDecorationTheme,
-    listTileTheme: listTileTheme,
-    materialTapTargetSize: materialTapTargetSize,
-    menuBarTheme: menuBarTheme,
-    menuButtonTheme: menuButtonTheme,
-    menuTheme: menuTheme,
-    navigationBarTheme: navigationBarTheme,
-    navigationDrawerTheme: navigationDrawerTheme,
-    navigationRailTheme: navigationRailTheme,
-    outlinedButtonTheme: outlinedButtonTheme,
-    pageTransitionsTheme: pageTransitionsTheme,
-    popupMenuTheme: popupMenuTheme,
-    primaryIconTheme: primaryIconTheme,
-    primaryTextTheme: primaryTextTheme,
-    progressIndicatorTheme: progressIndicatorTheme,
-    radioTheme: radioTheme,
-    scrollbarTheme: scrollbarTheme,
-    searchBarTheme: searchBarTheme,
-    searchViewTheme: searchViewTheme,
-    segmentedButtonTheme: segmentedButtonTheme,
-    sliderTheme: sliderTheme,
-    snackBarTheme: snackBarTheme,
-    splashFactory: splashFactory,
-    switchTheme: switchTheme,
-    tabBarTheme: tabBarTheme,
-    textButtonTheme: textButtonTheme,
-    textSelectionTheme: textSelectionTheme,
-    textTheme: textTheme,
-    timePickerTheme: timePickerTheme,
-    toggleButtonsTheme: toggleButtonsTheme,
-    tooltipTheme: tooltipTheme,
-    useMaterial3: true,
-    visualDensity: visualDensity,
-  );
-}
-
-/// Provides the ability to define [CUiWidget] objects to define a Fluter
-/// user interface. This does not prevent the use of regular Flutter widgets.
-/// It simply provides a mechanism of vetted reusable widgets for this
-/// module.
+/// Creates the namespace reference to the [CodeMeltedAPI] object.
 ///
 /// **Example:**
-/// ```dart
-/// // Example building a button laid out declarative style
-/// // if you were building a UI.
-/// uiWidget(
-///   CUiButtonWidget(
-///     title: "POST",
-///     type: CUiButtonType.elevated,
-///     onPressed: () {},
-///   ),
-/// ),
 /// ```
-Widget uiWidget(CUiWidget widget) {
-  return widget._build();
-}
-
-/// Gets the overall width of the given context.
-double uiWidth(BuildContext context) {
-  return MediaQuery.of(context).size.width;
-}
+///
+/// ```
+var codemelted = CodeMeltedAPI();
