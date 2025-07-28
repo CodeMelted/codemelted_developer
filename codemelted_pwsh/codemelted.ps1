@@ -1928,6 +1928,17 @@ function network_fetch {
 # [NPU UC IMPLEMENTATION] =====================================================
 # =============================================================================
 
+[hashtable] $MATH_FORMULA = @{
+  TemperatureCelsiusToFahrenheit = { param($formulaArgs) ($formulaArgs[0] - 32) * (5 / 9) }
+}
+
+function npu_math {
+  $formulaArgs = $Params["args"]
+  $formula = $Params["formula"]
+  $cmd = $MATH_FORMULA[$formula]
+  return Invoke-Command -ScriptBlock $cmd -ArgumentList $formulaArgs
+}
+
 # TO BE DEVELOPED
 
 # =============================================================================

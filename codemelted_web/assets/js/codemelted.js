@@ -402,9 +402,8 @@ export function console_alert(message = "") {
     globalThis.alert(message);
   } else if (runtime_is_nodejs()) {
     throw API_NOT_IMPLEMENTED;
-  } else {
-    throw API_UNSUPPORTED_RUNTIME;
   }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
@@ -460,9 +459,8 @@ export function console_choose({message = "", choices}) {
     return answer;
   } else if (runtime_is_nodejs()) {
     throw API_NOT_IMPLEMENTED;
-  } else {
-    throw API_UNSUPPORTED_RUNTIME;
   }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
@@ -493,9 +491,8 @@ export function console_confirm(message = "") {
     return globalThis.confirm(prompt);
   } else if (runtime_is_nodejs()) {
     throw API_NOT_IMPLEMENTED;
-  } else {
-    throw API_UNSUPPORTED_RUNTIME;
   }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
@@ -545,9 +542,8 @@ export function console_password(message = "") {
     return answer;
   } else if (runtime_is_nodejs()) {
     throw API_NOT_IMPLEMENTED;
-  } else {
-    throw API_UNSUPPORTED_RUNTIME;
   }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
@@ -579,9 +575,8 @@ export function console_prompt(message = "") {
     return answer != null ? answer : "";
   } else if (runtime_is_nodejs()) {
     throw API_NOT_IMPLEMENTED;
-  } else {
-    throw API_UNSUPPORTED_RUNTIME;
   }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
@@ -607,9 +602,8 @@ export function console_writeln(message = "") {
   json_check_type({type: "string", data: message, shouldThrow: true});
   if (runtime_is_deno() || runtime_is_nodejs()) {
     globalThis.console.log(message);
-  } else {
-    throw API_UNSUPPORTED_RUNTIME;
   }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 // TODO: NodeJS Console?
@@ -673,77 +667,524 @@ export function db_version() {
 // ============================================================================
 
 /**
-* <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
+ * Provides information about a file returned. This serves as a higher
+ * abstraction for Deno / NodeJS runtimes that retrieve this type of
+ * information.
+ * @see https://docs.deno.com/api/deno/~/Deno.FileInfo
  */
-export function disk_cp() {
-  // TODO: Deno for sure
-  //       NodeJS if no 3rd party items needed.
-  throw API_NOT_IMPLEMENTED;
+export class CFileInfo {
+  /** @type {string} */
+  #filename;
+
+  /** @type {any} */
+  #metadata;
+
+  /**
+   * The name of the file / directory on disk.
+   * @readonly
+   * @type {string}
+   */
+  get filename() {
+    return this.#filename;
+  }
+
+  /**
+   * True if this is info for a regular file.
+   * @readonly
+   * @type {boolean}
+   */
+  get isFile() {
+    // @ts-ignore Will exist in Deno runtime
+    return this.#metadata.isFile;
+  }
+
+  /**
+   * True if this is info for a regular directory.
+   * @readonly
+   * @type {boolean}
+   */
+  get isDirectory() {
+    // @ts-ignore Will exist in Deno runtime
+    return this.#metadata.isDirectory;
+  }
+
+  /**
+   * True if this is info for a symlink.
+   * @readonly
+   * @type {boolean}
+   */
+  get isSymlink() {
+    // @ts-ignore Will exist in Deno runtime
+    return this.#metadata.isSymlink;
+  }
+
+  /**
+   * The size of the file, in bytes.
+   * @readonly
+   * @type {number}
+   */
+  get size() {
+    // @ts-ignore Will exist in Deno runtime
+    return this.#metadata.size;
+  }
+
+  /**
+   * The last modification time of the file. This corresponds to the mtime
+   * field from stat on Linux/Mac OS and ftLastWriteTime on Windows. This
+   * may not be available on all platforms.
+   * @readonly
+   * @type {number?}
+   */
+  get ntime() {
+    // @ts-ignore Will exist in Deno runtime
+    return this.#metadata.ntime;
+  }
+
+  /**
+   * The last access time of the file. This corresponds to the atime field
+   * from stat on Unix and ftLastAccessTime on Windows. This may not be
+   * available on all platforms.
+   * @readonly
+   * @type {Date?}
+   */
+  get atime() {
+    // @ts-ignore Will exist in Deno runtime
+    return this.#metadata.atime;
+  }
+
+  /**
+  * The creation time of the file. This corresponds to the birthtime field
+  * from stat on Mac/BSD and ftCreationTime on Windows. This may not be
+  * available on all platforms.
+   * @readonly
+   * @type {Date?}
+   */
+  get birthtime() {
+    // @ts-ignore Will exist in Deno runtime
+    return this.#metadata.birthtime;
+  }
+
+  /**
+   * The last change time of the file. This corresponds to the ctime field
+   * from stat on Mac/BSD and ChangeTime on Windows. This may not be
+   * available on all platforms.
+   * @readonly
+   * @type {Date?}
+   */
+  get ctime() {
+    // @ts-ignore Will exist in Deno runtime
+    return this.#metadata.ctime;
+  }
+
+  /**
+   * ID of the device containing the file.
+   * @readonly
+   * @type {number?}
+   */
+  get dev() {
+    // @ts-ignore Will exist in Deno runtime
+    return this.#metadata.dev;
+  }
+
+  /**
+   * Inode number.
+   * @readonly
+   * @type {number?}
+   */
+  get ino() {
+    // @ts-ignore Will exist in Deno runtime
+    return this.#metadata.ino;
+  }
+
+  /**
+   * Constructor for the object.
+   * @param {string} filename The item on disk that was looked up.
+   * @param {any} metadata The Deno / NodeJS representation of a file /
+   * directory on disk.
+   */
+  constructor(filename, metadata) {
+    this.#filename = filename;
+    this.#metadata = metadata;
+  }
 }
 
 /**
-* <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
+ * Copies a file / directory from its currently source location to the
+ * specified destination.
+ * @param {string} src The source item to copy.
+ * @param {string} dest The destination of where to copy the item.
+ * @returns {CResult} Identifying success or a reason why copy failed.
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
+ * should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" uncheck><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" uncheck><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
  */
-export function disk_exists() {
-  // TODO: Deno for sure
-  //       NodeJS if no 3rd party items needed.
-  throw API_NOT_IMPLEMENTED;
+export function disk_cp(src, dest) {
+  json_check_type({type: "string", data: src, shouldThrow: true});
+  json_check_type({type: "string", data: dest, shouldThrow: true});
+  if (runtime_is_deno()) {
+    try {
+      // @ts-ignore Will exist in Deno runtime.
+      globalThis.copyFileSync(src, dest);
+      return new CResult();
+    } catch (err) {
+      return new CResult({error: err});
+    }
+  }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
-* <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
+ * Determines if the specified item (filename or directory) exists.
+ * @param {string} filename The source item to copy.
+ * @returns {CFileInfo?} Identifying success (exists) or null if not found.
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
+ * should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" uncheck><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" uncheck><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
  */
-export function disk_metadata() {
-  // TODO: Deno for sure
-  //       NodeJS if no 3rd party items needed.
-  throw API_NOT_IMPLEMENTED;
+export function disk_exists(filename) {
+  json_check_type({type: "string", data: filename, shouldThrow: true});
+  if (runtime_is_deno()) {
+    try {
+      // @ts-ignore Will exist in Deno runtime.
+      const metadata = globalThis.statSync(filename);
+      return new CFileInfo(filename, metadata);
+    } catch (err) {
+      return null;
+    }
+  }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
-* <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
+ * List the files in the specified source location.
+ * @param {string} path The directory to list.
+ * @returns {CFileInfo[]?} Identifying success (exists) or null if not found.
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
+ * should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" uncheck><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" uncheck><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
  */
-export function disk_mkdir() {
-  // TODO: Deno for sure
-  //       NodeJS if no 3rd party items needed.
-  throw API_NOT_IMPLEMENTED;
+export function disk_ls(path) {
+  json_check_type({type: "string", data: path, shouldThrow: true});
+  if (runtime_is_deno()) {
+    try {
+      // @ts-ignore Will exist in Deno Runtime.
+      const dirList = globalThis.readDirSync(path);
+      const fileInfoList = [];
+      for (const dirEntry of dirList) {
+        const filename = `${path}/${dirEntry.name}`;
+        // @ts-ignore Will exist in Deno Runtime.
+        const metadata = globalThis.lstatSync(filename);
+        fileInfoList.push(new CFileInfo(filename, metadata ));
+      }
+      return fileInfoList;
+    } catch (err) {
+      return null;
+    }
+  }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
-* <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
+ * Makes a directory at the specified location.
+ * @param {string} path The directory to create.
+ * @returns {CResult} Identifying success (created) or an error specifying why
+ * the creation failed.
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
+ * should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" uncheck><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" uncheck><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
  */
-export function disk_mv() {
-  // TODO: Deno for sure
-  //       NodeJS if no 3rd party items needed.
-  throw API_NOT_IMPLEMENTED;
+export function disk_mkdir(path) {
+  json_check_type({type: "string", data: path, shouldThrow: true});
+  if (runtime_is_deno()) {
+    try {
+      // @ts-ignore Will exist in the Deno Runtime.
+      globalThis.mkdirSync(path);
+      return new CResult();
+    } catch (err) {
+      return new CResult({error: err});
+    }
+  }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
-* <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
+ * Moves a file / directory from its currently source location to the
+ * specified destination.
+ * @param {string} src The source item to move.
+ * @param {string} dest The destination of where to move the item.
+ * @returns {CResult} Identifying success or a reason why move failed.
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
+ * should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" uncheck><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" uncheck><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
  */
-export function disk_read_file() {
-  // TODO: Deno for sure
-  //       NodeJS if no 3rd party items needed.
-  //       Browser has read / write file. See Rust.
-  throw API_NOT_IMPLEMENTED;
+export function disk_mv(src, dest) {
+  json_check_type({type: "string", data: src, shouldThrow: true});
+  json_check_type({type: "string", data: dest, shouldThrow: true});
+  if (runtime_is_deno()) {
+    try {
+      // @ts-ignore Will exist in Deno runtime.
+      globalThis.renameSync(src, dest);
+      return new CResult();
+    } catch (err) {
+      return new CResult({error: err});
+    }
+  }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
-* <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
+ * Provides the mechanism to read a file from the host operating system disk
+ * and return it as binary or string data.
+ * @param {object} params The named parameters
+ * @param {string} [params.filename] Filename to provide when using deno or
+ * nodejs runtimes to open a file.
+ * @param {string} [params.accept=""] The accept string to apply on the file
+ * open dialog when the runtime is browser.
+ * @param {boolean} [params.isTextFile=false] Identifies whether to retrieve
+ * the data as Uint8Array or as a string.
+ * @returns {Promise<CResult>} The result containing the requested data or
+ * reason for failure.
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
+ * should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" check><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" uncheck><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
  */
-export function disk_rm() {
-  // TODO: Deno for sure
-  //       NodeJS if no 3rd party items needed.
-  throw API_NOT_IMPLEMENTED;
+export function disk_read_file({filename, accept="", isTextFile=false}) {
+  json_check_type({type: "string", data: accept, shouldThrow: true});
+  json_check_type({type: "boolean", data: isTextFile, shouldThrow: true});
+  if (runtime_is_browser()) {
+    return new Promise((resolve) => {
+      try {
+        // @ts-ignore document will exist in browser context.
+        const input = globalThis.document.createElement("input");
+        input.type = "file";
+        input.accept = accept;
+        input.oncancel = () => {
+          resolve(new CResult({error: "File open was cancelled"}));
+        }
+        input.onchange = async () => {
+          if (input.files != null && input.files.length > 0) {
+            let file = input.files[0];
+            if (isTextFile) {
+              const buffer = await file.arrayBuffer();
+              const decoder = new TextDecoder();
+              const data = decoder.decode(buffer);
+              resolve(new CResult({value: data}));
+            } else {
+              const buffer = await file.arrayBuffer();
+              const array = new Uint8Array(buffer);
+              const data = Array.from(array);
+              resolve(new CResult({value: data}));
+            }
+          } else {
+            resolve(new CResult({error: "Failed to read the specified file"}));
+          }
+        }
+        input.click();
+      } catch (err) {
+        resolve(new CResult({error: err}));
+      }
+    });
+  } else if (runtime_is_deno()) {
+    return new Promise((resolve) => {
+      try {
+        const data = isTextFile
+          // @ts-ignore Will exist in the Deno runtime.
+          ? globalThis.readTextFileSync(filename)
+          // @ts-ignore Will exist in the Deno runtime.
+          : globalThis.readFileSync(filename);
+        resolve(new CResult({value: data}));
+      } catch (err) {
+        resolve(new CResult({error: err}));
+      }
+    });
+  }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
-* <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
+ * Removes a file or directory at the specified location.
+ * @param {string} filename The item to remove
+ * @returns {CResult} Identifying success or a reason why removal failed.
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
+ * should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" uncheck><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" uncheck><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
  */
-export function disk_write_file() {
-  // TODO: Deno for sure
-  //       NodeJS if no 3rd party items needed.
-  //       Browser has read / write file. See Rust.
-  throw API_NOT_IMPLEMENTED;
+export function disk_rm(filename) {
+  json_check_type({type: "string", data: filename, shouldThrow: true});
+  if (runtime_is_deno()) {
+    try {
+      // @ts-ignore Will exist in the Deno Runtime.
+      globalThis.removeSync(filename);
+      return new CResult();
+    } catch (err) {
+      return new CResult({error: err});
+    }
+  }
+  throw API_UNSUPPORTED_RUNTIME;
+}
+
+/**
+ * Saves an entire file to the host operating system disk. For browser runtime
+ * this will get saved to the download folder of the given operating system.
+ * @param {object} params The named parameters
+ * @param {string} params.filename The path and filename on disk.
+ * @param {string | Uint8Array} params.data The data to save to disk.
+ * @param {boolean} [params.append=false] Whether to append data to an
+ * existing file or not. Only valid for Deno / NodeJS runtimes.
+ * @returns {Promise<CResult>} Signaling success or capturing the reason for
+ * failure.
+ * @throws {SyntaxError} Reflecting either {@link API_MISUSE},
+ * {@link API_NOT_IMPLEMENTED}, {@link API_TYPE_VIOLATION}, or
+ * {@link API_UNSUPPORTED_RUNTIME} codemelted.js module API violations. You
+ * should not try-catch these as these serve as asserts to the
+ * developer.
+ * </p>
+ * <b>Supported Platforms:</b>
+ * <input type="checkbox" onclick="return false;" check><label>Browser</label>
+ * <input type="checkbox" onclick="return false;" checked><label>Deno</label>
+ * <input type="checkbox" onclick="return false;" uncheck><label>NodeJS</label>
+ * <input type="checkbox" onclick="return false;" unchecked><label>Worker</label>
+ * </p>
+ * @example
+ * // TBD
+ */
+export function disk_write_file({filename, data, append=false}) {
+  json_check_type({type: "string", data: filename, shouldThrow: true});
+  if (filename.length === 0) {
+    throw API_MISUSE;
+  }
+  const isValidData = json_check_type({type: "string", data: data})
+    || json_check_type({type: Uint8Array, data: data});
+  if (!isValidData) {
+    throw API_TYPE_VIOLATION;
+  }
+  if (runtime_is_browser()) {
+    return new Promise((resolve) => {
+      try {
+        // Fallback if the File System Access API is not supported…
+        // Create the blob URL.
+        let blob = json_check_type({type: "string", data: data})
+          ? new Blob([data], { type: "text/plain" })
+          : json_check_type({type: Uint8Array, data: data})
+            ? new Blob([data], { type: 'application/octet-stream' })
+            : data;
+
+        // @ts-ignore This will be fully converted to a blob.
+        const blobURL = URL.createObjectURL(blob);
+
+        // @ts-ignore Will exist in browser context
+        const a = globalThis.document.createElement('a');
+        a.href = blobURL;
+        a.download = filename;
+        a.style.display = 'none';
+
+        // @ts-ignore Will exist in browser context
+        globalThis.document.body.append(a);
+        a.click();
+        // Revoke the blob URL and remove the element.
+        setTimeout(() => {
+          URL.revokeObjectURL(blobURL);
+          a.remove();
+          resolve(new CResult());
+        }, 1000);
+      } catch (err) {
+        resolve(new CResult({error: err}));
+      }
+    });
+  } else if (runtime_is_deno()) {
+    return new Promise((resolve) => {
+      try {
+        if (json_check_type({type: "string", data: data})) {
+          // @ts-ignore Will exist in Deno runtime.
+          globalThis.writeTextFileSync(filename, data, append);
+        } else {
+          // @ts-ignore Will exist in Deno runtime.
+          globalThis.writeFileSync(filename, data, append);
+        }
+        resolve(new CResult());
+      } catch (err) {
+        resolve(new CResult({error: err}));
+      }
+    });
+  }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 // ============================================================================
@@ -1329,8 +1770,8 @@ export function hw_bluetooth_supported() {
  * // TBD
  */
 export function hw_midi_supported() {
-  return "navigator" in globalThis &&
-    "requestMIDIAccess" in globalThis.navigator;
+  return "navigator" in globalThis
+    && "requestMIDIAccess" in globalThis.navigator;
 }
 
 /**
@@ -1870,7 +2311,7 @@ export class CLogRecord {
 /**
  * Holds the logger level object for module logging.
  * @private
- * @type {LOGGER}
+ * @type {object} One of the {@link LOGGER} settings.
  */
 let _loggerLevel = LOGGER.error;
 
@@ -3051,24 +3492,36 @@ export function npu_math({formula, args}) {
 * <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
  */
 export function process_exists() {
-  // TODO: Deno vs NodeJS running external process commands.
-  throw API_NOT_IMPLEMENTED;
+  if (runtime_is_deno()) {
+    throw API_UNSUPPORTED_RUNTIME;
+  } else if (runtime_is_nodejs()) {
+    throw API_UNSUPPORTED_RUNTIME;
+  }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
 * <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
  */
 export function process_run() {
-  // TODO: Deno vs NodeJS running external process commands.
-  throw API_NOT_IMPLEMENTED;
+  if (runtime_is_deno()) {
+    throw API_UNSUPPORTED_RUNTIME;
+  } else if (runtime_is_nodejs()) {
+    throw API_UNSUPPORTED_RUNTIME;
+  }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 /**
 * <mark>FUTURE DEVELOPMENT. DO NOT USE!</mark>
  */
 export function process_spawn() {
-  // TODO: Deno vs NodeJS running external process commands.
-  throw API_NOT_IMPLEMENTED;
+  if (runtime_is_deno()) {
+    throw API_UNSUPPORTED_RUNTIME;
+  } else if (runtime_is_nodejs()) {
+    throw API_UNSUPPORTED_RUNTIME;
+  }
+  throw API_UNSUPPORTED_RUNTIME;
 }
 
 // ============================================================================
@@ -3168,6 +3621,8 @@ export function runtime_environment(name) {
   throw API_UNSUPPORTED_RUNTIME;
 }
 
+// TODO: EVENT_REQUEST enum
+
 /**
  * Adds or removes an event listener to the JavaScript runtime or individual
  * element.
@@ -3213,7 +3668,7 @@ export function runtime_event({
     } else {
       globalThis.addEventListener(type, listener);
     }
-  } else if (action = "remove") {
+  } else if (action === "remove") {
     if (obj) {
       obj.removeEventListener(type, listener);
     } else {
@@ -3961,20 +4416,11 @@ export function storage_set({type = STORAGE_TYPE.Local, key, value}) {
  * @property {string} MoveBy moves the current window by a specified amount.
  * @property {string} MoveTo moves the current window to the specified
  * coordinates.
- * @property {string} OpenFilePicker shows a file picker that allows a user
- * to select a file or multiple files and returns a handle for the file(s).
- * NOTE: This is only supported on chromium browsers, will default to fallback
- * methods in that event.
  * @property {string} Print Opens the print dialog to print the current
  * document.
  * @property {string} ResizeBy resizes the current window by a specified
  * amount.
  * @property {string} ResizeTo dynamically resizes the window.
- * @property {string} SaveFilePicker shows a file picker that allows a user to
- * save a file. Either by selecting an existing file, or entering a name
- * for a new file.
- * NOTE: This is only supported on chromium browsers, will default to fallback
- * methods in that event.
  * @property {string} Scroll scrolls the window to a particular place in the
  * document.
  * @property {string} ScrollBy scrolls the document in the window by the
@@ -3995,11 +4441,9 @@ export const ACTION_REQUEST = Object.freeze({
   Focus: "focus",
   MoveBy: "moveBy",
   MoveTo: "moveTo",
-  OpenFilePicker: "openFilePicker",
   Print: "print",
   ResizeBy: "resizeBy",
   ResizeTo: "resizeTo",
-  SaveFilePicker: "saveFilePicker",
   Scroll: "scroll",
   ScrollBy: "scrollBy",
   ScrollTo: "scrollTo",
@@ -4633,15 +5077,6 @@ export async function ui_action({request, options, pattern=[], x, y}) {
       // @ts-ignore check types above will validate number is not null.
       globalThis.moveTo(x, y);
       break;
-    case ACTION_REQUEST.OpenFilePicker:
-      if ("showOpenFilePicker" in globalThis) {
-        // @ts-ignore This is in a browser context
-        value = globalThis.showOpenFilePicker(options);
-      } else {
-        throw API_NOT_IMPLEMENTED;
-        // TODO: Implement fallback.
-      }
-      break;
     case ACTION_REQUEST.Print:
       // @ts-ignore This is in a browser context
       globalThis.print();
@@ -4657,15 +5092,6 @@ export async function ui_action({request, options, pattern=[], x, y}) {
       json_check_type({type: "number", data: y, shouldThrow: true});
       // @ts-ignore check types above will validate number is not null.
       globalThis.resizeTo(x, y);
-      break;
-    case ACTION_REQUEST.SaveFilePicker:
-      if ("showSaveFilePicker" in globalThis) {
-        // @ts-ignore This is in a browser context
-        value = globalThis.showSaveFilePicker(options);
-      } else {
-        throw API_NOT_IMPLEMENTED;
-        // TODO: Implement fallback.
-      }
       break;
     case ACTION_REQUEST.Scroll:
       json_check_type({type: "number", data: x, shouldThrow: true});
